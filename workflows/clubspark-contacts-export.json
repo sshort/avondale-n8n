@@ -1,0 +1,101 @@
+{
+  "name": "ClubSpark Contacts Export",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "command": "CLUBSPARK_OUTPUT='-' bash /mnt/c/dev/avondale-n8n/scripts/run-clubspark-export-local.sh"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000015",
+      "name": "Run Local Browser Export",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst csvText = String(item.json?.stdout ?? '').trim();\nconst stderr = String(item.json?.stderr ?? '').trim();\nif (!csvText) {\n  throw new Error(`Local browser export did not return CSV output.${stderr ? ` STDERR: ${stderr}` : ''}`);\n}\nif (/^<!DOCTYPE html/i.test(csvText) || /^<html/i.test(csvText) || /<title>.*Sign in/i.test(csvText)) {\n  throw new Error('Local browser export returned HTML instead of CSV. The browser login did not complete successfully.');\n}\nfunction parseCsv(text) {\n  const rows = [];\n  let row = [], field = '', inQuotes = false;\n  for (let i = 0; i < text.length; i++) {\n    const ch = text[i], next = text[i + 1];\n    if (inQuotes) {\n      if (ch === '\"' && next === '\"') { field += '\"'; i++; }\n      else if (ch === '\"') { inQuotes = false; }\n      else { field += ch; }\n    } else {\n      if (ch === '\"') { inQuotes = true; }\n      else if (ch === ',') { row.push(field); field = ''; }\n      else if (ch === '\\r' && next === '\\n') { row.push(field); field = ''; rows.push(row); row = []; i++; }\n      else if (ch === '\\n' || ch === '\\r') { row.push(field); field = ''; rows.push(row); row = []; }\n      else { field += ch; }\n    }\n  }\n  if (field || row.length) { row.push(field); rows.push(row); }\n  return rows;\n}\nconst allRows = parseCsv(csvText);\nif (allRows.length < 2) throw new Error(`CSV has fewer than 2 rows (got ${allRows.length}).`);\nconst headers = allRows[0].map((h) => h.trim());\nif (!headers.includes('First name') || !headers.includes('Last name')) {\n  throw new Error(`ClubSpark export did not return the expected contacts CSV headers. Got: ${headers.slice(0, 8).join(', ')}`);\n}\nconst dataRows = allRows.slice(1).filter((r) => r.some((c) => c.trim() !== ''));\nif (!dataRows.length) {\n  return [{ json: { rowCount: 0, message: 'No data rows in CSV export.' } }];\n}\nreturn dataRows.map((row) => ({ json: Object.fromEntries(headers.map((h, i) => [h, (row[i] ?? '').trim()])) }));"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000008",
+      "name": "Parse Contacts CSV",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return `'${String(value).replace(/'/g, \"''\")}'`;\n};\nconst rows = $input.all().map((item) => item.json ?? {});\nif (!rows.length) {\n  throw new Error('No parsed contact rows were available to build the import SQL.');\n}\nconst values = rows.map((row) => {\n  const firstName = sqlLiteral(row['First name'] ?? row['first name'] ?? '');\n  const lastName  = sqlLiteral(row['Last name']  ?? row['last name']  ?? '');\n  const address1  = sqlLiteral(row['Address 1']  ?? row['address 1'] ?? '');\n  const address2  = sqlLiteral(row['Address 2']  ?? row['address 2'] ?? '');\n  const address3  = sqlLiteral(row['Address 3']  ?? row['address 3'] ?? '');\n  const town      = sqlLiteral(row['town']       ?? row['Town']      ?? '');\n  const postcode  = sqlLiteral(row['postcode']   ?? row['Postcode']  ?? '');\n  return `(${firstName}, ${lastName}, ${address1}, ${address2}, ${address3}, ${town}, ${postcode})`;\n}).join(',\\n  ');\nconst sql = `BEGIN;\\nSELECT * FROM public.prepare_raw_contacts_import();\\nINSERT INTO raw_contacts (\"First name\", \"Last name\", \"Address 1\", \"Address 2\", \"Address 3\", town, postcode)\\nVALUES\\n  ${values};\\nCOMMIT;`;\nreturn [{ json: { sql, rowCount: rows.length } }];"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000011",
+      "name": "Build Insert SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [950, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000012",
+      "name": "Insert Into raw_contacts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1200, 300],
+      "credentials": {
+        "postgres": {
+          "id": "DCYrUK9PAWz5kyFD",
+          "name": "avondaledb-n8n-user-cloudsql-socket"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) AS total_contacts FROM raw_contacts;"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000013",
+      "name": "Verify Row Count",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1450, 300],
+      "credentials": {
+        "postgres": {
+          "id": "DCYrUK9PAWz5kyFD",
+          "name": "avondaledb-n8n-user-cloudsql-socket"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [[{ "node": "Run Local Browser Export", "type": "main", "index": 0 }]]
+    },
+    "Run Local Browser Export": {
+      "main": [[{ "node": "Parse Contacts CSV", "type": "main", "index": 0 }]]
+    },
+    "Parse Contacts CSV": {
+      "main": [[{ "node": "Build Insert SQL", "type": "main", "index": 0 }]]
+    },
+    "Build Insert SQL": {
+      "main": [[{ "node": "Insert Into raw_contacts", "type": "main", "index": 0 }]]
+    },
+    "Insert Into raw_contacts": {
+      "main": [[{ "node": "Verify Row Count", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "meta": { "templateCredsSetupCompleted": false },
+  "pinData": {},
+  "tags": [],
+  "active": false,
+  "isArchived": false
+}

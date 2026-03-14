@@ -1,0 +1,68 @@
+{
+  "name": "Archive raw_members by membership season",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f7e7f6c5-1111-4444-8888-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [260, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH current_season AS (\n    SELECT max(season::int) AS season\n    FROM public.membership_packages\n    WHERE season ~ '^[0-9]{4}$'\n),\ndeleted_rows AS (\n    DELETE FROM public.raw_members rm\n    USING public.membership_packages mp, current_season cs\n    WHERE mp.name = rm.\"Membership\"\n      AND mp.season ~ '^[0-9]{4}$'\n      AND mp.season::int < cs.season\n    RETURNING rm.*, mp.season::int AS snapshot_year\n),\ninserted_rows AS (\n    INSERT INTO public.raw_members_historical\n    SELECT dr.*, now(), 'membership_packages_season'\n    FROM deleted_rows dr\n    RETURNING snapshot_year\n)\nSELECT\n    (SELECT season FROM current_season) AS current_season,\n    COALESCE((SELECT count(*) FROM inserted_rows), 0) AS moved_row_count,\n    (SELECT min(snapshot_year) FROM inserted_rows) AS oldest_moved_season,\n    (SELECT max(snapshot_year) FROM inserted_rows) AS newest_moved_season;"
+      },
+      "id": "f7e7f6c5-1111-4444-8888-000000000002",
+      "name": "Move historical raw_members",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [560, 300],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const row = $input.first()?.json ?? {};\nconst moved = Number(row.moved_row_count ?? 0);\nconst currentSeason = row.current_season ?? null;\nconst oldest = row.oldest_moved_season ?? null;\nconst newest = row.newest_moved_season ?? null;\n\nreturn [{\n  json: {\n    current_season: currentSeason,\n    moved_row_count: moved,\n    message: moved\n      ? `Moved ${moved} raw_members rows for seasons ${oldest} to ${newest} into raw_members_historical.`\n      : `No raw_members rows matched seasons earlier than ${currentSeason}.`,\n    oldest_moved_season: oldest,\n    newest_moved_season: newest,\n  },\n}];"
+      },
+      "id": "f7e7f6c5-1111-4444-8888-000000000003",
+      "name": "Summarize move",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [860, 300]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Move historical raw_members",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move historical raw_members": {
+      "main": [
+        [
+          {
+            "node": "Summarize move",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  }
+}

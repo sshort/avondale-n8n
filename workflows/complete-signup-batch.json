@@ -1,0 +1,137 @@
+{
+  "updatedAt": "2026-03-11T15:05:18.789Z",
+  "createdAt": "2026-03-11T12:24:55.344Z",
+  "id": "66PR9SQ7DdnddYDp",
+  "name": "Complete Signup Batch",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a4ca9659-4cdf-4452-92d1-79263ae2f401",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Optionally set batchId before running the workflow.\n// Leave as null to complete the latest batch that is still Processing.\nconst batchId = null;\n\nreturn [{\n  json: {\n    batch_id: batchId,\n  },\n}];"
+      },
+      "id": "8d80a2b3-8b3f-4f91-849e-f1192ab44f0d",
+      "name": "Set Batch Id",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawBatchId = $input.first()?.json?.batch_id;\nconst batchId = rawBatchId === null || rawBatchId === undefined || rawBatchId === ''\n  ? null\n  : Number(rawBatchId);\n\nif (batchId !== null && (!Number.isInteger(batchId) || batchId <= 0)) {\n  return [{\n    json: {\n      batch_id: rawBatchId,\n      completeBatchSql: \"select NULL::bigint as requested_batch_id, NULL::bigint as batch_id, 0::bigint as completed_signup_count, 'batch_id must be a positive integer when provided'::text as message;\",\n    },\n  }];\n}\n\nconst requestedBatchSql = batchId === null ? 'NULL' : `${batchId}::bigint`;\nconst selectedBatchSql = batchId === null\n  ? \"select id from signup_batches where status = 'Processing' order by id desc limit 1\"\n  : `select ${batchId}::bigint as id`;\n\nreturn [{\n  json: {\n    batch_id: batchId,\n    completeBatchSql: `with selected_batch as (\n    ${selectedBatchSql}\n),\nupdated_signups as (\n    update member_signups\n    set status = 'Complete'\n    where batch_id = (select id from selected_batch)\n      and status = 'Processing'\n    returning id\n),\nupdated_batch as (\n    update signup_batches\n    set status = 'Complete',\n        completed_at = now()\n    where id = (select id from selected_batch)\n      and status = 'Processing'\n    returning id\n)\nselect\n    ${requestedBatchSql} as requested_batch_id,\n    (select id from updated_batch) as batch_id,\n    coalesce((select count(*) from updated_signups), 0) as completed_signup_count,\n    case\n        when exists (select 1 from updated_batch) then 'Complete'\n        when exists (select 1 from selected_batch) then 'Batch not found or already complete'\n        else 'No processing batch found'\n    end as message;`,\n  },\n}];"
+      },
+      "id": "5f5ee683-4c7d-4b4b-9c7c-5744d60ee44c",
+      "name": "Build Completion Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        850,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.completeBatchSql }}"
+      },
+      "id": "9332f44c-100f-457f-a774-8209f2fbaee9",
+      "name": "Complete Batch",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1160,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "DCYrUK9PAWz5kyFD",
+          "name": "avondaledb-n8n-user-cloudsql-socket"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Set Batch Id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Batch Id": {
+      "main": [
+        [
+          {
+            "node": "Build Completion Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Completion Query": {
+      "main": [
+        [
+          {
+            "node": "Complete Batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "452f02dc-d432-436b-b0cd-8960572db376",
+  "activeVersionId": null,
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-11T12:24:55.344Z",
+      "createdAt": "2026-03-11T12:24:55.344Z",
+      "role": "workflow:owner",
+      "workflowId": "66PR9SQ7DdnddYDp",
+      "projectId": "wACpjAjmafCK3zbr",
+      "project": {
+        "updatedAt": "2026-03-08T10:58:39.827Z",
+        "createdAt": "2026-03-08T10:56:40.759Z",
+        "id": "wACpjAjmafCK3zbr",
+        "name": "Steve Short <steve.short@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "8beae1bd-883b-47e1-b118-4b4dc77d2722"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

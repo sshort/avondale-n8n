@@ -1,0 +1,244 @@
+{
+  "name": "ClubSpark Contacts Export (Puppeteer)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "operation": "page",
+        "action": "goto",
+        "url": "https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts",
+        "options": {
+          "waitUntil": "networkidle2"
+        }
+      },
+      "id": "p001",
+      "name": "Navigate to Contacts",
+      "type": "n8n-nodes-puppeteer.puppeteer",
+      "typeVersion": 1,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "operation": "page",
+        "action": "type",
+        "selector": "#Email",
+        "text": "steve@shortcentral.com",
+        "options": {}
+      },
+      "id": "p002",
+      "name": "Type Email",
+      "type": "n8n-nodes-puppeteer.puppeteer",
+      "typeVersion": 1,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "operation": "page",
+        "action": "type",
+        "selector": "#Password",
+        "text": "HQ#zo7P8C$",
+        "options": {}
+      },
+      "id": "p003",
+      "name": "Type ClubSpark Password",
+      "type": "n8n-nodes-puppeteer.puppeteer",
+      "typeVersion": 1,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "operation": "page",
+        "action": "click",
+        "selector": "button[type='submit']",
+        "options": {
+          "waitUntil": "networkidle2"
+        }
+      },
+      "id": "p004",
+      "name": "Click Sign In",
+      "type": "n8n-nodes-puppeteer.puppeteer",
+      "typeVersion": 1,
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "operation": "page",
+        "action": "type",
+        "selector": "input[id*='username']",
+        "text": "sshort",
+        "options": {}
+      },
+      "id": "p005",
+      "name": "Type LTA Username",
+      "type": "n8n-nodes-puppeteer.puppeteer",
+      "typeVersion": 1,
+      "position": [1100, 300]
+    },
+    {
+      "parameters": {
+        "operation": "page",
+        "action": "type",
+        "selector": "input[id*='password']",
+        "text": "fH8Urv2XrtZwXra!",
+        "options": {}
+      },
+      "id": "p006",
+      "name": "Type LTA Password",
+      "type": "n8n-nodes-puppeteer.puppeteer",
+      "typeVersion": 1,
+      "position": [1320, 300]
+    },
+    {
+      "parameters": {
+        "operation": "page",
+        "action": "click",
+        "selector": "button[id*='Login'], input[type='submit']",
+        "options": {
+          "waitUntil": "networkidle2"
+        }
+      },
+      "id": "p007",
+      "name": "Perform LTA Login",
+      "type": "n8n-nodes-puppeteer.puppeteer",
+      "typeVersion": 1,
+      "position": [1540, 300]
+    },
+    {
+      "parameters": {
+        "operation": "page",
+        "action": "click",
+        "selector": ".js-filter-reset",
+        "options": {
+          "waitUntil": "networkidle2"
+        }
+      },
+      "id": "p008",
+      "name": "Puppeteer: Reset Filters",
+      "type": "n8n-nodes-puppeteer.puppeteer",
+      "typeVersion": 1,
+      "position": [1760, 300]
+    },
+    {
+      "parameters": {
+        "operation": "page",
+        "action": "click",
+        "selector": "input[name='select_all']",
+        "options": {}
+      },
+      "id": "p009",
+      "name": "Puppeteer: Select All",
+      "type": "n8n-nodes-puppeteer.puppeteer",
+      "typeVersion": 1,
+      "position": [1980, 300]
+    },
+    {
+      "parameters": {
+        "operation": "page",
+        "action": "click",
+        "selector": ".dropdown-toggle",
+        "options": {}
+      },
+      "id": "p010",
+      "name": "Puppeteer: Open More Options",
+      "type": "n8n-nodes-puppeteer.puppeteer",
+      "typeVersion": 1,
+      "position": [2200, 300]
+    },
+    {
+      "parameters": {
+        "operation": "page",
+        "action": "click",
+        "selector": "a[href*='Export']",
+        "options": {
+          "waitUntil": "networkidle2"
+        }
+      },
+      "id": "p011",
+      "name": "Puppeteer: Click Export",
+      "type": "n8n-nodes-puppeteer.puppeteer",
+      "typeVersion": 1,
+      "position": [2420, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Fallback to HTTP for the actual CSV binary download using cookies from Puppeteer\nconst cookies = $node[\"Perform LTA Login\"].json.cookies;\nconst cookieHeader = cookies.map(c => `${c.name}=${c.value}`).join('; ');\nreturn [{ json: { cookieHeader } }];"
+      },
+      "id": "p012",
+      "name": "Extract Puppeteer Cookies",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2640, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts/Export?status=Active",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Cookie", "value": "={{ $json.cookieHeader }}" },
+            { "name": "X-Requested-With", "value": "XMLHttpRequest" },
+            { "name": "Referer", "value": "https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "SelectAll", "value": "True" },
+            { "name": "roles", "value": "on" },
+            { "name": "email", "value": "on" }
+          ]
+        },
+        "options": {
+          "response": { "response": { "responseFormat": "text" } }
+        }
+      },
+      "id": "p013",
+      "name": "Download CSV (Final)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2860, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const csvText = $input.first().json.data ?? $input.first().json ?? '';\nfunction parseCsv(text) {\n  const rows = [];\n  let row = [], field = '', inQuotes = false;\n  for (let i = 0; i < text.length; i++) {\n    const ch = text[i], next = text[i+1];\n    if (inQuotes) {\n      if (ch === '\"' && next === '\"') { field += '\"'; i++; }\n      else if (ch === '\"') { inQuotes = false; }\n      else { field += ch; }\n    } else {\n      if (ch === '\"') { inQuotes = true; }\n      else if (ch === ',') { row.push(field); field = ''; }\n      else if (ch === '\\n') { row.push(field); rows.push(row); row = []; field = ''; }\n      else { field += ch; }\n    }\n  }\n  return rows;\n}\nconst allRows = parseCsv(csvText.trim());\nconst headers = allRows[0];\nreturn allRows.slice(1).map(row => ({ json: Object.fromEntries(headers.map((h, i) => [h, row[i]])) }));"
+      },
+      "id": "p014",
+      "name": "Parse CSV Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3080, 300]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": { "main": [[{ "node": "Navigate to Contacts", "type": "main", "index": 0 }]] },
+    "Navigate to Contacts": { "main": [[{ "node": "Type Email", "type": "main", "index": 0 }]] },
+    "Type Email": { "main": [[{ "node": "Type ClubSpark Password", "type": "main", "index": 0 }]] },
+    "Type ClubSpark Password": { "main": [[{ "node": "Click Sign In", "type": "main", "index": 0 }]] },
+    "Click Sign In": { "main": [[{ "node": "Type LTA Username", "type": "main", "index": 0 }]] },
+    "Type LTA Username": { "main": [[{ "node": "Type LTA Password", "type": "main", "index": 0 }]] },
+    "Type LTA Password": { "main": [[{ "node": "Perform LTA Login", "type": "main", "index": 0 }]] },
+    "Perform LTA Login": { "main": [[{ "node": "Puppeteer: Reset Filters", "type": "main", "index": 0 }]] },
+    "Puppeteer: Reset Filters": { "main": [[{ "node": "Puppeteer: Select All", "type": "main", "index": 0 }]] },
+    "Puppeteer: Select All": { "main": [[{ "node": "Puppeteer: Open More Options", "type": "main", "index": 0 }]] },
+    "Puppeteer: Open More Options": { "main": [[{ "node": "Puppeteer: Click Export", "type": "main", "index": 0 }]] },
+    "Puppeteer: Click Export": { "main": [[{ "node": "Extract Puppeteer Cookies", "type": "main", "index": 0 }]] },
+    "Extract Puppeteer Cookies": { "main": [[{ "node": "Download CSV (Final)", "type": "main", "index": 0 }]] },
+    "Download CSV (Final)": { "main": [[{ "node": "Parse CSV Output", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "meta": { "templateCredsSetupCompleted": false },
+  "pinData": {},
+  "tags": [],
+  "active": false,
+  "isArchived": false
+}

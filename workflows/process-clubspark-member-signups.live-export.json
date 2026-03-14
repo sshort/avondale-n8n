@@ -1,0 +1,115 @@
+{
+  "updatedAt": "2026-03-11T14:10:24.727Z",
+  "createdAt": "2026-03-11T11:45:06.066Z",
+  "id": "aFpNorZJDCY53KBt",
+  "name": "Process ClubSpark Member Signups",
+  "description": null,
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const body = item.snippet || item.text || '';\nconst patterns = {\n    payer: /(?:Hi,)?\\s*(.+)\\s+has applied for/,\n    product: /has applied for\\s+(.+)\\./,\n    member: /Member name:\\s*(.+);/,\n    cost: /cost:\\s*Â£([\\d.]+)/,\n    method: /payment by\\s*(.+),/\n};\n\nconst extracted = {};\nfor (const [key, regex] of Object.entries(patterns)) {\n    const match = body.match(regex);\n    extracted[key] = match ? match[1].trim() : null;\n}\n\nif (extracted.payer) {\n    const names = extracted.payer.split(\" \");\n    extracted.firstName = names[0];\n    extracted.lastName = names.slice(1).join(\" \");\n}\n\nreturn {\n    payer: extracted.payer,\n    product: extracted.product,\n    member: extracted.member,\n    cost: extracted.cost ? parseFloat(extracted.cost) : 0,\n    method: extracted.method,\n    \"First name\": extracted.firstName,\n    \"Last name\": extracted.lastName,\n    signup_date: new Date().toISOString(),\n    status: \"Processed\"\n};"
+      },
+      "name": "Extract Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        0
+      ],
+      "id": "f47eecc0-56e6-4b2c-91d2-ef6f0f4c3404"
+    },
+    {
+      "parameters": {
+        "table": "member_signups_dev",
+        "columns": [
+          "payer",
+          "product",
+          "member",
+          "cost",
+          "method",
+          "First name",
+          "Last name",
+          "signup_date",
+          "status"
+        ],
+        "additionalFields": {}
+      },
+      "name": "Insert into DB",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        400,
+        0
+      ],
+      "id": "5e3deb93-65ca-42e1-9751-e6d1136b23cf",
+      "credentials": {
+        "postgres": {
+          "id": "N4eeJ2CLlevgduir",
+          "name": "avondaledb-n8n-user"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d4053131-b32f-4bd5-a9c8-e623eb2c7478",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "connections": {
+    "Extract Data": {
+      "main": [
+        [
+          {
+            "node": "Insert into DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "binaryMode": "separate",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "187de55d-f4b2-43aa-b7c4-995255004ab4",
+  "activeVersionId": null,
+  "versionCounter": 9,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-11T11:45:06.066Z",
+      "createdAt": "2026-03-11T11:45:06.066Z",
+      "role": "workflow:owner",
+      "workflowId": "aFpNorZJDCY53KBt",
+      "projectId": "wACpjAjmafCK3zbr",
+      "project": {
+        "updatedAt": "2026-03-08T10:58:39.827Z",
+        "createdAt": "2026-03-08T10:56:40.759Z",
+        "id": "wACpjAjmafCK3zbr",
+        "name": "Steve Short <steve.short@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "8beae1bd-883b-47e1-b118-4b4dc77d2722"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

@@ -1,0 +1,168 @@
+{
+  "updatedAt": "2026-03-11T14:59:49.965Z",
+  "createdAt": "2026-03-11T12:24:54.464Z",
+  "id": "iTAG5myHKQ6XRi7S",
+  "name": "Create Signup Batch",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "0f5cc9e0-d745-489d-b30f-54a50abac001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "with existing_batch as (\n    select id\n    from signup_batches\n    where status = 'Processing'\n    order by id desc\n    limit 1\n),\ncandidate_rows as (\n    select id\n    from member_signups\n    where status = 'New'\n      and not exists (select 1 from existing_batch)\n),\nnew_batch as (\n    insert into signup_batches (status)\n    select 'Processing'\n    where not exists (select 1 from existing_batch)\n      and exists (select 1 from candidate_rows)\n    returning id\n),\nselected_batch as (\n    select id from existing_batch\n    union all\n    select id from new_batch\n),\nupdated_signups as (\n    update member_signups s\n    set status = 'Processing',\n        batch_id = (select id from new_batch)\n    where s.id in (select id from candidate_rows)\n      and exists (select 1 from new_batch)\n    returning s.id, s.batch_id\n)\nselect\n    (select id from selected_batch limit 1) as batch_id,\n    coalesce((select count(*) from updated_signups), 0) as signup_count,\n    case\n        when exists (select 1 from existing_batch) then 'Using existing processing batch'\n        when exists (select 1 from updated_signups) then 'Processing'\n        else 'No new signups available'\n    end as message;"
+      },
+      "id": "998e6b55-995d-4d83-a91f-c1c798f87f3a",
+      "name": "Create Batch",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        560,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "DCYrUK9PAWz5kyFD",
+          "name": "avondaledb-n8n-user-cloudsql-socket"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first()?.json ?? {};\n\nif (!item.batch_id) {\n  return [{\n    json: {\n      ...item,\n      batchDatasetSql: \"select NULL::bigint as batch_id, 'No new signups available'::text as message;\",\n    },\n  }];\n}\n\nconst batchId = Number(item.batch_id);\n\nreturn [{\n  json: {\n    ...item,\n    batchDatasetSql: `select\n    ${batchId}::bigint as batch_id,\n    to_char(s.signup_date, 'dd-MM-yyyy hh24:mi') as signup_date,\n    s.member,\n    s.payer,\n    s.product as product,\n    x.\"First name\" as \"First name\",\n    x.\"Last name\" as \"Last name\",\n    m.\"Age\" as \"Age\",\n    m.\"Email address\" as email_address,\n    x.\"Address 1\" as address_1,\n    x.\"Address 2\" as address_2,\n    x.\"Address 3\" as address_3,\n    x.\"town\" as \"town\",\n    x.\"postcode\" as \"postcode\",\n    'Y' as \"Tags provided\",\n    '' as \"Key pin number\"\nfrom member_signups as s\nleft join raw_members as m\n    on s.member = concat(m.\"First name\", ' ', m.\"Last name\")\n   and m.\"Membership\" = s.product\nleft join raw_contacts as x\n    on s.payer = concat(x.\"First name\", ' ', x.\"Last name\")\nwhere s.batch_id = ${batchId}\norder by s.signup_date;`,\n  },\n}];"
+      },
+      "id": "0e1a3ae9-f145-42ac-9017-95f63f9a2358",
+      "name": "Build Batch Dataset Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.batchDatasetSql }}"
+      },
+      "id": "c81f490c-b15d-4a3b-81a4-e2117c21e39d",
+      "name": "Fetch Batch Dataset",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1170,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "DCYrUK9PAWz5kyFD",
+          "name": "avondaledb-n8n-user-cloudsql-socket"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map((item) => item.json ?? {});\nconst first = rows[0] ?? {};\n\nif (!rows.length || !first.batch_id) {\n  return [{\n    json: {\n      batch_id: first.batch_id ?? null,\n      row_count: 0,\n      message: first.message ?? 'No new signups available',\n    },\n  }];\n}\n\nconst headers = [\n  'signup_date',\n  'member',\n  'payer',\n  'product',\n  'First name',\n  'Last name',\n  'Age',\n  'email_address',\n  'address_1',\n  'address_2',\n  'address_3',\n  'town',\n  'postcode',\n  'Tags provided',\n  'Key pin number',\n];\n\nconst csvEscape = (value) => {\n  if (value === null || value === undefined) return '';\n  const stringValue = String(value);\n  if (/[\",\\n\\r]/.test(stringValue)) {\n    return `\"${stringValue.replace(/\"/g, '\"\"')}\"`;\n  }\n  return stringValue;\n};\n\nconst lines = [headers.map(csvEscape).join(',')];\nfor (const row of rows) {\n  lines.push(headers.map((header) => csvEscape(row[header])).join(','));\n}\n\nconst batchId = Number(first.batch_id);\nconst fileName = `signup-batch-${batchId}.csv`;\nconst csv = lines.join('\\n');\n\nreturn [{\n  json: {\n    batch_id: batchId,\n    row_count: rows.length,\n    file_name: fileName,\n  },\n  binary: {\n    data: {\n      data: Buffer.from(csv, 'utf8').toString('base64'),\n      mimeType: 'text/csv',\n      fileName,\n      fileExtension: 'csv',\n    },\n  },\n}];"
+      },
+      "id": "59bb42cc-02b1-4b4e-9ee6-2813d44b9557",
+      "name": "Build Batch CSV",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1450,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Create Batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Batch": {
+      "main": [
+        [
+          {
+            "node": "Build Batch Dataset Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Batch Dataset Query": {
+      "main": [
+        [
+          {
+            "node": "Fetch Batch Dataset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Batch Dataset": {
+      "main": [
+        [
+          {
+            "node": "Build Batch CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "5c31774d-f1c6-419a-a425-2d3b7e129d92",
+  "activeVersionId": null,
+  "versionCounter": 4,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-11T12:24:54.464Z",
+      "createdAt": "2026-03-11T12:24:54.464Z",
+      "role": "workflow:owner",
+      "workflowId": "iTAG5myHKQ6XRi7S",
+      "projectId": "wACpjAjmafCK3zbr",
+      "project": {
+        "updatedAt": "2026-03-08T10:58:39.827Z",
+        "createdAt": "2026-03-08T10:56:40.759Z",
+        "id": "wACpjAjmafCK3zbr",
+        "name": "Steve Short <steve.short@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "8beae1bd-883b-47e1-b118-4b4dc77d2722"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}
