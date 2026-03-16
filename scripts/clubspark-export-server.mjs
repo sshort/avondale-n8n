@@ -9,17 +9,20 @@ import { fileURLToPath } from 'node:url';
 const port = Number(process.env.PORT ?? '3001');
 const exporterToken = process.env.EXPORTER_TOKEN ?? '';
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const exporterPath = path.join(scriptDir, 'export-clubspark-contacts-local.mjs');
+const exporters = new Map([
+  ['/clubspark-export', path.join(scriptDir, 'export-clubspark-contacts-local.mjs')],
+  ['/clubspark-members-export', path.join(scriptDir, 'export-clubspark-members-local.mjs')],
+]);
 
-let activeRun = null;
+const activeRuns = new Map();
 
-function runExporter() {
-  if (activeRun) {
-    return activeRun;
+function runExporter(scriptPath) {
+  if (activeRuns.has(scriptPath)) {
+    return activeRuns.get(scriptPath);
   }
 
-  activeRun = new Promise((resolve) => {
-    const child = spawn(process.execPath, [exporterPath], {
+  const runPromise = new Promise((resolve) => {
+    const child = spawn(process.execPath, [scriptPath], {
       cwd: scriptDir,
       env: {
         ...process.env,
@@ -45,16 +48,24 @@ function runExporter() {
 
     child.on('close', (code) => {
       const result = { code: code ?? 1, stdout, stderr };
-      activeRun = null;
+      activeRuns.delete(scriptPath);
       resolve(result);
     });
   });
 
-  return activeRun;
+  activeRuns.set(scriptPath, runPromise);
+  return runPromise;
 }
 
 const server = http.createServer(async (req, res) => {
-  if (req.url !== '/clubspark-export' || req.method !== 'POST') {
+  if (req.method !== 'POST') {
+    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('Not found');
+    return;
+  }
+
+  const scriptPath = exporters.get(req.url);
+  if (!scriptPath) {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('Not found');
     return;
@@ -66,7 +77,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  const result = await runExporter();
+  const result = await runExporter(scriptPath);
 
   if (result.code !== 0) {
     res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });

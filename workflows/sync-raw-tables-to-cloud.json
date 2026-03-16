@@ -1,0 +1,285 @@
+{
+  "name": "Sync raw_contacts and raw_members to cloud",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "c1d2e3f4-0001-0001-0001-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [180, 320]
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "c1d2e3f4-0001-0001-0001-000000000011",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [180, 500]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM public.raw_contacts;"
+      },
+      "id": "c1d2e3f4-0001-0001-0001-000000000002",
+      "name": "Read local raw_contacts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [430, 220],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return `'${String(value).replace(/'/g, \"''\")}'`;\n};\nconst sqlInteger = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const digits = String(value).replace(/[^0-9-]+/g, '');\n  if (!digits || digits === '-') return 'NULL';\n  const parsed = Number.parseInt(digits, 10);\n  return Number.isNaN(parsed) ? 'NULL' : String(parsed);\n};\nconst rows = $input.all().map((item) => item.json ?? {});\nif (!rows.length) {\n  throw new Error('No local raw_contacts rows were available to sync.');\n}\nconst columns = [\n  { db: 'Venue ID', type: 'text' },\n  { db: 'Unique ID', type: 'text' },\n  { db: 'First name', type: 'text' },\n  { db: 'Last name', type: 'text' },\n  { db: 'gender', type: 'text' },\n  { db: 'age', type: 'integer' },\n  { db: 'junior', type: 'text' },\n  { db: 'Date of birth', type: 'text' },\n  { db: 'Email address', type: 'text' },\n  { db: 'Phone number', type: 'text' },\n  { db: 'Work number', type: 'text' },\n  { db: 'Mobile number', type: 'text' },\n  { db: 'Emergency contact name', type: 'text' },\n  { db: 'Emergency phone number', type: 'text' },\n  { db: 'Address 1', type: 'text' },\n  { db: 'Address 2', type: 'text' },\n  { db: 'Address 3', type: 'text' },\n  { db: 'town', type: 'text' },\n  { db: 'county', type: 'text' },\n  { db: 'country', type: 'text' },\n  { db: 'postcode', type: 'text' },\n  { db: 'British Tennis Number', type: 'integer' },\n  { db: 'Date joined venue', type: 'text' },\n  { db: 'Medical history', type: 'text' },\n  { db: 'occupation', type: 'text' },\n  { db: 'registered', type: 'text' },\n  { db: 'unsubscribed', type: 'text' },\n  { db: 'Member status', type: 'text' },\n  { db: 'Last active', type: 'text' },\n  { db: 'created', type: 'text' },\n  { db: 'Receipt of Emails', type: 'text' },\n  { db: 'Share Contact Detail', type: 'text' },\n  { db: \"Member's Directory\", type: 'text' },\n  { db: 'photography', type: 'text' }\n];\nconst quotedColumns = columns.map(({ db }) => `\"${db.replace(/\"/g, '\"\"')}\"`).join(', ');\nconst values = rows.map((row) => {\n  const record = columns.map((column) => {\n    const rawValue = row[column.db];\n    return column.type === 'integer' ? sqlInteger(rawValue) : sqlLiteral(rawValue);\n  });\n  return `(${record.join(', ')})`;\n}).join(',\\n  ');\nconst sql = `BEGIN;\\nSELECT * FROM public.prepare_raw_contacts_import();\\nINSERT INTO public.raw_contacts (${quotedColumns})\\nVALUES\\n  ${values};\\nCOMMIT;`;\nreturn [{ json: { sql, rowCount: rows.length } }];"
+      },
+      "id": "c1d2e3f4-0001-0001-0001-000000000003",
+      "name": "Build raw_contacts sync SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 220]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "c1d2e3f4-0001-0001-0001-000000000004",
+      "name": "Write cloud raw_contacts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [970, 220],
+      "credentials": {
+        "postgres": {
+          "id": "39a4v88oeLUdsmM3",
+          "name": "avondale-n8n-user"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) AS total_contacts FROM public.raw_contacts;"
+      },
+      "id": "c1d2e3f4-0001-0001-0001-000000000005",
+      "name": "Verify cloud raw_contacts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1240, 220],
+      "credentials": {
+        "postgres": {
+          "id": "39a4v88oeLUdsmM3",
+          "name": "avondale-n8n-user"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM public.raw_members;"
+      },
+      "id": "c1d2e3f4-0001-0001-0001-000000000006",
+      "name": "Read local raw_members",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [430, 420],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return `'${String(value).replace(/'/g, \"''\")}'`;\n};\nconst sqlInteger = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const digits = String(value).replace(/[^0-9-]+/g, '');\n  if (!digits || digits === '-') return 'NULL';\n  const parsed = Number.parseInt(digits, 10);\n  return Number.isNaN(parsed) ? 'NULL' : String(parsed);\n};\nconst sqlNumeric = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const normalized = String(value).replace(/,/g, '').replace(/[^0-9.-]+/g, '');\n  if (!normalized || normalized === '-' || normalized === '.' || normalized === '-.') return 'NULL';\n  const parsed = Number.parseFloat(normalized);\n  return Number.isNaN(parsed) ? 'NULL' : String(parsed);\n};\nconst rows = $input.all().map((item) => item.json ?? {});\nif (!rows.length) {\n  throw new Error('No local raw_members rows were available to sync.');\n}\nconst columns = [\n  { db: 'Venue ID', type: 'text' },\n  { db: 'First name', type: 'text' },\n  { db: 'Last name', type: 'text' },\n  { db: 'Gender', type: 'text' },\n  { db: 'Age', type: 'integer' },\n  { db: 'Junior', type: 'text' },\n  { db: 'Date of birth', type: 'text' },\n  { db: 'Membership', type: 'text' },\n  { db: 'Payment', type: 'text' },\n  { db: 'Cost', type: 'numeric' },\n  { db: 'Paid', type: 'numeric' },\n  { db: 'Paid Credit Card', type: 'numeric' },\n  { db: 'Paid Direct Debit', type: 'numeric' },\n  { db: 'Paid Cash', type: 'numeric' },\n  { db: 'Paid Cheque', type: 'numeric' },\n  { db: 'Paid Other', type: 'numeric' },\n  { db: 'Gift aid', type: 'text' },\n  { db: 'Status', type: 'text' },\n  { db: 'Start Date', type: 'text' },\n  { db: 'Expiry Date', type: 'text' },\n  { db: 'Email address', type: 'text' },\n  { db: 'Phone number', type: 'text' },\n  { db: 'Work number', type: 'text' },\n  { db: 'Mobile number', type: 'text' },\n  { db: 'Emergency contact name', type: 'text' },\n  { db: 'Emergency phone number', type: 'text' },\n  { db: 'Address 1', type: 'text' },\n  { db: 'Address 2', type: 'text' },\n  { db: 'Address 3', type: 'text' },\n  { db: 'Town', type: 'text' },\n  { db: 'County', type: 'text' },\n  { db: 'Country', type: 'text' },\n  { db: 'Postcode', type: 'text' },\n  { db: 'British Tennis Number', type: 'text' },\n  { db: 'Date joined venue', type: 'text' },\n  { db: 'Medical history', type: 'text' },\n  { db: 'Venue source', type: 'text' },\n  { db: 'Contact source', type: 'text' },\n  { db: 'Occupation', type: 'text' },\n  { db: 'Tags provided', type: 'text' },\n  { db: 'Key pin number', type: 'text' },\n  { db: 'Registered', type: 'text' },\n  { db: 'Member status', type: 'text' },\n  { db: 'Receipt of Emails', type: 'text' },\n  { db: 'Share Contact Detail', type: 'text' },\n  { db: \"Member's Directory\", type: 'text' },\n  { db: 'Photography', type: 'text' },\n  { db: ' Venue source', type: 'text' }\n];\nconst quotedColumns = columns.map(({ db }) => `\"${db.replace(/\"/g, '\"\"')}\"`).join(', ');\nconst values = rows.map((row) => {\n  const record = columns.map((column) => {\n    const rawValue = row[column.db];\n    if (column.type === 'integer') return sqlInteger(rawValue);\n    if (column.type === 'numeric') return sqlNumeric(rawValue);\n    return sqlLiteral(rawValue);\n  });\n  return `(${record.join(', ')})`;\n}).join(',\\n  ');\nconst sql = `BEGIN;\\nSELECT * FROM public.prepare_raw_members_import();\\nINSERT INTO public.raw_members (${quotedColumns})\\nVALUES\\n  ${values};\\nCOMMIT;`;\nreturn [{ json: { sql, rowCount: rows.length } }];"
+      },
+      "id": "c1d2e3f4-0001-0001-0001-000000000007",
+      "name": "Build raw_members sync SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 420]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "c1d2e3f4-0001-0001-0001-000000000008",
+      "name": "Write cloud raw_members",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [970, 420],
+      "credentials": {
+        "postgres": {
+          "id": "39a4v88oeLUdsmM3",
+          "name": "avondale-n8n-user"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) AS total_members FROM public.raw_members;"
+      },
+      "id": "c1d2e3f4-0001-0001-0001-000000000009",
+      "name": "Verify cloud raw_members",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1240, 420],
+      "credentials": {
+        "postgres": {
+          "id": "39a4v88oeLUdsmM3",
+          "name": "avondale-n8n-user"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const contactsRows = Number($('Build raw_contacts sync SQL').first().json.rowCount ?? 0);\nconst membersRows = Number($('Build raw_members sync SQL').first().json.rowCount ?? 0);\nconst cloudContacts = Number($input.all()[0]?.json?.total_contacts ?? 0);\nconst cloudMembers = Number($input.all()[1]?.json?.total_members ?? 0);\nreturn [{\n  json: {\n    contacts_rows_synced: contactsRows,\n    members_rows_synced: membersRows,\n    cloud_raw_contacts_count: cloudContacts,\n    cloud_raw_members_count: cloudMembers,\n  },\n}];"
+      },
+      "id": "c1d2e3f4-0001-0001-0001-000000000010",
+      "name": "Summarize sync",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1500, 320]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Read local raw_contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Read local raw_contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read local raw_contacts": {
+      "main": [
+        [
+          {
+            "node": "Build raw_contacts sync SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build raw_contacts sync SQL": {
+      "main": [
+        [
+          {
+            "node": "Write cloud raw_contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write cloud raw_contacts": {
+      "main": [
+        [
+          {
+            "node": "Verify cloud raw_contacts",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read local raw_members",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read local raw_members": {
+      "main": [
+        [
+          {
+            "node": "Build raw_members sync SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build raw_members sync SQL": {
+      "main": [
+        [
+          {
+            "node": "Write cloud raw_members",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write cloud raw_members": {
+      "main": [
+        [
+          {
+            "node": "Verify cloud raw_members",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify cloud raw_contacts": {
+      "main": [
+        [
+          {
+            "node": "Summarize sync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify cloud raw_members": {
+      "main": [
+        [
+          {
+            "node": "Summarize sync",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "pinData": {},
+  "tags": [],
+  "active": false,
+  "isArchived": false
+}

@@ -11,6 +11,16 @@
     },
     {
       "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000016",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 460]
+    },
+    {
+      "parameters": {
         "method": "POST",
         "url": "http://clubspark-exporter:3001/clubspark-export",
         "options": {
@@ -84,6 +94,9 @@
   ],
   "connections": {
     "When clicking 'Execute workflow'": {
+      "main": [[{ "node": "Fetch Contacts CSV", "type": "main", "index": 0 }]]
+    },
+    "When Executed by Another Workflow": {
       "main": [[{ "node": "Fetch Contacts CSV", "type": "main", "index": 0 }]]
     },
     "Fetch Contacts CSV": {
