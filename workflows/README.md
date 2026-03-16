@@ -8,7 +8,7 @@ Files:
 - `new-member-email-parser.json`: the updated parser workflow that writes to `member_signups` with `status = 'New'`, `clubspark_status`, and `batch_id = NULL`.
 - `create-signup-batch.json`: the manual batch-creation workflow.
 - `complete-signup-batch.json`: the manual batch-completion workflow.
-- `clubspark-contacts-export.json`: the preferred local ClubSpark contacts export workflow. It uses a browser-driven local Playwright export step, then imports the CSV into `raw_contacts`.
+- `clubspark-contacts-export.json`: the preferred local ClubSpark contacts export workflow. It calls the `clubspark-exporter` Playwright service on the `n8n` host, then imports the CSV into `raw_contacts`.
 
 Notes:
 

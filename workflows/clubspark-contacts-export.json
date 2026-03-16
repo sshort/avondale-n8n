@@ -11,17 +11,25 @@
     },
     {
       "parameters": {
-        "command": "CLUBSPARK_OUTPUT='-' bash /mnt/c/dev/avondale-n8n/scripts/run-clubspark-export-local.sh"
+        "method": "POST",
+        "url": "http://clubspark-exporter:3001/clubspark-export",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
       },
       "id": "a1b2c3d4-0001-0001-0001-000000000015",
-      "name": "Run Local Browser Export",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
+      "name": "Fetch Contacts CSV",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [450, 300]
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.first();\nconst csvText = String(item.json?.stdout ?? '').trim();\nconst stderr = String(item.json?.stderr ?? '').trim();\nif (!csvText) {\n  throw new Error(`Local browser export did not return CSV output.${stderr ? ` STDERR: ${stderr}` : ''}`);\n}\nif (/^<!DOCTYPE html/i.test(csvText) || /^<html/i.test(csvText) || /<title>.*Sign in/i.test(csvText)) {\n  throw new Error('Local browser export returned HTML instead of CSV. The browser login did not complete successfully.');\n}\nfunction parseCsv(text) {\n  const rows = [];\n  let row = [], field = '', inQuotes = false;\n  for (let i = 0; i < text.length; i++) {\n    const ch = text[i], next = text[i + 1];\n    if (inQuotes) {\n      if (ch === '\"' && next === '\"') { field += '\"'; i++; }\n      else if (ch === '\"') { inQuotes = false; }\n      else { field += ch; }\n    } else {\n      if (ch === '\"') { inQuotes = true; }\n      else if (ch === ',') { row.push(field); field = ''; }\n      else if (ch === '\\r' && next === '\\n') { row.push(field); field = ''; rows.push(row); row = []; i++; }\n      else if (ch === '\\n' || ch === '\\r') { row.push(field); field = ''; rows.push(row); row = []; }\n      else { field += ch; }\n    }\n  }\n  if (field || row.length) { row.push(field); rows.push(row); }\n  return rows;\n}\nconst allRows = parseCsv(csvText);\nif (allRows.length < 2) throw new Error(`CSV has fewer than 2 rows (got ${allRows.length}).`);\nconst headers = allRows[0].map((h) => h.trim());\nif (!headers.includes('First name') || !headers.includes('Last name')) {\n  throw new Error(`ClubSpark export did not return the expected contacts CSV headers. Got: ${headers.slice(0, 8).join(', ')}`);\n}\nconst dataRows = allRows.slice(1).filter((r) => r.some((c) => c.trim() !== ''));\nif (!dataRows.length) {\n  return [{ json: { rowCount: 0, message: 'No data rows in CSV export.' } }];\n}\nreturn dataRows.map((row) => ({ json: Object.fromEntries(headers.map((h, i) => [h, (row[i] ?? '').trim()])) }));"
+        "jsCode": "const item = $input.first();\nconst payload = item.json ?? {};\nconst csvText = String(payload.body ?? payload.data ?? payload.stdout ?? '').trim();\nconst detail = JSON.stringify(Object.keys(payload));\nif (!csvText) {\n  throw new Error(`ClubSpark exporter did not return CSV output. Payload keys: ${detail}`);\n}\nif (/^<!DOCTYPE html/i.test(csvText) || /^<html/i.test(csvText) || /<title>.*Sign in/i.test(csvText)) {\n  throw new Error('ClubSpark exporter returned HTML instead of CSV. The browser login did not complete successfully.');\n}\nfunction parseCsv(text) {\n  const rows = [];\n  let row = [], field = '', inQuotes = false;\n  for (let i = 0; i < text.length; i++) {\n    const ch = text[i], next = text[i + 1];\n    if (inQuotes) {\n      if (ch === '\"' && next === '\"') { field += '\"'; i++; }\n      else if (ch === '\"') { inQuotes = false; }\n      else { field += ch; }\n    } else {\n      if (ch === '\"') { inQuotes = true; }\n      else if (ch === ',') { row.push(field); field = ''; }\n      else if (ch === '\\r' && next === '\\n') { row.push(field); field = ''; rows.push(row); row = []; i++; }\n      else if (ch === '\\n' || ch === '\\r') { row.push(field); field = ''; rows.push(row); row = []; }\n      else { field += ch; }\n    }\n  }\n  if (field || row.length) { row.push(field); rows.push(row); }\n  return rows;\n}\nconst allRows = parseCsv(csvText);\nif (allRows.length < 2) throw new Error(`CSV has fewer than 2 rows (got ${allRows.length}).`);\nconst headers = allRows[0].map((h) => h.trim());\nif (!headers.includes('First name') || !headers.includes('Last name')) {\n  throw new Error(`ClubSpark export did not return the expected contacts CSV headers. Got: ${headers.slice(0, 8).join(', ')}`);\n}\nconst dataRows = allRows.slice(1).filter((r) => r.some((c) => c.trim() !== ''));\nif (!dataRows.length) {\n  return [{ json: { rowCount: 0, message: 'No data rows in CSV export.' } }];\n}\nreturn dataRows.map((row) => ({ json: Object.fromEntries(headers.map((h, i) => [h, (row[i] ?? '').trim()])) }));"
       },
       "id": "a1b2c3d4-0001-0001-0001-000000000008",
       "name": "Parse Contacts CSV",
@@ -76,9 +84,9 @@
   ],
   "connections": {
     "When clicking 'Execute workflow'": {
-      "main": [[{ "node": "Run Local Browser Export", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Fetch Contacts CSV", "type": "main", "index": 0 }]]
     },
-    "Run Local Browser Export": {
+    "Fetch Contacts CSV": {
       "main": [[{ "node": "Parse Contacts CSV", "type": "main", "index": 0 }]]
     },
     "Parse Contacts CSV": {

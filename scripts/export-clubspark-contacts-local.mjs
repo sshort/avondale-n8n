@@ -163,18 +163,246 @@ async function dismissCookieBanner() {
 
 async function findExportCsvAction() {
   return page.evaluate(() => {
-    const candidate = Array.from(document.querySelectorAll('.dropdown-menu a, a')).find((element) =>
-      /Export CSV/i.test((element.textContent || '').trim()),
-    );
+    const candidate = Array.from(
+      document.querySelectorAll(
+        '.dropdown-menu a, .dropdown-menu button, a, button, [role="menuitem"]',
+      ),
+    ).find((element) => {
+      const text = (element.textContent || '').trim();
+      if (!/Export CSV/i.test(text)) {
+        return false;
+      }
+
+      if (!(element instanceof HTMLElement)) {
+        return true;
+      }
+
+      const style = window.getComputedStyle(element);
+      const visible =
+        style.visibility !== 'hidden'
+        && style.display !== 'none'
+        && element.getClientRects().length > 0;
+
+      return visible;
+    });
 
     if (!candidate) {
       return null;
     }
 
     return {
+      tagName: candidate.tagName,
       href: candidate.getAttribute('href'),
       onclick: candidate.getAttribute('onclick'),
       text: (candidate.textContent || '').trim(),
+    };
+  });
+}
+
+async function enableBulkActions() {
+  const selectAllByPlaywright = async (selector) => {
+    const locator = page.locator(selector).first();
+    if (await locator.isVisible().catch(() => false)) {
+      await locator.check({ force: true }).catch(() => null);
+      return true;
+    }
+    return false;
+  };
+
+  await selectAllByPlaywright("input[name='SelectAll']");
+  await selectAllByPlaywright("input[name='select_all']");
+  await selectAllByPlaywright('input[name="RecordID"]');
+  await selectAllByPlaywright('thead input[type="checkbox"]');
+
+  await page.evaluate(() => {
+    const selectAllInputs = Array.from(
+      document.querySelectorAll("input[name='SelectAll'], input[name='select_all']"),
+    );
+
+    for (const selectAll of selectAllInputs) {
+      if (selectAll instanceof HTMLInputElement) {
+        selectAll.checked = true;
+        selectAll.dispatchEvent(new Event('input', { bubbles: true }));
+        selectAll.dispatchEvent(new Event('change', { bubbles: true }));
+        selectAll.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+      }
+    }
+
+    const selectAll = document.querySelector("input[name='select_all']");
+    if (selectAll instanceof HTMLInputElement) {
+      selectAll.checked = true;
+      selectAll.dispatchEvent(new Event('input', { bubbles: true }));
+      selectAll.dispatchEvent(new Event('change', { bubbles: true }));
+      selectAll.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    }
+
+    const moreButton = Array.from(document.querySelectorAll('a.btn-more')).find(
+      (element) => element instanceof HTMLElement,
+    );
+
+    if (moreButton instanceof HTMLElement) {
+      moreButton.classList.remove('inactive', 'disabled');
+      moreButton.removeAttribute('disabled');
+      moreButton.setAttribute('aria-expanded', 'true');
+      moreButton.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+      moreButton.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true }));
+      moreButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+
+      const parent = moreButton.closest('.btn-group, .dropdown, li');
+      if (parent instanceof HTMLElement) {
+        parent.classList.add('open', 'show');
+      }
+    }
+  });
+}
+
+async function countCheckedBoxes() {
+  return page.evaluate(
+    () => document.querySelectorAll('input[type="checkbox"]:checked').length,
+  );
+}
+
+async function countSelectedRecords() {
+  return page.evaluate(
+    () => document.querySelectorAll("input[name='RecordID']:checked").length,
+  );
+}
+
+async function openContactOptionsMenu() {
+  const button = page.getByRole('button', { name: /Contact options/i }).first();
+
+  if (await button.isVisible().catch(() => false)) {
+    await button.click().catch(async () => {
+      await button.evaluate((element) => {
+        if (element instanceof HTMLElement) {
+          element.click();
+        }
+      });
+    });
+    await page.evaluate(() => {
+      const dropdownButton = Array.from(
+        document.querySelectorAll('button.dropdown-toggle, a.dropdown-toggle'),
+      ).find((element) => /Contact Options/i.test((element.textContent || '').trim()));
+
+      if (!(dropdownButton instanceof HTMLElement)) {
+        return;
+      }
+
+      dropdownButton.setAttribute('aria-expanded', 'true');
+
+      const dropdown = dropdownButton.closest('.btn-group, .dropdown');
+      if (dropdown instanceof HTMLElement) {
+        dropdown.classList.add('open', 'show');
+
+        for (const menu of dropdown.querySelectorAll('.dropdown-menu')) {
+          if (menu instanceof HTMLElement) {
+            menu.classList.add('open', 'show');
+            menu.style.display = 'block';
+          }
+        }
+      }
+    });
+    await page.waitForTimeout(1000);
+    return true;
+  }
+
+  return false;
+}
+
+async function listExportCandidates() {
+  return page.evaluate(() =>
+    Array.from(document.querySelectorAll('a, button, [role="menuitem"]'))
+      .map((element) => ({
+        tagName: element.tagName,
+        text: (element.textContent || '').trim(),
+        href: element.getAttribute('href'),
+        onclick: element.getAttribute('onclick'),
+        className: element.getAttribute('class'),
+      }))
+      .filter((entry) => /Export|Contact Options|More options/i.test(entry.text))
+      .slice(0, 20),
+  );
+}
+
+async function inspectExportDom() {
+  return page.evaluate(() => {
+    const csvButton = document.querySelector('a.btn-csv');
+    const pdfButton = document.querySelector('a.btn-pdf');
+    const contactOptions = Array.from(
+      document.querySelectorAll('button.dropdown-toggle, a.dropdown-toggle'),
+    ).find((element) => /Contact Options/i.test((element.textContent || '').trim()));
+    const forms = Array.from(document.querySelectorAll('form'))
+      .map((form) => ({
+        action: form.getAttribute('action'),
+        method: form.getAttribute('method'),
+        outerHTML: form.outerHTML.slice(0, 1200),
+      }))
+      .filter((form) => /Export|Contacts|contact/i.test(form.outerHTML));
+    const operationsForm = document.querySelector('form.operations');
+    const exportScripts = Array.from(document.scripts)
+      .map((script) => script.textContent || '')
+      .filter((text) => /btn-csv|Export CSV|Contacts\/Export|export/i.test(text))
+      .slice(0, 5)
+      .map((text) => text.slice(0, 1200));
+
+    return {
+      csvButton: csvButton ? {
+        outerHTML: csvButton.outerHTML,
+        dataset: { ...csvButton.dataset },
+      } : null,
+      pdfButton: pdfButton ? {
+        outerHTML: pdfButton.outerHTML,
+        dataset: { ...pdfButton.dataset },
+      } : null,
+      contactOptions: contactOptions ? {
+        outerHTML: contactOptions.outerHTML,
+        dataset: { ...contactOptions.dataset },
+      } : null,
+      forms,
+      operationsForm: operationsForm ? {
+        action: operationsForm.getAttribute('action'),
+        method: operationsForm.getAttribute('method'),
+        inputs: Array.from(operationsForm.querySelectorAll('input, select, textarea')).map((field) => ({
+          tagName: field.tagName,
+          type: field.getAttribute('type'),
+          name: field.getAttribute('name'),
+          value: field.getAttribute('value'),
+          checked: field instanceof HTMLInputElement ? field.checked : undefined,
+          className: field.getAttribute('class'),
+        })),
+      } : null,
+      exportScripts,
+    };
+  });
+}
+
+async function getDirectExportRequest() {
+  return page.evaluate(() => {
+    const jq = window.jQuery;
+    const appSettings = window.clubHouseApp?.AppSettings;
+
+    if (!jq?.fn?.DataTable) {
+      throw new Error('Contacts DataTable was not available on the ClubSpark contacts page.');
+    }
+
+    if (!appSettings?.contactsTableEndPoint) {
+      throw new Error('ClubSpark contactsTableEndPoint was not available on the contacts page.');
+    }
+
+    const params = jq('#contacts-table').DataTable().ajax.params();
+    if (!params || typeof params !== 'object') {
+      throw new Error('ClubSpark contacts DataTable params were not available.');
+    }
+
+    return {
+      endpoint: new URL(
+        appSettings.contactsTableEndPoint.replace('Lookup', 'Export'),
+        location.origin,
+      ).toString(),
+      form: {
+        ...params,
+        SelectAll: 'True',
+      },
     };
   });
 }
@@ -330,98 +558,47 @@ try {
 
   await ensureNotBlocked('contacts page');
   await dismissCookieBanner();
-  logStage('On contacts page, preparing export');
-
+  logStage('On contacts page, preparing direct export request');
   await clickIfVisible('.js-filter-reset');
-  await clickIfVisible("input[name='select_all']");
 
-  const downloadPromise = page.waitForEvent('download', { timeout: 30000 }).catch(() => null);
-  const responsePromise = page
-    .waitForResponse(
-      (response) =>
-        response.url().includes('/Admin/Contacts/Export') &&
-        response.request().method() === 'POST',
-      { timeout: 30000 },
-    )
-    .catch(() => null);
+  const exportRequest = await getDirectExportRequest();
+  logStage(`Submitting direct CSV export to ${exportRequest.endpoint}`);
 
-  const exportAction = await findExportCsvAction();
+  const response = await page.request.post(exportRequest.endpoint, {
+    form: exportRequest.form,
+    headers: {
+      referer: page.url(),
+    },
+    timeout: 60000,
+  });
 
-  if (exportAction?.href && exportAction.href !== '#') {
-    const exportUrl = new URL(exportAction.href, page.url()).toString();
-    logStage(`Triggering CSV export directly via ${exportUrl}`);
-    await page.goto(exportUrl, { waitUntil: 'networkidle', timeout: 60000 }).catch(() => null);
-  } else if (exportAction) {
-    logStage(`Triggering CSV export directly via DOM action: ${exportAction.text}`);
-    await page.evaluate(() => {
-      const candidate = Array.from(document.querySelectorAll('.dropdown-menu a, a')).find((element) =>
-        /Export CSV/i.test((element.textContent || '').trim()),
-      );
-      candidate?.click();
-    });
+  const responseHeaders = response.headers();
+  const contentType = responseHeaders['content-type'] || '';
+  const contentDisposition = responseHeaders['content-disposition'] || '';
+  const csvText = await response.text();
+
+  if (!response.ok()) {
+    throw new Error(`ClubSpark export failed with HTTP ${response.status()}.`);
+  }
+
+  if (!/csv/i.test(contentType) && !/attachment/i.test(contentDisposition)) {
+    logStage(`Unexpected export response headers: ${JSON.stringify(responseHeaders)}`);
+    logStage(`Export DOM inspection: ${JSON.stringify(await inspectExportDom())}`);
+    throw new Error('ClubSpark export did not return a CSV response.');
+  }
+
+  if (!csvText.trim()) {
+    throw new Error('ClubSpark export response was empty.');
+  }
+
+  if (outputPath) {
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
+    await fs.writeFile(outputPath, csvText, 'utf8');
+    logStage(`Saved CSV response to ${outputPath}`);
   } else {
-    const dropdownSelector = await waitForAnySelector(
-      [
-        'a.btn-more.dropdown-toggle:not(.inactive)',
-        'a.btn-more:not(.inactive)',
-        'a.btn-more',
-      ],
-      20000,
-    );
-    await page.click(dropdownSelector);
-    await waitForIdle();
-    logStage('Opened export dropdown');
-
-    const exportSelector = await waitForAnySelector(
-      [
-        "a[href*='/Contacts/Export']",
-        "a[href*='Contacts/Export']",
-        "a[href*='Export']",
-        "a:has-text('Export CSV')",
-        "a:has-text('Export contacts')",
-        "a:has-text('Export')",
-      ],
-      20000,
-    );
-
-    await page.click(exportSelector);
-    logStage('Triggered CSV export via dropdown');
+    process.stdout.write(csvText);
   }
-
-  const download = await downloadPromise;
-  if (download) {
-    const downloadPath = await download.path();
-    if (!downloadPath) {
-      throw new Error('Playwright did not provide a download path for the ClubSpark CSV export.');
-    }
-    const csvBuffer = await fs.readFile(downloadPath);
-    if (outputPath) {
-      await fs.mkdir(path.dirname(outputPath), { recursive: true });
-      await fs.writeFile(outputPath, csvBuffer);
-      logStage(`Saved CSV download to ${outputPath}`);
-    } else {
-      process.stdout.write(csvBuffer);
-    }
-    process.exit(0);
-  }
-
-  const response = await responsePromise;
-  if (response) {
-    const csvText = await response.text();
-    if (!csvText.trim()) {
-      throw new Error('Export response was empty.');
-    }
-    if (outputPath) {
-      await fs.mkdir(path.dirname(outputPath), { recursive: true });
-      await fs.writeFile(outputPath, csvText, 'utf8');
-      logStage(`Saved CSV response to ${outputPath}`);
-    } else {
-      process.stdout.write(csvText);
-    }
-    process.exit(0);
-  }
-
-  throw new Error('No CSV download or export response was captured.');
+  process.exit(0);
 } catch (error) {
   console.error(String(error instanceof Error ? error.message : error));
   const screenshotPath = path.resolve('./clubspark-export-debug.png');

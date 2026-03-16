@@ -5,7 +5,8 @@
 - Playwright is installed and running on the `n8n` host inside the `clubspark-exporter` Docker service.
 - Browser launch is working.
 - LTA authentication is working.
-- The remaining failure is the final contacts export action, not auth.
+- Direct contacts export is working.
+- The local `ClubSpark Contacts Export` workflow on `n8n` has been executed successfully end to end.
 
 ## Remote Runtime
 
@@ -48,27 +49,20 @@
 - Direct LTA login from the first page works on the `n8n` host.
 - Cookie consent appears on the contacts page and must be dismissed before interacting with the page.
 - `button.osano-cm-denyAll` is a reliable cookie-banner dismissal target.
+- The visible `Export CSV` dropdown action is not the most reliable automation path.
+- The stable path is to read the live contacts DataTables params from the page and post directly to:
+  `contactsTableEndPoint.replace("Lookup", "Export")`
+  with `SelectAll=True`.
 
 ## Contacts Page Findings
 
 - After successful auth, the page reaches `/Admin/Contacts`.
-- `Contact Options` is visible and opens a visible dropdown menu.
-- A second dropdown menu exists in the DOM containing:
-  - `Export PDF`
-  - `Export CSV`
-  - `Add Tags`
-  - `Remove Tags`
-  - `Merge contacts`
-  - `Delete contacts`
-- That export menu is present in the DOM even when not visibly open.
-
-## Export Problem
-
-- The previous script used a generic `.dropdown-toggle` selector and clicked the wrong menu.
-- Then it tried `a.btn-more`, but that control remained disabled/inactive in the tested state.
-- Selecting all contacts with `input[name='select_all']` did not make that `More options` button usable in headless mode.
-- The export blocker is now specifically:
-  - how to trigger the hidden `Export CSV` action reliably after login
+- `clubHouseApp.AppSettings.contactsTableEndPoint` resolves to:
+  `/AvondaleTennisClub/Admin/Contacts/Lookup?status=Active`
+- The direct export URL is therefore:
+  `https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts/Export?status=Active`
+- `window.jQuery("#contacts-table").DataTable().ajax.params()` exposes the exact form parameters needed for export.
+- Posting those parameters with `SelectAll=True` returns the CSV reliably.
 
 ## Script State
 
@@ -80,15 +74,8 @@ Current improvements already added:
 - cookie-banner dismissal
 - stage logging to stderr
 - Docker/container-safe browser launch options
-- fallback logic for export triggering
-
-Latest intended direction in the script:
-- do not depend on the disabled visible `More options` control
-- instead locate the DOM action for `Export CSV`
-- trigger that action directly after login
-- capture either:
-  - a Playwright download event, or
-  - a network response to `/Admin/Contacts/Export`
+- direct authenticated POST to the ClubSpark export endpoint using live page DataTables params
+- no dependency on the fragile dropdown click path
 
 ## Last Confirmed Good Logs
 
@@ -101,11 +88,12 @@ These stages were confirmed on the `n8n` host:
 - `Submitting LTA username/password form via input[placeholder="Username"]`
 - `Post-login page: https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts`
 - `Dismissed cookie banner via button.osano-cm-denyAll`
-- `On contacts page, preparing export`
+- `On contacts page, preparing direct export request`
+- `Submitting direct CSV export to https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts/Export?status=Active`
 
-## Next Step
+## Verified Outcome
 
-1. Finish the direct `Export CSV` DOM trigger in `scripts/export-clubspark-contacts-local.mjs`.
-2. Verify the exporter returns real CSV from the `clubspark-exporter` container.
-3. Only then update the installed n8n workflow to call:
-   `http://clubspark-exporter:3001/clubspark-export`
+- The exporter service returns a real CSV from the `n8n` host.
+- The installed local workflow now calls:
+  `http://clubspark-exporter:3001/clubspark-export`
+- The local workflow run succeeded and loaded `1221` current rows into `raw_contacts`, archiving the prior snapshot first.
