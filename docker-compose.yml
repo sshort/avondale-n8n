@@ -1,0 +1,57 @@
+services:
+  n8n:
+    container_name: n8n
+    image: docker.n8n.io/n8nio/n8n
+    restart: unless-stopped
+    ports:
+      - 5678:5678
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - /var/lib/n8n:/var/lib/n8n:rw
+    environment:
+      - N8N_SECURE_COOKIE=false
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_DATABASE=postgres
+      - DB_POSTGRESDB_HOST=homedb
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_USER=postgres
+      - DB_POSTGRESDB_SCHEMA=n8n
+      - DB_POSTGRESDB_PASSWORD=6523Tike
+
+  clubspark-exporter:
+    container_name: clubspark-exporter
+    build:
+      context: /root/clubspark-exporter
+      dockerfile: Dockerfile
+    image: local/clubspark-exporter:latest
+    restart: unless-stopped
+    environment:
+      - PORT=3001
+      - CLUBSPARK_EMAIL=steve@shortcentral.com
+      - CLUBSPARK_PASSWORD=HQ#zo7P8C$
+      - LTA_USERNAME=sshort
+      - LTA_PASSWORD=fH8Urv2XrtZwXra!
+
+  gotenberg:
+    container_name: gotenberg
+    image: gotenberg/gotenberg:8
+    restart: unless-stopped
+    ports:
+      - 3002:3000
+
+  n8n-mcp:
+    image: mcp/n8n:latest
+    container_name: n8n-mcp
+    ports:
+      - "3000:3000"
+    environment:
+      MCP_MODE: stdio
+      AUTH_TOKEN: "VG72MN79FMoWeI1cvYWmuvPbGReQgfxD"
+      N8N_BASE_URL: http://host.docker.internal:5678
+      N8N_API_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxYWEyNTY0NC1kMzg0LTQ4MTAtYmVhYS1mNTgzMTRkM2U3MGMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzY4ODQwNjQwfQ.OztpaI1pkATZk8N9eB_oUvT7zaGN7YBtYRf6PmXRs3s
+    restart: unless-stopped
+
+volumes:
+  n8n_data:
+    external: true
+    name: n8n_data
