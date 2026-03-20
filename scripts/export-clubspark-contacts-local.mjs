@@ -394,17 +394,85 @@ async function getDirectExportRequest() {
       throw new Error('ClubSpark contacts DataTable params were not available.');
     }
 
+    const form = {
+      ...params,
+      SelectAll: 'True',
+    };
+
+    // Force the export endpoint to ignore the current DataTables page size.
+    for (const [key, value] of [
+      ['start', '0'],
+      ['length', '-1'],
+      ['iDisplayStart', '0'],
+      ['iDisplayLength', '-1'],
+    ]) {
+      if (Object.prototype.hasOwnProperty.call(form, key)) {
+        form[key] = value;
+      }
+    }
+
     return {
       endpoint: new URL(
         appSettings.contactsTableEndPoint.replace('Lookup', 'Export'),
         location.origin,
       ).toString(),
-      form: {
-        ...params,
-        SelectAll: 'True',
-      },
+      form,
     };
   });
+}
+
+async function downloadCsvViaUi() {
+  await enableBulkActions();
+  logStage(`Checked checkbox count after bulk-action prep: ${await countCheckedBoxes()}`);
+  logStage(`Selected record count after bulk-action prep: ${await countSelectedRecords()}`);
+
+  await openContactOptionsMenu();
+
+  const csvButton = page.locator('a.btn-csv').first();
+  if (!(await csvButton.isVisible().catch(() => false))) {
+    logStage(`Export candidates before UI fallback: ${JSON.stringify(await listExportCandidates())}`);
+    logStage(`Export DOM inspection before UI fallback: ${JSON.stringify(await inspectExportDom())}`);
+    return null;
+  }
+
+  const downloadPromise = page.waitForEvent('download', { timeout: 15000 }).catch(() => null);
+  const responsePromise = page.waitForResponse(
+    (response) => /\/Admin\/Contacts\/Export/i.test(response.url()),
+    { timeout: 15000 },
+  ).catch(() => null);
+
+  await csvButton.click({ force: true }).catch(async () => {
+    await csvButton.evaluate((element) => {
+      if (!(element instanceof HTMLElement)) {
+        return;
+      }
+
+      element.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+      element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true }));
+      element.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+      element.click();
+    });
+  });
+
+  const [download, exportResponse] = await Promise.all([downloadPromise, responsePromise]);
+
+  if (download) {
+    const downloadPath = await download.path();
+    if (!downloadPath) {
+      throw new Error('ClubSpark export download completed without a readable file path.');
+    }
+    logStage(`Captured browser download: ${download.suggestedFilename()}`);
+    return fs.readFile(downloadPath, 'utf8');
+  }
+
+  if (exportResponse) {
+    logStage(`Captured export response via UI click: HTTP ${exportResponse.status()}`);
+    return exportResponse.text();
+  }
+
+  logStage(`Export candidates after UI fallback: ${JSON.stringify(await listExportCandidates())}`);
+  logStage(`Export DOM inspection after UI fallback: ${JSON.stringify(await inspectExportDom())}`);
+  return null;
 }
 
 async function submitLtaLoginChooserIfVisible() {
@@ -558,33 +626,46 @@ try {
 
   await ensureNotBlocked('contacts page');
   await dismissCookieBanner();
-  logStage('On contacts page, preparing direct export request');
+  logStage('On contacts page, attempting browser-driven CSV export');
   await clickIfVisible('.js-filter-reset');
 
-  const exportRequest = await getDirectExportRequest();
-  logStage(`Submitting direct CSV export to ${exportRequest.endpoint}`);
+  let csvText = await downloadCsvViaUi();
 
-  const response = await page.request.post(exportRequest.endpoint, {
-    form: exportRequest.form,
-    headers: {
-      referer: page.url(),
-    },
-    timeout: 60000,
-  });
+  if (!csvText) {
+    logStage('UI-driven export did not produce a CSV. Falling back to direct export request.');
+    const exportRequest = await getDirectExportRequest();
+    logStage(
+      `Export request paging params: ${JSON.stringify({
+        start: exportRequest.form.start ?? null,
+        length: exportRequest.form.length ?? null,
+        iDisplayStart: exportRequest.form.iDisplayStart ?? null,
+        iDisplayLength: exportRequest.form.iDisplayLength ?? null,
+      })}`,
+    );
+    logStage(`Submitting direct CSV export to ${exportRequest.endpoint}`);
 
-  const responseHeaders = response.headers();
-  const contentType = responseHeaders['content-type'] || '';
-  const contentDisposition = responseHeaders['content-disposition'] || '';
-  const csvText = await response.text();
+    const response = await page.request.post(exportRequest.endpoint, {
+      form: exportRequest.form,
+      headers: {
+        referer: page.url(),
+      },
+      timeout: 60000,
+    });
 
-  if (!response.ok()) {
-    throw new Error(`ClubSpark export failed with HTTP ${response.status()}.`);
-  }
+    const responseHeaders = response.headers();
+    const contentType = responseHeaders['content-type'] || '';
+    const contentDisposition = responseHeaders['content-disposition'] || '';
+    csvText = await response.text();
 
-  if (!/csv/i.test(contentType) && !/attachment/i.test(contentDisposition)) {
-    logStage(`Unexpected export response headers: ${JSON.stringify(responseHeaders)}`);
-    logStage(`Export DOM inspection: ${JSON.stringify(await inspectExportDom())}`);
-    throw new Error('ClubSpark export did not return a CSV response.');
+    if (!response.ok()) {
+      throw new Error(`ClubSpark export failed with HTTP ${response.status()}.`);
+    }
+
+    if (!/csv/i.test(contentType) && !/attachment/i.test(contentDisposition)) {
+      logStage(`Unexpected export response headers: ${JSON.stringify(responseHeaders)}`);
+      logStage(`Export DOM inspection: ${JSON.stringify(await inspectExportDom())}`);
+      throw new Error('ClubSpark export did not return a CSV response.');
+    }
   }
 
   if (!csvText.trim()) {

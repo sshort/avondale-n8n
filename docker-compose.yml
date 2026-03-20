@@ -10,6 +10,11 @@ services:
       - /var/lib/n8n:/var/lib/n8n:rw
     environment:
       - N8N_SECURE_COOKIE=false
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - N8N_EDITOR_BASE_URL=http://localhost:5678
+      - WEBHOOK_URL=http://localhost:5678/
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_DATABASE=postgres
       - DB_POSTGRESDB_HOST=homedb

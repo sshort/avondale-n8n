@@ -1,5 +1,5 @@
 {
-  "name": "Sync raw_contacts and raw_members to cloud",
+  "name": "Sync local source of truth to cloud",
   "nodes": [
     {
       "parameters": {},
@@ -7,7 +7,10 @@
       "name": "When clicking 'Execute workflow'",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [180, 320]
+      "position": [
+        180,
+        320
+      ]
     },
     {
       "parameters": {
@@ -17,7 +20,10 @@
       "name": "When Executed by Another Workflow",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
-      "position": [180, 500]
+      "position": [
+        180,
+        500
+      ]
     },
     {
       "parameters": {
@@ -28,7 +34,10 @@
       "name": "Read local raw_contacts",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [430, 220],
+      "position": [
+        980,
+        220
+      ],
       "credentials": {
         "postgres": {
           "id": "PjTUDAMk0dZ7g1iO",
@@ -44,7 +53,10 @@
       "name": "Build raw_contacts sync SQL",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [700, 220]
+      "position": [
+        1220,
+        220
+      ]
     },
     {
       "parameters": {
@@ -55,7 +67,10 @@
       "name": "Write cloud raw_contacts",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [970, 220],
+      "position": [
+        1460,
+        220
+      ],
       "credentials": {
         "postgres": {
           "id": "39a4v88oeLUdsmM3",
@@ -72,7 +87,10 @@
       "name": "Verify cloud raw_contacts",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [1240, 220],
+      "position": [
+        1700,
+        220
+      ],
       "credentials": {
         "postgres": {
           "id": "39a4v88oeLUdsmM3",
@@ -89,7 +107,10 @@
       "name": "Read local raw_members",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [430, 420],
+      "position": [
+        1940,
+        220
+      ],
       "credentials": {
         "postgres": {
           "id": "PjTUDAMk0dZ7g1iO",
@@ -105,7 +126,10 @@
       "name": "Build raw_members sync SQL",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [700, 420]
+      "position": [
+        2180,
+        220
+      ]
     },
     {
       "parameters": {
@@ -116,7 +140,10 @@
       "name": "Write cloud raw_members",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [970, 420],
+      "position": [
+        2420,
+        220
+      ],
       "credentials": {
         "postgres": {
           "id": "39a4v88oeLUdsmM3",
@@ -133,7 +160,10 @@
       "name": "Verify cloud raw_members",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [1240, 420],
+      "position": [
+        2660,
+        220
+      ],
       "credentials": {
         "postgres": {
           "id": "39a4v88oeLUdsmM3",
@@ -143,13 +173,321 @@
     },
     {
       "parameters": {
-        "jsCode": "const contactsRows = Number($('Build raw_contacts sync SQL').first().json.rowCount ?? 0);\nconst membersRows = Number($('Build raw_members sync SQL').first().json.rowCount ?? 0);\nconst cloudContacts = Number($input.all()[0]?.json?.total_contacts ?? 0);\nconst cloudMembers = Number($input.all()[1]?.json?.total_members ?? 0);\nreturn [{\n  json: {\n    contacts_rows_synced: contactsRows,\n    members_rows_synced: membersRows,\n    cloud_raw_contacts_count: cloudContacts,\n    cloud_raw_members_count: cloudMembers,\n  },\n}];"
+        "jsCode": "return [{\n  json: {\n    force_full: Boolean($('Sync Options').first()?.json?.force_full),\n    contacts_rows_synced: Number($('Build raw_contacts sync SQL').first().json.rowCount ?? 0),\n    members_rows_synced: Number($('Build raw_members sync SQL').first().json.rowCount ?? 0),\n    member_signups_rows_synced: Number($('Build member_signups sync SQL').first().json.rowCount ?? 0),\n    signup_batches_rows_synced: Number($('Build signup_batches sync SQL').first().json.rowCount ?? 0),\n    workflow_rows_synced: Number($('Build n8n workflow_entity sync SQL').first().json.rowCount ?? 0),\n    execution_rows_synced: Number($('Build n8n execution_entity sync SQL').first().json.rowCount ?? 0),\n    cloud_raw_contacts_count: Number($('Verify cloud raw_contacts').first().json.total_contacts ?? 0),\n    cloud_raw_members_count: Number($('Verify cloud raw_members').first().json.total_members ?? 0),\n    cloud_member_signups_count: Number($('Verify cloud member_signups').first().json.total_signups ?? 0),\n    cloud_signup_batches_count: Number($('Verify cloud signup_batches').first().json.total_batches ?? 0),\n    cloud_workflow_entity_count: Number($('Verify cloud n8n workflow_entity').first().json.total_workflows ?? 0),\n    cloud_execution_entity_count: Number($('Verify cloud n8n execution_entity').first().json.total_executions ?? 0),\n  },\n}];"
       },
       "id": "c1d2e3f4-0001-0001-0001-000000000010",
       "name": "Summarize sync",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1500, 320]
+      "position": [
+        7220,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first()?.json ?? {};\nconst rawValue = item.force_full;\nconst forceFull = rawValue === true || rawValue === 'true' || rawValue === 1 || rawValue === '1';\nreturn [{ json: { force_full: forceFull } }];"
+      },
+      "id": "5a20f6d4-5452-475a-91f1-1d91f4a80f01",
+      "name": "Sync Options",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT signup_date, member, product, payer, cost, quantity, method, status, \"First name\", \"Last name\", \"Age\", email_address, address_1, address_2, address_3, town, postcode, \"Tags provided\", \"Key pin number\", id, clubspark_status, batch_id FROM public.member_signups ORDER BY id;"
+      },
+      "id": "4a4429fd-f3cb-475e-9968-6d5bc246c709",
+      "name": "Read local member_signups",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        3320,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sqlInteger = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const digits = String(value).replace(/[^0-9-]+/g, '');\n  if (!digits || digits === '-') return 'NULL';\n  const parsed = Number.parseInt(digits, 10);\n  return Number.isNaN(parsed) ? 'NULL' : String(parsed);\n};\nconst sqlNumeric = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const normalized = String(value).replace(/,/g, '').replace(/[^0-9.-]+/g, '');\n  if (!normalized || normalized === '-' || normalized === '.' || normalized === '-.') return 'NULL';\n  const parsed = Number.parseFloat(normalized);\n  return Number.isNaN(parsed) ? 'NULL' : String(parsed);\n};\nconst rows = $input.all().map((item) => item.json ?? {});\nconst forceFull = Boolean($('Sync Options').first()?.json?.force_full);\nif (!rows.length) {\n  return [{ json: { sql: forceFull ? 'BEGIN; DELETE FROM public.member_signups; COMMIT;' : 'SELECT 1;', rowCount: 0 } }];\n}\nconst columns = [\n  { db: 'signup_date', type: 'text' },\n  { db: 'member', type: 'text' },\n  { db: 'product', type: 'text' },\n  { db: 'payer', type: 'text' },\n  { db: 'cost', type: 'numeric' },\n  { db: 'quantity', type: 'integer' },\n  { db: 'method', type: 'text' },\n  { db: 'status', type: 'text' },\n  { db: 'First name', type: 'text' },\n  { db: 'Last name', type: 'text' },\n  { db: 'Age', type: 'integer' },\n  { db: 'email_address', type: 'text' },\n  { db: 'address_1', type: 'text' },\n  { db: 'address_2', type: 'text' },\n  { db: 'address_3', type: 'text' },\n  { db: 'town', type: 'text' },\n  { db: 'postcode', type: 'text' },\n  { db: 'Tags provided', type: 'text' },\n  { db: 'Key pin number', type: 'text' },\n  { db: 'id', type: 'integer' },\n  { db: 'clubspark_status', type: 'text' },\n  { db: 'batch_id', type: 'integer' },\n];\nconst quotedColumns = columns.map(({ db }) => '\"' + db.replace(/\"/g, '\"\"') + '\"').join(', ');\nconst valueRows = rows.map((row) => {\n  const record = columns.map((column) => {\n    const rawValue = row[column.db];\n    if (column.type === 'integer') return sqlInteger(rawValue);\n    if (column.type === 'numeric') return sqlNumeric(rawValue);\n    return sqlLiteral(rawValue);\n  });\n  return '(' + record.join(', ') + ')';\n}).join(',\\n  ');\nconst updatable = columns.filter(({ db }) => db !== 'id');\nconst updateClause = updatable.map(({ db }) => {\n  const quoted = '\"' + db.replace(/\"/g, '\"\"') + '\"';\n  return quoted + ' = EXCLUDED.' + quoted;\n}).join(',\\n    ');\nconst sql = forceFull\n  ? 'BEGIN;\\nDELETE FROM public.member_signups;\\nINSERT INTO public.member_signups (' + quotedColumns + ')\\nVALUES\\n  ' + valueRows + ';\\nCOMMIT;'\n  : 'BEGIN;\\nINSERT INTO public.member_signups (' + quotedColumns + ')\\nVALUES\\n  ' + valueRows + '\\nON CONFLICT (id) DO UPDATE SET\\n    ' + updateClause + ';\\nCOMMIT;';\nreturn [{ json: { sql, rowCount: rows.length, force_full: forceFull } }];"
+      },
+      "id": "f7fe5f58-899d-4688-a643-244b4dd14b64",
+      "name": "Build member_signups sync SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3560,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "7e13ed41-6f84-4bf5-8f2c-7c63f3167bfb",
+      "name": "Write cloud member_signups",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        3820,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "39a4v88oeLUdsmM3",
+          "name": "avondale-n8n-user"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) AS total_signups FROM public.member_signups;"
+      },
+      "id": "2f18aaf0-cd34-4a61-ba84-dd64e1120ab6",
+      "name": "Verify cloud member_signups",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        4060,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "39a4v88oeLUdsmM3",
+          "name": "avondale-n8n-user"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, status, created_at, completed_at FROM public.signup_batches ORDER BY id;"
+      },
+      "id": "8beedc0f-f7c0-44c5-a017-b5fd2f9e2438",
+      "name": "Read local signup_batches",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        4300,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sqlInteger = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const digits = String(value).replace(/[^0-9-]+/g, '');\n  if (!digits || digits === '-') return 'NULL';\n  const parsed = Number.parseInt(digits, 10);\n  return Number.isNaN(parsed) ? 'NULL' : String(parsed);\n};\nconst rows = $input.all().map((item) => item.json ?? {});\nconst forceFull = Boolean($('Sync Options').first()?.json?.force_full);\nif (!rows.length) {\n  return [{ json: { sql: forceFull ? 'BEGIN; DELETE FROM public.signup_batches; COMMIT;' : 'SELECT 1;', rowCount: 0 } }];\n}\nconst columns = [\n  { db: 'id', type: 'integer' },\n  { db: 'status', type: 'text' },\n  { db: 'created_at', type: 'text' },\n  { db: 'completed_at', type: 'text' },\n];\nconst quotedColumns = columns.map(({ db }) => '\"' + db.replace(/\"/g, '\"\"') + '\"').join(', ');\nconst valueRows = rows.map((row) => {\n  const record = columns.map((column) => column.type === 'integer' ? sqlInteger(row[column.db]) : sqlLiteral(row[column.db]));\n  return '(' + record.join(', ') + ')';\n}).join(',\\n  ');\nconst updateClause = ['status', 'created_at', 'completed_at'].map((db) => {\n  const quoted = '\"' + db + '\"';\n  return quoted + ' = EXCLUDED.' + quoted;\n}).join(',\\n    ');\nconst sql = forceFull\n  ? 'BEGIN;\\nDELETE FROM public.signup_batches;\\nINSERT INTO public.signup_batches (' + quotedColumns + ')\\nVALUES\\n  ' + valueRows + ';\\nCOMMIT;'\n  : 'BEGIN;\\nINSERT INTO public.signup_batches (' + quotedColumns + ')\\nVALUES\\n  ' + valueRows + '\\nON CONFLICT (id) DO UPDATE SET\\n    ' + updateClause + ';\\nCOMMIT;';\nreturn [{ json: { sql, rowCount: rows.length, force_full: forceFull } }];"
+      },
+      "id": "1d172b71-bfae-4f7c-b795-bb91341e5002",
+      "name": "Build signup_batches sync SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4540,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "af85eca2-0102-4570-abca-39cc89ae8ac9",
+      "name": "Write cloud signup_batches",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        4780,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "39a4v88oeLUdsmM3",
+          "name": "avondale-n8n-user"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) AS total_batches FROM public.signup_batches;"
+      },
+      "id": "59998d8c-5c98-48f5-827f-08f9f78b4de6",
+      "name": "Verify cloud signup_batches",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        5020,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "39a4v88oeLUdsmM3",
+          "name": "avondale-n8n-user"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT name, active, nodes, connections, \"createdAt\", \"updatedAt\", settings, \"staticData\", \"pinData\", \"versionId\", \"triggerCount\", id, meta, \"parentFolderId\", \"isArchived\", \"versionCounter\", description, \"activeVersionId\" FROM n8n.workflow_entity ORDER BY id;"
+      },
+      "id": "1ee7948e-99d3-48c2-a2f2-29b4ba4bc113",
+      "name": "Read local n8n workflow_entity",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        5260,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sqlBoolean = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return value ? 'TRUE' : 'FALSE';\n};\nconst sqlInteger = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const digits = String(value).replace(/[^0-9-]+/g, '');\n  if (!digits || digits === '-') return 'NULL';\n  const parsed = Number.parseInt(digits, 10);\n  return Number.isNaN(parsed) ? 'NULL' : String(parsed);\n};\nconst sqlJson = (value) => {\n  if (value === null || value === undefined) return 'NULL';\n  const base64 = Buffer.from(JSON.stringify(value), 'utf8').toString('base64');\n  return \"convert_from(decode('\" + base64 + \"', 'base64'), 'utf8')::json\";\n};\nconst rows = $input.all().map((item) => item.json ?? {});\nif (!rows.length) {\n  return [{ json: { sql: 'SELECT 1;', rowCount: 0 } }];\n}\nconst columns = [\n  { db: 'name', type: 'text' },\n  { db: 'active', type: 'boolean' },\n  { db: 'nodes', type: 'json' },\n  { db: 'connections', type: 'json' },\n  { db: 'createdAt', type: 'text' },\n  { db: 'updatedAt', type: 'text' },\n  { db: 'settings', type: 'json' },\n  { db: 'staticData', type: 'json' },\n  { db: 'pinData', type: 'json' },\n  { db: 'versionId', type: 'text' },\n  { db: 'triggerCount', type: 'integer' },\n  { db: 'id', type: 'text' },\n  { db: 'meta', type: 'json' },\n  { db: 'parentFolderId', type: 'text' },\n  { db: 'isArchived', type: 'boolean' },\n  { db: 'versionCounter', type: 'integer' },\n  { db: 'description', type: 'text' },\n  { db: 'activeVersionId', type: 'text' },\n];\nconst quotedColumns = columns.map(({ db }) => '\"' + db.replace(/\"/g, '\"\"') + '\"').join(', ');\nconst valueRows = rows.map((row) => {\n  const record = columns.map((column) => {\n    if (column.db === 'activeVersionId') return 'NULL';\n    const raw = row[column.db];\n    if (column.type === 'boolean') return sqlBoolean(raw);\n    if (column.type === 'integer') return sqlInteger(raw);\n    if (column.type === 'json') return sqlJson(raw);\n    return sqlLiteral(raw);\n  });\n  return '(' + record.join(', ') + ')';\n}).join(',\\n  ');\nconst updateClause = columns.filter(({ db }) => db !== 'id').map(({ db }) => {\n  const quoted = '\"' + db.replace(/\"/g, '\"\"') + '\"';\n  if (db === 'activeVersionId') return quoted + ' = NULL';\n  return quoted + ' = EXCLUDED.' + quoted;\n}).join(',\\n    ');\nconst sql = 'BEGIN;\\nINSERT INTO n8n.workflow_entity (' + quotedColumns + ')\\nVALUES\\n  ' + valueRows + '\\nON CONFLICT (id) DO UPDATE SET\\n    ' + updateClause + ';\\nCOMMIT;';\nreturn [{ json: { sql, rowCount: rows.length } }];"
+      },
+      "id": "2e84e9ca-e2f3-4649-a842-f936d63d2e55",
+      "name": "Build n8n workflow_entity sync SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5520,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "fe26810b-38d0-4f9c-a33f-6de0e1ae59ff",
+      "name": "Write cloud n8n workflow_entity",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        5760,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "39a4v88oeLUdsmM3",
+          "name": "avondale-n8n-user"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) AS total_workflows FROM n8n.workflow_entity;"
+      },
+      "id": "d45f2728-dd7f-44c7-a2a8-1e2f9a51008e",
+      "name": "Verify cloud n8n workflow_entity",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        6000,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "39a4v88oeLUdsmM3",
+          "name": "avondale-n8n-user"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, finished, mode, \"retryOf\", \"retrySuccessId\", \"startedAt\", \"stoppedAt\", \"waitTill\", status, \"workflowId\", \"deletedAt\", \"createdAt\" FROM n8n.execution_entity ORDER BY id;"
+      },
+      "id": "0542f7ab-d1fe-4dbc-a851-4a6f534df031",
+      "name": "Read local n8n execution_entity",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        6240,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sqlBoolean = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return value ? 'TRUE' : 'FALSE';\n};\nconst sqlInteger = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const digits = String(value).replace(/[^0-9-]+/g, '');\n  if (!digits || digits == '-') return 'NULL';\n  const parsed = Number.parseInt(digits, 10);\n  return Number.isNaN(parsed) ? 'NULL' : String(parsed);\n};\nconst rows = $input.all().map((item) => item.json ?? {});\nif (!rows.length) {\n  return [{ json: { sql: 'SELECT 1;', rowCount: 0 } }];\n}\nconst columns = [\n  { db: 'id', type: 'integer' },\n  { db: 'finished', type: 'boolean' },\n  { db: 'mode', type: 'text' },\n  { db: 'retryOf', type: 'text' },\n  { db: 'retrySuccessId', type: 'text' },\n  { db: 'startedAt', type: 'text' },\n  { db: 'stoppedAt', type: 'text' },\n  { db: 'waitTill', type: 'text' },\n  { db: 'status', type: 'text' },\n  { db: 'workflowId', type: 'text' },\n  { db: 'deletedAt', type: 'text' },\n  { db: 'createdAt', type: 'text' },\n];\nconst quotedColumns = columns.map(({ db }) => '\"' + db.replace(/\"/g, '\"\"') + '\"').join(', ');\nconst valueRows = rows.map((row) => {\n  const record = columns.map((column) => {\n    const raw = row[column.db];\n    if (column.type === 'boolean') return sqlBoolean(raw);\n    if (column.type === 'integer') return sqlInteger(raw);\n    return sqlLiteral(raw);\n  });\n  return '(' + record.join(', ') + ')';\n}).join(',\\n  ');\nconst updateClause = columns.filter(({ db }) => db !== 'id').map(({ db }) => {\n  const quoted = '\"' + db.replace(/\"/g, '\"\"') + '\"';\n  return quoted + ' = EXCLUDED.' + quoted;\n}).join(',\\n    ');\nconst sql = 'BEGIN;\\nINSERT INTO n8n.execution_entity (' + quotedColumns + ')\\nVALUES\\n  ' + valueRows + '\\nON CONFLICT (id) DO UPDATE SET\\n    ' + updateClause + ';\\nCOMMIT;';\nreturn [{ json: { sql, rowCount: rows.length } }];"
+      },
+      "id": "6e902748-b747-4078-b035-43593a5c2bca",
+      "name": "Build n8n execution_entity sync SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6500,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "5a0efbee-6a3b-4343-972d-97d54976e453",
+      "name": "Write cloud n8n execution_entity",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        6740,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "39a4v88oeLUdsmM3",
+          "name": "avondale-n8n-user"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) AS total_executions FROM n8n.execution_entity;"
+      },
+      "id": "b072b895-f3e3-4c11-89b7-518d60b7586d",
+      "name": "Verify cloud n8n execution_entity",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        6980,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "39a4v88oeLUdsmM3",
+          "name": "avondale-n8n-user"
+        }
+      }
     }
   ],
   "connections": {
@@ -157,7 +495,7 @@
       "main": [
         [
           {
-            "node": "Read local raw_contacts",
+            "node": "Sync Options",
             "type": "main",
             "index": 0
           }
@@ -165,6 +503,17 @@
       ]
     },
     "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Sync Options",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync Options": {
       "main": [
         [
           {
@@ -204,7 +553,13 @@
             "node": "Verify cloud raw_contacts",
             "type": "main",
             "index": 0
-          },
+          }
+        ]
+      ]
+    },
+    "Verify cloud raw_contacts": {
+      "main": [
+        [
           {
             "node": "Read local raw_members",
             "type": "main",
@@ -246,24 +601,189 @@
         ]
       ]
     },
-    "Verify cloud raw_contacts": {
+    "Verify cloud raw_members": {
       "main": [
         [
           {
-            "node": "Summarize sync",
+            "node": "Read local member_signups",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Verify cloud raw_members": {
+    "Read local member_signups": {
+      "main": [
+        [
+          {
+            "node": "Build member_signups sync SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build member_signups sync SQL": {
+      "main": [
+        [
+          {
+            "node": "Write cloud member_signups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write cloud member_signups": {
+      "main": [
+        [
+          {
+            "node": "Verify cloud member_signups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify cloud member_signups": {
+      "main": [
+        [
+          {
+            "node": "Read local signup_batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read local signup_batches": {
+      "main": [
+        [
+          {
+            "node": "Build signup_batches sync SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build signup_batches sync SQL": {
+      "main": [
+        [
+          {
+            "node": "Write cloud signup_batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write cloud signup_batches": {
+      "main": [
+        [
+          {
+            "node": "Verify cloud signup_batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify cloud signup_batches": {
+      "main": [
+        [
+          {
+            "node": "Read local n8n workflow_entity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read local n8n workflow_entity": {
+      "main": [
+        [
+          {
+            "node": "Build n8n workflow_entity sync SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build n8n workflow_entity sync SQL": {
+      "main": [
+        [
+          {
+            "node": "Write cloud n8n workflow_entity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write cloud n8n workflow_entity": {
+      "main": [
+        [
+          {
+            "node": "Verify cloud n8n workflow_entity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify cloud n8n workflow_entity": {
+      "main": [
+        [
+          {
+            "node": "Read local n8n execution_entity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read local n8n execution_entity": {
+      "main": [
+        [
+          {
+            "node": "Build n8n execution_entity sync SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build n8n execution_entity sync SQL": {
+      "main": [
+        [
+          {
+            "node": "Write cloud n8n execution_entity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write cloud n8n execution_entity": {
+      "main": [
+        [
+          {
+            "node": "Verify cloud n8n execution_entity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify cloud n8n execution_entity": {
       "main": [
         [
           {
             "node": "Summarize sync",
             "type": "main",
-            "index": 1
+            "index": 0
           }
         ]
       ]

@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
+import fs from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import http from 'node:http';
+import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
@@ -22,12 +24,16 @@ function runExporter(scriptPath) {
   }
 
   const runPromise = new Promise((resolve) => {
+    const outputPath = path.join(
+      os.tmpdir(),
+      `clubspark-export-${path.basename(scriptPath)}-${Date.now()}-${Math.random().toString(36).slice(2)}.csv`,
+    );
     const child = spawn(process.execPath, [scriptPath], {
       cwd: scriptDir,
       env: {
         ...process.env,
         HEADLESS: 'true',
-        CLUBSPARK_OUTPUT: '-',
+        CLUBSPARK_OUTPUT: outputPath,
       },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -46,8 +52,20 @@ function runExporter(scriptPath) {
       stderr += chunk;
     });
 
-    child.on('close', (code) => {
-      const result = { code: code ?? 1, stdout, stderr };
+    child.on('close', async (code) => {
+      let body = stdout;
+
+      if (code === 0) {
+        try {
+          body = await fs.readFile(outputPath, 'utf8');
+        } catch {
+          // Fall back to stdout if the exporter did not write the temp file.
+        }
+      }
+
+      await fs.rm(outputPath, { force: true }).catch(() => {});
+
+      const result = { code: code ?? 1, stdout: body, stderr };
       activeRuns.delete(scriptPath);
       resolve(result);
     });
