@@ -1,0 +1,68 @@
+{
+  "name": "ClubSpark Auth Session",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "c5c10001-1111-4111-8111-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "c5c10001-1111-4111-8111-000000000002",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 460]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://clubspark-exporter:3001/clubspark-auth-session"
+      },
+      "id": "c5c10001-1111-4111-8111-000000000003",
+      "name": "Request Auth Session",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $input.first().json ?? {};\nif (!payload.cookieHeader) {\n  throw new Error('ClubSpark auth session did not return a reusable cookie header.');\n}\nif (payload.authenticated !== true) {\n  throw new Error('ClubSpark auth session did not report authenticated=true.');\n}\nreturn [{\n  json: {\n    authenticated: payload.authenticated,\n    targetUrl: payload.targetUrl,\n    authenticatedUrl: payload.authenticatedUrl,\n    pageTitle: payload.pageTitle,\n    userAgent: payload.userAgent,\n    cookieHeader: payload.cookieHeader,\n    cookieCount: payload.cookieCount,\n    probe: payload.probe ?? null,\n  },\n}];"
+      },
+      "id": "c5c10001-1111-4111-8111-000000000004",
+      "name": "Keep Reusable Session",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 300]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [[{ "node": "Request Auth Session", "type": "main", "index": 0 }]]
+    },
+    "When Executed by Another Workflow": {
+      "main": [[{ "node": "Request Auth Session", "type": "main", "index": 0 }]]
+    },
+    "Request Auth Session": {
+      "main": [[{ "node": "Keep Reusable Session", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "pinData": {},
+  "tags": [],
+  "active": false,
+  "isArchived": false
+}

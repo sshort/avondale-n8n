@@ -1,0 +1,115 @@
+{
+  "name": "Send Gmail Test Message",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f6f3537f-3963-4c96-8cb5-1eeec40da4c1",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    to_email: 'steve.short@gmail.com',\n    first_name: 'Steve',\n    last_name: 'Short',\n    subject: 'Message from Avondale about your tags',\n    sender_name: 'Steve Short',\n    reply_to: 'members.avondaleltc@gmail.com',\n    message_template: `Dear {{first_name}} {{last_name}},\n\nplease check the pigeon holes at the Avondale club house for an envelope containing your shoe tag(s) and/or club house key(s).\n(You are receiving this automated email because you have not entered a postal address on ClubSpark)\n\nRegards\nSteve Short\nMembership Secretary\nmembers.avondaleltc@gmail.com\n\n-----------------------------------------------\nhttps://clubspark.lta.org.uk/AvondaleTennisClub`\n  }\n}];"
+      },
+      "id": "3d37df33-7788-4f26-b2ec-4745b0de486b",
+      "name": "Editable Email Inputs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst replacements = {\n  '{{first_name}}': item.first_name ?? '',\n  '{{last_name}}': item.last_name ?? '',\n  '{{to_email}}': item.to_email ?? '',\n};\nlet rendered = item.message_template ?? '';\nfor (const [token, value] of Object.entries(replacements)) {\n  rendered = rendered.split(token).join(String(value));\n}\nreturn [{\n  json: {\n    ...item,\n    rendered_message: rendered,\n  },\n}];"
+      },
+      "id": "9f127ebf-51d7-4dae-ad95-2ec502b2324f",
+      "name": "Render Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.to_email }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.rendered_message }}",
+        "options": {
+          "appendAttribution": false,
+          "replyTo": "={{ $json.reply_to }}",
+          "senderName": "={{ $json.sender_name }}"
+        }
+      },
+      "id": "54f78356-f5a5-4774-b2df-cbfa87f9241b",
+      "name": "Send Gmail Message",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1020,
+        300
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Editable Email Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Editable Email Inputs": {
+      "main": [
+        [
+          {
+            "node": "Render Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render Message": {
+      "main": [
+        [
+          {
+            "node": "Send Gmail Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

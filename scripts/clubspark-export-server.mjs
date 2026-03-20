@@ -12,15 +12,27 @@ const port = Number(process.env.PORT ?? '3001');
 const exporterToken = process.env.EXPORTER_TOKEN ?? '';
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const exporters = new Map([
-  ['/clubspark-export', path.join(scriptDir, 'export-clubspark-contacts-local.mjs')],
-  ['/clubspark-members-export', path.join(scriptDir, 'export-clubspark-members-local.mjs')],
+  ['/clubspark-export', {
+    scriptPath: path.join(scriptDir, 'export-clubspark-contacts-local.mjs'),
+    contentType: 'text/csv; charset=utf-8',
+  }],
+  ['/clubspark-members-export', {
+    scriptPath: path.join(scriptDir, 'export-clubspark-members-local.mjs'),
+    contentType: 'text/csv; charset=utf-8',
+  }],
+  ['/clubspark-auth-session', {
+    scriptPath: path.join(scriptDir, 'export-clubspark-auth-session-local.mjs'),
+    contentType: 'application/json; charset=utf-8',
+  }],
 ]);
 
 const activeRuns = new Map();
 
-function runExporter(scriptPath) {
-  if (activeRuns.has(scriptPath)) {
-    return activeRuns.get(scriptPath);
+function runExporter(scriptPath, extraEnv = {}) {
+  const runKey = JSON.stringify([scriptPath, extraEnv]);
+
+  if (activeRuns.has(runKey)) {
+    return activeRuns.get(runKey);
   }
 
   const runPromise = new Promise((resolve) => {
@@ -32,6 +44,7 @@ function runExporter(scriptPath) {
       cwd: scriptDir,
       env: {
         ...process.env,
+        ...extraEnv,
         HEADLESS: 'true',
         CLUBSPARK_OUTPUT: outputPath,
       },
@@ -66,12 +79,12 @@ function runExporter(scriptPath) {
       await fs.rm(outputPath, { force: true }).catch(() => {});
 
       const result = { code: code ?? 1, stdout: body, stderr };
-      activeRuns.delete(scriptPath);
+      activeRuns.delete(runKey);
       resolve(result);
     });
   });
 
-  activeRuns.set(scriptPath, runPromise);
+  activeRuns.set(runKey, runPromise);
   return runPromise;
 }
 
@@ -82,8 +95,8 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  const scriptPath = exporters.get(req.url);
-  if (!scriptPath) {
+  const exporter = exporters.get(req.url);
+  if (!exporter) {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('Not found');
     return;
@@ -95,7 +108,28 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  const result = await runExporter(scriptPath);
+  let requestBody = '';
+  for await (const chunk of req) {
+    requestBody += chunk;
+  }
+
+  let payload = {};
+  if (requestBody.trim()) {
+    try {
+      payload = JSON.parse(requestBody);
+    } catch {
+      res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Request body must be valid JSON');
+      return;
+    }
+  }
+
+  const extraEnv = {};
+  if (typeof payload.targetUrl === 'string' && payload.targetUrl.trim()) {
+    extraEnv.CLUBSPARK_AUTH_TARGET_URL = payload.targetUrl.trim();
+  }
+
+  const result = await runExporter(exporter.scriptPath, extraEnv);
 
   if (result.code !== 0) {
     res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
@@ -103,7 +137,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  res.writeHead(200, { 'Content-Type': 'text/csv; charset=utf-8' });
+  res.writeHead(200, { 'Content-Type': exporter.contentType });
   res.end(result.stdout);
 });
 
