@@ -14,10 +14,10 @@
     },
     {
       "parameters": {
-        "jsCode": "return [{\n  json: {\n    to_email: 'steve.short@gmail.com',\n    first_name: 'Steve',\n    last_name: 'Short',\n    subject: 'Message from Avondale about your tags',\n    sender_name: 'Steve Short',\n    reply_to: 'members.avondaleltc@gmail.com',\n    message_template: `Dear {{first_name}} {{last_name}},\n\nplease check the pigeon holes at the Avondale club house for an envelope containing your shoe tag(s) and/or club house key(s).\n(You are receiving this automated email because you have not entered a postal address on ClubSpark)\n\nRegards\nSteve Short\nMembership Secretary\nmembers.avondaleltc@gmail.com\n\n-----------------------------------------------\nhttps://clubspark.lta.org.uk/AvondaleTennisClub`\n  }\n}];"
+        "jsCode": "return [{\n  json: {\n    template_key: 'shoe_tag_pigeon_hole',\n    recipient_first_name: 'Steve',\n    recipient_last_name: 'Short',\n    sender_name: 'Steve Short',\n    reply_to: 'members.avondaleltc@gmail.com',\n  },\n}];"
       },
       "id": "3d37df33-7788-4f26-b2ec-4745b0de486b",
-      "name": "Editable Email Inputs",
+      "name": "Editable Send Inputs",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -27,10 +27,10 @@
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.first().json;\nconst replacements = {\n  '{{first_name}}': item.first_name ?? '',\n  '{{last_name}}': item.last_name ?? '',\n  '{{to_email}}': item.to_email ?? '',\n};\nlet rendered = item.message_template ?? '';\nfor (const [token, value] of Object.entries(replacements)) {\n  rendered = rendered.split(token).join(String(value));\n}\nreturn [{\n  json: {\n    ...item,\n    rendered_message: rendered,\n  },\n}];"
+        "jsCode": "const item = $input.first().json;\nconst sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sql = `with candidates as (\n  select 1 as priority,\n    \"First name\" as first_name,\n    \"Last name\" as last_name,\n    \"Email address\" as email_address,\n    \"Address 1\" as address_1,\n    town,\n    postcode\n  from public.raw_contacts\n  where \"First name\" = ${sqlLiteral(item.recipient_first_name)}\n    and \"Last name\" = ${sqlLiteral(item.recipient_last_name)}\n  union all\n  select 2 as priority,\n    \"First name\" as first_name,\n    \"Last name\" as last_name,\n    \"Email address\" as email_address,\n    \"Address 1\" as address_1,\n    \"Town\" as town,\n    \"Postcode\" as postcode\n  from public.raw_members\n  where \"First name\" = ${sqlLiteral(item.recipient_first_name)}\n    and \"Last name\" = ${sqlLiteral(item.recipient_last_name)}\n)\nselect first_name, last_name, email_address, address_1, town, postcode\nfrom candidates\nwhere email_address is not null and email_address <> ''\norder by priority\nlimit 1;`;\nreturn [{ json: { ...item, sql } }];"
       },
-      "id": "9f127ebf-51d7-4dae-ad95-2ec502b2324f",
-      "name": "Render Message",
+      "id": "0b0f4afc-e284-4e41-8a1d-b2c0a1f7b230",
+      "name": "Build Recipient Lookup SQL",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -40,12 +40,78 @@
     },
     {
       "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "4d3b653a-a718-4f55-b4f3-509d08f9ff11",
+      "name": "Load Recipient Record",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1020,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $('Editable Send Inputs').first().json;\nconst sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sql = `select template_key, subject_template, text_template, html_template\nfrom public.email_templates\nwhere template_key = ${sqlLiteral(item.template_key)}\n  and is_active = true\norder by id desc\nlimit 1;`;\nreturn [{ json: { template_key: item.template_key, sql } }];"
+      },
+      "id": "cb81d4ae-3a9f-494f-8243-09af06f09124",
+      "name": "Build Template Lookup SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "6f0e907a-805e-4cca-a69d-cfd68e2ac1d9",
+      "name": "Load Email Template",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1540,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $('Editable Send Inputs').first().json;\nconst recipient = $('Load Recipient Record').first()?.json ?? {};\nconst template = $('Load Email Template').first()?.json ?? {};\nif (!recipient.email_address) {\n  throw new Error(`No email address found for ${input.recipient_first_name} ${input.recipient_last_name}`);\n}\nif (!template.template_key) {\n  throw new Error(`Email template ${input.template_key} was not found`);\n}\nconst tokenMap = {\n  '{{first_name}}': recipient.first_name ?? '',\n  '{{last_name}}': recipient.last_name ?? '',\n  '{{email_address}}': recipient.email_address ?? '',\n  '{{address_1}}': recipient.address_1 ?? '',\n  '{{town}}': recipient.town ?? '',\n  '{{postcode}}': recipient.postcode ?? '',\n  '<first name>': recipient.first_name ?? '',\n  '<last name>': recipient.last_name ?? '',\n  '<email address>': recipient.email_address ?? '',\n  '{contact.first_name}': recipient.first_name ?? '',\n  '{contact.last_name}': recipient.last_name ?? '',\n  '{contact.email_address}': recipient.email_address ?? '',\n  '{contact.address_1}': recipient.address_1 ?? '',\n  '{contact.town}': recipient.town ?? '',\n  '{contact.postcode}': recipient.postcode ?? '',\n  '{member.first_name}': recipient.first_name ?? '',\n  '{member.last_name}': recipient.last_name ?? '',\n  '{member.email_address}': recipient.email_address ?? '',\n};\nconst applyTokens = (value) => {\n  let rendered = String(value ?? '');\n  for (const [token, replacement] of Object.entries(tokenMap)) {\n    rendered = rendered.split(token).join(String(replacement));\n  }\n  return rendered.trim();\n};\nconst bodySource = template.text_template ?? template.html_template ?? '';\nreturn [{\n  json: {\n    to_email: recipient.email_address,\n    sender_name: input.sender_name,\n    reply_to: input.reply_to,\n    template_key: template.template_key,\n    rendered_subject: applyTokens(template.subject_template ?? 'Message from Avondale about your tags'),\n    rendered_message: applyTokens(bodySource),\n    email_type: template.html_template && !template.text_template ? 'html' : 'text',\n    recipient_first_name: recipient.first_name,\n    recipient_last_name: recipient.last_name,\n  },\n}];"
+      },
+      "id": "9f127ebf-51d7-4dae-ad95-2ec502b2324f",
+      "name": "Render Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        300
+      ]
+    },
+    {
+      "parameters": {
         "authentication": "oAuth2",
         "resource": "message",
         "operation": "send",
         "sendTo": "={{ $json.to_email }}",
-        "subject": "={{ $json.subject }}",
-        "emailType": "text",
+        "subject": "={{ $json.rendered_subject }}",
+        "emailType": "={{ $json.email_type }}",
         "message": "={{ $json.rendered_message }}",
         "options": {
           "appendAttribution": false,
@@ -58,7 +124,7 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        1020,
+        2060,
         300
       ],
       "credentials": {
@@ -74,14 +140,58 @@
       "main": [
         [
           {
-            "node": "Editable Email Inputs",
+            "node": "Editable Send Inputs",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Editable Email Inputs": {
+    "Editable Send Inputs": {
+      "main": [
+        [
+          {
+            "node": "Build Recipient Lookup SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Recipient Lookup SQL": {
+      "main": [
+        [
+          {
+            "node": "Load Recipient Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Recipient Record": {
+      "main": [
+        [
+          {
+            "node": "Build Template Lookup SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Template Lookup SQL": {
+      "main": [
+        [
+          {
+            "node": "Load Email Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Email Template": {
       "main": [
         [
           {

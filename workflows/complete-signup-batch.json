@@ -59,8 +59,8 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "DCYrUK9PAWz5kyFD",
-          "name": "avondaledb-n8n-user-cloudsql-socket"
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
         }
       }
     }
