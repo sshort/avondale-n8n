@@ -605,50 +605,6 @@
       "main": [
         [
           {
-            "node": "Read local member_signups",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Read local member_signups": {
-      "main": [
-        [
-          {
-            "node": "Build member_signups sync SQL",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Build member_signups sync SQL": {
-      "main": [
-        [
-          {
-            "node": "Write cloud member_signups",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Write cloud member_signups": {
-      "main": [
-        [
-          {
-            "node": "Verify cloud member_signups",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Verify cloud member_signups": {
-      "main": [
-        [
-          {
             "node": "Read local signup_batches",
             "type": "main",
             "index": 0
@@ -690,6 +646,50 @@
       ]
     },
     "Verify cloud signup_batches": {
+      "main": [
+        [
+          {
+            "node": "Read local member_signups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read local member_signups": {
+      "main": [
+        [
+          {
+            "node": "Build member_signups sync SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build member_signups sync SQL": {
+      "main": [
+        [
+          {
+            "node": "Write cloud member_signups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write cloud member_signups": {
+      "main": [
+        [
+          {
+            "node": "Verify cloud member_signups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify cloud member_signups": {
       "main": [
         [
           {
