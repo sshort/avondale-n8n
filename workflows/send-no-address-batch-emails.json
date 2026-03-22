@@ -63,7 +63,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const source = $input.first()?.json ?? {};\nconst candidates = [\n  source.batch_id,\n  source.batchId,\n  source.query?.batch_id,\n  source.query?.batchId,\n  source.query?.batch,\n  source.params?.batch_id,\n  source.params?.batchId,\n];\nconst rawBatchId = candidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '');\nconst parsedBatchId = rawBatchId === undefined ? null : Number.parseInt(String(rawBatchId), 10);\nconst modeCandidates = [\n  source.delivery_mode,\n  source.deliveryMode,\n  source.query?.delivery_mode,\n  source.query?.deliveryMode,\n  source.query?.mode,\n  source.params?.delivery_mode,\n  source.params?.deliveryMode,\n  source.default_delivery_mode,\n];\nconst normalizedMode = String(modeCandidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '') ?? 'test').trim().toLowerCase();\nconst deliveryMode = normalizedMode === 'production' ? 'production' : 'test';\nconst recipientCandidates = [\n  source.test_recipient,\n  source.testRecipient,\n  source.query?.test_recipient,\n  source.query?.testRecipient,\n  source.params?.test_recipient,\n  source.params?.testRecipient,\n];\nconst rawTestRecipient = recipientCandidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '');\nconst testRecipient = String(rawTestRecipient ?? 'steve.short@gmail.com').trim();\nreturn [{\n  json: {\n    batch_id: Number.isInteger(parsedBatchId) && parsedBatchId > 0 ? parsedBatchId : null,\n    template_key: 'shoe_tag_pigeon_hole',\n    sender_name: 'Steve Short',\n    reply_to: 'members.avondaleltc@gmail.com',\n    delivery_mode: deliveryMode,\n    test_recipient: testRecipient,\n  }\n}];"
+        "jsCode": "const source = $input.first()?.json ?? {};\nconst candidates = [\n  source.batch_id,\n  source.batchId,\n  source.query?.batch_id,\n  source.query?.batchId,\n  source.query?.batch,\n  source.params?.batch_id,\n  source.params?.batchId,\n];\nconst rawBatchId = candidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '');\nconst parsedBatchId = rawBatchId === undefined ? null : Number.parseInt(String(rawBatchId), 10);\nconst modeCandidates = [\n  source.delivery_mode,\n  source.deliveryMode,\n  source.query?.delivery_mode,\n  source.query?.deliveryMode,\n  source.query?.mode,\n  source.params?.delivery_mode,\n  source.params?.deliveryMode,\n  source.default_delivery_mode,\n];\nconst normalizedMode = String(modeCandidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '') ?? 'test').trim().toLowerCase();\nconst deliveryMode = normalizedMode === 'production' ? 'production' : 'test';\nconst recipientCandidates = [\n  source.test_recipient,\n  source.testRecipient,\n  source.query?.test_recipient,\n  source.query?.testRecipient,\n  source.params?.test_recipient,\n  source.params?.testRecipient,\n];\nconst rawTestRecipient = recipientCandidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '');\nconst testRecipient = String(rawTestRecipient ?? 'steve.short@gmail.com').trim();\nconst overrideCandidates = [\n  source.override,\n  source.override_send,\n  source.force_send,\n  source.force,\n  source.query?.override,\n  source.query?.override_send,\n  source.query?.force_send,\n  source.query?.force,\n  source.params?.override,\n  source.params?.override_send,\n  source.params?.force_send,\n  source.params?.force,\n];\nconst rawOverride = overrideCandidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '');\nconst normalizedOverride = String(rawOverride ?? '').trim().toLowerCase();\nconst overrideSend = ['1', 'true', 'yes', 'y', 'on'].includes(normalizedOverride);\nreturn [{\n  json: {\n    batch_id: Number.isInteger(parsedBatchId) && parsedBatchId > 0 ? parsedBatchId : null,\n    template_key: 'shoe_tag_pigeon_hole',\n    sender_name: 'Steve Short',\n    reply_to: 'members.avondaleltc@gmail.com',\n    delivery_mode: deliveryMode,\n    test_recipient: testRecipient,\n    override_send: overrideSend,\n  }\n}];"
       },
       "id": "91a5d1b5-1b90-4e5b-a0f0-000000000003",
       "name": "Resolve Batch Id",
@@ -78,7 +78,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const batchId = $input.first()?.json?.batch_id;\nif (batchId === null) {\n  return [{ json: { sql: \"SELECT 'batch_id is required' AS error_message, 400 AS response_code;\" } }];\n}\nreturn [{\n  json: {\n    sql: `SELECT CASE WHEN EXISTS (SELECT 1 FROM public.signup_batches WHERE id = ${batchId}) THEN NULL ELSE 'Batch ${batchId} does not exist' END AS error_message, CASE WHEN EXISTS (SELECT 1 FROM public.signup_batches WHERE id = ${batchId}) THEN 200 ELSE 404 END AS response_code;`,\n  }\n}];"
+        "jsCode": "const config = $input.first()?.json ?? {};\nconst batchId = config.batch_id;\nif (batchId === null) {\n  return [{ json: { sql: \"SELECT 'batch_id is required' AS error_message, 400 AS response_code, NULL::boolean AS no_address_email_sent;\" } }];\n}\nconst overrideSend = config.override_send ? 'TRUE' : 'FALSE';\nreturn [{\n  json: {\n    sql: `SELECT\n      CASE\n        WHEN b.id IS NULL THEN 'Batch ${batchId} does not exist'\n        WHEN b.no_address_email_sent AND NOT ${overrideSend} THEN 'No-address emails have already been sent for batch ${batchId}'\n        ELSE NULL\n      END AS error_message,\n      CASE\n        WHEN b.id IS NULL THEN 404\n        WHEN b.no_address_email_sent AND NOT ${overrideSend} THEN 409\n        ELSE 200\n      END AS response_code,\n      COALESCE(b.no_address_email_sent, false) AS no_address_email_sent\n    FROM (SELECT 1) AS stub\n    LEFT JOIN public.signup_batches b ON b.id = ${batchId};`,\n  }\n}];"
       },
       "id": "91a5d1b5-1b90-4e5b-a0f0-000000000004",
       "name": "Build Batch Validation SQL",
@@ -205,7 +205,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const rawRecipients = $input.all().map((item) => item.json ?? {});\nconst recipients = rawRecipients.filter((recipient) => {\n  if (!recipient || typeof recipient !== 'object') return false;\n  return [recipient.payer, recipient.email_address, recipient.first_name, recipient.last_name]\n    .some((value) => value !== undefined && value !== null && String(value).trim() !== '');\n});\nconst config = $('Resolve Batch Id').first().json;\nreturn [{\n  json: {\n    batch_id: config.batch_id,\n    recipient_count: recipients.length,\n    recipients,\n    template_key: config.template_key,\n    sender_name: config.sender_name,\n    reply_to: config.reply_to,\n    delivery_mode: config.delivery_mode,\n    test_recipient: config.test_recipient,\n  }\n}];"
+        "jsCode": "const rawRecipients = $input.all().map((item) => item.json ?? {});\nconst recipients = rawRecipients.filter((recipient) => {\n  if (!recipient || typeof recipient !== 'object') return false;\n  return [recipient.payer, recipient.email_address, recipient.first_name, recipient.last_name]\n    .some((value) => value !== undefined && value !== null && String(value).trim() !== '');\n});\nconst config = $('Resolve Batch Id').first().json;\nconst validation = $('Validate Batch').first()?.json ?? {};\nreturn [{\n  json: {\n    batch_id: config.batch_id,\n    recipient_count: recipients.length,\n    recipients,\n    template_key: config.template_key,\n    sender_name: config.sender_name,\n    reply_to: config.reply_to,\n    delivery_mode: config.delivery_mode,\n    test_recipient: config.test_recipient,\n    override_send: Boolean(config.override_send),\n    no_address_email_sent: Boolean(validation.no_address_email_sent),\n  }\n}];"
       },
       "id": "91a5d1b5-1b90-4e5b-a0f0-000000000010",
       "name": "Collect Recipient Data",
@@ -357,7 +357,42 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const sentItems = $input.all();\nconst summary = $('Collect Recipient Data').first().json;\nreturn [{\n  json: {\n    message: `Sent ${sentItems.length} email(s) for batch ${summary.batch_id} in ${summary.delivery_mode} mode`,\n    batch_id: summary.batch_id,\n    delivery_mode: summary.delivery_mode,\n    test_recipient: summary.test_recipient,\n    sent_count: sentItems.length,\n    recipients: sentItems.map((item) => ({\n      payer: item.json.payer,\n      email: item.json.to_email,\n      original_email: item.json.original_to_email,\n      first_name: item.json.recipient_first_name,\n      last_name: item.json.recipient_last_name,\n    })),\n  }\n}];"
+        "jsCode": "const summary = $('Collect Recipient Data').first().json;\nconst shouldMarkSent = summary.delivery_mode === 'production';\nconst sql = shouldMarkSent\n  ? `UPDATE public.signup_batches SET no_address_email_sent = true WHERE id = ${summary.batch_id};`\n  : 'SELECT false AS no_address_email_sent_updated;';\nreturn [{\n  json: {\n    batch_id: summary.batch_id,\n    should_mark_sent: shouldMarkSent,\n    sql,\n  }\n}];"
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000020",
+      "name": "Build Mark Sent SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3620,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000021",
+      "name": "Mark Batch Email Sent",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        3880,
+        560
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sentItems = $('Send Gmail Message').all();\nconst summary = $('Collect Recipient Data').first().json;\nconst shouldMarkSent = $('Build Mark Sent SQL').first()?.json?.should_mark_sent === true;\nreturn [{\n  json: {\n    message: `Sent ${sentItems.length} email(s) for batch ${summary.batch_id} in ${summary.delivery_mode} mode`,\n    batch_id: summary.batch_id,\n    delivery_mode: summary.delivery_mode,\n    test_recipient: summary.test_recipient,\n    override_send: Boolean(summary.override_send),\n    no_address_email_sent: shouldMarkSent ? true : Boolean(summary.no_address_email_sent),\n    sent_count: sentItems.length,\n    recipients: sentItems.map((item) => ({\n      payer: item.json.payer,\n      email: item.json.to_email,\n      original_email: item.json.original_to_email,\n      first_name: item.json.recipient_first_name,\n      last_name: item.json.recipient_last_name,\n    })),\n  }\n}];"
       },
       "id": "91a5d1b5-1b90-4e5b-a0f0-000000000017",
       "name": "Summarize Send",
@@ -564,6 +599,28 @@
       ]
     },
     "Send Gmail Message": {
+      "main": [
+        [
+          {
+            "node": "Build Mark Sent SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Mark Sent SQL": {
+      "main": [
+        [
+          {
+            "node": "Mark Batch Email Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Batch Email Sent": {
       "main": [
         [
           {

@@ -1,0 +1,305 @@
+{
+  "name": "Create Missing Signup Capture",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "c47d8f75-90aa-4f30-9b75-100000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "create-missing-signup-capture",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "c47d8f75-90aa-4f30-9b75-100000000002",
+      "name": "Create Missing Signup Capture Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "create-missing-signup-capture"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const source = $input.first()?.json ?? {};\nconst pick = (...values) => values.find((value) => value !== undefined && value !== null && String(value).trim() !== '');\nconst clean = (value) => {\n  const picked = pick(value);\n  return picked === undefined ? '' : String(picked).trim();\n};\nconst member = clean(source.member ?? source.query?.member ?? source.params?.member);\nconst product = clean(source.product ?? source.query?.product ?? source.params?.product);\nconst venueId = clean(source.venue_id ?? source.venueId ?? source.query?.venue_id ?? source.query?.venueId ?? source.params?.venue_id ?? source.params?.venueId);\nconst btn = clean(source.btn ?? source.british_tennis_number ?? source.query?.btn ?? source.query?.british_tennis_number ?? source.params?.btn ?? source.params?.british_tennis_number);\nconst requestSource = clean(source.request_source ?? source.requestSource ?? source.query?.request_source ?? source.query?.requestSource ?? source.params?.request_source ?? source.params?.requestSource) || 'metabase_missing_signup';\nreturn [{ json: { member, product, venue_id: venueId, btn, request_source: requestSource } }];"
+      },
+      "id": "c47d8f75-90aa-4f30-9b75-100000000003",
+      "name": "Resolve Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst request = $input.first()?.json ?? {};\nconst member = request.member ?? '';\nconst product = request.product ?? '';\nconst venueId = request.venue_id ?? '';\nconst btn = request.btn ?? '';\nconst requestSource = request.request_source ?? 'metabase_missing_signup';\nconst hasIdentifier = Boolean(venueId || btn || member);\nif (!product || !hasIdentifier) {\n  return [{ json: { sql: `SELECT 'Missing required identifier(s). Provide product and at least one of member, venue_id, or btn.'::text AS message, 400::int AS response_code, 'bad_request'::text AS action, NULL::bigint AS signup_id, NULL::bigint AS batch_id, NULL::text AS member, NULL::text AS product, NULL::text AS source;` } }];\n}\nreturn [{\n  json: {\n    sql: `WITH params AS (\n  SELECT\n    ${sqlLiteral(member)}::text AS member_name,\n    ${sqlLiteral(product)}::text AS product_name,\n    ${sqlLiteral(venueId)}::text AS venue_id,\n    ${sqlLiteral(btn)}::text AS btn,\n    ${sqlLiteral(requestSource)}::text AS request_source\n), candidate AS (\n  SELECT\n    trim(concat_ws(' ', m.\"First name\", m.\"Last name\")) AS member_name,\n    m.\"Membership\" AS product_name,\n    coalesce(nullif(trim(bc.payer_name), ''), trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) AS payer_name,\n    nullif(trim(m.\"First name\"), '') AS first_name,\n    nullif(trim(m.\"Last name\"), '') AS last_name,\n    CASE\n      WHEN nullif(trim(coalesce(m.\"Age\"::text, '')), '') IS NULL THEN NULL\n      ELSE regexp_replace(m.\"Age\"::text, '[^0-9-]+', '', 'g')::int\n    END AS age,\n    coalesce(nullif(trim(bc.email_address), ''), nullif(trim(m.\"Email address\"), '')) AS email_address,\n    bc.address_1,\n    bc.address_2,\n    bc.address_3,\n    bc.town,\n    bc.postcode,\n    coalesce(\n      to_timestamp(nullif(m.\"Date joined venue\", ''), 'DD/MM/YYYY'),\n      to_timestamp(nullif(m.\"Start Date\", ''), 'DD/MM/YYYY'),\n      now()\n    ) AS signup_date,\n    CASE\n      WHEN nullif(regexp_replace(coalesce(m.\"Cost\"::text, ''), '[^0-9.-]+', '', 'g'), '') IS NULL THEN NULL\n      ELSE regexp_replace(m.\"Cost\"::text, '[^0-9.-]+', '', 'g')::numeric\n    END AS cost,\n    coalesce(nullif(trim(m.\"Status\"), ''), 'Active') AS clubspark_status,\n    row_number() OVER (\n      ORDER BY\n        CASE\n          WHEN p.venue_id <> '' AND nullif(trim(m.\"Venue ID\"), '') = p.venue_id THEN 0\n          WHEN p.btn <> '' AND nullif(trim(m.\"British Tennis Number\"), '') = p.btn THEN 1\n          WHEN lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) = lower(p.member_name) THEN 2\n          ELSE 9\n        END,\n        trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))\n    ) AS match_rank\n  FROM params p\n  JOIN public.raw_members m\n    ON m.\"Membership\" = p.product_name\n   AND (\n     (p.venue_id <> '' AND nullif(trim(m.\"Venue ID\"), '') = p.venue_id)\n     OR (p.btn <> '' AND nullif(trim(m.\"British Tennis Number\"), '') = p.btn)\n     OR (p.member_name <> '' AND lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) = lower(p.member_name))\n   )\n  LEFT JOIN LATERAL (\n    SELECT\n      trim(concat_ws(' ', rc.\"First name\", rc.\"Last name\")) AS payer_name,\n      nullif(trim(rc.\"Email address\"), '') AS email_address,\n      nullif(trim(rc.\"Address 1\"), '') AS address_1,\n      nullif(trim(rc.\"Address 2\"), '') AS address_2,\n      nullif(trim(rc.\"Address 3\"), '') AS address_3,\n      nullif(trim(rc.town), '') AS town,\n      nullif(trim(rc.postcode), '') AS postcode\n    FROM public.raw_contacts rc\n    WHERE lower(trim(concat_ws(' ', rc.\"First name\", rc.\"Last name\"))) = lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n       OR (\n         nullif(trim(m.\"Email address\"), '') IS NOT NULL\n         AND lower(trim(rc.\"Email address\")) = lower(trim(m.\"Email address\"))\n       )\n       OR (\n         m.\"Membership\" ILIKE '%Family%'\n         AND lower(trim(rc.\"Last name\")) = lower(trim(m.\"Last name\"))\n       )\n    ORDER BY\n      CASE\n        WHEN m.\"Membership\" ILIKE '%Family%'\n         AND coalesce(nullif(trim(rc.\"Member status\"), ''), '') = 'Active Member'\n         AND coalesce(nullif(trim(rc.junior), ''), 'No') = 'No'\n         AND nullif(trim(rc.\"Address 1\"), '') IS NOT NULL\n         AND nullif(trim(rc.postcode), '') IS NOT NULL THEN 0\n        WHEN m.\"Membership\" ILIKE '%Family%'\n         AND coalesce(nullif(trim(rc.\"Member status\"), ''), '') = 'Active Member'\n         AND nullif(trim(rc.\"Address 1\"), '') IS NOT NULL\n         AND nullif(trim(rc.postcode), '') IS NOT NULL THEN 1\n        WHEN m.\"Membership\" ILIKE '%Family%'\n         AND nullif(trim(rc.\"Address 1\"), '') IS NOT NULL\n         AND nullif(trim(rc.postcode), '') IS NOT NULL THEN 2\n        WHEN lower(trim(concat_ws(' ', rc.\"First name\", rc.\"Last name\"))) = lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n         AND m.\"Membership\" NOT ILIKE '%Family%' THEN 0\n        WHEN lower(trim(concat_ws(' ', rc.\"First name\", rc.\"Last name\"))) = lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) THEN 3\n        WHEN nullif(trim(rc.\"Email address\"), '') IS NOT NULL THEN 4\n        ELSE 5\n      END,\n      CASE WHEN nullif(trim(rc.\"Address 1\"), '') IS NOT NULL AND nullif(trim(rc.postcode), '') IS NOT NULL THEN 0 ELSE 1 END,\n      CASE WHEN nullif(trim(rc.\"Email address\"), '') IS NOT NULL THEN 0 ELSE 1 END,\n      trim(coalesce(rc.\"Address 1\", '')),\n      trim(coalesce(rc.postcode, '')),\n      trim(concat_ws(' ', rc.\"First name\", rc.\"Last name\"))\n    LIMIT 1\n  ) bc ON TRUE\n), selected_candidate AS (\n  SELECT *\n  FROM candidate\n  WHERE match_rank = 1\n), existing_signup AS (\n  SELECT ms.id, ms.source\n  FROM public.member_signups ms\n  JOIN selected_candidate c\n    ON lower(trim(ms.member)) = lower(c.member_name)\n   AND lower(trim(ms.product)) = lower(c.product_name)\n  ORDER BY CASE WHEN ms.source = 'missing_signup_capture' THEN 0 ELSE 1 END, ms.id DESC\n  LIMIT 1\n), updated_backfill AS (\n  UPDATE public.member_signups ms\n  SET signup_date = c.signup_date,\n      payer = c.payer_name,\n      cost = c.cost,\n      quantity = 1,\n      method = 'Backfilled from source-of-truth',\n      status = 'New',\n      clubspark_status = c.clubspark_status,\n      batch_id = NULL,\n      \"First name\" = c.first_name,\n      \"Last name\" = c.last_name,\n      \"Age\" = c.age,\n      email_address = c.email_address,\n      address_1 = c.address_1,\n      address_2 = c.address_2,\n      address_3 = c.address_3,\n      town = c.town,\n      postcode = c.postcode,\n      source = 'missing_signup_capture'\n  FROM selected_candidate c\n  WHERE ms.id IN (SELECT id FROM existing_signup WHERE source = 'missing_signup_capture')\n  RETURNING ms.id, c.member_name, c.product_name\n), inserted_signup AS (\n  INSERT INTO public.member_signups (\n    signup_date,\n    member,\n    product,\n    payer,\n    cost,\n    quantity,\n    method,\n    status,\n    clubspark_status,\n    batch_id,\n    \"First name\",\n    \"Last name\",\n    \"Age\",\n    email_address,\n    address_1,\n    address_2,\n    address_3,\n    town,\n    postcode,\n    source\n  )\n  SELECT\n    c.signup_date,\n    c.member_name,\n    c.product_name,\n    c.payer_name,\n    c.cost,\n    1,\n    'Backfilled from source-of-truth',\n    'New',\n    c.clubspark_status,\n    NULL,\n    c.first_name,\n    c.last_name,\n    c.age,\n    c.email_address,\n    c.address_1,\n    c.address_2,\n    c.address_3,\n    c.town,\n    c.postcode,\n    'missing_signup_capture'\n  FROM selected_candidate c\n  WHERE NOT EXISTS (SELECT 1 FROM existing_signup)\n  RETURNING id, member, product\n), outcome AS (\n  SELECT\n    CASE\n      WHEN NOT EXISTS (SELECT 1 FROM selected_candidate) THEN 'not_found'\n      WHEN EXISTS (SELECT 1 FROM inserted_signup) THEN 'inserted'\n      WHEN EXISTS (SELECT 1 FROM updated_backfill) THEN 'updated'\n      ELSE 'already_exists'\n    END AS action,\n    CASE\n      WHEN NOT EXISTS (SELECT 1 FROM selected_candidate) THEN 404\n      ELSE 200\n    END AS response_code,\n    CASE\n      WHEN NOT EXISTS (SELECT 1 FROM selected_candidate) THEN 'Matching member row was not found in raw_members'\n      WHEN EXISTS (SELECT 1 FROM inserted_signup) THEN 'Created missing signup capture row'\n      WHEN EXISTS (SELECT 1 FROM updated_backfill) THEN 'Refreshed existing missing-signup backfill row'\n      ELSE 'Signup capture already exists for this member and package'\n    END AS message,\n    coalesce((SELECT id FROM inserted_signup LIMIT 1), (SELECT id FROM updated_backfill LIMIT 1), (SELECT id FROM existing_signup LIMIT 1)) AS signup_id,\n    (SELECT member_name FROM selected_candidate LIMIT 1) AS member,\n    (SELECT product_name FROM selected_candidate LIMIT 1) AS product,\n    CASE\n      WHEN EXISTS (SELECT 1 FROM inserted_signup) OR EXISTS (SELECT 1 FROM updated_backfill) THEN 'missing_signup_capture'\n      ELSE (SELECT source FROM existing_signup LIMIT 1)\n    END AS source\n)\nSELECT * FROM outcome;`\n  }\n}];"
+      },
+      "id": "c47d8f75-90aa-4f30-9b75-100000000004",
+      "name": "Build Backfill SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        820,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "c47d8f75-90aa-4f30-9b75-100000000005",
+      "name": "Create Missing Signup Row",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1100,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "needs-batch-update",
+              "leftValue": "={{ ['inserted', 'updated'].includes($json.action) }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "c47d8f75-90aa-4f30-9b75-100000000006",
+      "name": "Needs Batch Update?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1380,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "mode": "list",
+          "value": "YYrFJbug2FOcujPmhhQ8T"
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "c47d8f75-90aa-4f30-9b75-100000000007",
+      "name": "Execute Create Signup Batch",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        1650,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const created = $('Create Missing Signup Row').first()?.json ?? {};\nconst batch = $('Execute Create Signup Batch').first()?.json ?? {};\nreturn [{ json: { message: created.message, action: created.action, signup_id: created.signup_id ?? null, member: created.member ?? null, product: created.product ?? null, source: created.source ?? null, batch_message: batch.message ?? null, batch_id: batch.batch_id ?? null, signup_count: batch.signup_count ?? null, response_code: created.response_code ?? 200 } }];"
+      },
+      "id": "c47d8f75-90aa-4f30-9b75-100000000008",
+      "name": "Build Batched Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1930,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const created = $('Create Missing Signup Row').first()?.json ?? {};\nreturn [{ json: { message: created.message, action: created.action, signup_id: created.signup_id ?? null, member: created.member ?? null, product: created.product ?? null, source: created.source ?? null, batch_message: null, batch_id: null, signup_count: null, response_code: created.response_code ?? 200 } }];"
+      },
+      "id": "c47d8f75-90aa-4f30-9b75-100000000009",
+      "name": "Build Direct Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1650,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ Number($json.response_code || 200) }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "c47d8f75-90aa-4f30-9b75-100000000010",
+      "name": "Respond Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2210,
+        220
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Resolve Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Missing Signup Capture Webhook": {
+      "main": [
+        [
+          {
+            "node": "Resolve Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Request": {
+      "main": [
+        [
+          {
+            "node": "Build Backfill SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Backfill SQL": {
+      "main": [
+        [
+          {
+            "node": "Create Missing Signup Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Missing Signup Row": {
+      "main": [
+        [
+          {
+            "node": "Needs Batch Update?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs Batch Update?": {
+      "main": [
+        [
+          {
+            "node": "Execute Create Signup Batch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Direct Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Create Signup Batch": {
+      "main": [
+        [
+          {
+            "node": "Build Batched Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Batched Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Direct Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}

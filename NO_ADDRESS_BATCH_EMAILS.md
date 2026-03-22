@@ -71,6 +71,37 @@ Metabase card:
 
 Clicking the card link calls the webhook for that batch.
 
+The Metabase card only shows the `No Address Emails` link when both are true:
+
+- batch `status = 'Complete'`
+- `no_address_email_sent = false`
+
+For `Processing` batches, or batches already marked as sent, the link cell is blank.
+
+The webhook also accepts an override flag:
+
+- `override=true`
+
+Example:
+
+```text
+http://n8n:5678/webhook/send-no-address-batch-emails?batch_id=5&override=true
+```
+
+## Batch sent flag
+
+`public.signup_batches` now has:
+
+- `no_address_email_sent boolean not null default false`
+
+Rules:
+
+- batch `4` is marked `true`
+- the workflow refuses to send if this flag is already `true`
+- the webhook override parameter can bypass that guard for a one-off rerun
+- after a successful production send, the workflow sets the flag to `true`
+- test-mode sends do not change the flag
+
 ## Delivery modes
 
 The workflow supports two modes:
@@ -131,12 +162,24 @@ Force production for one run:
 http://n8n:5678/webhook/send-no-address-batch-emails?batch_id=5&delivery_mode=production
 ```
 
+Force a resend for a batch already marked as sent:
+
+```text
+http://n8n:5678/webhook/send-no-address-batch-emails?batch_id=5&delivery_mode=production&override=true
+```
+
 ## Error handling
 
 Missing batch:
 
 ```json
 {"message":"Batch 2 does not exist"}
+```
+
+Already sent and no override:
+
+```json
+{"message":"No-address emails have already been sent for batch <batch_id>"}
 ```
 
 No recipients found for the batch:
