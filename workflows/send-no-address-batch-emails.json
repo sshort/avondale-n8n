@@ -1,0 +1,598 @@
+{
+  "name": "Send No-Address Batch Emails",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "send-no-address-batch-emails",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000002",
+      "name": "Send No-Address Emails Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "send-no-address-batch-emails"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "delivery-mode-default",
+              "name": "default_delivery_mode",
+              "type": "string",
+              "value": "={{ $env.AVONDALE_EMAIL_DELIVERY_MODE || 'test' }}"
+            },
+            {
+              "id": "test-recipient-default",
+              "name": "test_recipient",
+              "type": "string",
+              "value": "={{ $env.AVONDALE_EMAIL_TEST_RECIPIENT || 'steve.short@gmail.com' }}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000019",
+      "name": "Load Delivery Defaults",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        360,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const source = $input.first()?.json ?? {};\nconst candidates = [\n  source.batch_id,\n  source.batchId,\n  source.query?.batch_id,\n  source.query?.batchId,\n  source.query?.batch,\n  source.params?.batch_id,\n  source.params?.batchId,\n];\nconst rawBatchId = candidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '');\nconst parsedBatchId = rawBatchId === undefined ? null : Number.parseInt(String(rawBatchId), 10);\nconst modeCandidates = [\n  source.delivery_mode,\n  source.deliveryMode,\n  source.query?.delivery_mode,\n  source.query?.deliveryMode,\n  source.query?.mode,\n  source.params?.delivery_mode,\n  source.params?.deliveryMode,\n  source.default_delivery_mode,\n];\nconst normalizedMode = String(modeCandidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '') ?? 'test').trim().toLowerCase();\nconst deliveryMode = normalizedMode === 'production' ? 'production' : 'test';\nconst recipientCandidates = [\n  source.test_recipient,\n  source.testRecipient,\n  source.query?.test_recipient,\n  source.query?.testRecipient,\n  source.params?.test_recipient,\n  source.params?.testRecipient,\n];\nconst rawTestRecipient = recipientCandidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '');\nconst testRecipient = String(rawTestRecipient ?? 'steve.short@gmail.com').trim();\nreturn [{\n  json: {\n    batch_id: Number.isInteger(parsedBatchId) && parsedBatchId > 0 ? parsedBatchId : null,\n    template_key: 'shoe_tag_pigeon_hole',\n    sender_name: 'Steve Short',\n    reply_to: 'members.avondaleltc@gmail.com',\n    delivery_mode: deliveryMode,\n    test_recipient: testRecipient,\n  }\n}];"
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000003",
+      "name": "Resolve Batch Id",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const batchId = $input.first()?.json?.batch_id;\nif (batchId === null) {\n  return [{ json: { sql: \"SELECT 'batch_id is required' AS error_message, 400 AS response_code;\" } }];\n}\nreturn [{\n  json: {\n    sql: `SELECT CASE WHEN EXISTS (SELECT 1 FROM public.signup_batches WHERE id = ${batchId}) THEN NULL ELSE 'Batch ${batchId} does not exist' END AS error_message, CASE WHEN EXISTS (SELECT 1 FROM public.signup_batches WHERE id = ${batchId}) THEN 200 ELSE 404 END AS response_code;`,\n  }\n}];"
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000004",
+      "name": "Build Batch Validation SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000005",
+      "name": "Validate Batch",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1020,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "batch-error-check",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000006",
+      "name": "Check Batch Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1280,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { message: $json.error_message } }}",
+        "options": {
+          "responseCode": "={{ Number($json.response_code || 400) }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000007",
+      "name": "Respond Batch Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1540,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const batchId = $('Resolve Batch Id').first().json.batch_id;\nconst sql = `WITH best_contact AS (\n  SELECT DISTINCT ON (CONCAT(rc.\"First name\", ' ', rc.\"Last name\"))\n    CONCAT(rc.\"First name\", ' ', rc.\"Last name\") AS payer_name,\n    rc.\"First name\" AS first_name,\n    rc.\"Last name\" AS last_name,\n    NULLIF(TRIM(rc.\"Email address\"), '') AS email_address,\n    NULLIF(TRIM(rc.\"Address 1\"), '') AS address_1,\n    NULLIF(TRIM(rc.\"Address 2\"), '') AS address_2,\n    NULLIF(TRIM(rc.town), '') AS town,\n    NULLIF(TRIM(rc.postcode), '') AS postcode\n  FROM public.raw_contacts rc\n  ORDER BY CONCAT(rc.\"First name\", ' ', rc.\"Last name\"),\n           CASE WHEN NULLIF(TRIM(rc.\"Address 1\"), '') IS NOT NULL AND NULLIF(TRIM(rc.postcode), '') IS NOT NULL THEN 0 ELSE 1 END,\n           CASE WHEN NULLIF(TRIM(rc.\"Email address\"), '') IS NOT NULL THEN 0 ELSE 1 END,\n           CASE WHEN NULLIF(TRIM(rc.postcode), '') IS NOT NULL THEN 0 ELSE 1 END\n),\nbest_member AS (\n  SELECT DISTINCT ON (CONCAT(rm.\"First name\", ' ', rm.\"Last name\"))\n    CONCAT(rm.\"First name\", ' ', rm.\"Last name\") AS payer_name,\n    rm.\"First name\" AS first_name,\n    rm.\"Last name\" AS last_name,\n    NULLIF(TRIM(rm.\"Email address\"), '') AS email_address\n  FROM public.raw_members rm\n  ORDER BY CONCAT(rm.\"First name\", ' ', rm.\"Last name\"),\n           CASE WHEN NULLIF(TRIM(rm.\"Email address\"), '') IS NOT NULL THEN 0 ELSE 1 END\n)\nSELECT\n  s.batch_id,\n  s.payer,\n  COALESCE(bc.first_name, bm.first_name, split_part(s.payer, ' ', 1)) AS first_name,\n  COALESCE(bc.last_name, bm.last_name, NULLIF(regexp_replace(s.payer, '^\\\\S+\\\\s*', ''), '')) AS last_name,\n  COALESCE(bc.email_address, bm.email_address) AS email_address,\n  bc.address_1,\n  bc.address_2,\n  bc.town,\n  bc.postcode,\n  COUNT(*) FILTER (WHERE s.product = '6. Parent 2026')::int AS parent_tags,\n  COUNT(*) FILTER (WHERE s.product NOT IN ('6. Parent 2026', 'b. Pavilion Key', 'a. Social 2026'))::int AS regular_tags,\n  COUNT(*) FILTER (WHERE s.product = 'b. Pavilion Key')::int AS keys,\n  COUNT(*)::int AS total_items\nFROM public.member_signups s\nLEFT JOIN best_contact bc\n  ON s.payer = bc.payer_name\nLEFT JOIN best_member bm\n  ON s.payer = bm.payer_name\nWHERE s.batch_id = ${batchId}\n  AND s.product <> 'a. Social 2026'\nGROUP BY\n  s.batch_id,\n  s.payer,\n  COALESCE(bc.first_name, bm.first_name, split_part(s.payer, ' ', 1)),\n  COALESCE(bc.last_name, bm.last_name, NULLIF(regexp_replace(s.payer, '^\\\\S+\\\\s*', ''), '')),\n  COALESCE(bc.email_address, bm.email_address),\n  bc.address_1,\n  bc.address_2,\n  bc.town,\n  bc.postcode\nHAVING COALESCE(bc.email_address, bm.email_address) IS NOT NULL\n   AND (\n     NULLIF(TRIM(bc.address_1), '') IS NULL\n     OR NULLIF(TRIM(bc.postcode), '') IS NULL\n   )\nORDER BY s.payer;`;\nreturn [{ json: { batch_id: batchId, sql } }];"
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000008",
+      "name": "Build No-Address Recipient SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000009",
+      "name": "Load No-Address Recipients",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1800,
+        320
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const rawRecipients = $input.all().map((item) => item.json ?? {});\nconst recipients = rawRecipients.filter((recipient) => {\n  if (!recipient || typeof recipient !== 'object') return false;\n  return [recipient.payer, recipient.email_address, recipient.first_name, recipient.last_name]\n    .some((value) => value !== undefined && value !== null && String(value).trim() !== '');\n});\nconst config = $('Resolve Batch Id').first().json;\nreturn [{\n  json: {\n    batch_id: config.batch_id,\n    recipient_count: recipients.length,\n    recipients,\n    template_key: config.template_key,\n    sender_name: config.sender_name,\n    reply_to: config.reply_to,\n    delivery_mode: config.delivery_mode,\n    test_recipient: config.test_recipient,\n  }\n}];"
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000010",
+      "name": "Collect Recipient Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2060,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "recipient-count-check",
+              "leftValue": "={{ Number($json.recipient_count || 0) }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000011",
+      "name": "Has Recipients?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2320,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { message: `No recipients without postal addresses for batch ${$json.batch_id}`, batch_id: $json.batch_id, sent_count: 0, recipients: [] } }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000012",
+      "name": "Respond No Recipients",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2580,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $('Collect Recipient Data').first().json;\nconst sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sql = `select template_key, subject_template, text_template, html_template\nfrom public.email_templates\nwhere template_key = ${sqlLiteral(item.template_key)}\n  and is_active = true\norder by id desc\nlimit 1;`;\nreturn [{ json: { batch_id: item.batch_id, sql } }];"
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000013",
+      "name": "Build Template Lookup SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2580,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000014",
+      "name": "Load Email Template",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2840,
+        420
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const summary = $('Collect Recipient Data').first().json;\nconst template = $('Load Email Template').first()?.json ?? {};\nif (!template.template_key) {\n  throw new Error(`Email template ${summary.template_key} was not found`);\n}\nconst splitName = (payer) => {\n  const trimmed = String(payer ?? '').trim();\n  if (!trimmed) return { first_name: '', last_name: '' };\n  const parts = trimmed.split(/\\s+/);\n  return {\n    first_name: parts[0] ?? '',\n    last_name: parts.slice(1).join(' '),\n  };\n};\nconst applyTokens = (value, recipient) => {\n  const fallbackName = splitName(recipient.payer);\n  const firstName = String(recipient.first_name ?? '').trim() || fallbackName.first_name;\n  const lastName = String(recipient.last_name ?? '').trim() || fallbackName.last_name;\n  const emailAddress = String(recipient.email_address ?? '').trim();\n  const tokenMap = {\n    '{{$json.first_name}}': firstName,\n    '{{$json.last_name}}': lastName,\n    '{{$json.email_address}}': emailAddress,\n    '{{$json.address_1}}': recipient.address_1 ?? '',\n    '{{$json.address_2}}': recipient.address_2 ?? '',\n    '{{$json.town}}': recipient.town ?? '',\n    '{{$json.postcode}}': recipient.postcode ?? '',\n    '{{$json.contact.first_name}}': firstName,\n    '{{$json.contact.last_name}}': lastName,\n    '{{$json.contact.email_address}}': emailAddress,\n    '{{$json.contact.address_1}}': recipient.address_1 ?? '',\n    '{{$json.contact.address_2}}': recipient.address_2 ?? '',\n    '{{$json.contact.town}}': recipient.town ?? '',\n    '{{$json.contact.postcode}}': recipient.postcode ?? '',\n    '{{$json.member.first_name}}': firstName,\n    '{{$json.member.last_name}}': lastName,\n    '{{$json.member.email_address}}': emailAddress,\n    '{{first_name}}': firstName,\n    '{{last_name}}': lastName,\n    '{{email_address}}': emailAddress,\n    '{{address_1}}': recipient.address_1 ?? '',\n    '{{address_2}}': recipient.address_2 ?? '',\n    '{{town}}': recipient.town ?? '',\n    '{{postcode}}': recipient.postcode ?? '',\n    '<first name>': firstName,\n    '<last name>': lastName,\n    '<email address>': emailAddress,\n    '{contact.first_name}': firstName,\n    '{contact.last_name}': lastName,\n    '{contact.email_address}': emailAddress,\n    '{contact.address_1}': recipient.address_1 ?? '',\n    '{contact.address_2}': recipient.address_2 ?? '',\n    '{contact.town}': recipient.town ?? '',\n    '{contact.postcode}': recipient.postcode ?? '',\n    '{member.first_name}': firstName,\n    '{member.last_name}': lastName,\n    '{member.email_address}': emailAddress,\n  };\n  let rendered = String(value ?? '');\n  for (const [token, replacement] of Object.entries(tokenMap)) {\n    rendered = rendered.split(token).join(String(replacement));\n  }\n  return rendered.trim();\n};\nconst bodySource = template.text_template ?? template.html_template ?? '';\nreturn summary.recipients.map((recipient) => {\n  const fallbackName = splitName(recipient.payer);\n  const firstName = String(recipient.first_name ?? '').trim() || fallbackName.first_name;\n  const lastName = String(recipient.last_name ?? '').trim() || fallbackName.last_name;\n  const originalEmail = String(recipient.email_address ?? '').trim();\n  const isTestMode = summary.delivery_mode !== 'production';\n  const targetEmail = isTestMode ? summary.test_recipient : originalEmail;\n  const renderedMessage = applyTokens(bodySource, { ...recipient, first_name: firstName, last_name: lastName, email_address: originalEmail });\n  const finalMessage = isTestMode\n    ? `${renderedMessage}\\n\\n---\\nTEST MODE\\nOriginal recipient: ${originalEmail}\\nPayer: ${recipient.payer}`\n    : renderedMessage;\n  return {\n    json: {\n      batch_id: summary.batch_id,\n      to_email: targetEmail,\n      original_to_email: originalEmail,\n      payer: recipient.payer,\n      sender_name: summary.sender_name,\n      reply_to: summary.reply_to,\n      template_key: template.template_key,\n      delivery_mode: summary.delivery_mode,\n      test_recipient: summary.test_recipient,\n      rendered_subject: applyTokens(template.subject_template ?? 'Message from Avondale about your tags', { ...recipient, first_name: firstName, last_name: lastName, email_address: originalEmail }),\n      rendered_message: finalMessage,\n      email_type: template.html_template && !template.text_template ? 'html' : 'text',\n      recipient_first_name: firstName,\n      recipient_last_name: lastName,\n    }\n  };\n});"
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000015",
+      "name": "Build Send Items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3100,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.to_email }}",
+        "subject": "={{ $json.rendered_subject }}",
+        "emailType": "={{ $json.email_type }}",
+        "message": "={{ $json.rendered_message }}",
+        "options": {
+          "appendAttribution": false,
+          "replyTo": "={{ $json.reply_to }}",
+          "senderName": "={{ $json.sender_name }}"
+        }
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000016",
+      "name": "Send Gmail Message",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3360,
+        420
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sentItems = $input.all();\nconst summary = $('Collect Recipient Data').first().json;\nreturn [{\n  json: {\n    message: `Sent ${sentItems.length} email(s) for batch ${summary.batch_id} in ${summary.delivery_mode} mode`,\n    batch_id: summary.batch_id,\n    delivery_mode: summary.delivery_mode,\n    test_recipient: summary.test_recipient,\n    sent_count: sentItems.length,\n    recipients: sentItems.map((item) => ({\n      payer: item.json.payer,\n      email: item.json.to_email,\n      original_email: item.json.original_to_email,\n      first_name: item.json.recipient_first_name,\n      last_name: item.json.recipient_last_name,\n    })),\n  }\n}];"
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000017",
+      "name": "Summarize Send",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3620,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "91a5d1b5-1b90-4e5b-a0f0-000000000018",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3880,
+        420
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Delivery Defaults",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send No-Address Emails Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Delivery Defaults",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Delivery Defaults": {
+      "main": [
+        [
+          {
+            "node": "Resolve Batch Id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Batch Id": {
+      "main": [
+        [
+          {
+            "node": "Build Batch Validation SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Batch Validation SQL": {
+      "main": [
+        [
+          {
+            "node": "Validate Batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Batch": {
+      "main": [
+        [
+          {
+            "node": "Check Batch Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Batch Error": {
+      "main": [
+        [
+          {
+            "node": "Respond Batch Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build No-Address Recipient SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build No-Address Recipient SQL": {
+      "main": [
+        [
+          {
+            "node": "Load No-Address Recipients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load No-Address Recipients": {
+      "main": [
+        [
+          {
+            "node": "Collect Recipient Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Recipient Data": {
+      "main": [
+        [
+          {
+            "node": "Has Recipients?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Recipients?": {
+      "main": [
+        [
+          {
+            "node": "Build Template Lookup SQL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond No Recipients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Template Lookup SQL": {
+      "main": [
+        [
+          {
+            "node": "Load Email Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Email Template": {
+      "main": [
+        [
+          {
+            "node": "Build Send Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Send Items": {
+      "main": [
+        [
+          {
+            "node": "Send Gmail Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Gmail Message": {
+      "main": [
+        [
+          {
+            "node": "Summarize Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize Send": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

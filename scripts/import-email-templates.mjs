@@ -69,6 +69,29 @@ const stripSubjectLine = (content) => {
   };
 };
 
+const normalizeTemplateSyntax = (content) =>
+  String(content ?? '')
+    .replace(/<first name>/gi, '{{$json.first_name}}')
+    .replace(/<last name>/gi, '{{$json.last_name}}')
+    .replace(/<email address>/gi, '{{$json.email_address}}')
+    .replace(/\{\{first_name\}\}/g, '{{$json.first_name}}')
+    .replace(/\{\{last_name\}\}/g, '{{$json.last_name}}')
+    .replace(/\{\{email_address\}\}/g, '{{$json.email_address}}')
+    .replace(/\{\{address_1\}\}/g, '{{$json.address_1}}')
+    .replace(/\{\{address_2\}\}/g, '{{$json.address_2}}')
+    .replace(/\{\{town\}\}/g, '{{$json.town}}')
+    .replace(/\{\{postcode\}\}/g, '{{$json.postcode}}')
+    .replace(/\{contact\.first_name\}/g, '{{$json.first_name}}')
+    .replace(/\{contact\.last_name\}/g, '{{$json.last_name}}')
+    .replace(/\{contact\.email_address\}/g, '{{$json.email_address}}')
+    .replace(/\{contact\.address_1\}/g, '{{$json.address_1}}')
+    .replace(/\{contact\.address_2\}/g, '{{$json.address_2}}')
+    .replace(/\{contact\.town\}/g, '{{$json.town}}')
+    .replace(/\{contact\.postcode\}/g, '{{$json.postcode}}')
+    .replace(/\{member\.first_name\}/g, '{{$json.first_name}}')
+    .replace(/\{member\.last_name\}/g, '{{$json.last_name}}')
+    .replace(/\{member\.email_address\}/g, '{{$json.email_address}}');
+
 const walk = async (dir) => {
   const entries = await fs.readdir(dir, { withFileTypes: true });
   const files = [];
@@ -110,14 +133,14 @@ for (const file of files) {
   const rawContent = await fs.readFile(file.fullPath, 'utf8');
   const { subject, body } = stripSubjectLine(rawContent);
   if (!group.subject_template && subject) {
-    group.subject_template = subject;
+    group.subject_template = normalizeTemplateSyntax(subject);
   }
 
   if (file.relativePath.endsWith('.html') || file.relativePath.endsWith('signature html')) {
-    group.html_template = body;
+    group.html_template = normalizeTemplateSyntax(body);
     group.source_html_path = file.relativePath;
   } else {
-    group.text_template = body;
+    group.text_template = normalizeTemplateSyntax(body);
     group.source_txt_path = file.relativePath;
   }
 
