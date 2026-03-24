@@ -31,39 +31,29 @@
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "delivery-mode-default",
-              "name": "default_delivery_mode",
-              "type": "string",
-              "value": "={{ $env.AVONDALE_EMAIL_DELIVERY_MODE || 'test' }}"
-            },
-            {
-              "id": "test-recipient-default",
-              "name": "test_recipient",
-              "type": "string",
-              "value": "={{ $env.AVONDALE_EMAIL_TEST_RECIPIENT || 'steve.short@gmail.com' }}"
-            }
-          ]
-        },
-        "includeOtherFields": true,
-        "options": {}
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'email_delivery_mode' THEN value END) AS default_delivery_mode,\n  MAX(CASE WHEN key = 'email_test_recipient' THEN value END) AS default_test_recipient,\n  MAX(CASE WHEN key = 'email_sender_name' THEN value END) AS email_sender_name,\n  MAX(CASE WHEN key = 'email_reply_to' THEN value END) AS email_reply_to,\n  MAX(CASE WHEN key = 'no_address_email_template_key' THEN value END) AS no_address_email_template_key\nFROM public.global_settings\nWHERE key IN (\n  'email_delivery_mode',\n  'email_test_recipient',\n  'email_sender_name',\n  'email_reply_to',\n  'no_address_email_template_key'\n);"
       },
       "id": "91a5d1b5-1b90-4e5b-a0f0-000000000019",
-      "name": "Load Delivery Defaults",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
       "position": [
         360,
         220
-      ]
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const source = $input.first()?.json ?? {};\nconst candidates = [\n  source.batch_id,\n  source.batchId,\n  source.query?.batch_id,\n  source.query?.batchId,\n  source.query?.batch,\n  source.params?.batch_id,\n  source.params?.batchId,\n];\nconst rawBatchId = candidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '');\nconst parsedBatchId = rawBatchId === undefined ? null : Number.parseInt(String(rawBatchId), 10);\nconst modeCandidates = [\n  source.delivery_mode,\n  source.deliveryMode,\n  source.query?.delivery_mode,\n  source.query?.deliveryMode,\n  source.query?.mode,\n  source.params?.delivery_mode,\n  source.params?.deliveryMode,\n  source.default_delivery_mode,\n];\nconst normalizedMode = String(modeCandidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '') ?? 'test').trim().toLowerCase();\nconst deliveryMode = normalizedMode === 'production' ? 'production' : 'test';\nconst recipientCandidates = [\n  source.test_recipient,\n  source.testRecipient,\n  source.query?.test_recipient,\n  source.query?.testRecipient,\n  source.params?.test_recipient,\n  source.params?.testRecipient,\n];\nconst rawTestRecipient = recipientCandidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '');\nconst testRecipient = String(rawTestRecipient ?? 'steve.short@gmail.com').trim();\nconst overrideCandidates = [\n  source.override,\n  source.override_send,\n  source.force_send,\n  source.force,\n  source.query?.override,\n  source.query?.override_send,\n  source.query?.force_send,\n  source.query?.force,\n  source.params?.override,\n  source.params?.override_send,\n  source.params?.force_send,\n  source.params?.force,\n];\nconst rawOverride = overrideCandidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '');\nconst normalizedOverride = String(rawOverride ?? '').trim().toLowerCase();\nconst overrideSend = ['1', 'true', 'yes', 'y', 'on'].includes(normalizedOverride);\nreturn [{\n  json: {\n    batch_id: Number.isInteger(parsedBatchId) && parsedBatchId > 0 ? parsedBatchId : null,\n    template_key: 'shoe_tag_pigeon_hole',\n    sender_name: 'Steve Short',\n    reply_to: 'members.avondaleltc@gmail.com',\n    delivery_mode: deliveryMode,\n    test_recipient: testRecipient,\n    override_send: overrideSend,\n  }\n}];"
+        "jsCode": "const source = $input.first()?.json ?? {};\nconst candidates = [\n  source.batch_id,\n  source.batchId,\n  source.query?.batch_id,\n  source.query?.batchId,\n  source.query?.batch,\n  source.params?.batch_id,\n  source.params?.batchId,\n];\nconst rawBatchId = candidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '');\nconst parsedBatchId = rawBatchId === undefined ? null : Number.parseInt(String(rawBatchId), 10);\nconst modeCandidates = [\n  source.delivery_mode,\n  source.deliveryMode,\n  source.query?.delivery_mode,\n  source.query?.deliveryMode,\n  source.query?.mode,\n  source.params?.delivery_mode,\n  source.params?.deliveryMode,\n  source.default_delivery_mode,\n];\nconst normalizedMode = String(modeCandidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '') ?? 'test').trim().toLowerCase();\nconst deliveryMode = normalizedMode === 'production' ? 'production' : 'test';\nconst recipientCandidates = [\n  source.test_recipient,\n  source.testRecipient,\n  source.query?.test_recipient,\n  source.query?.testRecipient,\n  source.params?.test_recipient,\n  source.params?.testRecipient,\n  source.default_test_recipient,\n];\nconst rawTestRecipient = recipientCandidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '');\nconst testRecipient = String(rawTestRecipient ?? 'steve.short@gmail.com').trim();\nconst overrideCandidates = [\n  source.override,\n  source.override_send,\n  source.force_send,\n  source.force,\n  source.query?.override,\n  source.query?.override_send,\n  source.query?.force_send,\n  source.query?.force,\n  source.params?.override,\n  source.params?.override_send,\n  source.params?.force_send,\n  source.params?.force,\n];\nconst rawOverride = overrideCandidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '');\nconst normalizedOverride = String(rawOverride ?? '').trim().toLowerCase();\nconst overrideSend = ['1', 'true', 'yes', 'y', 'on'].includes(normalizedOverride);\nreturn [{\n  json: {\n    batch_id: Number.isInteger(parsedBatchId) && parsedBatchId > 0 ? parsedBatchId : null,\n    template_key: source.no_address_email_template_key || 'shoe_tag_pigeon_hole',\n    sender_name: source.email_sender_name || 'Steve Short',\n    reply_to: source.email_reply_to || 'members.avondaleltc@gmail.com',\n    delivery_mode: deliveryMode,\n    test_recipient: testRecipient,\n    override_send: overrideSend,\n  }\n}];"
       },
       "id": "91a5d1b5-1b90-4e5b-a0f0-000000000003",
       "name": "Resolve Batch Id",
@@ -434,7 +424,7 @@
       "main": [
         [
           {
-            "node": "Load Delivery Defaults",
+            "node": "Load Global Settings",
             "type": "main",
             "index": 0
           }
@@ -445,14 +435,14 @@
       "main": [
         [
           {
-            "node": "Load Delivery Defaults",
+            "node": "Load Global Settings",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Load Delivery Defaults": {
+    "Load Global Settings": {
       "main": [
         [
           {

@@ -14,7 +14,27 @@
     },
     {
       "parameters": {
-        "jsCode": "return [{\n  json: {\n    template_key: 'shoe_tag_pigeon_hole',\n    recipient_first_name: 'Steve',\n    recipient_last_name: 'Short',\n    sender_name: 'Steve Short',\n    reply_to: 'members.avondaleltc@gmail.com',\n  },\n}];"
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'gmail_test_email_template_key' THEN value END) AS gmail_test_email_template_key,\n  MAX(CASE WHEN key = 'email_sender_name' THEN value END) AS email_sender_name,\n  MAX(CASE WHEN key = 'email_reply_to' THEN value END) AS email_reply_to\nFROM public.global_settings\nWHERE key IN ('gmail_test_email_template_key', 'email_sender_name', 'email_reply_to');"
+      },
+      "id": "f6f3537f-3963-4c96-8cb5-1eeec40da4c2",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        500,
+        460
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const settings = $('Load Global Settings').first().json ?? {};\nreturn [{\n  json: {\n    template_key: settings.gmail_test_email_template_key || 'shoe_tag_pigeon_hole',\n    recipient_first_name: 'Steve',\n    recipient_last_name: 'Short',\n    sender_name: settings.email_sender_name || 'Steve Short',\n    reply_to: settings.email_reply_to || 'members.avondaleltc@gmail.com',\n  },\n}];"
       },
       "id": "3d37df33-7788-4f26-b2ec-4745b0de486b",
       "name": "Editable Send Inputs",
@@ -137,6 +157,17 @@
   ],
   "connections": {
     "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
       "main": [
         [
           {

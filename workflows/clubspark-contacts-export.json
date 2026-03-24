@@ -21,8 +21,25 @@
     },
     {
       "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'clubspark_exporter_base_url' THEN value END) AS clubspark_exporter_base_url\nFROM public.global_settings\nWHERE key = 'clubspark_exporter_base_url';"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000017",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [450, 460],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
         "method": "POST",
-        "url": "http://clubspark-exporter:3001/clubspark-export",
+        "url": "={{ $('Load Global Settings').first().json.clubspark_exporter_base_url + '/clubspark-export' }}",
         "options": {
           "response": {
             "response": {
@@ -69,8 +86,8 @@
       "position": [1200, 300],
       "credentials": {
         "postgres": {
-          "id": "DCYrUK9PAWz5kyFD",
-          "name": "avondaledb-n8n-user-cloudsql-socket"
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
         }
       }
     },
@@ -86,17 +103,20 @@
       "position": [1450, 300],
       "credentials": {
         "postgres": {
-          "id": "DCYrUK9PAWz5kyFD",
-          "name": "avondaledb-n8n-user-cloudsql-socket"
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
         }
       }
     }
   ],
   "connections": {
     "When clicking 'Execute workflow'": {
-      "main": [[{ "node": "Fetch Contacts CSV", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Load Global Settings", "type": "main", "index": 0 }]]
     },
     "When Executed by Another Workflow": {
+      "main": [[{ "node": "Load Global Settings", "type": "main", "index": 0 }]]
+    },
+    "Load Global Settings": {
       "main": [[{ "node": "Fetch Contacts CSV", "type": "main", "index": 0 }]]
     },
     "Fetch Contacts CSV": {

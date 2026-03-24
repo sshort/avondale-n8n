@@ -109,12 +109,21 @@ The workflow supports two modes:
 - `production`
 - `test`
 
-Global defaults are set through local n8n environment variables in `docker-compose.yml`.
+Global defaults are now read from `public.global_settings`.
 
 Current settings:
 
-- `AVONDALE_EMAIL_DELIVERY_MODE=production`
-- `AVONDALE_EMAIL_TEST_RECIPIENT=steve.short@gmail.com`
+- `email_delivery_mode = production`
+- `email_test_recipient = steve.short@gmail.com`
+- `email_sender_name = Steve Short`
+- `email_reply_to = members.avondaleltc@gmail.com`
+- `no_address_email_template_key = shoe_tag_pigeon_hole`
+
+Per-run webhook query parameters still override the stored defaults:
+
+- `delivery_mode`
+- `test_recipient`
+- `override`
 
 ### Production mode
 

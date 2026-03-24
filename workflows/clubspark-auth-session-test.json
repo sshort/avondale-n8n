@@ -11,6 +11,23 @@
     },
     {
       "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'clubspark_venue_slug' THEN value END) AS clubspark_venue_slug\nFROM public.global_settings\nWHERE key = 'clubspark_venue_slug';"
+      },
+      "id": "c5c10002-2222-4222-8222-000000000005",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [480, 460],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
         "source": "database",
         "workflowId": {
           "mode": "list",
@@ -30,7 +47,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Membership/Members",
+        "url": "={{ 'https://clubspark.lta.org.uk/' + $('Load Global Settings').first().json.clubspark_venue_slug + '/Admin/Membership/Members' }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -60,7 +77,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const auth = $('Execute ClubSpark Auth Session').first().json ?? {};\nconst html = String($input.first().json?.data ?? $input.first().json?.body ?? '');\nif (!html.trim()) {\n  throw new Error('The authenticated fetch did not return any HTML.');\n}\nif (/Sign in|Log in/i.test(html) && /auth\\.clubspark\\.uk|mylta\\.my\\.site\\.com/i.test(html)) {\n  throw new Error('The returned HTML is still the ClubSpark/LTA sign-in page.');\n}\nconst hasMembersTable = /members-table/i.test(html);\nconst hasAdminMarkers = /Contact Options|Reset filters|Export CSV|Membership/i.test(html);\nif (!hasMembersTable && !hasAdminMarkers) {\n  throw new Error('The fetched HTML does not look like the authenticated ClubSpark members page.');\n}\nreturn [{\n  json: {\n    authenticated: true,\n    auth_target_url: auth.targetUrl,\n    auth_authenticated_url: auth.authenticatedUrl,\n    cookie_count: auth.cookieCount,\n    fetch_verified_url: 'https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Membership/Members',\n    members_table_detected: hasMembersTable,\n    html_snippet: html.replace(/\\s+/g, ' ').slice(0, 400),\n  },\n}];"
+        "jsCode": "const auth = $('Execute ClubSpark Auth Session').first().json ?? {};\nconst settings = $('Load Global Settings').first().json ?? {};\nconst html = String($input.first().json?.data ?? $input.first().json?.body ?? '');\nconst fetchVerifiedUrl = `https://clubspark.lta.org.uk/${settings.clubspark_venue_slug}/Admin/Membership/Members`;\nif (!html.trim()) {\n  throw new Error('The authenticated fetch did not return any HTML.');\n}\nif (/Sign in|Log in/i.test(html) && /auth\\.clubspark\\.uk|mylta\\.my\\.site\\.com/i.test(html)) {\n  throw new Error('The returned HTML is still the ClubSpark/LTA sign-in page.');\n}\nconst hasMembersTable = /members-table/i.test(html);\nconst hasAdminMarkers = /Contact Options|Reset filters|Export CSV|Membership/i.test(html);\nif (!hasMembersTable && !hasAdminMarkers) {\n  throw new Error('The fetched HTML does not look like the authenticated ClubSpark members page.');\n}\nreturn [{\n  json: {\n    authenticated: true,\n    auth_target_url: auth.targetUrl,\n    auth_authenticated_url: auth.authenticatedUrl,\n    cookie_count: auth.cookieCount,\n    fetch_verified_url: fetchVerifiedUrl,\n    members_table_detected: hasMembersTable,\n    html_snippet: html.replace(/\\s+/g, ' ').slice(0, 400),\n  },\n}];"
       },
       "id": "c5c10002-2222-4222-8222-000000000004",
       "name": "Validate Reused Session",
@@ -71,6 +88,9 @@
   ],
   "connections": {
     "When clicking 'Execute workflow'": {
+      "main": [[{ "node": "Load Global Settings", "type": "main", "index": 0 }]]
+    },
+    "Load Global Settings": {
       "main": [[{ "node": "Execute ClubSpark Auth Session", "type": "main", "index": 0 }]]
     },
     "Execute ClubSpark Auth Session": {

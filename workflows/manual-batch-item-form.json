@@ -1,0 +1,115 @@
+{
+  "name": "Manual Batch Item Form",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f2000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "manual-batch-item-form",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f2000000-0000-0000-0000-000000000002",
+      "name": "Manual Batch Item Form Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "manual-batch-item-form"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const source = $input.first()?.json ?? {};\nconst query = source.query ?? source;\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst escapeHtml = (value) => clean(value)\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst member = clean(query.member);\nconst batchId = clean(query.batch_id ?? query.batchId);\nconst actionUrl = 'http://n8n:5678/webhook/add-manual-batch-item';\nconst html = `<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Manual Batch Item</title>\n  <style>\n    :root {\n      color-scheme: light;\n      --bg: #f5f7f3;\n      --panel: #ffffff;\n      --ink: #183321;\n      --muted: #567061;\n      --line: #cfdacd;\n      --accent: #2f7d45;\n    }\n    * { box-sizing: border-box; }\n    body {\n      margin: 0;\n      font-family: Georgia, 'Times New Roman', serif;\n      color: var(--ink);\n      background: linear-gradient(180deg, #eef4ea 0%, var(--bg) 100%);\n      min-height: 100vh;\n      padding: 24px;\n    }\n    .wrap {\n      max-width: 760px;\n      margin: 0 auto;\n      background: var(--panel);\n      border: 1px solid var(--line);\n      border-radius: 18px;\n      padding: 28px;\n      box-shadow: 0 18px 40px rgba(24, 51, 33, 0.08);\n    }\n    h1 {\n      margin: 0 0 8px;\n      font-size: 30px;\n      line-height: 1.1;\n    }\n    .lede {\n      margin: 0 0 20px;\n      color: var(--muted);\n      font-size: 16px;\n    }\n    .member {\n      margin: 0 0 22px;\n      padding: 14px 16px;\n      background: #f6faee;\n      border: 1px solid #dbe8c0;\n      border-radius: 12px;\n    }\n    .member strong {\n      display: block;\n      font-size: 20px;\n      margin-bottom: 4px;\n    }\n    form {\n      display: grid;\n      gap: 16px;\n    }\n    .grid {\n      display: grid;\n      gap: 16px;\n      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));\n    }\n    label {\n      display: block;\n      font-weight: 600;\n      margin-bottom: 6px;\n    }\n    input, textarea {\n      width: 100%;\n      border: 1px solid var(--line);\n      border-radius: 10px;\n      padding: 10px 12px;\n      font: inherit;\n      color: var(--ink);\n      background: #fff;\n    }\n    input[type=\"number\"] {\n      text-align: center;\n    }\n    textarea {\n      min-height: 110px;\n      resize: vertical;\n    }\n    .help {\n      margin-top: 4px;\n      color: var(--muted);\n      font-size: 13px;\n    }\n    .actions {\n      display: flex;\n      gap: 12px;\n      align-items: center;\n      flex-wrap: wrap;\n      margin-top: 4px;\n    }\n    button {\n      appearance: none;\n      border: 0;\n      border-radius: 999px;\n      padding: 12px 18px;\n      font: inherit;\n      font-weight: 700;\n      color: white;\n      background: linear-gradient(135deg, var(--accent) 0%, #1d6132 100%);\n      cursor: pointer;\n    }\n    .note {\n      color: var(--muted);\n      font-size: 14px;\n    }\n    .warning {\n      margin-top: 18px;\n      padding-top: 14px;\n      border-top: 1px dashed var(--line);\n      color: var(--muted);\n      font-size: 14px;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"wrap\">\n    <h1>Manual Batch Item</h1>\n    <p class=\"lede\">Add shoe tags, parent tags, or keys without creating a fake signup row.</p>\n    <div class=\"member\">\n      <strong>${escapeHtml(member || 'Unknown member')}</strong>\n      <span>The add-manual flow currently matches by member name.</span>\n    </div>\n    <form action=\"${actionUrl}\" method=\"get\" target=\"_blank\">\n      <input type=\"hidden\" name=\"member\" value=\"${escapeHtml(member)}\">\n      <input type=\"hidden\" name=\"created_by\" value=\"metabase_manual_batch_form\">\n      <div>\n        <label for=\"batch_id\">Batch ID</label>\n        <input id=\"batch_id\" name=\"batch_id\" type=\"number\" min=\"1\" step=\"1\" value=\"${escapeHtml(batchId)}\">\n        <div class=\"help\">Leave blank to use the latest <code>Processing</code> batch.</div>\n      </div>\n      <div class=\"grid\">\n        <div>\n          <label for=\"regular_tags\">Shoe Tags</label>\n          <input id=\"regular_tags\" name=\"regular_tags\" type=\"number\" min=\"0\" step=\"1\" value=\"0\">\n        </div>\n        <div>\n          <label for=\"parent_tags\">Parent Tags</label>\n          <input id=\"parent_tags\" name=\"parent_tags\" type=\"number\" min=\"0\" step=\"1\" value=\"0\">\n        </div>\n        <div>\n          <label for=\"key_tags\">Keys</label>\n          <input id=\"key_tags\" name=\"key_tags\" type=\"number\" min=\"0\" step=\"1\" value=\"0\">\n        </div>\n      </div>\n      <div>\n        <label for=\"notes\">Notes</label>\n        <textarea id=\"notes\" name=\"notes\" placeholder=\"Reason or context for the manual batch item\"></textarea>\n      </div>\n      <div class=\"actions\">\n        <button type=\"submit\">Add Manual Batch Item</button>\n        <span class=\"note\">The result opens in a new tab as JSON from the add-manual-item webhook.</span>\n      </div>\n    </form>\n    <div class=\"warning\">Use this only for genuine manual additions. Real signups should still come through the normal email capture path.</div>\n  </div>\n</body>\n</html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "f2000000-0000-0000-0000-000000000003",
+      "name": "Build Form HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "f2000000-0000-0000-0000-000000000004",
+      "name": "Respond Form",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        800,
+        220
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Build Form HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Batch Item Form Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build Form HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Form HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "pinData": {},
+  "versionId": "manual-batch-item-form-v1",
+  "active": true
+}

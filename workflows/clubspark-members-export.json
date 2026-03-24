@@ -21,8 +21,25 @@
     },
     {
       "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'clubspark_exporter_base_url' THEN value END) AS clubspark_exporter_base_url\nFROM public.global_settings\nWHERE key = 'clubspark_exporter_base_url';"
+      },
+      "id": "b1c2d3e4-0001-0001-0001-000000000011",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [450, 460],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
         "method": "POST",
-        "url": "http://clubspark-exporter:3001/clubspark-members-export",
+        "url": "={{ $('Load Global Settings').first().json.clubspark_exporter_base_url + '/clubspark-members-export' }}",
         "options": {
           "response": {
             "response": {
@@ -94,9 +111,12 @@
   ],
   "connections": {
     "When clicking 'Execute workflow'": {
-      "main": [[{ "node": "Fetch Members CSV", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Load Global Settings", "type": "main", "index": 0 }]]
     },
     "When Executed by Another Workflow": {
+      "main": [[{ "node": "Load Global Settings", "type": "main", "index": 0 }]]
+    },
+    "Load Global Settings": {
       "main": [[{ "node": "Fetch Members CSV", "type": "main", "index": 0 }]]
     },
     "Fetch Members CSV": {

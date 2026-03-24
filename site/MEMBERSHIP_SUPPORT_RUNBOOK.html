@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Membership Registration Support Runbook</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Membership Registration Support Runbook</h1>
+</header>
+<h1 id="membership-registration-support-runbook">Membership Registration
+Support Runbook</h1>
+<p>This is the internal support runbook for troubleshooting
+member-facing problems with ClubSpark registration and Stripe
+payments.</p>
+<p>Related docs: - <a
+href="./MEMBERSHIP_REGISTRATION_FAQ.md">MEMBERSHIP_REGISTRATION_FAQ.md</a>
+- <a
+href="./MEMBERSHIP_REGISTRATION_FAQ_PUBLIC.md">MEMBERSHIP_REGISTRATION_FAQ_PUBLIC.md</a></p>
+<p>Support mailbox: - <code>members.avondaleltc@gmail.com</code></p>
+<p>Primary member journey: 1. Member signs into ClubSpark. 2. Member
+selects a membership package. 3. Stripe takes payment. 4. ClubSpark
+updates membership state. 5. Local automation captures signup and
+downstream admin data.</p>
+<h2 id="quick-triage">Quick Triage</h2>
+<p>Ask these first: 1. What exact package was the member trying to buy?
+2. Which person was signed into ClubSpark? 3. Did Stripe show success,
+failure, or hang? 4. Does the bank show pending or completed payment? 5.
+Did the member receive a confirmation email? 6. Is a VPN, corporate
+network, ad blocker, or privacy browser involved?</p>
+<h2 id="common-technical-causes">Common Technical Causes</h2>
+<h3 id="vpn-or-filtered-network">VPN or filtered network</h3>
+<p>Symptoms: - ClubSpark pages partly load - Stripe payment page does
+not open - 3D Secure challenge fails or loops</p>
+<p>Advice: - ask the member to turn off VPN - retry on home broadband or
+mobile data - avoid school/corporate guest networks</p>
+<h3 id="embedded-or-in-app-browser">Embedded or in-app browser</h3>
+<p>Symptoms: - payment page fails to return properly - bank app approval
+completes but ClubSpark does not recover - Apple Pay / Google Pay does
+not appear</p>
+<p>Advice: - open the site directly in Safari, Chrome, Edge, or Firefox
+- avoid Gmail, Facebook, Instagram, WhatsApp, or other in-app
+browsers</p>
+<h3 id="cookies-popups-or-privacy-protection-blocked">Cookies, popups,
+or privacy protection blocked</h3>
+<p>Symptoms: - ClubSpark login loops - session resets - Stripe or bank
+challenge never appears - user is sent back to the start</p>
+<p>Advice: - allow popups - disable strict privacy tools for the site -
+clear cookies for <code>clubspark.lta.org.uk</code> - retry in a normal
+browser window</p>
+<h3 id="invalid-or-incomplete-profile-data">Invalid or incomplete
+profile data</h3>
+<p>Symptoms: - expected package missing - registration blocked - wrong
+eligibility</p>
+<p>Check: - first name and surname present - date of birth correct -
+email address valid - address has at least one line and a postcode -
+correct person is selected in family accounts</p>
+<h3 id="duplicate-attempts">Duplicate attempts</h3>
+<p>Symptoms: - member retried because page looked stuck - multiple
+pending or completed bank entries - multiple emails or inconsistent
+ClubSpark state</p>
+<p>Advice: - stop further retries - confirm whether payment completed -
+confirm whether ClubSpark already created the membership</p>
+<h2 id="stripe-specific-troubleshooting">Stripe-Specific
+Troubleshooting</h2>
+<h3 id="stripe-page-does-not-open">Stripe page does not open</h3>
+<p>Check: - popup blocker - VPN - in-app browser - stale session</p>
+<p>Member guidance: - retry in a supported browser - turn off VPN -
+start the registration again in one clean tab</p>
+<h3 id="d-secure-or-bank-approval-fails">3D Secure or bank approval
+fails</h3>
+<p>Common causes: - bank app approval does not return to browser cleanly
+- embedded browser cannot handle redirect - challenge times out -
+privacy settings block the return flow</p>
+<p>Member guidance: - keep the original page open - approve in the
+banking app - return to the original tab - retry on another device if
+needed</p>
+<h3 id="pending-payment-but-uncertain-outcome">Pending payment but
+uncertain outcome</h3>
+<p>Support action: 1. Ask the member not to retry yet. 2. Check whether
+ClubSpark already shows the membership. 3. Check whether a confirmation
+email was issued. 4. If unclear, wait for the pending payment to settle
+or fall away before recommending another attempt.</p>
+<h2 id="clubspark-package-visibility-problems">ClubSpark Package
+Visibility Problems</h2>
+<p>If a member says a package is missing, check: - signed-in person is
+correct - DOB is correct - package belongs to the correct season -
+package eligibility depends on age or member type - membership may
+already exist</p>
+<h2 id="internal-data-checks">Internal Data Checks</h2>
+<p>When a payment appears successful but operations data is missing,
+check: 1. <code>raw_members</code> 2. <code>raw_contacts</code> 3.
+<code>member_signups</code> 4. <code>signup_batches</code> 5.
+missing-signup capture Metabase cards</p>
+<p>Typical split: - ClubSpark/Stripe issue: member cannot complete
+registration - capture issue: registration completed but did not appear
+in <code>member_signups</code></p>
+<h2 id="suggested-reply-patterns">Suggested Reply Patterns</h2>
+<h3 id="suspected-browser-or-vpn-problem">Suspected browser or VPN
+problem</h3>
+<p>Ask the member to: - turn off VPN - use Chrome, Edge, Safari, or
+Firefox - avoid private browsing - retry outside an in-app browser</p>
+<h3 id="unclear-payment-outcome">Unclear payment outcome</h3>
+<p>Ask the member to send: - member name - package - approximate time -
+screenshot - whether the bank shows pending or completed payment</p>
+<p>And tell them not to retry until checked.</p>
+<h3 id="profile-data-problem">Profile data problem</h3>
+<p>Ask the member to review: - name - date of birth - email address -
+postal address</p>
+<p>Especially for junior and family registrations.</p>
+</body>
+</html>
