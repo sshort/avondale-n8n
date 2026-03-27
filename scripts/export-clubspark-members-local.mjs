@@ -29,12 +29,45 @@ const slowMo = Number(process.env.SLOW_MO ?? '100');
 const membersUrl =
   process.env.CLUBSPARK_MEMBERS_URL ??
   'https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Membership/Members';
+const providedCookieHeader = (process.env.CLUBSPARK_COOKIE_HEADER ?? '').trim();
+const providedUserAgent = (process.env.CLUBSPARK_USER_AGENT ?? '').trim();
 
 const launchOptions = {
   headless,
   slowMo,
   args: ['--disable-dev-shm-usage', '--no-sandbox'],
 };
+
+function parseCookieHeader(header) {
+  return String(header)
+    .split(/;\s*/)
+    .map((part) => {
+      const separatorIndex = part.indexOf('=');
+      if (separatorIndex <= 0) {
+        return null;
+      }
+      return {
+        name: part.slice(0, separatorIndex).trim(),
+        value: part.slice(separatorIndex + 1),
+      };
+    })
+    .filter(Boolean);
+}
+
+async function applyCookieHeaderToContext(context, url, cookieHeader) {
+  const cookies = parseCookieHeader(cookieHeader).map(({ name, value }) => ({
+    name,
+    value,
+    url,
+  }));
+
+  if (!cookies.length) {
+    return 0;
+  }
+
+  await context.addCookies(cookies);
+  return cookies.length;
+}
 
 if (process.env.PLAYWRIGHT_CHANNEL) {
   launchOptions.channel = process.env.PLAYWRIGHT_CHANNEL;
@@ -57,10 +90,24 @@ for (const candidate of [
 
 const browser = await chromium.launch(launchOptions);
 
-const context = await browser.newContext({
+const contextOptions = {
   acceptDownloads: true,
   viewport: { width: 1440, height: 1000 },
-});
+};
+
+if (providedUserAgent) {
+  contextOptions.userAgent = providedUserAgent;
+}
+
+const context = await browser.newContext(contextOptions);
+
+if (providedCookieHeader) {
+  const cookieCount = await applyCookieHeaderToContext(context, membersUrl, providedCookieHeader);
+  if (cookieCount) {
+    console.error(`[clubspark-members-export] Applied ${cookieCount} cookies from reusable auth session`);
+  }
+}
+
 const page = await context.newPage();
 const rl = readline.createInterface({ input, output });
 
@@ -188,6 +235,15 @@ async function submitLtaLoginChooserIfVisible() {
   return true;
 }
 
+async function isAuthenticatedMembersPage() {
+  const snapshot = await textSnapshot();
+  return (
+    /\/Admin\/Membership\/Members(?:[/?#]|$)/i.test(snapshot.url)
+    && /members-table|Contact Options|Reset filters|Export CSV|Membership/i.test(snapshot.bodyText)
+    && !/Sign in|Log in/i.test(snapshot.title)
+  );
+}
+
 async function getDirectExportRequest() {
   await page.waitForFunction(() => {
     const jq = window.jQuery;
@@ -248,9 +304,16 @@ try {
   await dismissCookieBanner();
   logStage(`Initial page loaded: ${page.url()}`);
 
-  const initialSelector = await waitForInitialLoginState(15000);
+  const reusedAuthenticatedSession =
+    Boolean(providedCookieHeader) && await isAuthenticatedMembersPage();
 
-  if (!initialSelector) {
+  if (reusedAuthenticatedSession) {
+    logStage('Reused provided authenticated ClubSpark session');
+  }
+
+  const initialSelector = reusedAuthenticatedSession ? null : await waitForInitialLoginState(15000);
+
+  if (!reusedAuthenticatedSession && !initialSelector) {
     if (headless || !process.stdin.isTTY || !process.stdout.isTTY) {
       throw new Error('Login form not detected automatically in non-interactive mode.');
     }
@@ -261,100 +324,102 @@ try {
 
   await ensureNotBlocked('before ClubSpark login');
 
-  let openedLtaLogin = false;
-
-  if (
-    (await submitLtaLoginChooserIfVisible())
-    || (await clickLocatorIfVisible(page.getByRole('button', { name: /^Login$/ }).first()))
-  ) {
-    logStage('Submitted LTA chooser');
-    await page.waitForURL(/mylta\.my\.site\.com/i, { timeout: 60000 }).catch(() => null);
-    await ensureNotBlocked('after opening LTA login form');
-    logStage(`LTA login page reached: ${page.url()}`);
-    openedLtaLogin = true;
-  }
-
-  if (
-    !openedLtaLogin
-    && (await clickLocatorIfVisible(page.getByText('Login with another method', { exact: true })))
-  ) {
-    logStage('Opened alternate login method');
-    await ensureNotBlocked('after opening alternate login method');
+  if (!reusedAuthenticatedSession) {
+    let openedLtaLogin = false;
 
     if (
       (await submitLtaLoginChooserIfVisible())
       || (await clickLocatorIfVisible(page.getByRole('button', { name: /^Login$/ }).first()))
     ) {
-      logStage('Submitted LTA chooser after alternate login');
+      logStage('Submitted LTA chooser');
       await page.waitForURL(/mylta\.my\.site\.com/i, { timeout: 60000 }).catch(() => null);
       await ensureNotBlocked('after opening LTA login form');
       logStage(`LTA login page reached: ${page.url()}`);
       openedLtaLogin = true;
     }
-  }
 
-  if (await page.locator('#Email').isVisible().catch(() => false)) {
-    logStage('Submitting ClubSpark email/password form');
-    await page.fill('#Email', process.env.CLUBSPARK_EMAIL);
-    await page.fill('#Password', process.env.CLUBSPARK_PASSWORD);
-    await Promise.all([
-      page.waitForNavigation({ waitUntil: 'networkidle', timeout: 60000 }).catch(() => null),
-      page.click("button[type='submit']"),
-    ]);
-  }
+    if (
+      !openedLtaLogin
+      && (await clickLocatorIfVisible(page.getByText('Login with another method', { exact: true })))
+    ) {
+      logStage('Opened alternate login method');
+      await ensureNotBlocked('after opening alternate login method');
 
-  await waitForIdle();
-  await ensureNotBlocked('after ClubSpark login submit');
+      if (
+        (await submitLtaLoginChooserIfVisible())
+        || (await clickLocatorIfVisible(page.getByRole('button', { name: /^Login$/ }).first()))
+      ) {
+        logStage('Submitted LTA chooser after alternate login');
+        await page.waitForURL(/mylta\.my\.site\.com/i, { timeout: 60000 }).catch(() => null);
+        await ensureNotBlocked('after opening LTA login form');
+        logStage(`LTA login page reached: ${page.url()}`);
+        openedLtaLogin = true;
+      }
+    }
 
-  const ltaSelector = await waitForAnySelector(
-    [
-      'input[id*="username"]',
-      'input[name="username"]',
-      '#username',
-      'input[placeholder="Username"]',
-      'input[aria-label="Username"]',
-    ],
-    30000,
-  ).catch(() => null);
-
-  if (ltaSelector) {
-    logStage(`Submitting LTA username/password form via ${ltaSelector}`);
-    await page.fill(ltaSelector, process.env.LTA_USERNAME);
-
-    const passwordSelector = await waitForAnySelector(
-      [
-        'input[id*="password"]',
-        'input[name="password"]',
-        '#password',
-        'input[placeholder="Password"]',
-        'input[aria-label="Password"]',
-      ],
-      10000,
-    );
-    await page.fill(passwordSelector, process.env.LTA_PASSWORD);
-
-    const logInButton = page.getByRole('button', { name: /^Log in$/ }).first();
-    if (await logInButton.isVisible().catch(() => false)) {
+    if (await page.locator('#Email').isVisible().catch(() => false)) {
+      logStage('Submitting ClubSpark email/password form');
+      await page.fill('#Email', process.env.CLUBSPARK_EMAIL);
+      await page.fill('#Password', process.env.CLUBSPARK_PASSWORD);
       await Promise.all([
         page.waitForNavigation({ waitUntil: 'networkidle', timeout: 60000 }).catch(() => null),
-        logInButton.click(),
-      ]);
-    } else {
-      const submitSelector = await waitForAnySelector(
-        ["button[id*='Login']", "input[type='submit']", "button[type='submit']"],
-        10000,
-      );
-
-      await Promise.all([
-        page.waitForNavigation({ waitUntil: 'networkidle', timeout: 60000 }).catch(() => null),
-        page.click(submitSelector),
+        page.click("button[type='submit']"),
       ]);
     }
-  }
 
-  await waitForIdle();
-  await ensureNotBlocked('after LTA login submit');
-  logStage(`Post-login page: ${page.url()}`);
+    await waitForIdle();
+    await ensureNotBlocked('after ClubSpark login submit');
+
+    const ltaSelector = await waitForAnySelector(
+      [
+        'input[id*="username"]',
+        'input[name="username"]',
+        '#username',
+        'input[placeholder="Username"]',
+        'input[aria-label="Username"]',
+      ],
+      30000,
+    ).catch(() => null);
+
+    if (ltaSelector) {
+      logStage(`Submitting LTA username/password form via ${ltaSelector}`);
+      await page.fill(ltaSelector, process.env.LTA_USERNAME);
+
+      const passwordSelector = await waitForAnySelector(
+        [
+          'input[id*="password"]',
+          'input[name="password"]',
+          '#password',
+          'input[placeholder="Password"]',
+          'input[aria-label="Password"]',
+        ],
+        10000,
+      );
+      await page.fill(passwordSelector, process.env.LTA_PASSWORD);
+
+      const logInButton = page.getByRole('button', { name: /^Log in$/ }).first();
+      if (await logInButton.isVisible().catch(() => false)) {
+        await Promise.all([
+          page.waitForNavigation({ waitUntil: 'networkidle', timeout: 60000 }).catch(() => null),
+          logInButton.click(),
+        ]);
+      } else {
+        const submitSelector = await waitForAnySelector(
+          ["button[id*='Login']", "input[type='submit']", "button[type='submit']"],
+          10000,
+        );
+
+        await Promise.all([
+          page.waitForNavigation({ waitUntil: 'networkidle', timeout: 60000 }).catch(() => null),
+          page.click(submitSelector),
+        ]);
+      }
+    }
+
+    await waitForIdle();
+    await ensureNotBlocked('after LTA login submit');
+    logStage(`Post-login page: ${page.url()}`);
+  }
 
   if (!page.url().includes('/Admin/Membership/Members')) {
     logStage('Navigating back to members page');

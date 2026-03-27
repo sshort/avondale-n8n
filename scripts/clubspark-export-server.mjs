@@ -28,6 +28,14 @@ const exporters = new Map([
 
 const activeRuns = new Map();
 
+function readHeader(req, name) {
+  const value = req.headers[name];
+  if (Array.isArray(value)) {
+    return String(value[0] ?? '');
+  }
+  return typeof value === 'string' ? value : '';
+}
+
 function runExporter(scriptPath, extraEnv = {}) {
   const runKey = JSON.stringify([scriptPath, extraEnv]);
 
@@ -90,10 +98,13 @@ function runExporter(scriptPath, extraEnv = {}) {
 
 const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && req.url === '/health') {
+    process.stdout.write(`[${new Date().toISOString()}] GET /health\n`);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ status: 'ok' }));
     return;
   }
+
+  process.stdout.write(`[${new Date().toISOString()}] ${req.method} ${req.url}\n`);
 
   if (req.method !== 'POST') {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
@@ -103,12 +114,14 @@ const server = http.createServer(async (req, res) => {
 
   const exporter = exporters.get(req.url);
   if (!exporter) {
+    process.stdout.write(`[${new Date().toISOString()}] Not found: ${req.url}\n`);
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('Not found');
     return;
   }
 
   if (exporterToken && req.headers.authorization !== `Bearer ${exporterToken}`) {
+    process.stdout.write(`[${new Date().toISOString()}] Unauthorized: ${req.url}\n`);
     res.writeHead(401, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('Unauthorized');
     return;
@@ -131,17 +144,37 @@ const server = http.createServer(async (req, res) => {
   }
 
   const extraEnv = {};
-  if (typeof payload.targetUrl === 'string' && payload.targetUrl.trim()) {
-    extraEnv.CLUBSPARK_AUTH_TARGET_URL = payload.targetUrl.trim();
+  const targetUrl =
+    (typeof payload.targetUrl === 'string' && payload.targetUrl.trim())
+    || readHeader(req, 'x-clubspark-target-url').trim();
+  const cookieHeader =
+    (typeof payload.cookieHeader === 'string' && payload.cookieHeader.trim())
+    || readHeader(req, 'x-clubspark-cookie-header').trim();
+  const userAgent =
+    (typeof payload.userAgent === 'string' && payload.userAgent.trim())
+    || readHeader(req, 'x-clubspark-user-agent').trim();
+
+  if (targetUrl) {
+    extraEnv.CLUBSPARK_AUTH_TARGET_URL = targetUrl;
+  }
+  if (cookieHeader) {
+    extraEnv.CLUBSPARK_COOKIE_HEADER = cookieHeader;
+  }
+  if (userAgent) {
+    extraEnv.CLUBSPARK_USER_AGENT = userAgent;
   }
 
+  process.stdout.write(`[${new Date().toISOString()}] Running exporter: ${exporter.scriptPath}\n`);
   const result = await runExporter(exporter.scriptPath, extraEnv);
 
   if (result.code !== 0) {
+    process.stdout.write(`[${new Date().toISOString()}] FAILED: ${exporter.scriptPath} (code ${result.code})\n`);
     res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end(result.stderr || 'ClubSpark export failed');
     return;
   }
+
+  process.stdout.write(`[${new Date().toISOString()}] SUCCESS: ${exporter.scriptPath}\n`);
 
   res.writeHead(200, { 'Content-Type': exporter.contentType });
   res.end(result.stdout);

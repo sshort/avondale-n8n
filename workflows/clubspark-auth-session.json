@@ -28,7 +28,7 @@
       "name": "Load Global Settings",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [480, 380],
+      "position": [460, 380],
       "credentials": {
         "postgres": {
           "id": "PjTUDAMk0dZ7g1iO",
@@ -38,14 +38,74 @@
     },
     {
       "parameters": {
+        "jsCode": "const getOrigin = (value) => {\n  const text = String(value ?? '').trim();\n  const match = text.match(/^https?:\\/\\/[^/]+/i);\n  return match ? match[0] : null;\n};\nconst settings = $input.first().json ?? {};\nconst incoming = $('When Executed by Another Workflow').first()?.json ?? $('When clicking \\'Execute workflow\\'').first()?.json ?? {};\nconst defaultTargetUrl = 'https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts';\nconst targetUrl = String(incoming.targetUrl ?? defaultTargetUrl).trim() || defaultTargetUrl;\nconst targetOrigin = getOrigin(targetUrl);\nconst forceRefresh = [true, 'true', '1', 1, 'yes'].includes(incoming.forceRefresh);\nconst requestedMaxAge = Number.parseFloat(String(incoming.maxAgeMinutes ?? incoming.cacheMaxAgeMinutes ?? '20'));\nconst maxAgeMinutes = Number.isFinite(requestedMaxAge) && requestedMaxAge > 0 ? requestedMaxAge : 20;\nconst providedCookieHeader = typeof incoming.cookieHeader === 'string' ? incoming.cookieHeader.trim() : '';\nconst providedUserAgent = typeof incoming.userAgent === 'string' ? incoming.userAgent.trim() : '';\nconst hasProvidedSession = Boolean(!forceRefresh && providedCookieHeader && providedUserAgent);\nconst staticData = $getWorkflowStaticData('global');\nconst fetchedAtMs = staticData.fetchedAt ? Date.parse(staticData.fetchedAt) : NaN;\nlet sameOrigin = true;\ntry {\n  const cachedOrigin = staticData.sessionOrigin ?? (staticData.targetUrl ? getOrigin(staticData.targetUrl) : null);\n  sameOrigin = cachedOrigin && targetOrigin ? cachedOrigin === targetOrigin : true;\n} catch {\n  sameOrigin = false;\n}\nconst hasCachedSession = Boolean(\n  !hasProvidedSession\n  && !forceRefresh\n  && staticData.cookieHeader\n  && staticData.userAgent\n  && Number.isFinite(fetchedAtMs)\n  && (Date.now() - fetchedAtMs) <= (maxAgeMinutes * 60 * 1000)\n  && sameOrigin\n);\nreturn [{\n  json: {\n    clubspark_exporter_base_url: settings.clubspark_exporter_base_url,\n    targetUrl,\n    maxAgeMinutes,\n    forceRefresh,\n    useCachedSession: hasProvidedSession || hasCachedSession,\n    authenticated: (hasProvidedSession || hasCachedSession) ? true : undefined,\n    authenticatedUrl: hasProvidedSession\n      ? (incoming.authenticatedUrl ?? targetUrl)\n      : hasCachedSession\n        ? (staticData.authenticatedUrl ?? targetUrl)\n        : undefined,\n    pageTitle: hasProvidedSession\n      ? (incoming.pageTitle ?? null)\n      : hasCachedSession\n        ? (staticData.pageTitle ?? null)\n        : undefined,\n    userAgent: hasProvidedSession ? providedUserAgent : hasCachedSession ? staticData.userAgent : undefined,\n    cookieHeader: hasProvidedSession ? providedCookieHeader : hasCachedSession ? staticData.cookieHeader : undefined,\n    cookieCount: hasProvidedSession\n      ? Number(incoming.cookieCount ?? 0)\n      : hasCachedSession\n        ? Number(staticData.cookieCount ?? 0)\n        : undefined,\n    probe: hasProvidedSession\n      ? {\n          source: 'input_session',\n          targetOrigin,\n        }\n      : hasCachedSession\n        ? {\n            source: 'workflow_static_data',\n            fetchedAt: staticData.fetchedAt ?? null,\n            maxAgeMinutes,\n            targetOrigin,\n          }\n        : null,\n  },\n}];"
+      },
+      "id": "c5c10001-1111-4111-8111-000000000006",
+      "name": "Resolve Auth Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 380]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c5c10001-1111-4111-8111-000000000007-condition",
+              "leftValue": "={{ $json.useCachedSession === true }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c5c10001-1111-4111-8111-000000000007",
+      "name": "Reuse Cached Session?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [940, 380]
+    },
+    {
+      "parameters": {
         "method": "POST",
-        "url": "={{ $('Load Global Settings').first().json.clubspark_exporter_base_url + '/clubspark-auth-session' }}"
+        "url": "={{ $('Resolve Auth Request').first().json.clubspark_exporter_base_url + '/clubspark-auth-session' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-ClubSpark-Target-Url",
+              "value": "={{ $json.targetUrl }}"
+            }
+          ]
+        }
       },
       "id": "c5c10001-1111-4111-8111-000000000003",
       "name": "Request Auth Session",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [480, 300]
+      "position": [1180, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const getOrigin = (value) => {\n  const text = String(value ?? '').trim();\n  const match = text.match(/^https?:\\/\\/[^/]+/i);\n  return match ? match[0] : null;\n};\nconst payload = $input.first().json ?? {};\nif (payload.authenticated !== true || !payload.cookieHeader || !payload.userAgent) {\n  throw new Error('ClubSpark auth session did not return a reusable authenticated session.');\n}\nconst staticData = $getWorkflowStaticData('global');\nstaticData.fetchedAt = new Date().toISOString();\nstaticData.targetUrl = payload.targetUrl ?? null;\nstaticData.sessionOrigin = payload.targetUrl ? getOrigin(payload.targetUrl) : null;\nstaticData.authenticatedUrl = payload.authenticatedUrl ?? payload.targetUrl ?? null;\nstaticData.pageTitle = payload.pageTitle ?? null;\nstaticData.userAgent = payload.userAgent;\nstaticData.cookieHeader = payload.cookieHeader;\nstaticData.cookieCount = Number(payload.cookieCount ?? 0);\nreturn [{ json: payload }];"
+      },
+      "id": "c5c10001-1111-4111-8111-000000000008",
+      "name": "Cache Auth Session",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1420, 300]
     },
     {
       "parameters": {
@@ -55,7 +115,7 @@
       "name": "Keep Reusable Session",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [760, 300]
+      "position": [1660, 380]
     }
   ],
   "connections": {
@@ -66,9 +126,21 @@
       "main": [[{ "node": "Load Global Settings", "type": "main", "index": 0 }]]
     },
     "Load Global Settings": {
-      "main": [[{ "node": "Request Auth Session", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Resolve Auth Request", "type": "main", "index": 0 }]]
+    },
+    "Resolve Auth Request": {
+      "main": [[{ "node": "Reuse Cached Session?", "type": "main", "index": 0 }]]
+    },
+    "Reuse Cached Session?": {
+      "main": [
+        [{ "node": "Keep Reusable Session", "type": "main", "index": 0 }],
+        [{ "node": "Request Auth Session", "type": "main", "index": 0 }]
+      ]
     },
     "Request Auth Session": {
+      "main": [[{ "node": "Cache Auth Session", "type": "main", "index": 0 }]]
+    },
+    "Cache Auth Session": {
       "main": [[{ "node": "Keep Reusable Session", "type": "main", "index": 0 }]]
     }
   },

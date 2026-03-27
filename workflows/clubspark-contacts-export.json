@@ -47,8 +47,59 @@
     },
     {
       "parameters": {
+        "jsCode": "const incoming = $('When Executed by Another Workflow').first()?.json ?? $('When clicking \\'Execute workflow\\'').first()?.json ?? {};\nconst cookieHeader = typeof incoming.cookieHeader === 'string' ? incoming.cookieHeader.trim() : '';\nconst userAgent = typeof incoming.userAgent === 'string' ? incoming.userAgent.trim() : '';\nreturn [{\n  json: {\n    targetUrl: 'https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts',\n    forceRefresh: [true, 'true', '1', 1, 'yes'].includes(incoming.forceRefresh),\n    cookieHeader: cookieHeader || undefined,\n    userAgent: userAgent || undefined,\n    authenticatedUrl: incoming.authenticatedUrl ?? undefined,\n    pageTitle: incoming.pageTitle ?? undefined,\n    cookieCount: incoming.cookieCount ?? undefined,\n    probe: incoming.probe ?? null,\n  },\n}];"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000018",
+      "name": "Prepare Auth Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "mode": "list",
+          "value": "JETtfbr4EGBAcCAA"
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000019",
+      "name": "Execute ClubSpark Auth Session",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        950,
+        460
+      ]
+    },
+    {
+      "parameters": {
         "method": "POST",
         "url": "={{ $('Load Global Settings').first().json.clubspark_exporter_base_url + '/clubspark-export' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-ClubSpark-Target-Url",
+              "value": "https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts"
+            },
+            {
+              "name": "X-ClubSpark-Cookie-Header",
+              "value": "={{ $('Execute ClubSpark Auth Session').first().json.cookieHeader }}"
+            },
+            {
+              "name": "X-ClubSpark-User-Agent",
+              "value": "={{ $('Execute ClubSpark Auth Session').first().json.userAgent }}"
+            }
+          ]
+        },
         "options": {
           "response": {
             "response": {
@@ -62,7 +113,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        450,
+        1200,
         300
       ]
     },
@@ -75,7 +126,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        700,
+        1450,
         300
       ]
     },
@@ -88,7 +139,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        950,
+        1700,
         300
       ]
     },
@@ -102,7 +153,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [
-        1200,
+        1950,
         300
       ],
       "credentials": {
@@ -122,7 +173,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [
-        1450,
+        2200,
         300
       ],
       "credentials": {
@@ -131,6 +182,19 @@
           "name": "Postgres account"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "const counts = $input.first().json ?? {};\nconst session = $('Execute ClubSpark Auth Session').first().json ?? {};\nreturn [{\n  json: {\n    total_contacts: Number(counts.total_contacts ?? 0),\n    authenticated: session.authenticated === true,\n    targetUrl: session.targetUrl ?? 'https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts',\n    authenticatedUrl: session.authenticatedUrl ?? null,\n    pageTitle: session.pageTitle ?? null,\n    userAgent: session.userAgent ?? null,\n    cookieHeader: session.cookieHeader ?? null,\n    cookieCount: Number(session.cookieCount ?? 0),\n    probe: session.probe ?? null,\n  },\n}];"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000020",
+      "name": "Keep Session Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2450,
+        300
+      ]
     }
   ],
   "connections": {
@@ -157,6 +221,28 @@
       ]
     },
     "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Prepare Auth Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Auth Request": {
+      "main": [
+        [
+          {
+            "node": "Execute ClubSpark Auth Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute ClubSpark Auth Session": {
       "main": [
         [
           {
@@ -205,6 +291,17 @@
         [
           {
             "node": "Verify Row Count",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Row Count": {
+      "main": [
+        [
+          {
+            "node": "Keep Session Context",
             "type": "main",
             "index": 0
           }
