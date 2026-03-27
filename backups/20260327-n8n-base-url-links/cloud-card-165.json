@@ -1,0 +1,483 @@
+{
+  "cache_invalidated_at": null,
+  "description": null,
+  "archived": false,
+  "view_count": 1,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Member",
+      "lib/original-name": "Member",
+      "name": "Member",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Member",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Member",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Member",
+      "display_name": "Member",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 5,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 13.8
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Membership",
+      "lib/original-name": "Membership",
+      "name": "Membership",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Membership",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Membership",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Membership",
+      "display_name": "Membership",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 14.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Membership Category",
+      "lib/original-name": "Membership Category",
+      "name": "Membership Category",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Membership Category",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Membership Category",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Membership Category",
+      "display_name": "Membership Category",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 6.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Email address",
+      "lib/original-name": "Email address",
+      "name": "Email address",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Email address",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Email address",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Email address",
+      "display_name": "Email address",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 5,
+          "nil%": 0.2
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.8,
+            "percent-state": 0.0,
+            "average-length": 18.4
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Venue ID",
+      "lib/original-name": "Venue ID",
+      "name": "Venue ID",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Venue ID",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Venue ID",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Venue ID",
+      "display_name": "Venue ID",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 4,
+          "nil%": 0.4
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 10.8
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "British Tennis Number",
+      "lib/original-name": "British Tennis Number",
+      "name": "British Tennis Number",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "British Tennis Number",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "British Tennis Number",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "British Tennis Number",
+      "display_name": "British Tennis Number",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.6
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 3.6
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "date",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Effective Date",
+      "lib/original-name": "Effective Date",
+      "name": "Effective Date",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Effective Date",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Effective Date",
+        {
+          "base-type": "type/Date"
+        }
+      ],
+      "effective_type": "type/Date",
+      "lib/desired-column-alias": "Effective Date",
+      "display_name": "Effective Date",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 5,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": "2019-03-03",
+            "latest": "2026-03-19"
+          }
+        }
+      },
+      "base_type": "type/Date"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Days Since Effective",
+      "lib/original-name": "Days Since Effective",
+      "name": "Days Since Effective",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Days Since Effective",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Days Since Effective",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "Days Since Effective",
+      "display_name": "Days Since Effective",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 5,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 7.0,
+            "q1": 16.0,
+            "q3": 1462.5,
+            "max": 2580.0,
+            "sd": 1105.0586862244013,
+            "avg": 773.2
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Create Signup",
+      "lib/original-name": "Create Signup",
+      "name": "Create Signup",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Create Signup",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Create Signup",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Create Signup",
+      "display_name": "Create Signup",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 13.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-720863e1-240c-4fce-b8e2-84951ab4bc65@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 2,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T14:24:40.914004Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 5,
+  "query_type": "native",
+  "name": "List of Members Missing Signup Capture - Selected Year",
+  "last_query_start": "2026-03-26T16:12:15.829342Z",
+  "is_remote_synced": false,
+  "dashboard_count": 0,
+  "document_id": null,
+  "last_used_at": "2026-03-26T16:12:15.853577Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 245.0,
+  "creator_id": 2,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-03-26T16:10:19.03476Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "template-tags": {
+          "year": {
+            "name": "year",
+            "display-name": "Year",
+            "type": "text",
+            "id": "year",
+            "required": true
+          }
+        },
+        "lib/type": "mbql.stage/native",
+        "native": "WITH current_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS full_name,\n    src.\"First name\",\n    src.\"Last name\",\n    src.\"Membership\",\n    src.category,\n    src.\"Email address\",\n    src.\"Venue ID\",\n    src.\"British Tennis Number\",\n    COALESCE(\n      to_date(NULLIF(src.\"Date joined venue\", ''), 'DD/MM/YYYY'),\n      to_date(NULLIF(src.\"Start Date\", ''), 'DD/MM/YYYY')\n    ) AS effective_date\n  FROM (\n    SELECT\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = {{year}}\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n      AND COALESCE(m.is_current, true) = true\n  ) src\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n), signups AS (\n  SELECT DISTINCT\n    lower(trim(member)) AS member_name,\n    lower(trim(product)) AS product_name\n  FROM public.member_signups\n  WHERE product LIKE '%' || {{year}} || '%'\n), missing AS (\n  SELECT\n    c.*,\n    (current_date - c.effective_date) AS days_since_effective\n  FROM current_members c\n  LEFT JOIN signups s\n    ON lower(trim(c.full_name)) = s.member_name\n   AND lower(trim(c.\"Membership\")) = s.product_name\n  WHERE s.member_name IS NULL\n    AND c.effective_date IS NOT NULL\n    AND (\n      c.effective_date > current_date\n      OR c.effective_date::timestamp <= now() - interval '1 hour'\n    )\n)\nSELECT\n  full_name AS \"Member\",\n  \"Membership\",\n  category AS \"Membership Category\",\n  \"Email address\",\n  \"Venue ID\",\n  \"British Tennis Number\",\n  effective_date AS \"Effective Date\",\n  days_since_effective AS \"Days Since Effective\",\n  'Create Signup' AS \"Create Signup\"\nFROM missing\nORDER BY effective_date, full_name;"
+      }
+    ]
+  },
+  "id": 165,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "0u0abKHR76JRuxIfDrWlM",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 2,
+    "email": "api-key-user-720863e1-240c-4fce-b8e2-84951ab4bc65@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-03-26T16:10:19.074686Z"
+  },
+  "visualization_settings": {
+    "table": {
+      "columns": [
+        {
+          "name": "Member",
+          "enabled": true
+        },
+        {
+          "name": "Membership",
+          "enabled": true
+        },
+        {
+          "name": "Membership Category",
+          "enabled": true
+        },
+        {
+          "name": "Email address",
+          "enabled": true
+        },
+        {
+          "name": "Venue ID",
+          "enabled": true
+        },
+        {
+          "name": "British Tennis Number",
+          "enabled": true
+        },
+        {
+          "name": "Effective Date",
+          "enabled": true
+        },
+        {
+          "name": "Days Since Effective",
+          "enabled": true
+        },
+        {
+          "name": "Create Signup",
+          "enabled": true
+        }
+      ]
+    },
+    "column_settings": {
+      "[\"name\",\"Create Signup\"]": {
+        "view_as": "link",
+        "link_text": "Create Signup",
+        "link_url": "http://n8n:5678/webhook/create-missing-signup-capture?member={{Member}}&product={{Membership}}&venue_id={{Venue ID}}&btn={{British Tennis Number}}&request_source=metabase_missing_signup",
+        "column_title": "Create Signup"
+      }
+    }
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 5,
+    "archived_directly": null,
+    "entity_id": "s6tozlUqIcy4YOyFYhTr9",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2026-03-12T14:09:43.081386Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-03-26T16:10:19.03476Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

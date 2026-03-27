@@ -1,0 +1,224 @@
+%!PS-Adobe-3.0
+%%Pages: 3
+%%BoundingBox: 0 0 595 842
+%%EndComments
+
+/TitleFont { /Helvetica-Bold findfont 24 scalefont setfont } def
+/HeadFont { /Helvetica-Bold findfont 16 scalefont setfont } def
+/BodyFont { /Helvetica findfont 11 scalefont setfont } def
+/MonoFont { /Courier findfont 11 scalefont setfont } def
+/T { moveto show } def
+/Box {
+  /b exch def /g exch def /r exch def
+  /h exch def /w exch def /y exch def /x exch def
+  gsave
+    r g b setrgbcolor
+    newpath x y moveto
+    w 0 rlineto
+    0 h rlineto
+    w neg 0 rlineto
+    closepath fill
+  grestore
+  0.14 0.25 0.37 setrgbcolor
+  1 setlinewidth
+  newpath x y moveto
+  w 0 rlineto
+  0 h rlineto
+  w neg 0 rlineto
+  closepath stroke
+} def
+/Line {
+  0.30 0.39 0.47 setrgbcolor
+  1.2 setlinewidth
+  newpath moveto lineto stroke
+} def
+
+%%Page: 1 1
+0 0 0 setrgbcolor
+TitleFont
+(Avondale Membership Automation Overview) 50 792 T
+
+BodyFont
+(This note explains, in plain English, what the avondale-n8n processes do and how they support the) 50 760 T
+(membership admin work of the club.) 50 744 T
+
+HeadFont
+(Terminology) 50 706 T
+BodyFont
+(- ) 60 680 T
+MonoFont
+(n8n) 74 680 T
+BodyFont
+(: the workflow automation tool that runs the club's membership processes.) 100 680 T
+(- ) 60 660 T
+MonoFont
+(Metabase) 74 660 T
+BodyFont
+(: the reporting dashboard used to view signups, batches, exceptions, and trends.) 134 660 T
+
+HeadFont
+(What The Automation Is For) 50 620 T
+BodyFont
+(The automation exists to reduce manual membership admin after somebody joins or renews through ClubSpark.) 50 596 T
+(In practice it does five main jobs:) 50 574 T
+(1. captures new membership signups from ClubSpark emails) 70 552 T
+(2. refreshes the latest member and contact data from ClubSpark) 70 536 T
+(3. combines that information into one operational database) 70 520 T
+(4. prepares batches for shoe tags, parent tags, keys, labels, and envelopes) 70 504 T
+(5. keeps dashboards and reporting up to date) 70 488 T
+
+HeadFont
+(High-Level Functional Description) 50 450 T
+BodyFont
+(The process starts in ClubSpark. When someone buys a membership, ClubSpark sends a signup notification) 50 426 T
+(email and also holds the latest member and contact records for that household.) 50 410 T
+(Local n8n workflows regularly pick up those inputs in three ways:) 50 384 T
+(- a parser reads the signup notification emails from Gmail) 70 362 T
+(- an export workflow pulls the current members list from ClubSpark) 70 346 T
+(- another export workflow pulls the current contacts list from ClubSpark) 70 330 T
+(Those three inputs are brought together in the local PostgreSQL database, which is the club's operational) 50 304 T
+(source of truth for this process. This is where the system works out who signed up, who is paying,) 50 288 T
+(what address should be used, and what still needs to be processed.) 50 272 T
+(From there, the workflows support the committee's day-to-day membership handling:) 50 246 T
+(- new signups are grouped into a processing batch) 70 224 T
+(- batch data is turned into printable address labels and DL envelopes) 70 208 T
+(- members without a usable postal address can be handled by email instead) 70 192 T
+(- manual items can be added when tags or keys are needed outside the normal signup flow) 70 176 T
+(- missed signups can be backfilled if ClubSpark shows the membership but the original email was not captured) 70 160 T
+(The same local data is then synced to the cloud reporting copy so that Metabase dashboards stay current.) 50 134 T
+(This gives the committee visibility of signups, batches, exceptions, and history without making the) 50 118 T
+(cloud system the live operational system.) 50 102 T
+showpage
+
+%%Page: 2 2
+TitleFont
+(Membership Process Diagram) 50 792 T
+BodyFont
+(This simplified diagram shows the main operational flow and the reporting output.) 50 768 T
+
+430 700 120 46 0.91 0.95 0.98 Box
+HeadFont
+(ClubSpark) 455 728 T
+
+60 610 150 44 0.97 0.98 0.99 Box
+(Signup Email) 86 636 T
+
+60 540 150 44 0.97 0.98 0.99 Box
+(Gmail) 112 566 T
+
+222 610 150 44 0.97 0.98 0.99 Box
+(Members Export) 236 636 T
+
+384 610 150 44 0.97 0.98 0.99 Box
+(Contacts Export) 394 636 T
+
+155 430 285 68 0.93 0.97 0.93 Box
+(Local n8n Workflows) 220 468 T
+BodyFont
+(captures emails, refreshes data, and runs admin processes) 173 448 T
+
+120 300 355 74 0.97 0.98 0.99 Box
+HeadFont
+(Local PostgreSQL Database) 185 340 T
+BodyFont
+(operational source of truth for signups, batches, addresses, items, and history) 140 318 T
+
+20 170 120 44 0.97 0.98 0.99 Box
+HeadFont
+(Batches) 48 196 T
+
+155 170 120 44 0.97 0.98 0.99 Box
+(Labels PDF) 174 196 T
+
+290 170 120 44 0.97 0.98 0.99 Box
+(Envelope PDF) 298 196 T
+
+425 170 150 44 0.97 0.98 0.99 Box
+(No-address Email) 438 196 T
+
+455 300 120 74 0.99 0.95 0.90 Box
+HeadFont
+(Metabase) 478 340 T
+BodyFont
+(reporting) 486 320 T
+
+20 360 120 36 0.97 0.98 0.99 Box
+BodyFont
+(Missing signup) 32 383 T
+
+20 310 120 36 0.97 0.98 0.99 Box
+(Manual items) 38 333 T
+
+0.30 0.39 0.47 setrgbcolor
+120 700 500 700 Line
+135 654 135 610 Line
+282 654 282 610 Line
+444 654 444 610 Line
+135 540 220 498 Line
+297 610 297 498 Line
+459 610 390 498 Line
+80 396 160 430 Line
+80 346 160 430 Line
+297 430 297 374 Line
+297 300 80 214 Line
+297 300 215 214 Line
+297 300 350 214 Line
+297 300 500 214 Line
+475 337 455 337 Line
+
+HeadFont
+(ClubSpark) 455 728 T
+(Signup Email) 86 636 T
+(Gmail) 112 566 T
+(Members Export) 236 636 T
+(Contacts Export) 394 636 T
+(Local n8n Workflows) 220 468 T
+(Local PostgreSQL Database) 185 340 T
+(Batches) 48 196 T
+(Labels PDF) 174 196 T
+(Envelope PDF) 298 196 T
+(No-address Email) 438 196 T
+(Metabase) 478 340 T
+showpage
+
+%%Page: 3 3
+TitleFont
+(Operational Flow And Exceptions) 50 792 T
+
+HeadFont
+(Typical Work Flow) 50 748 T
+BodyFont
+(1. A member joins in ClubSpark.) 70 722 T
+(2. ClubSpark sends a notification email and updates its member/contact records.) 70 704 T
+(3. n8n captures the email and refreshes the latest ClubSpark exports.) 70 686 T
+(4. The local database combines those sources into a clean signup record.) 70 668 T
+(5. A batch is created for new items that need to be fulfilled.) 70 650 T
+(6. The batch produces labels, envelope PDFs, and exception lists.) 70 632 T
+(7. Where an address is missing, the member can be contacted by email instead of post.) 70 614 T
+(8. Once the physical admin work is done, the batch is marked complete.) 70 596 T
+(9. Reporting is synced to Metabase so the committee can monitor progress.) 70 578 T
+
+HeadFont
+(Exception Handling) 50 528 T
+BodyFont
+(- Missing signup capture: if ClubSpark shows a valid membership but no signup email was captured,) 70 502 T
+(  the workflow can create the missing record.) 70 484 T
+(- No-address handling: if there is no usable postal address, the system can send an email instead) 70 458 T
+(  of producing post.) 70 440 T
+(- Manual batch items: extra shoe tags, parent tags, or keys can be added without pretending there) 70 414 T
+(  was a new signup.) 70 396 T
+(- History snapshots: periodic snapshots preserve membership counts for trend reporting over time.) 70 370 T
+
+HeadFont
+(Summary) 50 320 T
+BodyFont
+(At a committee level, the system can be thought of as a membership operations pipeline:) 50 294 T
+(- ClubSpark provides the raw membership events and data) 70 268 T
+(- n8n turns that into usable admin work) 70 250 T
+(- the local database tracks what has happened and what still needs doing) 70 232 T
+(- print files, emails, and dashboards are the outputs the committee sees) 70 214 T
+(The main benefit is that signups, address handling, batch preparation, and reporting are kept in one) 50 176 T
+(joined-up process instead of being managed manually across separate spreadsheets and inboxes.) 50 158 T
+showpage
+
+%%EOF

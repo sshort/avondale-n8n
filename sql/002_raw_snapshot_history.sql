@@ -57,13 +57,84 @@ begin
     end if;
 
     if exists (select 1 from public.raw_contacts) then
-        insert into public.raw_contacts_historical
+        insert into public.raw_contacts_historical (
+            "Venue ID",
+            "Unique ID",
+            "First name",
+            "Last name",
+            gender,
+            age,
+            junior,
+            "Date of birth",
+            "Email address",
+            "Phone number",
+            "Work number",
+            "Mobile number",
+            "Emergency contact name",
+            "Emergency phone number",
+            "Address 1",
+            "Address 2",
+            "Address 3",
+            town,
+            county,
+            country,
+            postcode,
+            "British Tennis Number",
+            "Date joined venue",
+            "Medical history",
+            occupation,
+            registered,
+            unsubscribed,
+            "Member status",
+            "Last active",
+            created,
+            "Receipt of Emails",
+            "Share Contact Detail",
+            "Member's Directory",
+            photography,
+            snapshot_year,
+            archived_at,
+            snapshot_source
+        )
         select
-            public.raw_contacts.*,
+            rc."Venue ID",
+            rc."Unique ID",
+            rc."First name",
+            rc."Last name",
+            rc.gender,
+            rc.age,
+            rc.junior,
+            rc."Date of birth",
+            rc."Email address",
+            rc."Phone number",
+            rc."Work number",
+            rc."Mobile number",
+            rc."Emergency contact name",
+            rc."Emergency phone number",
+            rc."Address 1",
+            rc."Address 2",
+            rc."Address 3",
+            rc.town,
+            rc.county,
+            rc.country,
+            rc.postcode,
+            rc."British Tennis Number",
+            rc."Date joined venue",
+            rc."Medical history",
+            rc.occupation,
+            rc.registered,
+            rc.unsubscribed,
+            rc."Member status",
+            rc."Last active",
+            rc.created,
+            rc."Receipt of Emails",
+            rc."Share Contact Detail",
+            rc."Member's Directory",
+            rc.photography,
             v_previous_snapshot_year,
             now(),
             'raw_contacts'
-        from public.raw_contacts;
+        from public.raw_contacts rc;
 
         get diagnostics v_archived_row_count = row_count;
     end if;
@@ -114,13 +185,112 @@ begin
         delete from public.raw_members_historical
         where snapshot_year = v_previous_snapshot_year;
 
-        insert into public.raw_members_historical
+        insert into public.raw_members_historical (
+            "Venue ID",
+            "First name",
+            "Last name",
+            "Gender",
+            "Age",
+            "Junior",
+            "Date of birth",
+            "Membership",
+            "Payment",
+            "Cost",
+            "Paid",
+            "Paid Credit Card",
+            "Paid Direct Debit",
+            "Paid Cash",
+            "Paid Cheque",
+            "Paid Other",
+            "Gift aid",
+            "Status",
+            "Start Date",
+            "Expiry Date",
+            "Email address",
+            "Phone number",
+            "Work number",
+            "Mobile number",
+            "Emergency contact name",
+            "Emergency phone number",
+            "Address 1",
+            "Address 2",
+            "Address 3",
+            "Town",
+            "County",
+            "Country",
+            "Postcode",
+            "British Tennis Number",
+            "Date joined venue",
+            "Medical history",
+            "Venue source",
+            "Contact source",
+            "Occupation",
+            "Tags provided",
+            "Key pin number",
+            "Registered",
+            "Member status",
+            "Receipt of Emails",
+            "Share Contact Detail",
+            "Member's Directory",
+            "Photography",
+            " Venue source",
+            snapshot_year,
+            archived_at,
+            snapshot_source
+        )
         select
-            public.raw_members.*,
+            rm."Venue ID",
+            rm."First name",
+            rm."Last name",
+            rm."Gender",
+            rm."Age",
+            rm."Junior",
+            rm."Date of birth",
+            rm."Membership",
+            rm."Payment",
+            rm."Cost",
+            rm."Paid",
+            rm."Paid Credit Card",
+            rm."Paid Direct Debit",
+            rm."Paid Cash",
+            rm."Paid Cheque",
+            rm."Paid Other",
+            rm."Gift aid",
+            rm."Status",
+            rm."Start Date",
+            rm."Expiry Date",
+            rm."Email address",
+            rm."Phone number",
+            rm."Work number",
+            rm."Mobile number",
+            rm."Emergency contact name",
+            rm."Emergency phone number",
+            rm."Address 1",
+            rm."Address 2",
+            rm."Address 3",
+            rm."Town",
+            rm."County",
+            rm."Country",
+            rm."Postcode",
+            rm."British Tennis Number",
+            rm."Date joined venue",
+            rm."Medical history",
+            rm."Venue source",
+            rm."Contact source",
+            rm."Occupation",
+            rm."Tags provided",
+            rm."Key pin number",
+            rm."Registered",
+            rm."Member status",
+            rm."Receipt of Emails",
+            rm."Share Contact Detail",
+            rm."Member's Directory",
+            rm."Photography",
+            rm." Venue source",
             v_previous_snapshot_year,
             now(),
             'raw_members'
-        from public.raw_members;
+        from public.raw_members rm;
 
         get diagnostics v_archived_row_count = row_count;
     end if;
@@ -142,7 +312,40 @@ $$;
 
 create or replace view public.vw_raw_contacts_all as
 select
-    rc.*,
+    rc."Venue ID",
+    rc."Unique ID",
+    rc."First name",
+    rc."Last name",
+    rc.gender,
+    rc.age,
+    rc.junior,
+    rc."Date of birth",
+    rc."Email address",
+    rc."Phone number",
+    rc."Work number",
+    rc."Mobile number",
+    rc."Emergency contact name",
+    rc."Emergency phone number",
+    rc."Address 1",
+    rc."Address 2",
+    rc."Address 3",
+    rc.town,
+    rc.county,
+    rc.country,
+    rc.postcode,
+    rc."British Tennis Number",
+    rc."Date joined venue",
+    rc."Medical history",
+    rc.occupation,
+    rc.registered,
+    rc.unsubscribed,
+    rc."Member status",
+    rc."Last active",
+    rc.created,
+    rc."Receipt of Emails",
+    rc."Share Contact Detail",
+    rc."Member's Directory",
+    rc.photography,
     rss.current_snapshot_year as snapshot_year,
     true as is_current,
     rss.updated_at as snapshot_recorded_at,
@@ -150,6 +353,7 @@ select
 from public.raw_contacts rc
 join public.raw_snapshot_state rss
   on rss.table_name = 'raw_contacts'
+where coalesce(rc.is_current, true) = true
 union all
 select
     rch."Venue ID",
@@ -194,7 +398,54 @@ from public.raw_contacts_historical rch;
 
 create or replace view public.vw_raw_members_all as
 select
-    rm.*,
+    rm."Venue ID",
+    rm."First name",
+    rm."Last name",
+    rm."Gender",
+    rm."Age",
+    rm."Junior",
+    rm."Date of birth",
+    rm."Membership",
+    rm."Payment",
+    rm."Cost",
+    rm."Paid",
+    rm."Paid Credit Card",
+    rm."Paid Direct Debit",
+    rm."Paid Cash",
+    rm."Paid Cheque",
+    rm."Paid Other",
+    rm."Gift aid",
+    rm."Status",
+    rm."Start Date",
+    rm."Expiry Date",
+    rm."Email address",
+    rm."Phone number",
+    rm."Work number",
+    rm."Mobile number",
+    rm."Emergency contact name",
+    rm."Emergency phone number",
+    rm."Address 1",
+    rm."Address 2",
+    rm."Address 3",
+    rm."Town",
+    rm."County",
+    rm."Country",
+    rm."Postcode",
+    rm."British Tennis Number",
+    rm."Date joined venue",
+    rm."Medical history",
+    rm."Venue source",
+    rm."Contact source",
+    rm."Occupation",
+    rm."Tags provided",
+    rm."Key pin number",
+    rm."Registered",
+    rm."Member status",
+    rm."Receipt of Emails",
+    rm."Share Contact Detail",
+    rm."Member's Directory",
+    rm."Photography",
+    rm." Venue source",
     rss.current_snapshot_year as snapshot_year,
     true as is_current,
     rss.updated_at as snapshot_recorded_at,
@@ -202,6 +453,7 @@ select
 from public.raw_members rm
 join public.raw_snapshot_state rss
   on rss.table_name = 'raw_members'
+where coalesce(rm.is_current, true) = true
 union all
 select
     rmh."Venue ID",
@@ -265,3 +517,33 @@ from public.vw_raw_members_all;
 create or replace view public.vw_contacts_current_and_historical as
 select *
 from public.vw_raw_contacts_all;
+
+create or replace function public.prepare_raw_contacts_import(
+    p_new_snapshot_year integer default extract(year from current_date)::integer
+)
+returns table (
+    previous_snapshot_year integer,
+    archived_row_count integer,
+    current_snapshot_year integer
+)
+language plpgsql
+as $function$
+begin
+    raise exception 'prepare_raw_contacts_import(%) is retired. Use prepare_raw_contacts_import_staging() and reconcile_raw_contacts_from_staging() instead.', p_new_snapshot_year;
+end;
+$function$;
+
+create or replace function public.prepare_raw_members_import(
+    p_new_snapshot_year integer default extract(year from current_date)::integer
+)
+returns table (
+    previous_snapshot_year integer,
+    archived_row_count integer,
+    current_snapshot_year integer
+)
+language plpgsql
+as $function$
+begin
+    raise exception 'prepare_raw_members_import(%) is retired. Use prepare_raw_members_import_staging() and reconcile_raw_members_from_staging() instead.', p_new_snapshot_year;
+end;
+$function$;

@@ -1,0 +1,291 @@
+{
+  "cache_invalidated_at": "2026-03-24T12:17:50.216977Z",
+  "description": null,
+  "archived": false,
+  "view_count": 0,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": 14,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "name": "Manual",
+      "database_type": "text",
+      "base_type": "type/Text",
+      "display_name": "Manual",
+      "field_ref": [
+        "field",
+        "Manual",
+        {
+          "base-type": "type/Text"
+        }
+      ]
+    },
+    {
+      "name": "Name",
+      "database_type": "text",
+      "base_type": "type/Text",
+      "display_name": "Name",
+      "semantic_type": "type/Name",
+      "field_ref": [
+        "field",
+        "Name",
+        {
+          "base-type": "type/Text"
+        }
+      ]
+    },
+    {
+      "name": "First name",
+      "database_type": "text",
+      "base_type": "type/Text",
+      "display_name": "First name",
+      "field_ref": [
+        "field",
+        "First name",
+        {
+          "base-type": "type/Text"
+        }
+      ]
+    },
+    {
+      "name": "Last name",
+      "database_type": "text",
+      "base_type": "type/Text",
+      "display_name": "Last name",
+      "field_ref": [
+        "field",
+        "Last name",
+        {
+          "base-type": "type/Text"
+        }
+      ]
+    },
+    {
+      "name": "Membership",
+      "database_type": "text",
+      "base_type": "type/Text",
+      "display_name": "Membership",
+      "field_ref": [
+        "field",
+        "Membership",
+        {
+          "base-type": "type/Text"
+        }
+      ]
+    },
+    {
+      "name": "Email address",
+      "database_type": "text",
+      "base_type": "type/Text",
+      "display_name": "Email address",
+      "field_ref": [
+        "field",
+        "Email address",
+        {
+          "base-type": "type/Text"
+        }
+      ]
+    },
+    {
+      "name": "Phone number",
+      "database_type": "text",
+      "base_type": "type/Text",
+      "display_name": "Phone number",
+      "field_ref": [
+        "field",
+        "Phone number",
+        {
+          "base-type": "type/Text"
+        }
+      ]
+    },
+    {
+      "name": "Mobile number",
+      "database_type": "text",
+      "base_type": "type/Text",
+      "display_name": "Mobile number",
+      "field_ref": [
+        "field",
+        "Mobile number",
+        {
+          "base-type": "type/Text"
+        }
+      ]
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": null,
+  "query_type": "native",
+  "name": "Contacts - Selected Year",
+  "last_query_start": null,
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-03-13T15:04:36.136622Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": null,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-03-24T12:17:50.215698Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "template-tags": {
+          "search": {
+            "display-name": "Search",
+            "type": "text",
+            "id": "search",
+            "name": "search",
+            "required": false
+          }
+        },
+        "native": "SELECT\n  '\u2795' AS \"Manual\",\n  concat(rm.\"First name\", ' ', rm.\"Last name\") AS \"Name\",\n  rm.\"First name\",\n  rm.\"Last name\",\n  rm.\"Membership\",\n  rm.\"Email address\",\n  rm.\"Phone number\",\n  rm.\"Mobile number\"\nFROM public.raw_members rm\nLEFT JOIN public.membership_packages mp\n  ON rm.\"Membership\" = mp.name\nWHERE COALESCE(mp.category, '') <> 'Pavilion Key'\n[[AND concat(rm.\"First name\", ' ', rm.\"Last name\") ILIKE '%' || {{search}} || '%']]\nORDER BY rm.\"Last name\", rm.\"First name\", rm.\"Membership\";"
+      }
+    ]
+  },
+  "id": 1028,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "O43PiFeVxagJHmaf0Q85g",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-03-24T12:17:50.253631Z"
+  },
+  "visualization_settings": {
+    "table.columns": [
+      {
+        "name": "Add Items",
+        "enabled": true
+      },
+      {
+        "name": "Name",
+        "enabled": true
+      },
+      {
+        "name": "First name",
+        "enabled": true
+      },
+      {
+        "name": "Last name",
+        "enabled": true
+      },
+      {
+        "name": "Membership",
+        "enabled": true
+      },
+      {
+        "name": "Email address",
+        "enabled": true
+      },
+      {
+        "name": "Phone number",
+        "enabled": true
+      },
+      {
+        "name": "Mobile number",
+        "enabled": true
+      }
+    ],
+    "table.cell_column": "Name",
+    "table": {
+      "columns": [
+        {
+          "name": "Add Items",
+          "enabled": true
+        },
+        {
+          "name": "Name",
+          "enabled": true
+        },
+        {
+          "name": "First name",
+          "enabled": true
+        },
+        {
+          "name": "Last name",
+          "enabled": true
+        },
+        {
+          "name": "Membership",
+          "enabled": true
+        },
+        {
+          "name": "Email address",
+          "enabled": true
+        },
+        {
+          "name": "Phone number",
+          "enabled": true
+        },
+        {
+          "name": "Mobile number",
+          "enabled": true
+        }
+      ]
+    },
+    "column_settings": {
+      "[\"name\",\"Name\"]": {
+        "view_as": "link",
+        "link_url": "http://n8n:5678/webhook/member-search-detail?member={{Name}}",
+        "column_title": "Name"
+      },
+      "[\"name\",\"Add Items\"]": {
+        "view_as": "link",
+        "link_text": "\u2795",
+        "link_url": "http://n8n:5678/webhook/manual-batch-item-form?member={{Name}}",
+        "column_title": "Add Items"
+      }
+    }
+  },
+  "collection": {
+    "metabase.collections.models.collection.root/is-root?": true,
+    "authority_level": null,
+    "name": "Our analytics",
+    "is_personal": false,
+    "id": "root",
+    "is_remote_synced": false,
+    "can_write": true
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-03-13T15:04:36.136622Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="1754" viewBox="0 0 1240 1754">
+  <rect width="1240" height="1754" fill="#ffffff"/>
+  <style>
+    .title { font: 700 34px Arial, sans-serif; fill: #17324d; }
+    .h1 { font: 700 22px Arial, sans-serif; fill: #17324d; }
+    .body { font: 400 17px Arial, sans-serif; fill: #1f2937; }
+  </style>
+
+  <text x="90" y="95" class="title">Operational Flow And Exceptions</text>
+
+  <text x="90" y="170" class="h1">Typical Work Flow</text>
+  <text x="110" y="212" class="body">1. A member joins in ClubSpark.</text>
+  <text x="110" y="244" class="body">2. ClubSpark sends a notification email and updates its member/contact records.</text>
+  <text x="110" y="276" class="body">3. n8n captures the email and refreshes the latest ClubSpark exports.</text>
+  <text x="110" y="308" class="body">4. The local database combines those sources into a clean signup record.</text>
+  <text x="110" y="340" class="body">5. A batch is created for new items that need to be fulfilled.</text>
+  <text x="110" y="372" class="body">6. The batch produces labels, envelope PDFs, and exception lists.</text>
+  <text x="110" y="404" class="body">7. Where an address is missing, the member can be contacted by email instead of post.</text>
+  <text x="110" y="436" class="body">8. Once the physical admin work is done, the batch is marked complete.</text>
+  <text x="110" y="468" class="body">9. Reporting is synced to Metabase so the committee can monitor progress.</text>
+
+  <text x="90" y="560" class="h1">Exception Handling</text>
+  <text x="110" y="602" class="body">• Missing signup capture: if ClubSpark shows a valid membership but no signup email was captured,</text>
+  <text x="130" y="630" class="body">the workflow can create the missing record.</text>
+  <text x="110" y="670" class="body">• No-address handling: if there is no usable postal address, the system can send an email instead</text>
+  <text x="130" y="698" class="body">of producing post.</text>
+  <text x="110" y="738" class="body">• Manual batch items: extra shoe tags, parent tags, or keys can be added without pretending there</text>
+  <text x="130" y="766" class="body">was a new signup.</text>
+  <text x="110" y="806" class="body">• History snapshots: periodic snapshots preserve membership counts for trend reporting over time.</text>
+
+  <text x="90" y="900" class="h1">Summary</text>
+  <text x="90" y="942" class="body">At a committee level, the system can be thought of as a membership operations pipeline:</text>
+  <text x="110" y="982" class="body">• ClubSpark provides the raw membership events and data</text>
+  <text x="110" y="1014" class="body">• n8n turns that into usable admin work</text>
+  <text x="110" y="1046" class="body">• the local database tracks what has happened and what still needs doing</text>
+  <text x="110" y="1078" class="body">• print files, emails, and dashboards are the outputs the committee sees</text>
+
+  <text x="90" y="1142" class="body">The main benefit is that signups, address handling, batch preparation, and reporting are kept in one</text>
+  <text x="90" y="1170" class="body">joined-up process instead of being managed manually across separate spreadsheets and inboxes.</text>
+</svg>

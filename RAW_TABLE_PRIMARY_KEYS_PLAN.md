@@ -1,5 +1,47 @@
 # Raw Table Primary Keys Plan
 
+## Status
+
+- planning completed
+- dependency inventory completed
+- Stage 1 explicit-column cleanup completed
+- Stage 2 non-breaking local schema columns completed locally
+- Stage 3 local ID and lifecycle backfill completed locally
+- Stage 4 local-to-cloud sync and verification completed
+- lifecycle-default correction added in
+  [015_raw_table_lifecycle_defaults.sql](/mnt/c/dev/avondale-n8n/sql/015_raw_table_lifecycle_defaults.sql)
+- Stage 5 local staging tables completed in
+  [016_raw_table_import_staging.sql](/mnt/c/dev/avondale-n8n/sql/016_raw_table_import_staging.sql)
+- Stage 6 local reconcile functions completed in
+  [017_raw_table_reconcile.sql](/mnt/c/dev/avondale-n8n/sql/017_raw_table_reconcile.sql)
+- Stage 7 local import cutover completed in:
+  - [clubspark-members-export.json](/mnt/c/dev/avondale-n8n/workflows/clubspark-members-export.json)
+  - [clubspark-contacts-export.json](/mnt/c/dev/avondale-n8n/workflows/clubspark-contacts-export.json)
+- Stage 8 downstream current-row semantics completed in:
+  - [002_raw_snapshot_history.sql](/mnt/c/dev/avondale-n8n/sql/002_raw_snapshot_history.sql)
+  - [010_signup_batch_manual_items.sql](/mnt/c/dev/avondale-n8n/sql/010_signup_batch_manual_items.sql)
+  - [create-signup-batch.json](/mnt/c/dev/avondale-n8n/workflows/create-signup-batch.json)
+  - [create-missing-signup-capture.json](/mnt/c/dev/avondale-n8n/workflows/create-missing-signup-capture.json)
+  - [add-manual-batch-item.json](/mnt/c/dev/avondale-n8n/workflows/add-manual-batch-item.json)
+  - [member-search-detail.json](/mnt/c/dev/avondale-n8n/workflows/member-search-detail.json)
+  - [send-no-address-batch-emails.json](/mnt/c/dev/avondale-n8n/workflows/send-no-address-batch-emails.json)
+  - [send-gmail-test-message.json](/mnt/c/dev/avondale-n8n/workflows/send-gmail-test-message.json)
+- Stage 9 Metabase metadata review completed locally and in cloud
+- Stage 10 primary key enforcement completed in
+  [018_raw_table_primary_keys.sql](/mnt/c/dev/avondale-n8n/sql/018_raw_table_primary_keys.sql)
+- Stage 11 cleanup and retirement of old snapshot/truncate paths completed in:
+  - [019_retire_old_raw_import_path.sql](/mnt/c/dev/avondale-n8n/sql/019_retire_old_raw_import_path.sql)
+  - [sync-raw-tables-to-cloud.json](/mnt/c/dev/avondale-n8n/workflows/sync-raw-tables-to-cloud.json)
+  - [002_raw_snapshot_history.sql](/mnt/c/dev/avondale-n8n/sql/002_raw_snapshot_history.sql)
+  - [003_archive_raw_contacts_every_import.sql](/mnt/c/dev/avondale-n8n/sql/003_archive_raw_contacts_every_import.sql)
+- current next step: rollout complete, with only optional post-rollout cleanup remaining
+
+See:
+
+- [RAW_TABLE_DEPENDENCY_INVENTORY.md](/mnt/c/dev/avondale-n8n/RAW_TABLE_DEPENDENCY_INVENTORY.md)
+- [RAW_TABLE_PRIMARY_KEYS_SAFE_STAGES_PLAN.md](/mnt/c/dev/avondale-n8n/RAW_TABLE_PRIMARY_KEYS_SAFE_STAGES_PLAN.md)
+- [RAW_TABLE_PRIMARY_KEYS_CHANGE_SEQUENCE.md](/mnt/c/dev/avondale-n8n/RAW_TABLE_PRIMARY_KEYS_CHANGE_SEQUENCE.md)
+
 ## Goal
 
 Add durable primary key `id` columns to:

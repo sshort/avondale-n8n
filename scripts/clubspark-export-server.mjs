@@ -76,7 +76,7 @@ function runExporter(scriptPath, extraEnv = {}) {
         }
       }
 
-      await fs.rm(outputPath, { force: true }).catch(() => {});
+      await fs.rm(outputPath, { force: true }).catch(() => { });
 
       const result = { code: code ?? 1, stdout: body, stderr };
       activeRuns.delete(runKey);
@@ -89,6 +89,12 @@ function runExporter(scriptPath, extraEnv = {}) {
 }
 
 const server = http.createServer(async (req, res) => {
+  if (req.method === 'GET' && req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ status: 'ok' }));
+    return;
+  }
+
   if (req.method !== 'POST') {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('Not found');

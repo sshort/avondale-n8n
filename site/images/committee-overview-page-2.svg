@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="1754" viewBox="0 0 1240 1754">
+  <rect width="1240" height="1754" fill="#ffffff"/>
+  <style>
+    .title { font: 700 34px Arial, sans-serif; fill: #17324d; }
+    .note { font: 400 17px Arial, sans-serif; fill: #1f2937; }
+  </style>
+  <text x="90" y="95" class="title">Membership Process Diagram</text>
+  <text x="90" y="135" class="note">This simplified diagram shows the main operational flow and the reporting output.</text>
+  <image href="site/images/committee-workflow-diagram.png" x="70" y="190" width="1100" height="733"/>
+</svg>

@@ -7,7 +7,10 @@
       "name": "When clicking 'Execute workflow'",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [200, 300]
+      "position": [
+        200,
+        300
+      ]
     },
     {
       "parameters": {
@@ -17,7 +20,10 @@
       "name": "When Executed by Another Workflow",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
-      "position": [200, 460]
+      "position": [
+        200,
+        460
+      ]
     },
     {
       "parameters": {
@@ -28,7 +34,10 @@
       "name": "Load Global Settings",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [450, 460],
+      "position": [
+        450,
+        460
+      ],
       "credentials": {
         "postgres": {
           "id": "PjTUDAMk0dZ7g1iO",
@@ -52,7 +61,10 @@
       "name": "Fetch Members CSV",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [450, 300]
+      "position": [
+        450,
+        300
+      ]
     },
     {
       "parameters": {
@@ -62,17 +74,23 @@
       "name": "Parse Members CSV",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [700, 300]
+      "position": [
+        700,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "const sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return `'${String(value).replace(/'/g, \"''\")}'`;\n};\nconst sqlInteger = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const digits = String(value).replace(/[^0-9-]+/g, '');\n  if (!digits || digits === '-') return 'NULL';\n  const parsed = Number.parseInt(digits, 10);\n  return Number.isNaN(parsed) ? 'NULL' : String(parsed);\n};\nconst sqlNumeric = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const normalized = String(value).replace(/,/g, '').replace(/[^0-9.-]+/g, '');\n  if (!normalized || normalized === '-' || normalized === '.' || normalized === '-.') return 'NULL';\n  const parsed = Number.parseFloat(normalized);\n  return Number.isNaN(parsed) ? 'NULL' : String(parsed);\n};\nconst rows = $input.all().map((item) => item.json ?? {});\nif (!rows.length) {\n  throw new Error('No parsed member rows were available to build the import SQL.');\n}\nconst columns = [\n  { db: 'Venue ID', headers: ['Venue ID'] },\n  { db: 'First name', headers: ['First name'] },\n  { db: 'Last name', headers: ['Last name'] },\n  { db: 'Gender', headers: ['Gender'] },\n  { db: 'Age', headers: ['Age'], type: 'integer' },\n  { db: 'Junior', headers: ['Junior'] },\n  { db: 'Date of birth', headers: ['Date of birth'] },\n  { db: 'Membership', headers: ['Membership'] },\n  { db: 'Payment', headers: ['Payment'] },\n  { db: 'Cost', headers: ['Cost'], type: 'numeric' },\n  { db: 'Paid', headers: ['Paid'], type: 'numeric' },\n  { db: 'Paid Credit Card', headers: ['Paid Credit Card'], type: 'numeric' },\n  { db: 'Paid Direct Debit', headers: ['Paid Direct Debit'], type: 'numeric' },\n  { db: 'Paid Cash', headers: ['Paid Cash'], type: 'numeric' },\n  { db: 'Paid Cheque', headers: ['Paid Cheque'], type: 'numeric' },\n  { db: 'Paid Other', headers: ['Paid Other'], type: 'numeric' },\n  { db: 'Gift aid', headers: ['Gift aid'] },\n  { db: 'Status', headers: ['Status'] },\n  { db: 'Start Date', headers: ['Start Date'] },\n  { db: 'Expiry Date', headers: ['Expiry Date'] },\n  { db: 'Email address', headers: ['Email address'] },\n  { db: 'Phone number', headers: ['Phone number'] },\n  { db: 'Work number', headers: ['Work number'] },\n  { db: 'Mobile number', headers: ['Mobile number'] },\n  { db: 'Emergency contact name', headers: ['Emergency contact name'] },\n  { db: 'Emergency phone number', headers: ['Emergency phone number'] },\n  { db: 'Address 1', headers: ['Address 1'] },\n  { db: 'Address 2', headers: ['Address 2'] },\n  { db: 'Address 3', headers: ['Address 3'] },\n  { db: 'Town', headers: ['Town'] },\n  { db: 'County', headers: ['County'] },\n  { db: 'Country', headers: ['Country'] },\n  { db: 'Postcode', headers: ['Postcode'] },\n  { db: 'British Tennis Number', headers: ['British Tennis Number'] },\n  { db: 'Date joined venue', headers: ['Date joined venue'] },\n  { db: 'Medical history', headers: ['Medical history'] },\n  { db: 'Venue source', headers: ['Venue source', ' Venue source'] },\n  { db: 'Contact source', headers: ['Contact source'] },\n  { db: 'Occupation', headers: ['Occupation'] },\n  { db: 'Tags provided', headers: ['Tags provided'] },\n  { db: 'Key pin number', headers: ['Key pin number'] },\n  { db: 'Registered', headers: ['Registered'] },\n  { db: 'Member status', headers: ['Member status'] },\n  { db: 'Receipt of Emails', headers: ['Receipt of Emails'] },\n  { db: 'Share Contact Detail', headers: ['Share Contact Detail'] },\n  { db: \"Member's Directory\", headers: [\"Member's Directory\"] },\n  { db: 'Photography', headers: ['Photography'] },\n  { db: ' Venue source', headers: [' Venue source', 'Venue source'] }\n];\nconst getValue = (row, headers) => {\n  for (const header of headers) {\n    if (Object.prototype.hasOwnProperty.call(row, header)) {\n      return row[header];\n    }\n  }\n  return null;\n};\nconst quotedColumns = columns.map(({ db }) => `\"${db.replace(/\"/g, '\"\"')}\"`).join(', ');\nconst values = rows.map((row) => {\n  const record = columns.map((column) => {\n    const rawValue = getValue(row, column.headers);\n    if (column.type === 'integer') return sqlInteger(rawValue);\n    if (column.type === 'numeric') return sqlNumeric(rawValue);\n    return sqlLiteral(rawValue);\n  });\n  return `(${record.join(', ')})`;\n}).join(',\\n  ');\nconst sql = `BEGIN;\\nSELECT * FROM public.prepare_raw_members_import();\\nINSERT INTO raw_members (${quotedColumns})\\nVALUES\\n  ${values};\\nCOMMIT;`;\nreturn [{ json: { sql, rowCount: rows.length } }];"
+        "jsCode": "const sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sqlInteger = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const digits = String(value).replace(/[^0-9-]+/g, '');\n  if (!digits || digits === '-') return 'NULL';\n  const parsed = Number.parseInt(digits, 10);\n  return Number.isNaN(parsed) ? 'NULL' : String(parsed);\n};\nconst sqlNumeric = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const normalized = String(value).replace(/,/g, '').replace(/[^0-9.-]+/g, '');\n  if (!normalized || normalized === '-' || normalized === '.' || normalized === '-.') return 'NULL';\n  const parsed = Number.parseFloat(normalized);\n  return Number.isNaN(parsed) ? 'NULL' : String(parsed);\n};\nconst rows = $input.all().map((item) => item.json ?? {});\nif (!rows.length) {\n  throw new Error('No parsed member rows were available to build the import SQL.');\n}\nconst columns = [\n  { db: 'Venue ID', headers: ['Venue ID'] },\n  { db: 'First name', headers: ['First name'] },\n  { db: 'Last name', headers: ['Last name'] },\n  { db: 'Gender', headers: ['Gender'] },\n  { db: 'Age', headers: ['Age'], type: 'integer' },\n  { db: 'Junior', headers: ['Junior'] },\n  { db: 'Date of birth', headers: ['Date of birth'] },\n  { db: 'Membership', headers: ['Membership'] },\n  { db: 'Payment', headers: ['Payment'] },\n  { db: 'Cost', headers: ['Cost'], type: 'numeric' },\n  { db: 'Paid', headers: ['Paid'], type: 'numeric' },\n  { db: 'Paid Credit Card', headers: ['Paid Credit Card'], type: 'numeric' },\n  { db: 'Paid Direct Debit', headers: ['Paid Direct Debit'], type: 'numeric' },\n  { db: 'Paid Cash', headers: ['Paid Cash'], type: 'numeric' },\n  { db: 'Paid Cheque', headers: ['Paid Cheque'], type: 'numeric' },\n  { db: 'Paid Other', headers: ['Paid Other'], type: 'numeric' },\n  { db: 'Gift aid', headers: ['Gift aid'] },\n  { db: 'Status', headers: ['Status'] },\n  { db: 'Start Date', headers: ['Start Date'] },\n  { db: 'Expiry Date', headers: ['Expiry Date'] },\n  { db: 'Email address', headers: ['Email address'] },\n  { db: 'Phone number', headers: ['Phone number'] },\n  { db: 'Work number', headers: ['Work number'] },\n  { db: 'Mobile number', headers: ['Mobile number'] },\n  { db: 'Emergency contact name', headers: ['Emergency contact name'] },\n  { db: 'Emergency phone number', headers: ['Emergency phone number'] },\n  { db: 'Address 1', headers: ['Address 1'] },\n  { db: 'Address 2', headers: ['Address 2'] },\n  { db: 'Address 3', headers: ['Address 3'] },\n  { db: 'Town', headers: ['Town'] },\n  { db: 'County', headers: ['County'] },\n  { db: 'Country', headers: ['Country'] },\n  { db: 'Postcode', headers: ['Postcode'] },\n  { db: 'British Tennis Number', headers: ['British Tennis Number'] },\n  { db: 'Date joined venue', headers: ['Date joined venue'] },\n  { db: 'Medical history', headers: ['Medical history'] },\n  { db: 'Venue source', headers: ['Venue source', ' Venue source'] },\n  { db: 'Contact source', headers: ['Contact source'] },\n  { db: 'Occupation', headers: ['Occupation'] },\n  { db: 'Tags provided', headers: ['Tags provided'] },\n  { db: 'Key pin number', headers: ['Key pin number'] },\n  { db: 'Registered', headers: ['Registered'] },\n  { db: 'Member status', headers: ['Member status'] },\n  { db: 'Receipt of Emails', headers: ['Receipt of Emails'] },\n  { db: 'Share Contact Detail', headers: ['Share Contact Detail'] },\n  { db: \"Member's Directory\", headers: [\"Member's Directory\"] },\n  { db: 'Photography', headers: ['Photography'] },\n  { db: ' Venue source', headers: [' Venue source', 'Venue source'] }\n];\nconst getValue = (row, headers) => {\n  for (const header of headers) {\n    if (Object.prototype.hasOwnProperty.call(row, header)) {\n      return row[header];\n    }\n  }\n  return null;\n};\nconst quotedColumns = columns.map(({ db }) => '\"' + db.replace(/\"/g, '\"\"') + '\"').join(', ');\nconst values = rows.map((row) => {\n  const record = columns.map((column) => {\n    const rawValue = getValue(row, column.headers);\n    if (column.type === 'integer') return sqlInteger(rawValue);\n    if (column.type === 'numeric') return sqlNumeric(rawValue);\n    return sqlLiteral(rawValue);\n  });\n  return '(' + record.join(', ') + ')';\n}).join(',\\n  ');\nconst sql = 'BEGIN;\\n' +\n  'SELECT * FROM public.prepare_raw_members_import_staging();\\n' +\n  'INSERT INTO public.raw_members_import_staging (' + quotedColumns + ')\\n' +\n  'VALUES\\n  ' + values + ';\\n' +\n  'SELECT * FROM public.reconcile_raw_members_from_staging();\\n' +\n  'COMMIT;';\nreturn [{ json: { sql, rowCount: rows.length } }];"
       },
       "id": "b1c2d3e4-0001-0001-0001-000000000004",
       "name": "Build Insert SQL",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [950, 300]
+      "position": [
+        950,
+        300
+      ]
     },
     {
       "parameters": {
@@ -83,7 +101,10 @@
       "name": "Insert Into raw_members",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [1200, 300],
+      "position": [
+        1200,
+        300
+      ],
       "credentials": {
         "postgres": {
           "id": "PjTUDAMk0dZ7g1iO",
@@ -100,7 +121,10 @@
       "name": "Verify Row Count",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [1450, 300],
+      "position": [
+        1450,
+        300
+      ],
       "credentials": {
         "postgres": {
           "id": "PjTUDAMk0dZ7g1iO",
@@ -111,25 +135,81 @@
   ],
   "connections": {
     "When clicking 'Execute workflow'": {
-      "main": [[{ "node": "Load Global Settings", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "When Executed by Another Workflow": {
-      "main": [[{ "node": "Load Global Settings", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Load Global Settings": {
-      "main": [[{ "node": "Fetch Members CSV", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Fetch Members CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Fetch Members CSV": {
-      "main": [[{ "node": "Parse Members CSV", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Parse Members CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Parse Members CSV": {
-      "main": [[{ "node": "Build Insert SQL", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Build Insert SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Build Insert SQL": {
-      "main": [[{ "node": "Insert Into raw_members", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Insert Into raw_members",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Insert Into raw_members": {
-      "main": [[{ "node": "Verify Row Count", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Verify Row Count",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -138,7 +218,9 @@
     "availableInMCP": true
   },
   "staticData": null,
-  "meta": { "templateCredsSetupCompleted": false },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
   "pinData": {},
   "tags": [],
   "active": false,

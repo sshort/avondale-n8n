@@ -39,6 +39,7 @@ WITH best_contact AS (
         rc.town,
         rc.postcode
     FROM public.raw_contacts rc
+    WHERE COALESCE(rc.is_current, true) = true
     ORDER BY concat(rc."First name", ' ', rc."Last name"),
              CASE
                  WHEN COALESCE(NULLIF(trim(rc."Address 1"), ''), NULLIF(trim(rc.postcode), '')) IS NOT NULL
@@ -73,6 +74,7 @@ FROM public.member_signups s
 LEFT JOIN public.raw_members m
     ON s.member = concat(m."First name", ' ', m."Last name")
    AND m."Membership" = s.product
+   AND COALESCE(m.is_current, true) = true
 LEFT JOIN best_contact bc
     ON s.payer = bc.payer_name
 

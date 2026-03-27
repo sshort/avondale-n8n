@@ -1,0 +1,723 @@
+{
+  "cache_invalidated_at": "2026-03-26T17:44:37.960928Z",
+  "description": null,
+  "archived": false,
+  "view_count": 159,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Actions",
+      "lib/original-name": "Actions",
+      "name": "Actions",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Actions",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Actions",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Actions",
+      "display_name": "Actions",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 2.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "bigserial",
+      "semantic_type": null,
+      "lib/deduplicated-name": "batch_id",
+      "lib/original-name": "batch_id",
+      "name": "batch_id",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "batch_id",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "batch_id",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "batch_id",
+      "display_name": "batch_id",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 1.0,
+            "q1": 1.75,
+            "q3": 4.75,
+            "max": 5.0,
+            "sd": 2.081665999466133,
+            "avg": 3.3333333333333335
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": "type/Category",
+      "lib/deduplicated-name": "status",
+      "lib/original-name": "status",
+      "name": "status",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "status",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "status",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "status",
+      "display_name": "status",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 8.666666666666666
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "timestamptz",
+      "semantic_type": "type/CreationTimestamp",
+      "lib/deduplicated-name": "created_at",
+      "lib/original-name": "created_at",
+      "name": "created_at",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "created_at",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "created_at",
+        {
+          "base-type": "type/DateTimeWithLocalTZ"
+        }
+      ],
+      "effective_type": "type/DateTimeWithLocalTZ",
+      "lib/desired-column-alias": "created_at",
+      "display_name": "created_at",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": "2026-03-14T09:16:31.864904Z",
+            "latest": "2026-03-21T10:09:20.648461Z"
+          }
+        }
+      },
+      "base_type": "type/DateTimeWithLocalTZ"
+    },
+    {
+      "database_type": "timestamptz",
+      "semantic_type": null,
+      "lib/deduplicated-name": "completed_at",
+      "lib/original-name": "completed_at",
+      "name": "completed_at",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "completed_at",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "completed_at",
+        {
+          "base-type": "type/DateTimeWithLocalTZ"
+        }
+      ],
+      "effective_type": "type/DateTimeWithLocalTZ",
+      "lib/desired-column-alias": "completed_at",
+      "display_name": "completed_at",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.3333333333333333
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": "2026-03-14T10:15:57.271469Z",
+            "latest": "2026-03-21T09:39:40.953188Z"
+          }
+        }
+      },
+      "base_type": "type/DateTimeWithLocalTZ"
+    },
+    {
+      "database_type": "bool",
+      "semantic_type": null,
+      "lib/deduplicated-name": "no_address_email_sent",
+      "lib/original-name": "no_address_email_sent",
+      "name": "no_address_email_sent",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "no_address_email_sent",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "no_address_email_sent",
+        {
+          "base-type": "type/Boolean"
+        }
+      ],
+      "effective_type": "type/Boolean",
+      "lib/desired-column-alias": "no_address_email_sent",
+      "display_name": "no_address_email_sent",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        }
+      },
+      "base_type": "type/Boolean"
+    },
+    {
+      "database_type": "int8",
+      "semantic_type": "type/Quantity",
+      "lib/deduplicated-name": "signup_row_count",
+      "lib/original-name": "signup_row_count",
+      "name": "signup_row_count",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "signup_row_count",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "signup_row_count",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "signup_row_count",
+      "display_name": "signup_row_count",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 2.0,
+            "q1": 13.5,
+            "q3": 83.25,
+            "max": 95.0,
+            "sd": 46.500896048714296,
+            "avg": 48.333333333333336
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "int8",
+      "semantic_type": "type/Quantity",
+      "lib/deduplicated-name": "manual_row_count",
+      "lib/original-name": "manual_row_count",
+      "name": "manual_row_count",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "manual_row_count",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "manual_row_count",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "manual_row_count",
+      "display_name": "manual_row_count",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.0,
+            "q3": 1.5505102572168221,
+            "max": 2.0,
+            "sd": 1.1547005383792517,
+            "avg": 0.6666666666666666
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "int8",
+      "semantic_type": "type/Quantity",
+      "lib/deduplicated-name": "member_row_count",
+      "lib/original-name": "member_row_count",
+      "name": "member_row_count",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "member_row_count",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "member_row_count",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "member_row_count",
+      "display_name": "member_row_count",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 2.0,
+            "q1": 14.0,
+            "q3": 83.75,
+            "max": 95.0,
+            "sd": 46.50806381693394,
+            "avg": 49.0
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "int8",
+      "semantic_type": null,
+      "lib/deduplicated-name": "regular_tags",
+      "lib/original-name": "regular_tags",
+      "name": "regular_tags",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "regular_tags",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "regular_tags",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "regular_tags",
+      "display_name": "regular_tags",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 2.0,
+            "q1": 13.75,
+            "q3": 75.25,
+            "max": 84.0,
+            "sd": 41.14608122288197,
+            "avg": 45.0
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "int8",
+      "semantic_type": null,
+      "lib/deduplicated-name": "parent_tags",
+      "lib/original-name": "parent_tags",
+      "name": "parent_tags",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "parent_tags",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "parent_tags",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "parent_tags",
+      "display_name": "parent_tags",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.0,
+            "q3": 4.651530771650466,
+            "max": 6.0,
+            "sd": 3.4641016151377544,
+            "avg": 2.0
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "int8",
+      "semantic_type": null,
+      "lib/deduplicated-name": "keys",
+      "lib/original-name": "keys",
+      "name": "keys",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "keys",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "keys",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "keys",
+      "display_name": "keys",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.25,
+            "q3": 3.25,
+            "max": 4.0,
+            "sd": 2.0816659994661326,
+            "avg": 1.6666666666666667
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "int8",
+      "semantic_type": null,
+      "lib/deduplicated-name": "total_items",
+      "lib/original-name": "total_items",
+      "name": "total_items",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "total_items",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "total_items",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "total_items",
+      "display_name": "total_items",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 2.0,
+            "q1": 14.0,
+            "q3": 83.0,
+            "max": 94.0,
+            "sd": 46.01449047129972,
+            "avg": 48.666666666666664
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Signup Batches",
+  "last_query_start": "2026-03-27T09:02:30.072511Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-03-27T09:02:30.080233Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 44.89506172839506,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-03-26T17:44:37.959853Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "native": "SELECT\n  '\u2699\ufe0f' AS \"Actions\",\n  b.id AS batch_id,\n  b.status,\n  b.created_at,\n  b.completed_at,\n  b.no_address_email_sent,\n  COALESCE(s.signup_rows, 0) AS signup_row_count,\n  COALESCE(s.manual_rows, 0) AS manual_row_count,\n  COALESCE(s.signup_rows, 0) + COALESCE(s.manual_rows, 0) AS member_row_count,\n  COALESCE(s.regular_tags, 0) AS regular_tags,\n  COALESCE(s.parent_tags, 0) AS parent_tags,\n  COALESCE(s.key_tags, 0) AS keys,\n  COALESCE(s.total_items, 0) AS total_items\nFROM public.signup_batches AS b\nLEFT JOIN public.vw_signup_batches_summary AS s\n  ON s.batch_id = b.id\nORDER BY b.id DESC;"
+      }
+    ]
+  },
+  "id": 1575,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "Z1wMDvGhOgYJx5hEO2hBf",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-03-26T17:44:37.997297Z"
+  },
+  "visualization_settings": {
+    "table.columns": [
+      {
+        "name": "Actions",
+        "enabled": true
+      },
+      {
+        "name": "batch_id",
+        "enabled": true
+      },
+      {
+        "name": "status",
+        "enabled": true
+      },
+      {
+        "name": "created_at",
+        "enabled": true
+      },
+      {
+        "name": "completed_at",
+        "enabled": true
+      },
+      {
+        "name": "signup_row_count",
+        "enabled": true
+      },
+      {
+        "name": "manual_row_count",
+        "enabled": true
+      },
+      {
+        "name": "member_row_count",
+        "enabled": false
+      },
+      {
+        "name": "regular_tags",
+        "enabled": true
+      },
+      {
+        "name": "parent_tags",
+        "enabled": true
+      },
+      {
+        "name": "keys",
+        "enabled": true
+      },
+      {
+        "name": "total_items",
+        "enabled": true
+      },
+      {
+        "name": "no_address_email_sent",
+        "enabled": false
+      }
+    ],
+    "table": {
+      "columns": [
+        {
+          "name": "Actions",
+          "enabled": true
+        },
+        {
+          "name": "batch_id",
+          "enabled": true
+        },
+        {
+          "name": "status",
+          "enabled": true
+        },
+        {
+          "name": "created_at",
+          "enabled": true
+        },
+        {
+          "name": "completed_at",
+          "enabled": true
+        },
+        {
+          "name": "no_address_email_sent",
+          "enabled": false
+        },
+        {
+          "name": "signup_row_count",
+          "enabled": true
+        },
+        {
+          "name": "manual_row_count",
+          "enabled": true
+        },
+        {
+          "name": "member_row_count",
+          "enabled": true
+        },
+        {
+          "name": "regular_tags",
+          "enabled": true
+        },
+        {
+          "name": "parent_tags",
+          "enabled": true
+        },
+        {
+          "name": "keys",
+          "enabled": true
+        },
+        {
+          "name": "total_items",
+          "enabled": true
+        }
+      ]
+    },
+    "table.pivot_column": "Actions",
+    "table.cell_column": "signup_row_count",
+    "column_settings": {
+      "[\"name\",\"manual_row_count\"]": {
+        "column_title": "Manual"
+      },
+      "[\"name\",\"status\"]": {
+        "column_title": "Status"
+      },
+      "[\"name\",\"keys\"]": {
+        "column_title": "Keys"
+      },
+      "[\"name\",\"no_address_email_sent\"]": {
+        "column_title": "No address email sent"
+      },
+      "[\"name\",\"parent_tags\"]": {
+        "column_title": "Parents"
+      },
+      "[\"name\",\"regular_tags\"]": {
+        "column_title": "Tags"
+      },
+      "[\"name\",\"created_at\"]": {
+        "column_title": "Created"
+      },
+      "[\"name\",\"Actions\"]": {
+        "view_as": "link",
+        "link_text": "\u2699\ufe0f",
+        "link_url": "http://n8n:5678/webhook/signup-batch-actions?batch_id={{batch_id}}",
+        "column_title": "Actions"
+      },
+      "[\"name\",\"completed_at\"]": {
+        "column_title": "Completed"
+      },
+      "[\"name\",\"signup_row_count\"]": {
+        "column_title": "Signups"
+      },
+      "[\"name\",\"member_row_count\"]": {
+        "column_title": "Total Rows"
+      },
+      "[\"name\",\"total_items\"]": {
+        "column_title": "Total Items"
+      },
+      "[\"name\",\"batch_id\"]": {
+        "view_as": "link",
+        "link_url": "http://metabase/question/1611?batch_id={{batch_id}}",
+        "column_title": "ID"
+      }
+    }
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-03-16T15:09:13.503696Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

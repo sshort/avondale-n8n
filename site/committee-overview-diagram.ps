@@ -1,0 +1,112 @@
+%!PS-Adobe-3.0
+%%Pages: 1
+%%BoundingBox: 0 0 595 842
+%%EndComments
+
+/TitleFont { /Helvetica-Bold findfont 24 scalefont setfont } def
+/HeadFont { /Helvetica-Bold findfont 16 scalefont setfont } def
+/BodyFont { /Helvetica findfont 11 scalefont setfont } def
+/T { moveto show } def
+/Box {
+  /b exch def /g exch def /r exch def
+  /h exch def /w exch def /y exch def /x exch def
+  gsave
+    r g b setrgbcolor
+    newpath x y moveto
+    w 0 rlineto
+    0 h rlineto
+    w neg 0 rlineto
+    closepath fill
+  grestore
+  0.14 0.25 0.37 setrgbcolor
+  1 setlinewidth
+  newpath x y moveto
+  w 0 rlineto
+  0 h rlineto
+  w neg 0 rlineto
+  closepath stroke
+} def
+/Line {
+  0.30 0.39 0.47 setrgbcolor
+  1.2 setlinewidth
+  newpath moveto lineto stroke
+} def
+
+%%Page: 1 1
+TitleFont
+(Membership Process Diagram) 50 792 T
+BodyFont
+(This simplified diagram shows the main operational flow and the reporting output.) 50 768 T
+
+430 700 120 46 0.91 0.95 0.98 Box
+HeadFont
+(ClubSpark) 455 728 T
+
+60 610 150 44 0.97 0.98 0.99 Box
+(Signup Email) 86 636 T
+
+60 540 150 44 0.97 0.98 0.99 Box
+(Gmail) 112 566 T
+
+222 610 150 44 0.97 0.98 0.99 Box
+(Members Export) 236 636 T
+
+384 610 150 44 0.97 0.98 0.99 Box
+(Contacts Export) 394 636 T
+
+155 430 285 68 0.93 0.97 0.93 Box
+(Local n8n Workflows) 220 468 T
+BodyFont
+(captures emails, refreshes data, and runs admin processes) 173 448 T
+
+120 300 355 74 0.97 0.98 0.99 Box
+HeadFont
+(Local PostgreSQL Database) 185 340 T
+BodyFont
+(operational source of truth for signups, batches, addresses, items, and history) 140 318 T
+
+20 170 120 44 0.97 0.98 0.99 Box
+HeadFont
+(Batches) 48 196 T
+
+155 170 120 44 0.97 0.98 0.99 Box
+(Labels PDF) 174 196 T
+
+290 170 120 44 0.97 0.98 0.99 Box
+(Envelope PDF) 298 196 T
+
+425 170 150 44 0.97 0.98 0.99 Box
+(No-address Email) 438 196 T
+
+455 300 120 74 0.99 0.95 0.90 Box
+HeadFont
+(Metabase) 478 340 T
+BodyFont
+(reporting) 486 320 T
+
+20 360 120 36 0.97 0.98 0.99 Box
+BodyFont
+(Missing signup) 32 383 T
+
+20 310 120 36 0.97 0.98 0.99 Box
+(Manual items) 38 333 T
+
+0.30 0.39 0.47 setrgbcolor
+120 700 500 700 Line
+135 654 135 610 Line
+282 654 282 610 Line
+444 654 444 610 Line
+135 540 220 498 Line
+297 610 297 498 Line
+459 610 390 498 Line
+80 396 160 430 Line
+80 346 160 430 Line
+297 430 297 374 Line
+297 300 80 214 Line
+297 300 215 214 Line
+297 300 350 214 Line
+297 300 500 214 Line
+475 337 455 337 Line
+showpage
+
+%%EOF

@@ -16,5 +16,6 @@ The image copies its runtime scripts from:
 
 The running service exposes:
 
+ `GET /health`
 - `POST /clubspark-export`
 - `POST /clubspark-members-export`

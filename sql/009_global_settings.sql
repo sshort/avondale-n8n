@@ -19,7 +19,8 @@ VALUES
   ('email_delivery_mode', 'production', 'Default delivery mode for batch-email workflows: production or test'),
   ('no_address_email_template_key', 'shoe_tag_pigeon_hole', 'Template key for the no-address batch-email workflow'),
   ('gmail_test_email_template_key', 'shoe_tag_pigeon_hole', 'Template key for the manual Gmail test-send workflow'),
-  ('signup_imap_mailbox', 'NewMemberships', 'Mailbox/folder name for the disabled IMAP signup reader path')
+  ('signup_imap_mailbox', 'NewMemberships', 'Mailbox/folder name for the disabled IMAP signup reader path'),
+  ('n8n_base_url', 'http://n8n:5678', 'Base URL used when generating links to n8n webhooks')
 ON CONFLICT (key) DO UPDATE
 SET
   value = EXCLUDED.value,

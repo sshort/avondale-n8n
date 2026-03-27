@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="1754" viewBox="0 0 1240 1754">
+  <rect width="1240" height="1754" fill="#ffffff"/>
+  <style>
+    .title { font: 700 34px Arial, sans-serif; fill: #17324d; }
+    .h1 { font: 700 22px Arial, sans-serif; fill: #17324d; }
+    .body { font: 400 17px Arial, sans-serif; fill: #1f2937; }
+    .mono { font: 400 17px 'Courier New', monospace; fill: #1f2937; }
+  </style>
+
+  <text x="90" y="95" class="title">Avondale Membership Automation Overview</text>
+
+  <text x="90" y="145" class="body">This note explains, in plain English, what the avondale-n8n processes do and how they support the</text>
+  <text x="90" y="173" class="body">membership admin work of the club.</text>
+
+  <text x="90" y="240" class="h1">Terminology</text>
+  <text x="110" y="282" class="body">•</text>
+  <text x="135" y="282" class="mono">n8n</text>
+  <text x="185" y="282" class="body">: the workflow automation tool that runs the club's membership processes.</text>
+  <text x="110" y="314" class="body">•</text>
+  <text x="135" y="314" class="mono">Metabase</text>
+  <text x="225" y="314" class="body">: the reporting dashboard used to view signups, batches, exceptions, and trends.</text>
+
+  <text x="90" y="390" class="h1">What The Automation Is For</text>
+  <text x="90" y="432" class="body">The automation exists to reduce manual membership admin after somebody joins or renews through ClubSpark.</text>
+  <text x="90" y="476" class="body">In practice it does five main jobs:</text>
+  <text x="110" y="516" class="body">1. captures new membership signups from ClubSpark emails</text>
+  <text x="110" y="548" class="body">2. refreshes the latest member and contact data from ClubSpark</text>
+  <text x="110" y="580" class="body">3. combines that information into one operational database</text>
+  <text x="110" y="612" class="body">4. prepares batches for shoe tags, parent tags, keys, labels, and envelopes</text>
+  <text x="110" y="644" class="body">5. keeps dashboards and reporting up to date</text>
+
+  <text x="90" y="720" class="h1">High-Level Functional Description</text>
+  <text x="90" y="762" class="body">The process starts in ClubSpark. When someone buys a membership, ClubSpark sends a signup notification</text>
+  <text x="90" y="790" class="body">email and also holds the latest member and contact records for that household.</text>
+
+  <text x="90" y="850" class="body">Local n8n workflows regularly pick up those inputs in three ways:</text>
+  <text x="110" y="890" class="body">• a parser reads the signup notification emails from Gmail</text>
+  <text x="110" y="922" class="body">• an export workflow pulls the current members list from ClubSpark</text>
+  <text x="110" y="954" class="body">• another export workflow pulls the current contacts list from ClubSpark</text>
+
+  <text x="90" y="1018" class="body">Those three inputs are brought together in the local PostgreSQL database, which is the club's operational</text>
+  <text x="90" y="1046" class="body">source of truth for this process. This is where the system works out who signed up, who is paying, what</text>
+  <text x="90" y="1074" class="body">address should be used, and what still needs to be processed.</text>
+
+  <text x="90" y="1138" class="body">From there, the workflows support the committee's day-to-day membership handling:</text>
+  <text x="110" y="1178" class="body">• new signups are grouped into a processing batch</text>
+  <text x="110" y="1210" class="body">• batch data is turned into printable address labels and DL envelopes</text>
+  <text x="110" y="1242" class="body">• members without a usable postal address can be handled by email instead</text>
+  <text x="110" y="1274" class="body">• manual items can be added when tags or keys are needed outside the normal signup flow</text>
+  <text x="110" y="1306" class="body">• missed signups can be backfilled if ClubSpark shows the membership but the original email was not captured</text>
+
+  <text x="90" y="1370" class="body">The same local data is then synced to the cloud reporting copy so that Metabase dashboards stay current.</text>
+  <text x="90" y="1398" class="body">This gives the committee visibility of signups, batches, exceptions, and history without making the cloud</text>
+  <text x="90" y="1426" class="body">system the live operational system.</text>
+</svg>

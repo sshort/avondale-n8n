@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <rect width="1200" height="800" fill="#ffffff"/>
+
+  <style>
+    .box { fill: #f8fbfd; stroke: #23405e; stroke-width: 2; rx: 14; ry: 14; }
+    .ops { fill: #eef6ee; }
+    .report { fill: #fff4e6; }
+    .title { font: 700 20px Arial, sans-serif; fill: #17324d; text-anchor: middle; }
+    .label { font: 700 26px Arial, sans-serif; fill: #17324d; text-anchor: middle; }
+    .sub { font: 400 16px Arial, sans-serif; fill: #476277; text-anchor: middle; }
+    .arrow { stroke: #4b6477; stroke-width: 3; fill: none; }
+  </style>
+
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <polygon points="0,0 8,4 0,8" fill="#4b6477"/>
+    </marker>
+  </defs>
+
+  <text x="600" y="40" class="title">Avondale Membership Automation</text>
+
+  <rect x="430" y="70" width="340" height="70" class="box"/>
+  <text x="600" y="113" class="label">ClubSpark</text>
+
+  <rect x="80" y="190" width="280" height="80" class="box"/>
+  <text x="220" y="235" class="label">Signup Email</text>
+
+  <rect x="80" y="310" width="280" height="80" class="box"/>
+  <text x="220" y="355" class="label">Gmail</text>
+
+  <rect x="460" y="190" width="280" height="80" class="box"/>
+  <text x="600" y="235" class="label">Members Export</text>
+
+  <rect x="840" y="190" width="280" height="80" class="box"/>
+  <text x="980" y="235" class="label">Contacts Export</text>
+
+  <rect x="350" y="330" width="500" height="100" class="box ops"/>
+  <text x="600" y="380" class="label">Local n8n Workflows</text>
+  <text x="600" y="405" class="sub">Automation that captures emails, refreshes data, and runs admin processes</text>
+
+  <rect x="330" y="500" width="540" height="110" class="box"/>
+  <text x="600" y="548" class="label">Local PostgreSQL Database</text>
+  <text x="600" y="573" class="sub">Operational source of truth for signups, batches, addresses, items, and history</text>
+
+  <rect x="60" y="670" width="220" height="80" class="box"/>
+  <text x="170" y="715" class="label">Signup Batches</text>
+
+  <rect x="330" y="670" width="220" height="80" class="box"/>
+  <text x="440" y="715" class="label">Labels PDF</text>
+
+  <rect x="600" y="670" width="220" height="80" class="box"/>
+  <text x="710" y="715" class="label">Envelope PDF</text>
+
+  <rect x="870" y="670" width="250" height="80" class="box"/>
+  <text x="995" y="715" class="label">No-address Email</text>
+
+  <rect x="930" y="500" width="220" height="110" class="box report"/>
+  <text x="1040" y="545" class="label">Metabase</text>
+  <text x="1040" y="570" class="sub">Reporting dashboards</text>
+
+  <rect x="40" y="470" width="220" height="60" class="box"/>
+  <text x="150" y="507" class="title">Missing Signup Capture</text>
+
+  <rect x="40" y="550" width="220" height="60" class="box"/>
+  <text x="150" y="587" class="title">Manual Batch Items</text>
+
+  <path d="M600 140 L220 190" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M600 140 L600 190" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M600 140 L980 190" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M220 270 L220 310" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M220 390 L350 380" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M600 270 L600 330" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M980 270 L850 380" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M150 530 L330 540" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M150 610 L330 570" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M600 430 L600 500" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M600 610 L170 670" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M600 610 L440 670" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M600 610 L710 670" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M600 610 L995 670" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M870 555 L930 555" class="arrow" marker-end="url(#arrowhead)"/>
+</svg>
