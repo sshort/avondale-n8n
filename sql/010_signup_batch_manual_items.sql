@@ -30,32 +30,32 @@ CREATE INDEX IF NOT EXISTS idx_signup_batch_manual_items_payer
     ON public.signup_batch_manual_items (payer);
 
 CREATE OR REPLACE VIEW public.vw_signup_batch_items AS
-WITH best_contact AS (
-    SELECT DISTINCT ON (concat(rc."First name", ' ', rc."Last name"))
-        concat(rc."First name", ' ', rc."Last name") AS payer_name,
-        rc."Address 1" AS address_1,
-        rc."Address 2" AS address_2,
-        rc."Address 3" AS address_3,
-        rc.town,
-        rc.postcode
-    FROM public.raw_contacts rc
-    WHERE COALESCE(rc.is_current, true) = true
-    ORDER BY concat(rc."First name", ' ', rc."Last name"),
-             CASE
-                 WHEN COALESCE(NULLIF(trim(rc."Address 1"), ''), NULLIF(trim(rc.postcode), '')) IS NOT NULL
-                 THEN 0 ELSE 1
-             END,
-             CASE WHEN NULLIF(trim(rc."Address 1"), '') IS NOT NULL THEN 0 ELSE 1 END,
-             CASE WHEN NULLIF(trim(rc.postcode), '') IS NOT NULL THEN 0 ELSE 1 END
+WITH signup_rows AS (
+    SELECT
+        s.id AS source_id,
+        s.batch_id,
+        s.signup_date AS item_date,
+        s.member,
+        s.payer,
+        s.product,
+        COALESCE(NULLIF(trim(s.email_address), ''), NULLIF(trim(m."Email address"), '')) AS resolver_email,
+        NULLIF(regexp_replace(s.payer, '^\S+\s*', ''), '') AS payer_last_name,
+        m."Email address" AS member_email,
+        COALESCE(NULLIF(trim(s.source), ''), 'email_capture') AS source
+    FROM public.member_signups s
+    LEFT JOIN public.raw_members m
+        ON s.member = concat(m."First name", ' ', m."Last name")
+       AND m."Membership" = s.product
+       AND COALESCE(m.is_current, true) = true
 )
 SELECT
-    s.id AS source_id,
+    s.source_id,
     s.batch_id,
-    s.signup_date AS item_date,
+    s.item_date,
     s.member,
     s.payer,
     s.product,
-    m."Email address" AS email_address,
+    COALESCE(NULLIF(trim(bc.email_address), ''), NULLIF(trim(s.resolver_email), '')) AS email_address,
     bc.address_1,
     bc.address_2,
     bc.address_3,
@@ -67,16 +67,16 @@ SELECT
     END AS regular_tags,
     CASE WHEN s.product = '6. Parent 2026' THEN 1 ELSE 0 END AS parent_tags,
     CASE WHEN s.product = 'b. Pavilion Key' THEN 1 ELSE 0 END AS key_tags,
-    COALESCE(NULLIF(trim(s.source), ''), 'email_capture') AS source,
+    s.source,
     NULL::text AS notes,
     'member_signups'::text AS source_table
-FROM public.member_signups s
-LEFT JOIN public.raw_members m
-    ON s.member = concat(m."First name", ' ', m."Last name")
-   AND m."Membership" = s.product
-   AND COALESCE(m.is_current, true) = true
-LEFT JOIN best_contact bc
-    ON s.payer = bc.payer_name
+FROM signup_rows s
+LEFT JOIN LATERAL public.resolve_best_contact_row(
+    s.payer,
+    s.resolver_email,
+    s.payer_last_name,
+    false
+) bc ON TRUE
 
 UNION ALL
 
