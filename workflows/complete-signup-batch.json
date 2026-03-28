@@ -20,7 +20,24 @@
     },
     {
       "parameters": {
-        "jsCode": "// Optionally set batchId before running the workflow.\n// Leave as null to complete the latest batch that is still Processing.\nconst batchId = null;\n\nreturn [{\n  json: {\n    batch_id: batchId,\n  },\n}];"
+        "path": "complete-signup-batch",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "8f7f47fb-7d0e-4fd2-81c1-851b8ef3c101",
+      "name": "Complete Signup Batch Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        260,
+        140
+      ],
+      "webhookId": "complete-signup-batch"
+    },
+    {
+      "parameters": {
+        "jsCode": "const request = $('Complete Signup Batch Webhook').first()?.json ?? null;\nif (request) {\n  const query = request.query ?? {};\n  const params = request.params ?? {};\n  const candidates = [\n    request.batch_id,\n    request.batchId,\n    query.batch_id,\n    query.batchId,\n    params.batch_id,\n    params.batchId,\n  ];\n  const rawBatchId = candidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '');\n  const batchId = rawBatchId === undefined ? null : Number.parseInt(String(rawBatchId), 10);\n  return [{\n    json: {\n      batch_id: Number.isInteger(batchId) && batchId > 0 ? batchId : null,\n    },\n  }];\n}\n\n// Optionally set batchId before manual execution.\n// Leave as null to complete the latest batch that is still Processing.\nconst batchId = null;\n\nreturn [{\n  json: {\n    batch_id: batchId,\n  },\n}];"
       },
       "id": "8d80a2b3-8b3f-4f91-849e-f1192ab44f0d",
       "name": "Set Batch Id",
@@ -63,10 +80,46 @@
           "name": "Postgres account"
         }
       }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "bd730a16-f814-4984-94d1-0f244de1767e",
+      "name": "Respond Completion Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1470,
+        140
+      ]
     }
   ],
   "connections": {
     "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Set Batch Id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complete Signup Batch Webhook": {
       "main": [
         [
           {
@@ -93,6 +146,17 @@
         [
           {
             "node": "Complete Batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complete Batch": {
+      "main": [
+        [
+          {
+            "node": "Respond Completion Result",
             "type": "main",
             "index": 0
           }
