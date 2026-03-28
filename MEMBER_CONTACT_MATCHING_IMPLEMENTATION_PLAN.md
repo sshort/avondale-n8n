@@ -264,6 +264,23 @@ Deliverables:
 - sample expected outcomes by case
 - rerun checks after reconcile changes
 
+Implemented artifacts:
+
+- [023_member_contact_matching_regression_checks.sql](/mnt/c/dev/avondale-n8n/sql/023_member_contact_matching_regression_checks.sql)
+- [run-member-contact-regression-checks.sh](/mnt/c/dev/avondale-n8n/scripts/run-member-contact-regression-checks.sh)
+
+Current pinned cases:
+
+- `Louise Graham` family resolution should prefer `Hamish Graham`
+- `Roni Asp` should resolve to her exact contact row
+- duplicate `David Smith` rows must disambiguate by email
+- current `David Smith` 2026 member rows must remain two distinct identities
+
+Current verification status:
+
+- local regression runner passes with all checks green
+- cloud apply is still blocked by ownership on `vw_best_current_contacts`
+
 ## Recommended Delivery Order
 
 1. normalization helpers

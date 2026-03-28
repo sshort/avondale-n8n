@@ -111,24 +111,30 @@ AS $$
                  AND c.address_rank = 0
                 THEN 0
                 WHEN p.norm_name IS NOT NULL
+                 AND p.norm_email IS NOT NULL
                  AND c.norm_name = p.norm_name
+                 AND c.norm_email = p.norm_email
                  AND NOT p.is_family
                 THEN 1
+                WHEN p.norm_name IS NOT NULL
+                 AND c.norm_name = p.norm_name
+                 AND NOT p.is_family
+                THEN 2
                 WHEN p.is_family
                  AND p.norm_last_name IS NOT NULL
                  AND c.norm_last_name = p.norm_last_name
                  AND c.address_rank = 0
-                THEN 2
+                THEN 3
                 WHEN p.norm_name IS NOT NULL
                  AND c.norm_name = p.norm_name
-                THEN 3
+                THEN 4
                 WHEN p.norm_email IS NOT NULL
                  AND c.norm_email = p.norm_email
-                THEN 4
+                THEN 5
                 WHEN p.is_family
                  AND p.norm_last_name IS NOT NULL
                  AND c.norm_last_name = p.norm_last_name
-                THEN 5
+                THEN 6
                 ELSE 9
             END AS resolver_rank,
             CASE
@@ -139,6 +145,12 @@ AS $$
                  AND c.junior_rank = 0
                  AND c.address_rank = 0
                 THEN 'family_active_adult_address'
+                WHEN p.norm_name IS NOT NULL
+                 AND p.norm_email IS NOT NULL
+                 AND c.norm_name = p.norm_name
+                 AND c.norm_email = p.norm_email
+                 AND NOT p.is_family
+                THEN 'exact_name_email'
                 WHEN p.norm_name IS NOT NULL
                  AND c.norm_name = p.norm_name
                  AND NOT p.is_family

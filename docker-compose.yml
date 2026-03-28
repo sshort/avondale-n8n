@@ -10,11 +10,11 @@ services:
       - /var/lib/n8n:/var/lib/n8n:rw
     environment:
       - N8N_SECURE_COOKIE=false
-      - N8N_HOST=localhost
+      - N8N_HOST=n8n.proxy.shortcentral.com
       - N8N_PORT=5678
-      - N8N_PROTOCOL=http
-      - N8N_EDITOR_BASE_URL=http://localhost:5678
-      - WEBHOOK_URL=http://localhost:5678/
+      - N8N_PROTOCOL=https
+      - N8N_EDITOR_BASE_URL=https://n8n.proxy.shortcentral.com
+      - WEBHOOK_URL=https://n8n.proxy.shortcentral.com/
       - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_DATABASE=postgres
@@ -60,7 +60,28 @@ services:
       N8N_API_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxYWEyNTY0NC1kMzg0LTQ4MTAtYmVhYS1mNTgzMTRkM2U3MGMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzY4ODQwNjQwfQ.OztpaI1pkATZk8N9eB_oUvT7zaGN7YBtYRf6PmXRs3s
     restart: unless-stopped
 
+  dozzle:
+    container_name: dozzle
+    image: amir20/dozzle:latest
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - 8888:8080
+
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce:latest
+    restart: unless-stopped
+    ports:
+      - 9443:9443
+      - 9000:9000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer_data:/data
+
 volumes:
   n8n_data:
     external: true
     name: n8n_data
+  portainer_data:
