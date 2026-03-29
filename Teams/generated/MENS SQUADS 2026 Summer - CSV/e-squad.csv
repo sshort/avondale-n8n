@@ -7,10 +7,12 @@ C,Ben Hammond Duncan,,Young Adult,07306128175,kerryandian@hotmail.com
 ,Derek Carder,,Senior,07806 777845,derekcarder@rocketmail.com
 ,Graeme Hutchison,,Not Signed Up,07999775732,gdhutchison@me.com
 ,Joel Villamayor,,Not Signed Up,7733247756,jrvsemail@gmail.com
-,Matt Napper,,Senior,+447974699847,mattnapper2@gmail.com
+,Matt Napper,Nickname,Senior,+447974699847,mattnapper2@gmail.com
 ,Nigel Fisher,,Senior,07789394309,n.fisher3@ntlworld.com
 ,Ray Ristow,,Senior,07801107701,ray.ristow@outlook.com
 
-"* Not Signed Up = exact name matched in club records, but no current paid 2026 membership was found."
+"* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found."
 ** No Match = no unique exact-name match was found in current club member/contact records.
-*** Fuzzy = matched by the cautious fuzzy fallback after exact and override-based matching failed.
+*** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
+**** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
+***** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.

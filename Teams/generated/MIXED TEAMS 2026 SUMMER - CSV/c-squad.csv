@@ -1,6 +1,6 @@
 Captain,Name,Match,Category,Phone,Email
 C,Fran Jones,,Senior,07765 140012,fran.999.jones@gmail.com
-,Alex Mach,,Not Signed Up,07724505363,martyna.mach@gmail.com
+,Alex Mach,Nickname,Not Signed Up,07724505363,martyna.mach@gmail.com
 ,Alexander Peacock,,Young Adult,07884156587,peacock156@googlemail.com
 ,Alison Jamieson,Fuzzy,Senior,07593 569268,alison.jameson@gmail.com
 ,David Alston,,Senior,07730771564,alstondr@hotmail.com
@@ -16,6 +16,8 @@ C,Fran Jones,,Senior,07765 140012,fran.999.jones@gmail.com
 ,Stuart Aberdeen,,Senior,07900247090,stuaberdeen@live.co.uk
 ,Tom Blake,,Family,07920107557,t_blake@icloud.com
 
-"* Not Signed Up = exact name matched in club records, but no current paid 2026 membership was found."
+"* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found."
 ** No Match = no unique exact-name match was found in current club member/contact records.
-*** Fuzzy = matched by the cautious fuzzy fallback after exact and override-based matching failed.
+*** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
+**** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
+***** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.

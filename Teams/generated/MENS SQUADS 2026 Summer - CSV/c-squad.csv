@@ -4,13 +4,15 @@ C,Paul Hampshire,,Senior,07850 810133,paul.hampshire63@hotmail.com
 ,David Alston,,Senior,07730771564,alstondr@hotmail.com
 ,James Carlisle,,Senior,07727 288364,jamescarli@hotmail.co.uk
 ,Jeremy Hillage,,Not Signed Up,07881314229,jeremyhillage@gmail.com
-,Jon Clackett,,Not Signed Up,07799 435600,jonathanclackett02@gmail.com
+,Jon Clackett,Nickname,Not Signed Up,07799 435600,jonathanclackett02@gmail.com
 ,Mark Hill,,Not Signed Up,07902490639,markyh20@gmail.com
 ,Mike Thornley,,Not Signed Up,07786 094178,mike33lufc@gmail.com
 ,Richard Vallis,,Senior,07817 051360,Rbvallis@gmail.com
 ,Stuart Aberdeen,,Senior,07900247090,stuaberdeen@live.co.uk
 ,Tom Blake,,Family,07920107557,t_blake@icloud.com
 
-"* Not Signed Up = exact name matched in club records, but no current paid 2026 membership was found."
+"* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found."
 ** No Match = no unique exact-name match was found in current club member/contact records.
-*** Fuzzy = matched by the cautious fuzzy fallback after exact and override-based matching failed.
+*** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
+**** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
+***** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.

@@ -7,11 +7,13 @@ C,EDWARD WOODS,,Senior,07816759110,edwardanthonywoods@gmail.com
 ,KATHERINE ROGERS,,Senior,07885 304570,katherinerogers10@gmail.com
 ,NICK WARD,,Not Signed Up,07747 897885,nickward010@gmail.com
 ,PAULINE SNELL,,Senior,07877300234,psnell66@gmail.com
-,PETE SMITH,,Not Signed Up,07955644682,Peterrcsmith@hotmail.co.uk
+,PETE SMITH,Nickname,Not Signed Up,07955644682,Peterrcsmith@hotmail.co.uk
 ,STUART ABERDEEN,,Senior,07900247090,stuaberdeen@live.co.uk
 ,VAL TALBOT,,Senior,07767 072546,valerie.talbot@ntlworld.com
 ,VERNA DUFON,,Senior,07816 137440,verna.dufon@ntlworld.com
 
-"* Not Signed Up = exact name matched in club records, but no current paid 2026 membership was found."
+"* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found."
 ** No Match = no unique exact-name match was found in current club member/contact records.
-*** Fuzzy = matched by the cautious fuzzy fallback after exact and override-based matching failed.
+*** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
+**** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
+***** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.

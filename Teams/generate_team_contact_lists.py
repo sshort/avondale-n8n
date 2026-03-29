@@ -534,7 +534,7 @@ def resolve_row(
             "category": member_candidates[0].category,
             "phone": phone,
             "email": email,
-            "match_note": "",
+            "match_note": "Override" if override_applied else "",
             "review_section": "explicit_override" if override_applied else "",
             "review_target": candidate_full_name(member_candidates[0]) if override_applied else "",
             "review_reason": "explicit full-name override from name_overrides.csv" if override_applied else "",
@@ -548,7 +548,7 @@ def resolve_row(
             "category": signup_candidates[0].category,
             "phone": phone,
             "email": email,
-            "match_note": "",
+            "match_note": "Override" if override_applied else "",
             "review_section": "explicit_override" if override_applied else "",
             "review_target": candidate_full_name(signup_candidates[0]) if override_applied else "",
             "review_reason": "explicit full-name override from name_overrides.csv" if override_applied else "",
@@ -562,7 +562,7 @@ def resolve_row(
             "category": "Not Signed Up",
             "phone": phone,
             "email": email,
-            "match_note": "",
+            "match_note": "Override" if override_applied else "",
             "review_section": "explicit_override" if override_applied else "",
             "review_target": candidate_full_name(contact_candidates[0]) if override_applied else "",
             "review_reason": "explicit full-name override from name_overrides.csv" if override_applied else "",
@@ -578,7 +578,7 @@ def resolve_row(
             "category": member_candidates[0].category,
             "phone": phone,
             "email": email,
-            "match_note": "",
+            "match_note": "Nickname",
             "review_section": "nickname",
             "review_target": candidate_full_name(member_candidates[0]),
             "review_reason": "first-name override",
@@ -589,7 +589,7 @@ def resolve_row(
             "category": signup_candidates[0].category,
             "phone": phone,
             "email": email,
-            "match_note": "",
+            "match_note": "Nickname",
             "review_section": "nickname",
             "review_target": candidate_full_name(signup_candidates[0]),
             "review_reason": "first-name override",
@@ -600,7 +600,7 @@ def resolve_row(
             "category": "Not Signed Up",
             "phone": phone,
             "email": email,
-            "match_note": "",
+            "match_note": "Nickname",
             "review_section": "nickname",
             "review_target": candidate_full_name(contact_candidates[0]),
             "review_reason": "first-name override",
@@ -882,13 +882,19 @@ def write_workbook(title: str, teams: dict[str, list[dict[str, str]]], output_pa
 
         row_index += 1
         ws.merge_cells(start_row=row_index, start_column=1, end_row=row_index, end_column=6)
-        ws.cell(row=row_index, column=1, value="* Not Signed Up = exact name matched in club records, but no current paid 2026 membership was found.").font = footnote_font
+        ws.cell(row=row_index, column=1, value="* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found.").font = footnote_font
         row_index += 1
         ws.merge_cells(start_row=row_index, start_column=1, end_row=row_index, end_column=6)
         ws.cell(row=row_index, column=1, value="** No Match = no unique exact-name match was found in current club member/contact records.").font = footnote_font
         row_index += 1
         ws.merge_cells(start_row=row_index, start_column=1, end_row=row_index, end_column=6)
-        ws.cell(row=row_index, column=1, value="*** Fuzzy = matched by the cautious fuzzy fallback after exact and override-based matching failed.").font = footnote_font
+        ws.cell(row=row_index, column=1, value="*** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.").font = footnote_font
+        row_index += 1
+        ws.merge_cells(start_row=row_index, start_column=1, end_row=row_index, end_column=6)
+        ws.cell(row=row_index, column=1, value="**** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.").font = footnote_font
+        row_index += 1
+        ws.merge_cells(start_row=row_index, start_column=1, end_row=row_index, end_column=6)
+        ws.cell(row=row_index, column=1, value="***** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.").font = footnote_font
 
         widths = {"A": 10, "B": 28, "C": 12, "D": 18, "E": 18, "F": 34}
         for column, width in widths.items():
@@ -909,9 +915,11 @@ def write_csvs(teams: dict[str, list[dict[str, str]]], output_dir: Path) -> None
             for row in rows:
                 writer.writerow([row["captain"], row["name"], row["match_note"], row["category"], row["phone"], row["email"]])
             writer.writerow([])
-            writer.writerow(["* Not Signed Up = exact name matched in club records, but no current paid 2026 membership was found."])
+            writer.writerow(["* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found."])
             writer.writerow(["** No Match = no unique exact-name match was found in current club member/contact records."])
-            writer.writerow(["*** Fuzzy = matched by the cautious fuzzy fallback after exact and override-based matching failed."])
+            writer.writerow(["*** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data."])
+            writer.writerow(["**** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data."])
+            writer.writerow(["***** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data."])
 
 
 def write_pdf(title: str, teams: dict[str, list[dict[str, str]]], output_path: Path) -> None:
@@ -979,9 +987,11 @@ def write_pdf(title: str, teams: dict[str, list[dict[str, str]]], output_path: P
         table.setStyle(TableStyle(style_commands))
         story.append(table)
         story.append(Spacer(1, 6 * mm))
-        story.append(Paragraph("* Not Signed Up = exact name matched in club records, but no current paid 2026 membership was found.", note_style))
+        story.append(Paragraph("* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found.", note_style))
         story.append(Paragraph("** No Match = no unique exact-name match was found in current club member/contact records.", note_style))
-        story.append(Paragraph("*** Fuzzy = matched by the cautious fuzzy fallback after exact and override-based matching failed.", note_style))
+        story.append(Paragraph("*** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.", note_style))
+        story.append(Paragraph("**** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.", note_style))
+        story.append(Paragraph("***** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.", note_style))
 
         if index < len(team_names) - 1:
             story.append(PageBreak())
