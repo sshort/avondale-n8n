@@ -1,4 +1,4 @@
-# Agent Instructions for `/mnt/c/dev/avondale-data/Teams`
+# Agent Instructions for `/mnt/c/dev/avondale-n8n/Teams`
 
 This directory contains the league and squad source documents used to build team contact lists.
 
@@ -47,6 +47,10 @@ This directory contains the league and squad source documents used to build team
   - `.xlsx`
   - per-sheet `.csv`
   - `.pdf`
+- Also regenerate the match review outputs on every run:
+  - root markdown review: [NO_MATCH_NAMES.md](./NO_MATCH_NAMES.md)
+  - generated markdown copy: `generated/NO_MATCH_NAMES.md`
+  - generated PDF copy: `generated/NO_MATCH_NAMES.pdf`
 
 ## Generator
 
@@ -56,7 +60,7 @@ This directory contains the league and squad source documents used to build team
 Run with:
 
 ```bash
-/mnt/c/dev/postgres-mcp-venv-linux/bin/python /mnt/c/dev/avondale-data/Teams/generate_team_contact_lists.py
+/mnt/c/dev/postgres-mcp-venv-linux/bin/python /mnt/c/dev/avondale-n8n/Teams/generate_team_contact_lists.py
 ```
 
 Optional environment overrides:

@@ -75,6 +75,15 @@ class SignupCandidate:
     category: str
     email: str
 
+
+@dataclass
+class ReviewEntry:
+    section: str
+    source_name: str
+    target_name: str
+    reason: str
+    team_name: str
+
 def run_query(sql: str) -> list[dict[str, str]]:
     result = subprocess.run(
         ["psql", DB_DSN, "--csv", "-c", sql],
@@ -153,6 +162,18 @@ def split_person_name(value: str) -> tuple[str, str]:
 
 def candidate_key(candidate: object) -> str:
     return normalize_name(f"{candidate.first_name} {candidate.last_name}")
+
+
+def candidate_full_name(candidate: object) -> str:
+    return f"{candidate.first_name} {candidate.last_name}".strip()
+
+
+def choose_display_name(existing: str, new: str) -> str:
+    if not existing:
+        return new
+    if existing.isupper() and not new.isupper():
+        return new
+    return existing
 
 
 def doc_title_from_filename(path: Path) -> str:
@@ -499,6 +520,7 @@ def resolve_row(
 ) -> dict[str, str]:
     norm_name = normalize_name(name)
     override_name = next(iter(NAME_OVERRIDES.get(norm_name, set())), "")
+    override_applied = bool(override_name)
     if override_name:
         norm_name = override_name
     member_candidates = members_by_name.get(norm_name, [])
@@ -513,6 +535,9 @@ def resolve_row(
             "phone": phone,
             "email": email,
             "match_note": "",
+            "review_section": "explicit_override" if override_applied else "",
+            "review_target": candidate_full_name(member_candidates[0]) if override_applied else "",
+            "review_reason": "explicit full-name override from name_overrides.csv" if override_applied else "",
         }
 
     if len(member_candidates) > 1:
@@ -524,6 +549,9 @@ def resolve_row(
             "phone": phone,
             "email": email,
             "match_note": "",
+            "review_section": "explicit_override" if override_applied else "",
+            "review_target": candidate_full_name(signup_candidates[0]) if override_applied else "",
+            "review_reason": "explicit full-name override from name_overrides.csv" if override_applied else "",
         }
 
     if len(signup_candidates) > 1:
@@ -535,6 +563,9 @@ def resolve_row(
             "phone": phone,
             "email": email,
             "match_note": "",
+            "review_section": "explicit_override" if override_applied else "",
+            "review_target": candidate_full_name(contact_candidates[0]) if override_applied else "",
+            "review_reason": "explicit full-name override from name_overrides.csv" if override_applied else "",
         }
 
     member_candidates = unique_nickname_candidates(name, members_by_name)
@@ -548,6 +579,9 @@ def resolve_row(
             "phone": phone,
             "email": email,
             "match_note": "",
+            "review_section": "nickname",
+            "review_target": candidate_full_name(member_candidates[0]),
+            "review_reason": "first-name override",
         }
 
     if len(signup_candidates) == 1:
@@ -556,6 +590,9 @@ def resolve_row(
             "phone": phone,
             "email": email,
             "match_note": "",
+            "review_section": "nickname",
+            "review_target": candidate_full_name(signup_candidates[0]),
+            "review_reason": "first-name override",
         }
 
     if len(contact_candidates) == 1:
@@ -564,6 +601,9 @@ def resolve_row(
             "phone": phone,
             "email": email,
             "match_note": "",
+            "review_section": "nickname",
+            "review_target": candidate_full_name(contact_candidates[0]),
+            "review_reason": "first-name override",
         }
 
     member_candidates = unique_fuzzy_candidates(name, members_by_name)
@@ -577,6 +617,9 @@ def resolve_row(
             "phone": phone,
             "email": email,
             "match_note": "Fuzzy",
+            "review_section": "fuzzy",
+            "review_target": candidate_full_name(member_candidates[0]),
+            "review_reason": "fuzzy name match",
         }
 
     if len(signup_candidates) == 1:
@@ -585,6 +628,9 @@ def resolve_row(
             "phone": phone,
             "email": email,
             "match_note": "Fuzzy",
+            "review_section": "fuzzy",
+            "review_target": candidate_full_name(signup_candidates[0]),
+            "review_reason": "fuzzy name match",
         }
 
     if len(contact_candidates) == 1:
@@ -593,9 +639,20 @@ def resolve_row(
             "phone": phone,
             "email": email,
             "match_note": "Fuzzy",
+            "review_section": "fuzzy",
+            "review_target": candidate_full_name(contact_candidates[0]),
+            "review_reason": "fuzzy name match",
         }
 
-    return {"category": "No Match", "phone": "", "email": "", "match_note": ""}
+    return {
+        "category": "No Match",
+        "phone": "",
+        "email": "",
+        "match_note": "",
+        "review_section": "no_match",
+        "review_target": "",
+        "review_reason": "no unique candidate",
+    }
 
 
 def build_team_rows(
@@ -603,8 +660,9 @@ def build_team_rows(
     members_by_name: dict[str, list[MemberCandidate]],
     contacts_by_name: dict[str, list[ContactCandidate]],
     signups_by_name: dict[str, list[SignupCandidate]],
-) -> dict[str, list[dict[str, str]]]:
+) -> tuple[dict[str, list[dict[str, str]]], list[ReviewEntry]]:
     resolved: dict[str, list[dict[str, str]]] = {}
+    review_entries: list[ReviewEntry] = []
 
     for team_name, entries in teams.items():
         rows = []
@@ -625,10 +683,151 @@ def build_team_rows(
                     "email": details["email"],
                 }
             )
+            if details.get("review_section"):
+                review_entries.append(
+                    ReviewEntry(
+                        section=details["review_section"],
+                        source_name=str(entry["name"]),
+                        target_name=details.get("review_target", ""),
+                        reason=details.get("review_reason", ""),
+                        team_name=team_name.title(),
+                    )
+                )
 
         rows.sort(key=lambda row: (0 if row["captain"] else 1, first_name_key(row["name"]), row["name"].casefold()))
         resolved[team_name] = rows
-    return resolved
+    return resolved, review_entries
+
+
+def group_review_entries(review_entries: list[ReviewEntry]) -> dict[str, list[dict[str, object]]]:
+    grouped: dict[tuple[str, str], dict[str, object]] = {}
+    for entry in review_entries:
+        key = (entry.section, normalize_name(entry.source_name))
+        if key not in grouped:
+            grouped[key] = {
+                "display_name": entry.source_name,
+                "target_name": entry.target_name,
+                "reason": entry.reason,
+                "teams": set(),
+            }
+        grouped[key]["display_name"] = choose_display_name(grouped[key]["display_name"], entry.source_name)
+        grouped[key]["teams"].add(entry.team_name)
+        if entry.target_name:
+            grouped[key]["target_name"] = entry.target_name
+
+    ordered_sections = ["no_match", "explicit_override", "nickname", "fuzzy"]
+    result: dict[str, list[dict[str, object]]] = {section: [] for section in ordered_sections}
+    for (section, _), value in grouped.items():
+        result[section].append(value)
+    for section in ordered_sections:
+        result[section].sort(key=lambda item: normalize_name(item["display_name"]))
+    return result
+
+
+def review_markdown_text(review_groups: dict[str, list[dict[str, object]]]) -> str:
+    lines = [
+        "# Team Match Review",
+        "",
+        "This file records the current non-trivial name matching used by [generate_team_contact_lists.py](./generate_team_contact_lists.py).",
+        "",
+        "## Remaining No Match Names",
+        "",
+    ]
+    for item in review_groups["no_match"]:
+        teams = ", ".join(sorted(item["teams"]))
+        lines.append(f"- `{item['display_name']}` - {item['reason']}. Teams: {teams}")
+
+    lines.extend(["", "## Explicit Full-Name Overrides", ""])
+    for item in review_groups["explicit_override"]:
+        teams = ", ".join(sorted(item["teams"]))
+        lines.append(
+            f"- `{item['display_name']}` -> `{item['target_name']}` - {item['reason']}. Teams: {teams}"
+        )
+
+    lines.extend(["", "## Short-Name / Nickname Matches", ""])
+    for item in review_groups["nickname"]:
+        teams = ", ".join(sorted(item["teams"]))
+        lines.append(
+            f"- `{item['display_name']}` -> `{item['target_name']}` - {item['reason']}. Teams: {teams}"
+        )
+
+    lines.extend(["", "## Fuzzy Matches", ""])
+    for item in review_groups["fuzzy"]:
+        teams = ", ".join(sorted(item["teams"]))
+        lines.append(
+            f"- `{item['display_name']}` -> `{item['target_name']}` - {item['reason']}. Teams: {teams}"
+        )
+
+    lines.append("")
+    return "\n".join(lines)
+
+
+def write_review_markdown(review_groups: dict[str, list[dict[str, object]]], output_path: Path) -> None:
+    output_path.write_text(review_markdown_text(review_groups), encoding="utf-8")
+
+
+def write_review_pdf(review_groups: dict[str, list[dict[str, object]]], output_path: Path) -> None:
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        "ReviewTitle",
+        parent=styles["Heading1"],
+        fontName="Helvetica-Bold",
+        fontSize=16,
+        textColor=colors.HexColor(f"#{THEME['navy']}"),
+        spaceAfter=8,
+    )
+    section_style = ParagraphStyle(
+        "ReviewSection",
+        parent=styles["Heading2"],
+        fontName="Helvetica-Bold",
+        fontSize=12,
+        textColor=colors.HexColor(f"#{THEME['gold']}"),
+        spaceBefore=8,
+        spaceAfter=4,
+    )
+    body_style = ParagraphStyle(
+        "ReviewBody",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=10,
+        textColor=colors.HexColor(f"#{THEME['ink']}"),
+        leading=13,
+        spaceAfter=3,
+    )
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    doc = SimpleDocTemplate(
+        str(output_path),
+        pagesize=A4,
+        leftMargin=15 * mm,
+        rightMargin=15 * mm,
+        topMargin=15 * mm,
+        bottomMargin=15 * mm,
+    )
+
+    story = [
+        Paragraph("Avondale Tennis Club | Team Match Review", title_style),
+        Paragraph(f"Generated {datetime.now().strftime('%d %b %Y %H:%M')}", body_style),
+    ]
+
+    section_map = [
+        ("Remaining No Match Names", "no_match"),
+        ("Explicit Full-Name Overrides", "explicit_override"),
+        ("Short-Name / Nickname Matches", "nickname"),
+        ("Fuzzy Matches", "fuzzy"),
+    ]
+    for title, key in section_map:
+        story.append(Spacer(1, 2 * mm))
+        story.append(Paragraph(title, section_style))
+        for item in review_groups[key]:
+            teams = ", ".join(sorted(item["teams"]))
+            if item["target_name"]:
+                text = f"<b>{item['display_name']}</b> -> <b>{item['target_name']}</b> - {item['reason']}. Teams: {teams}"
+            else:
+                text = f"<b>{item['display_name']}</b> - {item['reason']}. Teams: {teams}"
+            story.append(Paragraph(text, body_style))
+
+    doc.build(story)
 
 
 def write_workbook(title: str, teams: dict[str, list[dict[str, str]]], output_path: Path) -> None:
@@ -793,11 +992,13 @@ def write_pdf(title: str, teams: dict[str, list[dict[str, str]]], output_path: P
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     members_by_name, contacts_by_name, signups_by_name = load_lookup_data()
+    all_review_entries: list[ReviewEntry] = []
 
     for docx_path in sorted(BASE_DIR.glob("*.docx")):
         title = doc_title_from_filename(docx_path)
         teams = parse_docx_teams(docx_path)
-        resolved_teams = build_team_rows(teams, members_by_name, contacts_by_name, signups_by_name)
+        resolved_teams, review_entries = build_team_rows(teams, members_by_name, contacts_by_name, signups_by_name)
+        all_review_entries.extend(review_entries)
 
         workbook_path = OUTPUT_DIR / f"{docx_path.stem} - Contact Lists.xlsx"
         pdf_path = OUTPUT_DIR / f"{docx_path.stem} - Contact Lists.pdf"
@@ -810,6 +1011,11 @@ def main() -> None:
         no_match_count = sum(1 for rows in resolved_teams.values() for row in rows if row["category"] == "No Match")
         not_signed_count = sum(1 for rows in resolved_teams.values() for row in rows if row["category"] == "Not Signed Up")
         print(f"{docx_path.name}: sheets={len(resolved_teams)} no_match={no_match_count} not_signed_up={not_signed_count}")
+
+    review_groups = group_review_entries(all_review_entries)
+    write_review_markdown(review_groups, BASE_DIR / "NO_MATCH_NAMES.md")
+    write_review_markdown(review_groups, OUTPUT_DIR / "NO_MATCH_NAMES.md")
+    write_review_pdf(review_groups, OUTPUT_DIR / "NO_MATCH_NAMES.pdf")
 
 
 if __name__ == "__main__":
