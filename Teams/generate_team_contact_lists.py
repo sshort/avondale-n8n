@@ -926,6 +926,10 @@ def write_csvs(teams: dict[str, list[dict[str, str]]], output_dir: Path) -> None
             writer.writerow(["****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data."])
 
 
+def team_slug(team_name: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", team_name.casefold()).strip("-")
+
+
 def write_pdf(title: str, teams: dict[str, list[dict[str, str]]], output_path: Path) -> None:
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle(
@@ -1016,12 +1020,18 @@ def main() -> None:
         all_review_entries.extend(review_entries)
 
         workbook_path = OUTPUT_DIR / f"{docx_path.stem} - Contact Lists.xlsx"
-        pdf_path = OUTPUT_DIR / f"{docx_path.stem} - Contact Lists.pdf"
         csv_dir = OUTPUT_DIR / f"{docx_path.stem} - CSV"
+        old_pdf_path = OUTPUT_DIR / f"{docx_path.stem} - Contact Lists.pdf"
 
         write_workbook(title, resolved_teams, workbook_path)
         write_csvs(resolved_teams, csv_dir)
-        write_pdf(title, resolved_teams, pdf_path)
+        for team_name, rows in resolved_teams.items():
+            write_pdf(
+                title,
+                {team_name: rows},
+                OUTPUT_DIR / f"{docx_path.stem} - {team_slug(team_name)}.pdf",
+            )
+        old_pdf_path.unlink(missing_ok=True)
 
         no_match_count = sum(1 for rows in resolved_teams.values() for row in rows if row["category"] == "No Match")
         not_signed_count = sum(1 for rows in resolved_teams.values() for row in rows if row["category"] == "Not Signed Up")

@@ -7,7 +7,8 @@ This directory contains the league and squad source documents used to build team
 - Use the `*.docx` files in this directory as the source of team membership.
 - Treat the first table row as squad/team headers.
 - Treat the first column as positional numbering, not the team name.
-- Each output workbook/PDF should therefore contain one squad per sheet/page.
+- Each output workbook should contain one squad per sheet.
+- Each output PDF should contain one team per file, including `Reserves`.
 
 ## Matching Rules
 
@@ -47,7 +48,7 @@ This directory contains the league and squad source documents used to build team
 - Keep all three output forms:
   - `.xlsx`
   - per-sheet `.csv`
-  - `.pdf`
+  - per-team `.pdf`
 - The `Match` column should show non-exact resolution types explicitly:
   - `Best Fit`
   - `Override`
@@ -62,6 +63,7 @@ This directory contains the league and squad source documents used to build team
 
 - Main script: [generate_team_contact_lists.py](./generate_team_contact_lists.py)
 - Output folder: `generated/`
+- Per-team PDFs are written directly into `generated/`
 
 Run with:
 
