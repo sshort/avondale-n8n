@@ -1,0 +1,16 @@
+Captain,Name,Match,Category,Phone,Email
+C,Tim Read,,Not Signed Up,07836652532,t.read423@gmail.com
+,Alek Katon,Fuzzy,Not Signed Up,07568 560257,alex.katon@hotmail.com
+,Antonias Nicolaidis,Fuzzy,Not Signed Up,,
+,Chris Cole,,Senior,07879083489,ccole987@virginmedia.com
+,Harry McIntyre,,Not Signed Up,07943603272,harrymcintyre68@gmail.com
+,Jonty Maston,,Not Signed Up,07460 630363,j.maston@btinternet.com
+,Nick Ward,,Not Signed Up,07747 897885,nickward010@gmail.com
+,Paul Treacy,,Senior,07746 038449,paultreacy01@gmail.com
+,Peter Smith,,Not Signed Up,07955644682,Peterrcsmith@hotmail.co.uk
+,Roger Barnacle,,Not Signed Up,01256702931,rbarnacle1@gmail.com
+,Steve Short,,Senior,07894 711061,members.avondaleltc@gmail.com
+
+"* Not Signed Up = exact name matched in club records, but no current paid 2026 membership was found."
+** No Match = no unique exact-name match was found in current club member/contact records.
+*** Fuzzy = matched by the cautious fuzzy fallback after exact and override-based matching failed.

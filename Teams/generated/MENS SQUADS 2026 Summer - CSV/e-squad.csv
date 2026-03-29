@@ -1,0 +1,16 @@
+Captain,Name,Match,Category,Phone,Email
+C,Ben Hammond Duncan,,Young Adult,07306128175,kerryandian@hotmail.com
+,Alessandro Barcello,Fuzzy,Not Signed Up,,silvio.barcella@gmail.com
+,Alexander Peacock,,Young Adult,07884156587,peacock156@googlemail.com
+,Ben Fowler,,Not Signed Up,,
+,David Fowler,,Senior,+447854684323,davidrfowler@msn.com
+,Derek Carder,,Senior,07806 777845,derekcarder@rocketmail.com
+,Graeme Hutchison,,Not Signed Up,07999775732,gdhutchison@me.com
+,Joel Villamayor,,Not Signed Up,7733247756,jrvsemail@gmail.com
+,Matt Napper,,Senior,+447974699847,mattnapper2@gmail.com
+,Nigel Fisher,,Senior,07789394309,n.fisher3@ntlworld.com
+,Ray Ristow,,Senior,07801107701,ray.ristow@outlook.com
+
+"* Not Signed Up = exact name matched in club records, but no current paid 2026 membership was found."
+** No Match = no unique exact-name match was found in current club member/contact records.
+*** Fuzzy = matched by the cautious fuzzy fallback after exact and override-based matching failed.

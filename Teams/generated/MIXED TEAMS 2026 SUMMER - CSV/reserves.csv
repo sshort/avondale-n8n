@@ -1,0 +1,29 @@
+Captain,Name,Match,Category,Phone,Email
+,Alistair Jones,,Not Signed Up,07741319024,alistair@badmintonwycombe.co.uk
+,Andy McElligot,Fuzzy,Not Signed Up,07825285272,andy.d.mcelligott@gmail.com
+,Chris Ezra,,Not Signed Up,07956 261566,casabella@btinternet.com
+,Cliff Church,,Not Signed Up,07929 207152,cliffchurch@hotmail.com
+,David Fowler,,Senior,+447854684323,davidrfowler@msn.com
+,Derek Carder,,Senior,07806 777845,derekcarder@rocketmail.com
+,Edward Woods,,Senior,07816759110,edwardanthonywoods@gmail.com
+,Georgina Riches,,Not Signed Up,07710475970,fam.riches@btinternet.com
+,Graham Friel,,Not Signed Up,07967 035875,gt_friel@hotmail.com
+,James Cholerton,,Senior,07412335134,jcholerton@gmail.com
+,James Colpus,,Not Signed Up,07763134274,colpus9@gmail.com
+,Jill Penton,Fuzzy,Senior,07845 144977,jillian.penton@virginmedia.com
+,Joan McCrossan,,Not Signed Up,07739708728,jemccrossan@aol.com
+,Jon Clackett,,Not Signed Up,07799 435600,jonathanclackett02@gmail.com
+,Liz Long,,Not Signed Up,07711 603036,lizzylong1@btinternet.com
+,Matt Napper,,Senior,+447974699847,mattnapper2@gmail.com
+,Mo Clackett,,Senior,07703 196204,moclackett@gmail.com
+,Paul Hampshire,,Senior,07850 810133,paul.hampshire63@hotmail.com
+,Paul Treacy,,Senior,07746 038449,paultreacy01@gmail.com
+,Richard Vallis,,Senior,07817 051360,Rbvallis@gmail.com
+,Sally Charlton,,Senior,07724 103325,sallycharlton22@btinternet.com
+,Sian Thomas,,Senior,+447740943585,siannie.thomas@icloud.com
+,Stuart Lamb,,Not Signed Up,+447462185485,stuart.lamb@hotmail.co.uk
+,Val Talbot,,Senior,07767 072546,valerie.talbot@ntlworld.com
+
+"* Not Signed Up = exact name matched in club records, but no current paid 2026 membership was found."
+** No Match = no unique exact-name match was found in current club member/contact records.
+*** Fuzzy = matched by the cautious fuzzy fallback after exact and override-based matching failed.

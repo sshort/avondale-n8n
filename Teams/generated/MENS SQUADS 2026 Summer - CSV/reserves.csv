@@ -1,0 +1,13 @@
+Captain,Name,Match,Category,Phone,Email
+,Andy Cholerton,,Senior,+44127635182,suecholerton@gmail.com
+,Edward Long,,Not Signed Up,07934056432,edlong1@btinternet.com
+,Edward Woods,,Senior,07816759110,edwardanthonywoods@gmail.com
+,Harry Bywaters,,Not Signed Up,+447741491640,hnbywaters@gmail.com
+,James Cholerton,,Senior,07412335134,jcholerton@gmail.com
+,Paul Tippens,Fuzzy,Not Signed Up,07918696633,tippo74@gmail.com
+,Sean Elliott,,Not Signed Up,,
+,Tim presland,,Senior,07703129992,timpresland@gmail.com
+
+"* Not Signed Up = exact name matched in club records, but no current paid 2026 membership was found."
+** No Match = no unique exact-name match was found in current club member/contact records.
+*** Fuzzy = matched by the cautious fuzzy fallback after exact and override-based matching failed.

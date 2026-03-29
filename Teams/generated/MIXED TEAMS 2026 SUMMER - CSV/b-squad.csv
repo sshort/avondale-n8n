@@ -1,0 +1,15 @@
+Captain,Name,Match,Category,Phone,Email
+C,Sam Rush,,Senior,07765 164044,samrush336@gmail.com
+,Andy Roxburgh,,Not Signed Up,07919459390,andy@roxburgh.je
+,Cath Pearson,,Senior,07803 177572,cath.pearson@ntlworld.com
+,Charlene Jacobs,,No Match,,
+,Richard Longworth,,Not Signed Up,07508833898,rickieboy1@hotmail.com
+,Rob Bozier,,Not Signed Up,07969556875,robertbozier@yahoo.co.uk
+,Santu Asp,Fuzzy,Senior,07717 151014,santtu.asp@gmail.com
+,Sue White,,Senior,01256 893013,susan582009@hotmail.co.uk
+,Tom Van Klavern,,Not Signed Up,07502 285635,tvk24@hotmail.co.uk
+,Wendy Day,,Senior,07887688900,W_mudd@yahoo.com
+
+"* Not Signed Up = exact name matched in club records, but no current paid 2026 membership was found."
+** No Match = no unique exact-name match was found in current club member/contact records.
+*** Fuzzy = matched by the cautious fuzzy fallback after exact and override-based matching failed.

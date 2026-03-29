@@ -1,0 +1,25 @@
+Captain,Name,Match,Category,Phone,Email
+C,Juliet Worthington,,Senior,07810358292,juliet_worthington@hotmail.com
+,Alex katon,,Not Signed Up,07568 560257,alex.katon@hotmail.com
+,Antonis Nicolaidis,Fuzzy,Not Signed Up,,
+,Ben Hammond Duncan,,Young Adult,07306128175,kerryandian@hotmail.com
+,Carol Ann Harrison,,Not Signed Up,07799624958,cah.dbf@gmail.com
+,Claire Taylor,,Not Signed Up,07792410799,clairechicago1@gmail.com
+,Graeme Hutcheson,Fuzzy,Not Signed Up,07999775732,gdhutchison@me.com
+,Harry McIntyre,,Not Signed Up,07943603272,harrymcintyre68@gmail.com
+,Jax S B,,Not Signed Up,07889433872,jaxsb1962@gmail.com
+,Jessica Palmer,,Not Signed Up,07962260856,JESSICA.PALMER@FLITEPARTNERS.COM
+,Joel Villamayor,,Not Signed Up,7733247756,jrvsemail@gmail.com
+,Jonty Maston,,Not Signed Up,07460 630363,j.maston@btinternet.com
+,Liz Gruernstern,Fuzzy,Senior,07769867559,liz.gruenstern@gmail.com
+,Maew Tatum,Fuzzy,Not Signed Up,07885719965,walanda@hotmail.com
+,Nigel Fisher,,Senior,07789394309,n.fisher3@ntlworld.com
+,Paul Tippens,Fuzzy,Not Signed Up,07918696633,tippo74@gmail.com
+,Roger Barnacle,,Not Signed Up,01256702931,rbarnacle1@gmail.com
+,Steve Short,,Senior,07894 711061,members.avondaleltc@gmail.com
+,Susan Gilchrist,,Senior,07802 574286,mrs.susan.gilchrist@gmail.com
+,Tim Read,,Not Signed Up,07836652532,t.read423@gmail.com
+
+"* Not Signed Up = exact name matched in club records, but no current paid 2026 membership was found."
+** No Match = no unique exact-name match was found in current club member/contact records.
+*** Fuzzy = matched by the cautious fuzzy fallback after exact and override-based matching failed.

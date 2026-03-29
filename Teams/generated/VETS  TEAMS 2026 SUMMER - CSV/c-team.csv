@@ -1,0 +1,17 @@
+Captain,Name,Match,Category,Phone,Email
+C,SUSAN GILCHRIST,,Senior,07802 574286,mrs.susan.gilchrist@gmail.com
+,CAROLE -ANN HARRISON,,Not Signed Up,07799624958,cah.dbf@gmail.com
+,CLAIRE TAYLOR,,Not Signed Up,07792410799,clairechicago1@gmail.com
+,DAVID HENSHAW,,Senior,07941347869,helendavidhenshaw@yahoo.co.uk
+,DAVID WHITE,,Not Signed Up,07712812277,davidiwhite76@gmail.com
+,JAX S BROWN,,Not Signed Up,07889433872,jaxsb1962@gmail.com
+,JESSICA PALMER,,Not Signed Up,07962260856,JESSICA.PALMER@FLITEPARTNERS.COM
+,JONTY MASTON,,Not Signed Up,07460 630363,j.maston@btinternet.com
+,PAUL TREACY,,Senior,07746 038449,paultreacy01@gmail.com
+,ROGER BARNACLE,,Not Signed Up,01256702931,rbarnacle1@gmail.com
+,TIM READ,,Not Signed Up,07836652532,t.read423@gmail.com
+,TRISH HARRIS,Fuzzy,Not Signed Up,07801966381,harrisstrish@outlook.com
+
+"* Not Signed Up = exact name matched in club records, but no current paid 2026 membership was found."
+** No Match = no unique exact-name match was found in current club member/contact records.
+*** Fuzzy = matched by the cautious fuzzy fallback after exact and override-based matching failed.

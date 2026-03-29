@@ -1,0 +1,67 @@
+# Agent Instructions for `/mnt/c/dev/avondale-data/Teams`
+
+This directory contains the league and squad source documents used to build team contact lists.
+
+## Source Files
+
+- Use the `*.docx` files in this directory as the source of team membership.
+- Treat the first table row as squad/team headers.
+- Treat the first column as positional numbering, not the team name.
+- Each output workbook/PDF should therefore contain one squad per sheet/page.
+
+## Matching Rules
+
+- Match players by **exact full name only** against the club data.
+- Use current club data from:
+  - `public.raw_members`
+  - `public.vw_best_current_contacts`
+  - `public.member_signups`
+- If there is a unique current paid membership match for the configured season, use that membership category.
+- If there is no current paid membership match but there is a unique exact contact match, set category to `Not Signed Up`.
+- If there is no unique exact-name match, set category to `No Match`.
+- `No Match` also covers ambiguous exact-name collisions, such as duplicate people with the same first and last name.
+- For duplicate exact-name contact rows, prefer one unique contact whose email local-part clearly contains the player's first and last name, for example `harrymcintyre68@...` for `Harry McIntyre`.
+- If duplicate exact-name active contacts remain after that, prefer one unique row with clearly more complete contact details, for example an email-populated row over a blank duplicate.
+- After exact full-name matching fails, allow a cautious second-pass first-name fallback:
+  - same surname required
+  - one unique candidate only
+  - nickname/short-name expansion is allowed, for example `Jacquie` -> `Jacqueline`
+- Apply manual overrides from [name_overrides.csv](./name_overrides.csv) before leaving a row as `No Match`.
+- The override file may contain multiple target rows for the same source short name, for example `Sam -> Samuel` and `Sam -> Samantha`.
+- If the override expansion produces more than one candidate for the same surname, leave the row as `No Match`.
+- After exact and override-based nickname matching both fail, allow a cautious fuzzy final pass:
+  - same first initial and surname initial required
+  - one unique clear candidate only
+  - intended for small spelling drift such as `Maeuw Tatum` -> `Maew Tatam`
+  - if the top two fuzzy candidates are close, leave the row as `No Match`
+
+## Output Requirements
+
+- Keep captains first, marked with `C`, and bold them.
+- Sort all non-captains by first name alphabetically.
+- Use Avondale Tennis Club theming:
+  - navy `#2F5496`
+  - light blue `#D9E2F3`
+  - gold `#C9A227`
+- Keep all three output forms:
+  - `.xlsx`
+  - per-sheet `.csv`
+  - `.pdf`
+
+## Generator
+
+- Main script: [generate_team_contact_lists.py](./generate_team_contact_lists.py)
+- Output folder: `generated/`
+
+Run with:
+
+```bash
+/mnt/c/dev/postgres-mcp-venv-linux/bin/python /mnt/c/dev/avondale-data/Teams/generate_team_contact_lists.py
+```
+
+Optional environment overrides:
+
+```bash
+TEAM_CONTACTS_DSN=postgresql://postgres:6523Tike@192.168.1.248:5432/postgres
+TEAM_CONTACTS_SEASON=2026
+```

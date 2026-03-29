@@ -1,0 +1,12 @@
+Captain,Name,Match,Category,Phone,Email
+C,Jane Dow,,No Match,,
+,Amy Palmer,,Not Signed Up,07962 260856,jessica.palmer@flitepartners.com
+,Jane Vincent,,Not Signed Up,07787 824330,thevincents365@gmail.com
+,Leila Warwick,,Not Signed Up,07973 684940,leilawarwick@me.com
+,Sam Rush,,Senior,07765 164044,samrush336@gmail.com
+,Sian Thomas,,Senior,+447740943585,siannie.thomas@icloud.com
+,Wendy Day,,Senior,07887688900,W_mudd@yahoo.com
+
+"* Not Signed Up = exact name matched in club records, but no current paid 2026 membership was found."
+** No Match = no unique exact-name match was found in current club member/contact records.
+*** Fuzzy = matched by the cautious fuzzy fallback after exact and override-based matching failed.

@@ -1,0 +1,21 @@
+Captain,Name,Match,Category,Phone,Email
+C,Fran Jones,,Senior,07765 140012,fran.999.jones@gmail.com
+,Alex Mach,,Not Signed Up,07724505363,martyna.mach@gmail.com
+,Alexander Peacock,,Young Adult,07884156587,peacock156@googlemail.com
+,Alison Jamieson,Fuzzy,Senior,07593 569268,alison.jameson@gmail.com
+,David Alston,,Senior,07730771564,alstondr@hotmail.com
+,Diane Doyle,,Senior,07944 757679,dianeldoyle@gmail.com
+,James Carlisle,,Senior,07727 288364,jamescarli@hotmail.co.uk
+,Joanne Stanley,,Not Signed Up,07754 115078,joanneecairns@hotmail.com
+,Kim Field,,Senior,07500 660820,kimfield65@gmail.com
+,Lynne McKenzie,Fuzzy,Not Signed Up,07887 522574,Lynnmckenzie@live.co.uk
+,Mark Hill,,Not Signed Up,07902490639,markyh20@gmail.com
+,Mike Thornley,,Not Signed Up,07786 094178,mike33lufc@gmail.com
+,Pauline Snell,,Senior,07877300234,psnell66@gmail.com
+,Peter Smith,,Not Signed Up,07955644682,Peterrcsmith@hotmail.co.uk
+,Stuart Aberdeen,,Senior,07900247090,stuaberdeen@live.co.uk
+,Tom Blake,,Family,07920107557,t_blake@icloud.com
+
+"* Not Signed Up = exact name matched in club records, but no current paid 2026 membership was found."
+** No Match = no unique exact-name match was found in current club member/contact records.
+*** Fuzzy = matched by the cautious fuzzy fallback after exact and override-based matching failed.

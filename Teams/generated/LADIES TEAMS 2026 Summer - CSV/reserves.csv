@@ -1,0 +1,12 @@
+Captain,Name,Match,Category,Phone,Email
+,Becky Cockerill,,Not Signed Up,07876 352111,beckyandstuart@btinternet.com
+,Jane Woods,,No Match,,
+,Jill Penton,Fuzzy,Senior,07845 144977,jillian.penton@virginmedia.com
+,Mo Clackett,,Senior,07703 196204,moclackett@gmail.com
+,Pauline Snell,,Senior,07877300234,psnell66@gmail.com
+,Val Rowlands,,Senior,07891572164,valrowlands@aol.co.uk
+,Val Talbot,,Senior,07767 072546,valerie.talbot@ntlworld.com
+
+"* Not Signed Up = exact name matched in club records, but no current paid 2026 membership was found."
+** No Match = no unique exact-name match was found in current club member/contact records.
+*** Fuzzy = matched by the cautious fuzzy fallback after exact and override-based matching failed.
