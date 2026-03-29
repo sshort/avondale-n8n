@@ -4,13 +4,14 @@ C,Georgina Riches,,Not Signed Up,07710475970,fam.riches@btinternet.com
 ,Charlene Jacobs,,No Match,,
 ,Diane Doyle,,Senior,07944 757679,dianeldoyle@gmail.com
 ,Jacquie Conway,Nickname,Senior,07900333359,jacquie.conway@outlook.com
-,Joan Mc Crossan,,Not Signed Up,07739708728,jemccrossan@aol.com
+,Joan Mc Crossan,Best Fit,Not Signed Up,07739708728,jemccrossan@aol.com
 ,Liz Long,,Not Signed Up,07711 603036,lizzylong1@btinternet.com
 ,Sally Charlton,,Senior,07724 103325,sallycharlton22@btinternet.com
 ,Sue white,Nickname,Senior,01256 893013,susan582009@hotmail.co.uk
 
 "* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found."
 ** No Match = no unique exact-name match was found in current club member/contact records.
-*** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
-**** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
-***** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
+*** Best Fit = one row was chosen from several exact-name candidates using the best available contact evidence.
+**** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
+***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
+****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.

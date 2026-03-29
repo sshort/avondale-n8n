@@ -6,7 +6,7 @@ C,Juliet Worthington,,Senior,07810358292,juliet_worthington@hotmail.com
 ,Carol Ann Harrison,Override,Not Signed Up,07799624958,cah.dbf@gmail.com
 ,Claire Taylor,,Not Signed Up,07792410799,clairechicago1@gmail.com
 ,Graeme Hutcheson,Fuzzy,Not Signed Up,07999775732,gdhutchison@me.com
-,Harry McIntyre,,Not Signed Up,07943603272,harrymcintyre68@gmail.com
+,Harry McIntyre,Best Fit,Not Signed Up,07943603272,harrymcintyre68@gmail.com
 ,Jax S B,Override,Not Signed Up,07889433872,jaxsb1962@gmail.com
 ,Jessica Palmer,,Not Signed Up,07962260856,JESSICA.PALMER@FLITEPARTNERS.COM
 ,Joel Villamayor,,Not Signed Up,7733247756,jrvsemail@gmail.com
@@ -22,6 +22,7 @@ C,Juliet Worthington,,Senior,07810358292,juliet_worthington@hotmail.com
 
 "* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found."
 ** No Match = no unique exact-name match was found in current club member/contact records.
-*** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
-**** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
-***** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
+*** Best Fit = one row was chosen from several exact-name candidates using the best available contact evidence.
+**** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
+***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
+****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.

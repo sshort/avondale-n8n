@@ -22,6 +22,7 @@ This directory contains the league and squad source documents used to build team
 - `No Match` also covers ambiguous exact-name collisions, such as duplicate people with the same first and last name.
 - For duplicate exact-name contact rows, prefer one unique contact whose email local-part clearly contains the player's first and last name, for example `harrymcintyre68@...` for `Harry McIntyre`.
 - If duplicate exact-name active contacts remain after that, prefer one unique row with clearly more complete contact details, for example an email-populated row over a blank duplicate.
+- When one row is chosen from several exact-name contact candidates, mark the output `Match` column as `Best Fit`.
 - After exact full-name matching fails, allow a cautious second-pass first-name fallback:
   - same surname required
   - one unique candidate only
@@ -47,6 +48,11 @@ This directory contains the league and squad source documents used to build team
   - `.xlsx`
   - per-sheet `.csv`
   - `.pdf`
+- The `Match` column should show non-exact resolution types explicitly:
+  - `Best Fit`
+  - `Override`
+  - `Nickname`
+  - `Fuzzy`
 - Also regenerate the match review outputs on every run:
   - root markdown review: [NO_MATCH_NAMES.md](./NO_MATCH_NAMES.md)
   - generated markdown copy: `generated/NO_MATCH_NAMES.md`

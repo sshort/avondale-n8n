@@ -1,5 +1,5 @@
 Captain,Name,Match,Category,Phone,Email
-,Alistair Jones,,Not Signed Up,07741319024,alistair@badmintonwycombe.co.uk
+,Alistair Jones,Best Fit,Not Signed Up,07741319024,alistair@badmintonwycombe.co.uk
 ,Andy McElligot,Fuzzy,Not Signed Up,07825285272,andy.d.mcelligott@gmail.com
 ,Chris Ezra,,Not Signed Up,07956 261566,casabella@btinternet.com
 ,Cliff Church,,Not Signed Up,07929 207152,cliffchurch@hotmail.com
@@ -11,7 +11,7 @@ Captain,Name,Match,Category,Phone,Email
 ,James Cholerton,,Senior,07412335134,jcholerton@gmail.com
 ,James Colpus,,Not Signed Up,07763134274,colpus9@gmail.com
 ,Jill Penton,Fuzzy,Senior,07845 144977,jillian.penton@virginmedia.com
-,Joan McCrossan,,Not Signed Up,07739708728,jemccrossan@aol.com
+,Joan McCrossan,Best Fit,Not Signed Up,07739708728,jemccrossan@aol.com
 ,Jon Clackett,Nickname,Not Signed Up,07799 435600,jonathanclackett02@gmail.com
 ,Liz Long,,Not Signed Up,07711 603036,lizzylong1@btinternet.com
 ,Matt Napper,Nickname,Senior,+447974699847,mattnapper2@gmail.com
@@ -26,6 +26,7 @@ Captain,Name,Match,Category,Phone,Email
 
 "* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found."
 ** No Match = no unique exact-name match was found in current club member/contact records.
-*** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
-**** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
-***** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
+*** Best Fit = one row was chosen from several exact-name candidates using the best available contact evidence.
+**** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
+***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
+****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.

@@ -407,20 +407,20 @@ def unique_best_contact(candidates: list[ContactCandidate]) -> list[ContactCandi
 def disambiguate_contact_candidates(
     contact_candidates: list[ContactCandidate],
     source_name: str,
-) -> list[ContactCandidate]:
+) -> tuple[list[ContactCandidate], bool]:
     if len(contact_candidates) <= 1:
-        return contact_candidates
+        return contact_candidates, False
 
     active = [candidate for candidate in contact_candidates if candidate.member_status == "Active Member"]
     if len(active) == 1:
-        return active
+        return active, True
     best_active = unique_best_contact(active)
     if len(best_active) == 1:
-        return best_active
+        return best_active, True
 
     matching_active = [candidate for candidate in active if email_matches_name(candidate, source_name)]
     if len(matching_active) == 1:
-        return matching_active
+        return matching_active, True
 
     non_lapsed = [
         candidate
@@ -428,22 +428,22 @@ def disambiguate_contact_candidates(
         if candidate.member_status not in {"Lapsed Member", "Non Member", ""}
     ]
     if len(non_lapsed) == 1:
-        return non_lapsed
+        return non_lapsed, True
     best_non_lapsed = unique_best_contact(non_lapsed)
     if len(best_non_lapsed) == 1:
-        return best_non_lapsed
+        return best_non_lapsed, True
 
     matching_non_lapsed = [
         candidate for candidate in non_lapsed if email_matches_name(candidate, source_name)
     ]
     if len(matching_non_lapsed) == 1:
-        return matching_non_lapsed
+        return matching_non_lapsed, True
 
     matching_all = [candidate for candidate in contact_candidates if email_matches_name(candidate, source_name)]
     if len(matching_all) == 1:
-        return matching_all
+        return matching_all, True
 
-    return contact_candidates
+    return contact_candidates, False
 
 
 def nickname_variants(first_name: str) -> set[str]:
@@ -524,7 +524,7 @@ def resolve_row(
     if override_name:
         norm_name = override_name
     member_candidates = members_by_name.get(norm_name, [])
-    contact_candidates = disambiguate_contact_candidates(contacts_by_name.get(norm_name, []), name)
+    contact_candidates, best_fit_applied = disambiguate_contact_candidates(contacts_by_name.get(norm_name, []), name)
     signup_candidates = signups_by_name.get(norm_name, [])
 
     phone, email = choose_contact_detail(member_candidates, contact_candidates, signup_candidates)
@@ -562,14 +562,14 @@ def resolve_row(
             "category": "Not Signed Up",
             "phone": phone,
             "email": email,
-            "match_note": "Override" if override_applied else "",
+            "match_note": "Override" if override_applied else ("Best Fit" if best_fit_applied else ""),
             "review_section": "explicit_override" if override_applied else "",
             "review_target": candidate_full_name(contact_candidates[0]) if override_applied else "",
             "review_reason": "explicit full-name override from name_overrides.csv" if override_applied else "",
         }
 
     member_candidates = unique_nickname_candidates(name, members_by_name)
-    contact_candidates = disambiguate_contact_candidates(unique_nickname_candidates(name, contacts_by_name), name)
+    contact_candidates, _ = disambiguate_contact_candidates(unique_nickname_candidates(name, contacts_by_name), name)
     signup_candidates = unique_nickname_candidates(name, signups_by_name)
     phone, email = choose_contact_detail(member_candidates, contact_candidates, signup_candidates)
 
@@ -607,7 +607,7 @@ def resolve_row(
         }
 
     member_candidates = unique_fuzzy_candidates(name, members_by_name)
-    contact_candidates = disambiguate_contact_candidates(unique_fuzzy_candidates(name, contacts_by_name), name)
+    contact_candidates, _ = disambiguate_contact_candidates(unique_fuzzy_candidates(name, contacts_by_name), name)
     signup_candidates = unique_fuzzy_candidates(name, signups_by_name)
     phone, email = choose_contact_detail(member_candidates, contact_candidates, signup_candidates)
 
@@ -888,13 +888,16 @@ def write_workbook(title: str, teams: dict[str, list[dict[str, str]]], output_pa
         ws.cell(row=row_index, column=1, value="** No Match = no unique exact-name match was found in current club member/contact records.").font = footnote_font
         row_index += 1
         ws.merge_cells(start_row=row_index, start_column=1, end_row=row_index, end_column=6)
-        ws.cell(row=row_index, column=1, value="*** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.").font = footnote_font
+        ws.cell(row=row_index, column=1, value="*** Best Fit = one row was chosen from several exact-name candidates using the best available contact evidence.").font = footnote_font
         row_index += 1
         ws.merge_cells(start_row=row_index, start_column=1, end_row=row_index, end_column=6)
-        ws.cell(row=row_index, column=1, value="**** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.").font = footnote_font
+        ws.cell(row=row_index, column=1, value="**** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.").font = footnote_font
         row_index += 1
         ws.merge_cells(start_row=row_index, start_column=1, end_row=row_index, end_column=6)
-        ws.cell(row=row_index, column=1, value="***** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.").font = footnote_font
+        ws.cell(row=row_index, column=1, value="***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.").font = footnote_font
+        row_index += 1
+        ws.merge_cells(start_row=row_index, start_column=1, end_row=row_index, end_column=6)
+        ws.cell(row=row_index, column=1, value="****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.").font = footnote_font
 
         widths = {"A": 10, "B": 28, "C": 12, "D": 18, "E": 18, "F": 34}
         for column, width in widths.items():
@@ -917,9 +920,10 @@ def write_csvs(teams: dict[str, list[dict[str, str]]], output_dir: Path) -> None
             writer.writerow([])
             writer.writerow(["* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found."])
             writer.writerow(["** No Match = no unique exact-name match was found in current club member/contact records."])
-            writer.writerow(["*** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data."])
-            writer.writerow(["**** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data."])
-            writer.writerow(["***** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data."])
+            writer.writerow(["*** Best Fit = one row was chosen from several exact-name candidates using the best available contact evidence."])
+            writer.writerow(["**** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data."])
+            writer.writerow(["***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data."])
+            writer.writerow(["****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data."])
 
 
 def write_pdf(title: str, teams: dict[str, list[dict[str, str]]], output_path: Path) -> None:
@@ -989,9 +993,10 @@ def write_pdf(title: str, teams: dict[str, list[dict[str, str]]], output_path: P
         story.append(Spacer(1, 6 * mm))
         story.append(Paragraph("* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found.", note_style))
         story.append(Paragraph("** No Match = no unique exact-name match was found in current club member/contact records.", note_style))
-        story.append(Paragraph("*** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.", note_style))
-        story.append(Paragraph("**** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.", note_style))
-        story.append(Paragraph("***** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.", note_style))
+        story.append(Paragraph("*** Best Fit = one row was chosen from several exact-name candidates using the best available contact evidence.", note_style))
+        story.append(Paragraph("**** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.", note_style))
+        story.append(Paragraph("***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.", note_style))
+        story.append(Paragraph("****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.", note_style))
 
         if index < len(team_names) - 1:
             story.append(PageBreak())
