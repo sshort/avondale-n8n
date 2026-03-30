@@ -77,6 +77,18 @@ class SignupCandidate:
 
 
 @dataclass
+class JuniorMainContactCandidate:
+    first_name: str
+    last_name: str
+    member_name: str
+    main_contact_name: str
+    main_contact_email: str
+    main_contact_phone: str
+    main_contact_mobile: str
+    match_rule: str
+
+
+@dataclass
 class ReviewEntry:
     section: str
     source_name: str
@@ -263,6 +275,7 @@ def load_lookup_data() -> tuple[
     dict[str, list[MemberCandidate]],
     dict[str, list[ContactCandidate]],
     dict[str, list[SignupCandidate]],
+    dict[str, list[JuniorMainContactCandidate]],
 ]:
     members_sql = f"""
         select
@@ -308,10 +321,23 @@ def load_lookup_data() -> tuple[
           and mp.category not in ('Social', 'Pavilion Key')
         order by 1, 2;
     """
+    junior_main_contacts_sql = """
+        select
+          member_name,
+          main_contact_name,
+          coalesce(main_contact_email, '') as main_contact_email,
+          coalesce(main_contact_phone, '') as main_contact_phone,
+          coalesce(main_contact_mobile, '') as main_contact_mobile,
+          match_rule
+        from public.vw_junior_main_contacts
+        where match_confidence = 'high'
+        order by member_name;
+    """
 
     members_by_name: dict[str, list[MemberCandidate]] = defaultdict(list)
     contacts_by_name: dict[str, list[ContactCandidate]] = defaultdict(list)
     signups_by_name: dict[str, list[SignupCandidate]] = defaultdict(list)
+    junior_main_contacts_by_name: dict[str, list[JuniorMainContactCandidate]] = defaultdict(list)
 
     for row in run_query(members_sql):
         members_by_name[normalize_name(f'{row["first_name"]} {row["last_name"]}')].append(
@@ -347,21 +373,42 @@ def load_lookup_data() -> tuple[
             )
         )
 
-    return members_by_name, contacts_by_name, signups_by_name
+    for row in run_query(junior_main_contacts_sql):
+        first_name, last_name = split_person_name(row["member_name"])
+        junior_main_contacts_by_name[normalize_name(row["member_name"])].append(
+            JuniorMainContactCandidate(
+                first_name=first_name,
+                last_name=last_name,
+                member_name=row["member_name"],
+                main_contact_name=row["main_contact_name"],
+                main_contact_email=row["main_contact_email"],
+                main_contact_phone=clean_phone(row["main_contact_phone"]),
+                main_contact_mobile=clean_phone(row["main_contact_mobile"]),
+                match_rule=row["match_rule"],
+            )
+        )
+
+    return members_by_name, contacts_by_name, signups_by_name, junior_main_contacts_by_name
 
 
 def choose_contact_detail(
     member_candidates: list[MemberCandidate],
     contact_candidates: list[ContactCandidate],
     signup_candidates: list[SignupCandidate],
+    junior_main_contact_candidates: list[JuniorMainContactCandidate],
 ) -> tuple[str, str]:
     phone = ""
     email = ""
 
+    if len(junior_main_contact_candidates) == 1:
+        main_contact = junior_main_contact_candidates[0]
+        phone = main_contact.main_contact_mobile or main_contact.main_contact_phone
+        email = main_contact.main_contact_email
+
     if len(member_candidates) == 1:
         member = member_candidates[0]
-        phone = member.mobile or member.phone
-        email = member.email
+        phone = phone or member.mobile or member.phone
+        email = email or member.email
 
     if len(contact_candidates) == 1:
         contact = contact_candidates[0]
@@ -517,6 +564,7 @@ def resolve_row(
     members_by_name: dict[str, list[MemberCandidate]],
     contacts_by_name: dict[str, list[ContactCandidate]],
     signups_by_name: dict[str, list[SignupCandidate]],
+    junior_main_contacts_by_name: dict[str, list[JuniorMainContactCandidate]],
 ) -> dict[str, str]:
     norm_name = normalize_name(name)
     override_name = next(iter(NAME_OVERRIDES.get(norm_name, set())), "")
@@ -526,8 +574,14 @@ def resolve_row(
     member_candidates = members_by_name.get(norm_name, [])
     contact_candidates, best_fit_applied = disambiguate_contact_candidates(contacts_by_name.get(norm_name, []), name)
     signup_candidates = signups_by_name.get(norm_name, [])
+    junior_main_contact_candidates = junior_main_contacts_by_name.get(norm_name, [])
 
-    phone, email = choose_contact_detail(member_candidates, contact_candidates, signup_candidates)
+    phone, email = choose_contact_detail(
+        member_candidates,
+        contact_candidates,
+        signup_candidates,
+        junior_main_contact_candidates,
+    )
 
     if len(member_candidates) == 1:
         return {
@@ -571,7 +625,13 @@ def resolve_row(
     member_candidates = unique_nickname_candidates(name, members_by_name)
     contact_candidates, _ = disambiguate_contact_candidates(unique_nickname_candidates(name, contacts_by_name), name)
     signup_candidates = unique_nickname_candidates(name, signups_by_name)
-    phone, email = choose_contact_detail(member_candidates, contact_candidates, signup_candidates)
+    junior_main_contact_candidates = unique_nickname_candidates(name, junior_main_contacts_by_name)
+    phone, email = choose_contact_detail(
+        member_candidates,
+        contact_candidates,
+        signup_candidates,
+        junior_main_contact_candidates,
+    )
 
     if len(member_candidates) == 1:
         return {
@@ -609,7 +669,13 @@ def resolve_row(
     member_candidates = unique_fuzzy_candidates(name, members_by_name)
     contact_candidates, _ = disambiguate_contact_candidates(unique_fuzzy_candidates(name, contacts_by_name), name)
     signup_candidates = unique_fuzzy_candidates(name, signups_by_name)
-    phone, email = choose_contact_detail(member_candidates, contact_candidates, signup_candidates)
+    junior_main_contact_candidates = unique_fuzzy_candidates(name, junior_main_contacts_by_name)
+    phone, email = choose_contact_detail(
+        member_candidates,
+        contact_candidates,
+        signup_candidates,
+        junior_main_contact_candidates,
+    )
 
     if len(member_candidates) == 1:
         return {
@@ -660,6 +726,7 @@ def build_team_rows(
     members_by_name: dict[str, list[MemberCandidate]],
     contacts_by_name: dict[str, list[ContactCandidate]],
     signups_by_name: dict[str, list[SignupCandidate]],
+    junior_main_contacts_by_name: dict[str, list[JuniorMainContactCandidate]],
 ) -> tuple[dict[str, list[dict[str, str]]], list[ReviewEntry]]:
     resolved: dict[str, list[dict[str, str]]] = {}
     review_entries: list[ReviewEntry] = []
@@ -672,6 +739,7 @@ def build_team_rows(
                 members_by_name,
                 contacts_by_name,
                 signups_by_name,
+                junior_main_contacts_by_name,
             )
             rows.append(
                 {
@@ -1010,13 +1078,19 @@ def write_pdf(title: str, teams: dict[str, list[dict[str, str]]], output_path: P
 
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    members_by_name, contacts_by_name, signups_by_name = load_lookup_data()
+    members_by_name, contacts_by_name, signups_by_name, junior_main_contacts_by_name = load_lookup_data()
     all_review_entries: list[ReviewEntry] = []
 
     for docx_path in sorted(BASE_DIR.glob("*.docx")):
         title = doc_title_from_filename(docx_path)
         teams = parse_docx_teams(docx_path)
-        resolved_teams, review_entries = build_team_rows(teams, members_by_name, contacts_by_name, signups_by_name)
+        resolved_teams, review_entries = build_team_rows(
+            teams,
+            members_by_name,
+            contacts_by_name,
+            signups_by_name,
+            junior_main_contacts_by_name,
+        )
         all_review_entries.extend(review_entries)
 
         workbook_path = OUTPUT_DIR / f"{docx_path.stem} - Contact Lists.xlsx"

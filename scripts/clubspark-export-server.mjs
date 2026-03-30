@@ -20,6 +20,14 @@ const exporters = new Map([
     scriptPath: path.join(scriptDir, 'export-clubspark-members-local.mjs'),
     contentType: 'text/csv; charset=utf-8',
   }],
+  ['/clubspark-members-main-contacts-export', {
+    scriptPath: path.join(scriptDir, 'export-clubspark-members-local.mjs'),
+    contentType: 'text/csv; charset=utf-8',
+    extraEnv: {
+      CLUBSPARK_MEMBER_VIEW_LABEL: 'Main Contacts',
+      CLUBSPARK_MEMBER_VIEW_VALUE: 'contacts',
+    },
+  }],
   ['/clubspark-auth-session', {
     scriptPath: path.join(scriptDir, 'export-clubspark-auth-session-local.mjs'),
     contentType: 'application/json; charset=utf-8',
@@ -165,7 +173,10 @@ const server = http.createServer(async (req, res) => {
   }
 
   process.stdout.write(`[${new Date().toISOString()}] Running exporter: ${exporter.scriptPath}\n`);
-  const result = await runExporter(exporter.scriptPath, extraEnv);
+  const result = await runExporter(exporter.scriptPath, {
+    ...(exporter.extraEnv ?? {}),
+    ...extraEnv,
+  });
 
   if (result.code !== 0) {
     process.stdout.write(`[${new Date().toISOString()}] FAILED: ${exporter.scriptPath} (code ${result.code})\n`);

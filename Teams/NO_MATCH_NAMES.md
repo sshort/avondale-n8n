@@ -5,13 +5,13 @@ This file records the current non-trivial name matching used by [generate_team_c
 ## Remaining No Match Names
 
 - `Charlene Jacobs` - no unique candidate. Teams: B Squad
-- `Jane Dow` - no unique candidate. Teams: A Squad, A Team
-- `Jane Woods` - no unique candidate. Teams: Reserves
 
 ## Explicit Full-Name Overrides
 
 - `Carol Ann Harrison` -> `Carol-Anne Harrison` - explicit full-name override from name_overrides.csv. Teams: D Squad
 - `CAROLE -ANN HARRISON` -> `Carol-Anne Harrison` - explicit full-name override from name_overrides.csv. Teams: C Team
+- `Jane Dow` -> `JANE Timmis` - explicit full-name override from name_overrides.csv. Teams: A Squad, A Team
+- `Jane Woods` -> `Alison Woods` - explicit full-name override from name_overrides.csv. Teams: Reserves
 - `Jax S B` -> `Jacqueline Sinclair-Brown` - explicit full-name override from name_overrides.csv. Teams: D Squad, E Squad
 - `JAX S BROWN` -> `Jacqueline Sinclair-Brown` - explicit full-name override from name_overrides.csv. Teams: C Team
 - `Tom Van Klavern` -> `Thomas Van Klaveren` - explicit full-name override from name_overrides.csv. Teams: B Squad

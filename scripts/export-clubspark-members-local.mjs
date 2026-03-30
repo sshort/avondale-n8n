@@ -29,6 +29,8 @@ const slowMo = Number(process.env.SLOW_MO ?? '100');
 const membersUrl =
   process.env.CLUBSPARK_MEMBERS_URL ??
   'https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Membership/Members';
+const memberViewLabel = (process.env.CLUBSPARK_MEMBER_VIEW_LABEL ?? 'Members').trim() || 'Members';
+const memberViewValue = (process.env.CLUBSPARK_MEMBER_VIEW_VALUE ?? '').trim();
 const providedCookieHeader = (process.env.CLUBSPARK_COOKIE_HEADER ?? '').trim();
 const providedUserAgent = (process.env.CLUBSPARK_USER_AGENT ?? '').trim();
 
@@ -113,6 +115,10 @@ const rl = readline.createInterface({ input, output });
 
 function logStage(message) {
   console.error(`[clubspark-members-export] ${message}`);
+}
+
+function normalizeChoice(value) {
+  return String(value ?? '').trim().replace(/\s+/g, ' ').toLowerCase();
 }
 
 async function textSnapshot() {
@@ -244,7 +250,91 @@ async function isAuthenticatedMembersPage() {
   );
 }
 
-async function getDirectExportRequest() {
+async function switchMemberView(targetLabel) {
+  const targetKey = normalizeChoice(targetLabel);
+  if (!targetKey || targetKey === 'members') {
+    return { label: 'Members', value: memberViewValue || 'members' };
+  }
+
+  if (memberViewValue) {
+    logStage(`Using explicit member view mode override: ${memberViewValue}`);
+    return { label: targetLabel, value: memberViewValue, method: 'mode-override' };
+  }
+
+  const switched = await page.evaluate((target) => {
+    const normalize = (value) => String(value ?? '').trim().replace(/\s+/g, ' ').toLowerCase();
+    const targetKeyInner = normalize(target);
+
+    const optionText = (option) => option?.textContent || option?.label || option?.innerText || option?.text || '';
+    const isMemberModeOption = (option) => {
+      const key = normalize(optionText(option));
+      return key === 'members' || key === 'main contacts';
+    };
+
+    for (const select of Array.from(document.querySelectorAll('select'))) {
+      const options = Array.from(select.options || []);
+      if (!options.some(isMemberModeOption)) {
+        continue;
+      }
+
+      const targetOption = options.find((option) => normalize(optionText(option)) === targetKeyInner);
+      if (!targetOption) {
+        continue;
+      }
+
+      select.value = targetOption.value;
+      targetOption.selected = true;
+      select.dispatchEvent(new Event('input', { bubbles: true }));
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+
+      if (window.jQuery) {
+        window.jQuery(select).trigger('change').trigger('chosen:updated').trigger('liszt:updated');
+      }
+
+      return {
+        method: 'select',
+        label: optionText(targetOption).trim(),
+        value: String(targetOption.value ?? '').trim(),
+      };
+    }
+
+    const openers = Array.from(document.querySelectorAll('span[title], [role="combobox"], .chosen-single, .select2-selection, button, a'))
+      .filter((element) => {
+        const title = normalize(element.getAttribute?.('title') || '');
+        const text = normalize(element.textContent || '');
+        return title === 'members' || title === 'main contacts' || text === 'members' || text === 'main contacts';
+      });
+
+    const opener = openers[0];
+    if (opener instanceof HTMLElement) {
+      opener.click();
+      const candidates = Array.from(document.querySelectorAll('[role="option"], li, a, button, span, div'))
+        .filter((element) => normalize(element.textContent || element.getAttribute?.('title') || '') === targetKeyInner);
+      const option = candidates.find((element) => element instanceof HTMLElement && element.offsetParent !== null) ?? candidates[0];
+      if (option instanceof HTMLElement) {
+        option.click();
+        return {
+          method: 'click',
+          label: (option.textContent || option.getAttribute('title') || '').trim(),
+          value: '',
+        };
+      }
+    }
+
+    return null;
+  }, targetLabel);
+
+  if (!switched) {
+    throw new Error(`Could not switch the ClubSpark member view to "${targetLabel}".`);
+  }
+
+  await waitForIdle();
+  await page.waitForTimeout(1500);
+  logStage(`Switched member view via ${switched.method}: ${switched.label}${switched.value ? ` (${switched.value})` : ''}`);
+  return switched;
+}
+
+async function getDirectExportRequest(modeOverride = '') {
   await page.waitForFunction(() => {
     const jq = window.jQuery;
     const appSettings = window.clubHouseApp?.AppSettings;
@@ -261,7 +351,7 @@ async function getDirectExportRequest() {
     }
   }, { timeout: 30000 }).catch(() => null);
 
-  return page.evaluate(() => {
+  return page.evaluate((modeOverrideInner) => {
     const jq = window.jQuery;
     const appSettings = window.clubHouseApp?.AppSettings;
     const inlineEndpoint = Array.from(document.scripts)
@@ -283,17 +373,23 @@ async function getDirectExportRequest() {
       throw new Error('ClubSpark members DataTable params were not available.');
     }
 
+    const endpoint = new URL(
+      endpointPath.replace('Lookup', 'Export'),
+      location.origin,
+    );
+    if (modeOverrideInner) {
+      endpoint.searchParams.set('mode', modeOverrideInner);
+    }
+
     return {
-      endpoint: new URL(
-        endpointPath.replace('Lookup', 'Export'),
-        location.origin,
-      ).toString(),
+      endpoint: endpoint.toString(),
       form: {
         ...params,
+        ...(modeOverrideInner ? { mode: modeOverrideInner } : {}),
         SelectAll: 'True',
       },
     };
-  });
+  }, modeOverride);
 }
 
 try {
@@ -434,7 +530,9 @@ try {
     await page.waitForTimeout(1000);
   }
 
-  const exportRequest = await getDirectExportRequest();
+  const switchedView = await switchMemberView(memberViewLabel);
+  const resolvedMode = switchedView?.value || memberViewValue;
+  const exportRequest = await getDirectExportRequest(resolvedMode);
   logStage(`Submitting direct CSV export to ${exportRequest.endpoint}`);
 
   const response = await page.request.post(exportRequest.endpoint, {

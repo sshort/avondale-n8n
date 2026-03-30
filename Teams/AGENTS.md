@@ -17,7 +17,9 @@ This directory contains the league and squad source documents used to build team
   - `public.raw_members`
   - `public.vw_best_current_contacts`
   - `public.member_signups`
+  - `public.vw_junior_main_contacts`
 - If there is a unique current paid membership match for the configured season, use that membership category.
+- If the player is a junior and `public.vw_junior_main_contacts` provides a unique high-confidence main contact, prefer that adult/main-contact email and phone over the junior's own raw member/contact details.
 - If there is no current paid membership match but there is a unique exact contact match, set category to `Not Signed Up`.
 - If there is no unique exact-name match, set category to `No Match`.
 - `No Match` also covers ambiguous exact-name collisions, such as duplicate people with the same first and last name.
