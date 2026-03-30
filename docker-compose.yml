@@ -80,8 +80,18 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - portainer_data:/data
 
+  appsmith:
+    container_name: appsmith
+    image: index.docker.io/appsmith/appsmith-ee:latest
+    restart: unless-stopped
+    ports:
+      - 8080:80
+    volumes:
+      - appsmith_data:/appsmith-stacks
+
 volumes:
   n8n_data:
     external: true
     name: n8n_data
   portainer_data:
+  appsmith_data:
