@@ -994,6 +994,27 @@ def write_csvs(teams: dict[str, list[dict[str, str]]], output_dir: Path) -> None
             writer.writerow(["****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data."])
 
 
+def write_captain_email_list(all_teams: dict[str, dict[str, list[dict[str, str]]]], output_path: Path) -> None:
+    emails: list[str] = []
+    seen: set[str] = set()
+
+    for teams in all_teams.values():
+        for rows in teams.values():
+            for row in rows:
+                if row["captain"] != "C":
+                    continue
+                email = row["email"].strip()
+                if not email:
+                    continue
+                key = email.casefold()
+                if key in seen:
+                    continue
+                seen.add(key)
+                emails.append(email)
+
+    output_path.write_text(", ".join(emails) + ("\n" if emails else ""), encoding="utf-8")
+
+
 def team_slug(team_name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", team_name.casefold()).strip("-")
 
@@ -1080,6 +1101,7 @@ def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     members_by_name, contacts_by_name, signups_by_name, junior_main_contacts_by_name = load_lookup_data()
     all_review_entries: list[ReviewEntry] = []
+    all_resolved_teams: dict[str, dict[str, list[dict[str, str]]]] = {}
 
     for docx_path in sorted(BASE_DIR.glob("*.docx")):
         title = doc_title_from_filename(docx_path)
@@ -1092,6 +1114,7 @@ def main() -> None:
             junior_main_contacts_by_name,
         )
         all_review_entries.extend(review_entries)
+        all_resolved_teams[docx_path.stem] = resolved_teams
 
         workbook_path = OUTPUT_DIR / f"{docx_path.stem} - Contact Lists.xlsx"
         csv_dir = OUTPUT_DIR / f"{docx_path.stem} - CSV"
@@ -1112,6 +1135,7 @@ def main() -> None:
         print(f"{docx_path.name}: sheets={len(resolved_teams)} no_match={no_match_count} not_signed_up={not_signed_count}")
 
     review_groups = group_review_entries(all_review_entries)
+    write_captain_email_list(all_resolved_teams, OUTPUT_DIR / "team-captains-email-list.txt")
     write_review_markdown(review_groups, BASE_DIR / "NO_MATCH_NAMES.md")
     write_review_markdown(review_groups, OUTPUT_DIR / "NO_MATCH_NAMES.md")
     write_review_pdf(review_groups, OUTPUT_DIR / "NO_MATCH_NAMES.pdf")

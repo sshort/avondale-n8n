@@ -51,6 +51,8 @@ This directory contains the league and squad source documents used to build team
   - `.xlsx`
   - per-sheet `.csv`
   - per-team `.pdf`
+- Also generate the captain email distribution list on every run:
+  - `generated/team-captains-email-list.txt`
 - The `Match` column should show non-exact resolution types explicitly:
   - `Best Fit`
   - `Override`
