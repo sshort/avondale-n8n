@@ -56,6 +56,7 @@ class ContactCandidate:
     email: str
     phone: str
     mobile: str
+    share_contact_detail: str
 
 
 @dataclass
@@ -85,6 +86,7 @@ class JuniorMainContactCandidate:
     main_contact_email: str
     main_contact_phone: str
     main_contact_mobile: str
+    parent_share_contact_detail: str
     match_rule: str
 
 
@@ -153,6 +155,11 @@ def clean_phone(value: str) -> str:
     value = value.strip("[]")
     value = re.sub(r"\s+", " ", value)
     return value
+
+
+def truthy_share_contact_detail(value: str) -> bool:
+    normalized = re.sub(r"[^a-z0-9]+", "", (value or "").casefold())
+    return normalized in {"yes", "y", "true", "1"}
 
 
 def normalize_email_local(value: str) -> str:
@@ -297,14 +304,17 @@ def load_lookup_data() -> tuple[
     """
     contacts_sql = """
         select
-          first_name,
-          last_name,
-          coalesce(member_status, '') as member_status,
-          norm_name,
-          coalesce(email_address, '') as email_address,
-          coalesce(phone_number, '') as phone_number,
-          coalesce(mobile_number, '') as mobile_number
-        from public.vw_best_current_contacts
+          c.first_name,
+          c.last_name,
+          coalesce(c.member_status, '') as member_status,
+          c.norm_name,
+          coalesce(c.email_address, '') as email_address,
+          coalesce(c.phone_number, '') as phone_number,
+          coalesce(c.mobile_number, '') as mobile_number,
+          coalesce(nullif(trim(rc."Share Contact Detail"), ''), '') as share_contact_detail
+        from public.vw_best_current_contacts c
+        left join public.raw_contacts rc
+          on rc.id = c.contact_id
         order by norm_name, contact_id;
     """
     signups_sql = f"""
@@ -328,8 +338,11 @@ def load_lookup_data() -> tuple[
           coalesce(main_contact_email, '') as main_contact_email,
           coalesce(main_contact_phone, '') as main_contact_phone,
           coalesce(main_contact_mobile, '') as main_contact_mobile,
+          coalesce(nullif(trim(rc."Share Contact Detail"), ''), '') as parent_share_contact_detail,
           match_rule
         from public.vw_junior_main_contacts
+        left join public.raw_contacts rc
+          on rc.id = resolved_contact_id
         where match_confidence = 'high'
         order by member_name;
     """
@@ -360,6 +373,7 @@ def load_lookup_data() -> tuple[
                 email=row["email_address"],
                 phone=clean_phone(row["phone_number"]),
                 mobile=clean_phone(row["mobile_number"]),
+                share_contact_detail=row["share_contact_detail"],
             )
         )
 
@@ -384,6 +398,7 @@ def load_lookup_data() -> tuple[
                 main_contact_email=row["main_contact_email"],
                 main_contact_phone=clean_phone(row["main_contact_phone"]),
                 main_contact_mobile=clean_phone(row["main_contact_mobile"]),
+                parent_share_contact_detail=row["parent_share_contact_detail"],
                 match_rule=row["match_rule"],
             )
         )
@@ -396,30 +411,59 @@ def choose_contact_detail(
     contact_candidates: list[ContactCandidate],
     signup_candidates: list[SignupCandidate],
     junior_main_contact_candidates: list[JuniorMainContactCandidate],
-) -> tuple[str, str]:
+) -> tuple[str, str, bool]:
     phone = ""
     email = ""
+    self_contact = contact_candidates[0] if len(contact_candidates) == 1 else None
+    main_contact = junior_main_contact_candidates[0] if len(junior_main_contact_candidates) == 1 else None
+    has_self_consent = self_contact is not None and truthy_share_contact_detail(
+        self_contact.share_contact_detail
+    )
+    has_parent_consent = main_contact is not None and truthy_share_contact_detail(
+        main_contact.parent_share_contact_detail
+    )
 
-    if len(junior_main_contact_candidates) == 1:
-        main_contact = junior_main_contact_candidates[0]
-        phone = main_contact.main_contact_mobile or main_contact.main_contact_phone
-        email = main_contact.main_contact_email
+    self_phone = (self_contact.mobile or self_contact.phone) if self_contact and has_self_consent else ""
+    self_email = self_contact.email if self_contact and has_self_consent else ""
+    parent_phone = (
+        main_contact.main_contact_mobile or main_contact.main_contact_phone
+        if main_contact and has_parent_consent
+        else ""
+    )
+    parent_email = main_contact.main_contact_email if main_contact and has_parent_consent else ""
+
+    if self_phone and self_email and parent_phone and parent_email:
+        return (
+            f"Self: {self_phone}\nParent: {parent_phone}",
+            f"Self: {self_email}\nParent: {parent_email}",
+            False,
+        )
+
+    phone = parent_phone or self_phone
+    email = parent_email or self_email
+
+    if not phone and not email and (
+        (self_contact is not None and not has_self_consent)
+        or (main_contact is not None and not has_parent_consent)
+    ):
+        return "No Consent", "No Consent", True
 
     if len(member_candidates) == 1:
         member = member_candidates[0]
-        phone = phone or member.mobile or member.phone
-        email = email or member.email
+        if self_contact is None or has_self_consent:
+            phone = phone or member.mobile or member.phone
+            email = email or member.email
 
-    if len(contact_candidates) == 1:
-        contact = contact_candidates[0]
-        phone = phone or contact.mobile or contact.phone
-        email = email or contact.email
+    if self_contact is not None and has_self_consent:
+        phone = phone or self_phone
+        email = email or self_email
 
     if len(signup_candidates) == 1:
         signup = signup_candidates[0]
-        email = email or signup.email
+        if self_contact is None or has_self_consent:
+            email = email or signup.email
 
-    return phone, email
+    return phone, email, False
 
 
 def email_matches_name(candidate: ContactCandidate, source_name: str) -> bool:
@@ -576,7 +620,7 @@ def resolve_row(
     signup_candidates = signups_by_name.get(norm_name, [])
     junior_main_contact_candidates = junior_main_contacts_by_name.get(norm_name, [])
 
-    phone, email = choose_contact_detail(
+    phone, email, consent_denied = choose_contact_detail(
         member_candidates,
         contact_candidates,
         signup_candidates,
@@ -592,10 +636,11 @@ def resolve_row(
             "review_section": "explicit_override" if override_applied else "",
             "review_target": candidate_full_name(member_candidates[0]) if override_applied else "",
             "review_reason": "explicit full-name override from name_overrides.csv" if override_applied else "",
+            "no_consent": consent_denied,
         }
 
     if len(member_candidates) > 1:
-        return {"category": "No Match", "phone": "", "email": "", "match_note": ""}
+        return {"category": "No Match", "phone": "", "email": "", "match_note": "", "no_consent": False}
 
     if len(signup_candidates) == 1:
         return {
@@ -606,10 +651,11 @@ def resolve_row(
             "review_section": "explicit_override" if override_applied else "",
             "review_target": candidate_full_name(signup_candidates[0]) if override_applied else "",
             "review_reason": "explicit full-name override from name_overrides.csv" if override_applied else "",
+            "no_consent": consent_denied,
         }
 
     if len(signup_candidates) > 1:
-        return {"category": "No Match", "phone": "", "email": "", "match_note": ""}
+        return {"category": "No Match", "phone": "", "email": "", "match_note": "", "no_consent": False}
 
     if len(contact_candidates) == 1:
         return {
@@ -620,13 +666,17 @@ def resolve_row(
             "review_section": "explicit_override" if override_applied else "",
             "review_target": candidate_full_name(contact_candidates[0]) if override_applied else "",
             "review_reason": "explicit full-name override from name_overrides.csv" if override_applied else "",
+            "no_consent": consent_denied,
         }
 
     member_candidates = unique_nickname_candidates(name, members_by_name)
-    contact_candidates, _ = disambiguate_contact_candidates(unique_nickname_candidates(name, contacts_by_name), name)
+    contact_candidates, best_fit_applied = disambiguate_contact_candidates(
+        unique_nickname_candidates(name, contacts_by_name),
+        name,
+    )
     signup_candidates = unique_nickname_candidates(name, signups_by_name)
     junior_main_contact_candidates = unique_nickname_candidates(name, junior_main_contacts_by_name)
-    phone, email = choose_contact_detail(
+    phone, email, consent_denied = choose_contact_detail(
         member_candidates,
         contact_candidates,
         signup_candidates,
@@ -642,6 +692,7 @@ def resolve_row(
             "review_section": "nickname",
             "review_target": candidate_full_name(member_candidates[0]),
             "review_reason": "first-name override",
+            "no_consent": consent_denied,
         }
 
     if len(signup_candidates) == 1:
@@ -653,6 +704,7 @@ def resolve_row(
             "review_section": "nickname",
             "review_target": candidate_full_name(signup_candidates[0]),
             "review_reason": "first-name override",
+            "no_consent": consent_denied,
         }
 
     if len(contact_candidates) == 1:
@@ -660,17 +712,21 @@ def resolve_row(
             "category": "Not Signed Up",
             "phone": phone,
             "email": email,
-            "match_note": "Nickname",
+            "match_note": "Best Fit" if best_fit_applied else "Nickname",
             "review_section": "nickname",
             "review_target": candidate_full_name(contact_candidates[0]),
             "review_reason": "first-name override",
+            "no_consent": consent_denied,
         }
 
     member_candidates = unique_fuzzy_candidates(name, members_by_name)
-    contact_candidates, _ = disambiguate_contact_candidates(unique_fuzzy_candidates(name, contacts_by_name), name)
+    contact_candidates, best_fit_applied = disambiguate_contact_candidates(
+        unique_fuzzy_candidates(name, contacts_by_name),
+        name,
+    )
     signup_candidates = unique_fuzzy_candidates(name, signups_by_name)
     junior_main_contact_candidates = unique_fuzzy_candidates(name, junior_main_contacts_by_name)
-    phone, email = choose_contact_detail(
+    phone, email, consent_denied = choose_contact_detail(
         member_candidates,
         contact_candidates,
         signup_candidates,
@@ -686,6 +742,7 @@ def resolve_row(
             "review_section": "fuzzy",
             "review_target": candidate_full_name(member_candidates[0]),
             "review_reason": "fuzzy name match",
+            "no_consent": consent_denied,
         }
 
     if len(signup_candidates) == 1:
@@ -697,6 +754,7 @@ def resolve_row(
             "review_section": "fuzzy",
             "review_target": candidate_full_name(signup_candidates[0]),
             "review_reason": "fuzzy name match",
+            "no_consent": consent_denied,
         }
 
     if len(contact_candidates) == 1:
@@ -704,10 +762,11 @@ def resolve_row(
             "category": "Not Signed Up",
             "phone": phone,
             "email": email,
-            "match_note": "Fuzzy",
+            "match_note": "Best Fit" if best_fit_applied else "Fuzzy",
             "review_section": "fuzzy",
             "review_target": candidate_full_name(contact_candidates[0]),
             "review_reason": "fuzzy name match",
+            "no_consent": consent_denied,
         }
 
     return {
@@ -718,6 +777,7 @@ def resolve_row(
         "review_section": "no_match",
         "review_target": "",
         "review_reason": "no unique candidate",
+        "no_consent": False,
     }
 
 
@@ -761,6 +821,16 @@ def build_team_rows(
                         team_name=team_name.title(),
                     )
                 )
+            if details.get("no_consent"):
+                review_entries.append(
+                    ReviewEntry(
+                        section="no_consent",
+                        source_name=str(entry["name"]),
+                        target_name="",
+                        reason="share contact detail not granted",
+                        team_name=team_name.title(),
+                    )
+                )
 
         rows.sort(key=lambda row: (0 if row["captain"] else 1, first_name_key(row["name"]), row["name"].casefold()))
         resolved[team_name] = rows
@@ -783,7 +853,7 @@ def group_review_entries(review_entries: list[ReviewEntry]) -> dict[str, list[di
         if entry.target_name:
             grouped[key]["target_name"] = entry.target_name
 
-    ordered_sections = ["no_match", "explicit_override", "nickname", "fuzzy"]
+    ordered_sections = ["no_match", "no_consent", "explicit_override", "nickname", "fuzzy"]
     result: dict[str, list[dict[str, object]]] = {section: [] for section in ordered_sections}
     for (section, _), value in grouped.items():
         result[section].append(value)
@@ -802,6 +872,11 @@ def review_markdown_text(review_groups: dict[str, list[dict[str, object]]]) -> s
         "",
     ]
     for item in review_groups["no_match"]:
+        teams = ", ".join(sorted(item["teams"]))
+        lines.append(f"- `{item['display_name']}` - {item['reason']}. Teams: {teams}")
+
+    lines.extend(["", "## No Consent Contact Details", ""])
+    for item in review_groups["no_consent"]:
         teams = ", ".join(sorted(item["teams"]))
         lines.append(f"- `{item['display_name']}` - {item['reason']}. Teams: {teams}")
 
@@ -880,6 +955,7 @@ def write_review_pdf(review_groups: dict[str, list[dict[str, object]]], output_p
 
     section_map = [
         ("Remaining No Match Names", "no_match"),
+        ("No Consent Contact Details", "no_consent"),
         ("Explicit Full-Name Overrides", "explicit_override"),
         ("Short-Name / Nickname Matches", "nickname"),
         ("Fuzzy Matches", "fuzzy"),
@@ -944,7 +1020,7 @@ def write_workbook(title: str, teams: dict[str, list[dict[str, str]]], output_pa
             for col_index, value in enumerate(values, start=1):
                 cell = ws.cell(row=row_index, column=col_index, value=value)
                 cell.border = border
-                cell.alignment = Alignment(vertical="top")
+                cell.alignment = Alignment(vertical="top", wrap_text=True)
                 cell.font = bold_font if item["captain"] == "C" else body_font
             row_index += 1
 
@@ -966,6 +1042,9 @@ def write_workbook(title: str, teams: dict[str, list[dict[str, str]]], output_pa
         row_index += 1
         ws.merge_cells(start_row=row_index, start_column=1, end_row=row_index, end_column=6)
         ws.cell(row=row_index, column=1, value="****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.").font = footnote_font
+        row_index += 1
+        ws.merge_cells(start_row=row_index, start_column=1, end_row=row_index, end_column=6)
+        ws.cell(row=row_index, column=1, value="******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld.").font = footnote_font
 
         widths = {"A": 10, "B": 28, "C": 12, "D": 18, "E": 18, "F": 34}
         for column, width in widths.items():
@@ -992,6 +1071,7 @@ def write_csvs(teams: dict[str, list[dict[str, str]]], output_dir: Path) -> None
             writer.writerow(["**** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data."])
             writer.writerow(["***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data."])
             writer.writerow(["****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data."])
+            writer.writerow(["******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld."])
 
 
 def write_captain_email_list(all_teams: dict[str, dict[str, list[dict[str, str]]]], output_path: Path) -> None:
@@ -1003,14 +1083,18 @@ def write_captain_email_list(all_teams: dict[str, dict[str, list[dict[str, str]]
             for row in rows:
                 if row["captain"] != "C":
                     continue
-                email = row["email"].strip()
-                if not email:
+                raw_email = row["email"].strip()
+                if not raw_email:
                     continue
-                key = email.casefold()
-                if key in seen:
-                    continue
-                seen.add(key)
-                emails.append(email)
+                for part in raw_email.splitlines():
+                    email = re.sub(r"^(Self|Parent):\s*", "", part).strip()
+                    if not email or email.casefold() == "no consent":
+                        continue
+                    key = email.casefold()
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    emails.append(email)
 
     output_path.write_text(", ".join(emails) + ("\n" if emails else ""), encoding="utf-8")
 
@@ -1090,6 +1174,7 @@ def write_pdf(title: str, teams: dict[str, list[dict[str, str]]], output_path: P
         story.append(Paragraph("**** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.", note_style))
         story.append(Paragraph("***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.", note_style))
         story.append(Paragraph("****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.", note_style))
+        story.append(Paragraph("******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld.", note_style))
 
         if index < len(team_names) - 1:
             story.append(PageBreak())

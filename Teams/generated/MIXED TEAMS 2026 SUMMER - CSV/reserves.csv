@@ -1,6 +1,6 @@
 Captain,Name,Match,Category,Phone,Email
-,Alistair Jones,Best Fit,Not Signed Up,07741319024,alistair@badmintonwycombe.co.uk
-,Andy McElligot,Fuzzy,Not Signed Up,07825285272,andy.d.mcelligott@gmail.com
+,Alistair Jones,Best Fit,Not Signed Up,No Consent,No Consent
+,Andy McElligot,Fuzzy,Not Signed Up,No Consent,No Consent
 ,Chris Ezra,,Not Signed Up,07956 261566,casabella@btinternet.com
 ,Cliff Church,,Not Signed Up,07929 207152,cliffchurch@hotmail.com
 ,David Fowler,,Senior,+447854684323,davidrfowler@msn.com
@@ -8,14 +8,14 @@ Captain,Name,Match,Category,Phone,Email
 ,Edward Woods,,Senior,07816759110,edwardanthonywoods@gmail.com
 ,Georgina Riches,,Not Signed Up,07710475970,fam.riches@btinternet.com
 ,Graham Friel,,Not Signed Up,07967 035875,gt_friel@hotmail.com
-,James Cholerton,,Senior,07412335134,jcholerton@gmail.com
+,James Cholerton,,Senior,No Consent,No Consent
 ,James Colpus,,Not Signed Up,07763134274,colpus9@gmail.com
 ,Jill Penton,Fuzzy,Senior,07845 144977,jillian.penton@virginmedia.com
 ,Joan McCrossan,Best Fit,Not Signed Up,07739708728,jemccrossan@aol.com
 ,Jon Clackett,Nickname,Not Signed Up,07799 435600,jonathanclackett02@gmail.com
-,Liz Long,,Not Signed Up,07711 603036,lizzylong1@btinternet.com
+,Liz Long,,Not Signed Up,No Consent,No Consent
 ,Matt Napper,Nickname,Senior,+447974699847,mattnapper2@gmail.com
-,Mo Clackett,Nickname,Senior,07703 196204,moclackett@gmail.com
+,Mo Clackett,Nickname,Senior,No Consent,No Consent
 ,Paul Hampshire,,Senior,07850 810133,paul.hampshire63@hotmail.com
 ,Paul Treacy,,Senior,07746 038449,paultreacy01@gmail.com
 ,Richard Vallis,,Senior,07817 051360,Rbvallis@gmail.com
@@ -30,3 +30,4 @@ Captain,Name,Match,Category,Phone,Email
 **** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
 ***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
 ****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
+"******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld."

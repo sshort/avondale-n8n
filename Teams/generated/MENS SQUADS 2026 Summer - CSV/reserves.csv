@@ -1,11 +1,11 @@
 Captain,Name,Match,Category,Phone,Email
 ,Andy Cholerton,,Senior,+44127635182,suecholerton@gmail.com
-,Edward Long,,Not Signed Up,07934056432,edlong1@btinternet.com
+,Edward Long,,Not Signed Up,No Consent,No Consent
 ,Edward Woods,,Senior,07816759110,edwardanthonywoods@gmail.com
 ,Harry Bywaters,,Not Signed Up,+447741491640,hnbywaters@gmail.com
-,James Cholerton,,Senior,07412335134,jcholerton@gmail.com
+,James Cholerton,,Senior,No Consent,No Consent
 ,Paul Tippens,Fuzzy,Not Signed Up,07918696633,tippo74@gmail.com
-,Sean Elliott,,Not Signed Up,,
+,Sean Elliott,,Not Signed Up,No Consent,No Consent
 ,Tim presland,,Senior,07703129992,timpresland@gmail.com
 
 "* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found."
@@ -14,3 +14,4 @@ Captain,Name,Match,Category,Phone,Email
 **** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
 ***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
 ****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
+"******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld."

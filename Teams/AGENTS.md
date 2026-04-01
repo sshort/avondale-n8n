@@ -20,6 +20,17 @@ This directory contains the league and squad source documents used to build team
   - `public.vw_junior_main_contacts`
 - If there is a unique current paid membership match for the configured season, use that membership category.
 - If the player is a junior and `public.vw_junior_main_contacts` provides a unique high-confidence main contact, prefer that adult/main-contact email and phone over the junior's own raw member/contact details.
+- If a junior has their own contact row with consent to share and they also have a unique high-confidence main contact whose consent also allows sharing, output one row with two-line `Phone` and `Email` cells:
+  - `Self: ...`
+  - `Parent: ...`
+- Use `public.raw_contacts."Share Contact Detail"` to decide whether a player's own phone/email can be shown.
+  - `Yes` and similar true values mean the contact details may be shown.
+  - blank or non-true values mean the generator must output `No Consent` in both `Phone` and `Email`.
+- Treat junior and parent consent independently.
+  - If the junior cannot share but the resolved parent contact can, show the parent details.
+  - If the parent cannot share but the junior can, show the junior details.
+  - Only show `No Consent` when no permitted line can be shown.
+- Also include `No Consent` rows in the generated review report every run.
 - If there is no current paid membership match but there is a unique exact contact match, set category to `Not Signed Up`.
 - If there is no unique exact-name match, set category to `No Match`.
 - `No Match` also covers ambiguous exact-name collisions, such as duplicate people with the same first and last name.
@@ -62,6 +73,7 @@ This directory contains the league and squad source documents used to build team
   - root markdown review: [NO_MATCH_NAMES.md](./NO_MATCH_NAMES.md)
   - generated markdown copy: `generated/NO_MATCH_NAMES.md`
   - generated PDF copy: `generated/NO_MATCH_NAMES.pdf`
+- The generated sheets and PDFs must include a `No Consent` footnote explaining why phone/email may be withheld.
 
 ## Generator
 

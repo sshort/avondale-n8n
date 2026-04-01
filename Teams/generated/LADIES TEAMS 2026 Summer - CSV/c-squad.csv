@@ -2,7 +2,7 @@ Captain,Name,Match,Category,Phone,Email
 C,Kate Liggett,,Not Signed Up,07913406561,kate.liggett80@gmail.com
 ,Alison Jameson,,Senior,07593 569268,alison.jameson@gmail.com
 ,Joanne Stanley,,Not Signed Up,07754 115078,joanneecairns@hotmail.com
-,Katherine Rogers,,Senior,07885 304570,katherinerogers10@gmail.com
+,Katherine Rogers,,Senior,No Consent,No Consent
 ,Kim Field,,Senior,07500 660820,kimfield65@gmail.com
 ,Lynn McKenzie,,Not Signed Up,07887 522574,Lynnmckenzie@live.co.uk
 ,Trish Harris,Fuzzy,Not Signed Up,07801966381,harrisstrish@outlook.com
@@ -13,3 +13,4 @@ C,Kate Liggett,,Not Signed Up,07913406561,kate.liggett80@gmail.com
 **** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
 ***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
 ****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
+"******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld."

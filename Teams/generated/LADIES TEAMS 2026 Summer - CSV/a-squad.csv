@@ -1,9 +1,9 @@
 Captain,Name,Match,Category,Phone,Email
 C,Jane Dow,Override,Senior,+447721967512,janeatimmis@gmail.com
-,Amy Palmer,,Not Signed Up,07962260856,JESSICA.PALMER@FLITEPARTNERS.COM
+,Amy Palmer,,Not Signed Up,07962 260856,jessica.palmer@flitepartners.com
 ,Jane Vincent,,Not Signed Up,07787 824330,thevincents365@gmail.com
-,Leila Warwick,,Not Signed Up,07973 684940,leilawarwick@me.com
-,Sam Rush,Nickname,Senior,07765 164044,samrush336@gmail.com
+,Leila Warwick,,Not Signed Up,No Consent,No Consent
+,Sam Rush,Nickname,Senior,No Consent,No Consent
 ,Sian Thomas,,Senior,+447740943585,siannie.thomas@icloud.com
 ,Wendy Day,,Senior,07887688900,W_mudd@yahoo.com
 
@@ -13,3 +13,4 @@ C,Jane Dow,Override,Senior,+447721967512,janeatimmis@gmail.com
 **** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
 ***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
 ****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
+"******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld."

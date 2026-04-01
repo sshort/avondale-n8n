@@ -3,7 +3,7 @@ Captain,Name,Match,Category,Phone,Email
 ,GEORGINA RICHES,,Not Signed Up,07710475970,fam.riches@btinternet.com
 ,JON CLACKETT,Nickname,Not Signed Up,07799 435600,jonathanclackett02@gmail.com
 ,MAEW TATAM,,Not Signed Up,07885719965,walanda@hotmail.com
-,MO CLACKETT,Nickname,Senior,07703 196204,moclackett@gmail.com
+,MO CLACKETT,Nickname,Senior,No Consent,No Consent
 ,RAY RISTOW,,Senior,07801107701,ray.ristow@outlook.com
 ,TIM PRESLAND,,Senior,07703129992,timpresland@gmail.com
 
@@ -13,3 +13,4 @@ Captain,Name,Match,Category,Phone,Email
 **** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
 ***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
 ****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
+"******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld."

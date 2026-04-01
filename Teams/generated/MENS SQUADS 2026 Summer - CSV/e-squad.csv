@@ -1,14 +1,14 @@
 Captain,Name,Match,Category,Phone,Email
-C,Ben Hammond Duncan,,Young Adult,07306128175,kerryandian@hotmail.com
-,Alessandro Barcello,Fuzzy,Not Signed Up,07917533650,silvio.barcella@gmail.com
+C,Ben Hammond Duncan,,Young Adult,No Consent,No Consent
+,Alessandro Barcello,Fuzzy,Not Signed Up,No Consent,No Consent
 ,Alexander Peacock,,Young Adult,07884156587,peacock156@googlemail.com
-,Ben Fowler,,Not Signed Up,07592 441263,fowleredem@googlemail.com
+,Ben Fowler,,Not Signed Up,No Consent,No Consent
 ,David Fowler,,Senior,+447854684323,davidrfowler@msn.com
 ,Derek Carder,,Senior,07806 777845,derekcarder@rocketmail.com
 ,Graeme Hutchison,,Not Signed Up,07999775732,gdhutchison@me.com
-,Joel Villamayor,,Not Signed Up,7733247756,jrvsemail@gmail.com
+,Joel Villamayor,,Not Signed Up,No Consent,No Consent
 ,Matt Napper,Nickname,Senior,+447974699847,mattnapper2@gmail.com
-,Nigel Fisher,,Senior,07789394309,n.fisher3@ntlworld.com
+,Nigel Fisher,,Senior,No Consent,No Consent
 ,Ray Ristow,,Senior,07801107701,ray.ristow@outlook.com
 
 "* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found."
@@ -17,3 +17,4 @@ C,Ben Hammond Duncan,,Young Adult,07306128175,kerryandian@hotmail.com
 **** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
 ***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
 ****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
+"******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld."

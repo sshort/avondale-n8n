@@ -8,6 +8,13 @@ const subjectOverrides = new Map([
   ['shoe_tag_pigeon_hole', 'Message from Avondale about your tags'],
 ]);
 
+const templateTypeOverrides = new Map([
+  ['avondale_header', 1],
+  ['avondale_footer', 2],
+  ['signature', 2],
+  ['signature_html', 2],
+]);
+
 const sqlLiteral = (value) => {
   if (value === null || value === undefined) return 'NULL';
   return `'${String(value).replace(/'/g, "''")}'`;
@@ -55,6 +62,8 @@ const sourceGroupFromPath = (relativePath) => {
   const firstSegment = normalized.split('/')[0] ?? '';
   return firstSegment || 'root';
 };
+
+const templateTypeForKey = (templateKey) => templateTypeOverrides.get(templateKey) ?? 0;
 
 const stripSubjectLine = (content) => {
   const normalized = content
@@ -121,6 +130,7 @@ for (const file of files) {
   const group = grouped.get(key) ?? {
     template_key: key,
     template_name: titleize(stem),
+    template_type: templateTypeForKey(key),
     subject_template: null,
     text_template: null,
     html_template: null,
@@ -156,6 +166,7 @@ const values = Array.from(grouped.values())
   .map((row) => `(
     ${sqlLiteral(row.template_key)},
     ${sqlLiteral(row.template_name)},
+    ${row.template_type},
     ${sqlLiteral(row.subject_template)},
     ${sqlLiteral(row.text_template)},
     ${sqlLiteral(row.html_template)},
@@ -170,6 +181,7 @@ const sql = `BEGIN;
 INSERT INTO public.email_templates (
   template_key,
   template_name,
+  template_type,
   subject_template,
   text_template,
   html_template,
@@ -182,6 +194,7 @@ VALUES
 ${values}
 ON CONFLICT (template_key) DO UPDATE SET
   template_name = EXCLUDED.template_name,
+  template_type = EXCLUDED.template_type,
   subject_template = EXCLUDED.subject_template,
   text_template = EXCLUDED.text_template,
   html_template = EXCLUDED.html_template,

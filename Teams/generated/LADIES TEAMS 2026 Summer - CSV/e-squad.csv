@@ -1,12 +1,12 @@
 Captain,Name,Match,Category,Phone,Email
-C,Sue White,Nickname,Senior,01256 893013,susan582009@hotmail.co.uk
+C,Sue White,Nickname,Senior,No Consent,No Consent
 ,Claire Taylor,,Not Signed Up,07792410799,clairechicago1@gmail.com
-,Helen Eyres,Fuzzy,Senior,07801107701,helen_eyers@yahoo.co.uk
+,Helen Eyres,Fuzzy,Senior,No Consent,No Consent
 ,Jax S B,Override,Not Signed Up,07889433872,jaxsb1962@gmail.com
-,Jessica Palmer,,Not Signed Up,07962260856,JESSICA.PALMER@FLITEPARTNERS.COM
-,Jo Baines,,Senior,07789 882500,bainesfamily@ntlworld.com
-,Lindsey Evans,Fuzzy,Not Signed Up,07973 826745,lindsay@myevans.com
-,Liz Gruenstern,,Senior,07769867559,liz.gruenstern@gmail.com
+,Jessica Palmer,,Not Signed Up,No Consent,No Consent
+,Jo Baines,,Senior,No Consent,No Consent
+,Lindsey Evans,Fuzzy,Senior,No Consent,No Consent
+,Liz Gruenstern,,Senior,No Consent,No Consent
 ,Maew Tatam,,Not Signed Up,07885719965,walanda@hotmail.com
 ,Vicky Judge,,Not Signed Up,07775 683165,vixtiger1@icloud.com
 
@@ -16,3 +16,4 @@ C,Sue White,Nickname,Senior,01256 893013,susan582009@hotmail.co.uk
 **** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
 ***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
 ****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
+"******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld."

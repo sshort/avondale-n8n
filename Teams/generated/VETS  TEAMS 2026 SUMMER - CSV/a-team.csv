@@ -12,7 +12,7 @@ C,DAVID ALSTON,,Senior,07730771564,alstondr@hotmail.com
 ,RICHARD VALLIS,,Senior,07817 051360,Rbvallis@gmail.com
 ,SALLY CHARLTON,,Senior,07724 103325,sallycharlton22@btinternet.com
 ,SIAN THOMAS,,Senior,+447740943585,siannie.thomas@icloud.com
-,SUE WHITE,Nickname,Senior,01256 893013,susan582009@hotmail.co.uk
+,SUE WHITE,Nickname,Senior,No Consent,No Consent
 
 "* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found."
 ** No Match = no unique exact-name match was found in current club member/contact records.
@@ -20,3 +20,4 @@ C,DAVID ALSTON,,Senior,07730771564,alstondr@hotmail.com
 **** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
 ***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
 ****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
+"******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld."

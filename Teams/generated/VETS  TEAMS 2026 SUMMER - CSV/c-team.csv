@@ -5,7 +5,7 @@ C,SUSAN GILCHRIST,,Senior,07802 574286,mrs.susan.gilchrist@gmail.com
 ,DAVID HENSHAW,,Senior,07941347869,helendavidhenshaw@yahoo.co.uk
 ,DAVID WHITE,,Senior,07712812277,davidiwhite76@gmail.com
 ,JAX S BROWN,Override,Not Signed Up,07889433872,jaxsb1962@gmail.com
-,JESSICA PALMER,,Not Signed Up,07962260856,JESSICA.PALMER@FLITEPARTNERS.COM
+,JESSICA PALMER,,Not Signed Up,No Consent,No Consent
 ,JONTY MASTON,,Not Signed Up,07460 630363,j.maston@btinternet.com
 ,PAUL TREACY,,Senior,07746 038449,paultreacy01@gmail.com
 ,ROGER BARNACLE,,Not Signed Up,01256702931,rbarnacle1@gmail.com
@@ -18,3 +18,4 @@ C,SUSAN GILCHRIST,,Senior,07802 574286,mrs.susan.gilchrist@gmail.com
 **** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
 ***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
 ****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
+"******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld."

@@ -1,15 +1,15 @@
 Captain,Name,Match,Category,Phone,Email
-C,Tom Van Klaveren,Nickname,Not Signed Up,07502 285635,tvk24@hotmail.co.uk
-,Alec Mach,Nickname,Not Signed Up,07724505363,martyna.mach@gmail.com
-,Andy Mc Elligot,Fuzzy,Not Signed Up,07825285272,andy.d.mcelligott@gmail.com
+C,Tom Van Klaveren,Nickname,Not Signed Up,No Consent,No Consent
+,Alec Mach,Nickname,Not Signed Up,No Consent,No Consent
+,Andy Mc Elligot,Fuzzy,Not Signed Up,No Consent,No Consent
 ,ANDY ROXBURGH,Nickname,Not Signed Up,07919459390,andy@roxburgh.je
 ,Jacob Diskin,,Not Signed Up,07885204335,jacobdiskin@gmail.com
-,Michael Palmer,Best Fit,Not Signed Up,,
-,Oliver Casselton,,Junior,07867 557299,kcasselton@outlook.com
+,Michael Palmer,Best Fit,Not Signed Up,No Consent,No Consent
+,Oliver Casselton,,Junior,No Consent,No Consent
 ,Richard Longworth,,Not Signed Up,07508833898,rickieboy1@hotmail.com
-,Rob Bozier,,Not Signed Up,07969556875,robertbozier@yahoo.co.uk
-,Roni Asp,,Not Signed Up,07717 151014,roniasp6@gmail.com
-,Santu Asp,Fuzzy,Senior,07717 151014,santtu.asp@gmail.com
+,Rob Bozier,,Not Signed Up,No Consent,No Consent
+,Roni Asp,,Not Signed Up,No Consent,No Consent
+,Santu Asp,Fuzzy,Senior,No Consent,No Consent
 
 "* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found."
 ** No Match = no unique exact-name match was found in current club member/contact records.
@@ -17,3 +17,4 @@ C,Tom Van Klaveren,Nickname,Not Signed Up,07502 285635,tvk24@hotmail.co.uk
 **** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
 ***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
 ****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
+"******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld."

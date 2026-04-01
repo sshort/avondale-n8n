@@ -1,9 +1,9 @@
 Captain,Name,Match,Category,Phone,Email
 C,Tim Read,,Not Signed Up,07836652532,t.read423@gmail.com
-,Alek Katon,Fuzzy,Not Signed Up,07568 560257,alex.katon@hotmail.com
-,Antonias Nicolaidis,Fuzzy,Not Signed Up,07870 889889,georgenicolaidis@yahoo.co.uk
+,Alek Katon,Fuzzy,Not Signed Up,No Consent,No Consent
+,Antonias Nicolaidis,Fuzzy,Not Signed Up,No Consent,No Consent
 ,Chris Cole,,Senior,07879083489,ccole987@icloud.com
-,Harry McIntyre,Best Fit,Not Signed Up,07943603272,harrymcintyre68@gmail.com
+,Harry McIntyre,Best Fit,Not Signed Up,No Consent,No Consent
 ,Jonty Maston,,Not Signed Up,07460 630363,j.maston@btinternet.com
 ,Nick Ward,,Not Signed Up,07747 897885,nickward010@gmail.com
 ,Paul Treacy,,Senior,07746 038449,paultreacy01@gmail.com
@@ -17,3 +17,4 @@ C,Tim Read,,Not Signed Up,07836652532,t.read423@gmail.com
 **** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
 ***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
 ****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
+"******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld."
