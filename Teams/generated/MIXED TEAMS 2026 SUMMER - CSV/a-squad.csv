@@ -1,18 +1,21 @@
-Captain,Name,Match,Category,Phone,Email
-C,Mark Elliott,,Not Signed Up,07842970820,m.k.m.s.elliott@hotmail.co.uk
-,Amy Palmer,,Not Signed Up,07962 260856,jessica.palmer@flitepartners.com
-,Ben Martin,,Not Signed Up,07867 585811,martin.ben40000@gmail.com
-,David Pharo,,Not Signed Up,07974395880,david.pharo@aon.com
-,Jane Dow,Override,Senior,+447721967512,janeatimmis@gmail.com
-,Jane Vincent,,Not Signed Up,07787 824330,thevincents365@gmail.com
-,Leila Warwick,,Not Signed Up,No Consent,No Consent
-,Paul Kemsley,,Not Signed Up,No Consent,No Consent
-,Peter Grant,,Senior,07736 252655,petergrant471@gmail.com
+Captain,Name,Category,Consent,Phone,Email,Match
+C,Mark Elliott,Not Signed Up,Yes,07842970820,m.k.m.s.elliott@hotmail.co.uk,
+,Amy Palmer,Not Signed Up,"Self: Yes
+Parent: No","Self: 07962 260856
+Parent: 07962260856","Self: jessica.palmer@flitepartners.com
+Parent: JESSICA.PALMER@FLITEPARTNERS.COM",
+,Ben Martin,Not Signed Up,Yes,07867 585811,martin.ben40000@gmail.com,
+,David Pharo,Not Signed Up,Yes,07974395880,david.pharo@aon.com,
+,Jane Dow,Senior,Yes,+447721967512,janeatimmis@gmail.com,Override
+,Jane Vincent,Not Signed Up,Yes,07787 824330,thevincents365@gmail.com,
+,Leila Warwick,Not Signed Up,No,07973 684940,leilawarwick@me.com,
+,Paul Kemsley,Not Signed Up,No,07747 105459,paul_kemsley@hotmail.com,
+,Peter Grant,Senior,Yes,07736 252655,petergrant471@gmail.com,
 
-"* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found."
-** No Match = no unique exact-name match was found in current club member/contact records.
-*** Best Fit = one row was chosen from several exact-name candidates using the best available contact evidence.
-**** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
-***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
-****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
-"******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld."
+"* Consent: No means the captain may use the phone/email for team management, but may not pass it on to anyone else."
+** Not Signed Up = no current membership was found.
+*** No Match = no unique exact-name match was found in current club member/contact records.
+**** Best Fit = one row was chosen from several exact-name candidates using the best available contact evidence.
+***** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
+****** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
+******* Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.

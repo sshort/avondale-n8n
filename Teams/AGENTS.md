@@ -18,18 +18,17 @@ This directory contains the league and squad source documents used to build team
   - `public.vw_best_current_contacts`
   - `public.member_signups`
   - `public.vw_junior_main_contacts`
-- If there is a unique current paid membership match for the configured season, use that membership category.
-- If the player is a junior and `public.vw_junior_main_contacts` provides a unique high-confidence main contact, prefer that adult/main-contact email and phone over the junior's own raw member/contact details.
-- If a junior has their own contact row with consent to share and they also have a unique high-confidence main contact whose consent also allows sharing, output one row with two-line `Phone` and `Email` cells:
+- If there is a unique current active membership match for the configured season, use that membership category, regardless of payment status.
+- If the player is a junior and `public.vw_junior_main_contacts` provides a unique high-confidence main contact, include that adult/main-contact email and phone alongside the junior's own details where available.
+- If a junior has their own contact row and they also have a unique high-confidence main contact, output one row with two-line `Phone` and `Email` cells where both sides have details:
   - `Self: ...`
   - `Parent: ...`
-- Use `public.raw_contacts."Share Contact Detail"` to decide whether a player's own phone/email can be shown.
-  - `Yes` and similar true values mean the contact details may be shown.
-  - blank or non-true values mean the generator must output `No Consent` in both `Phone` and `Email`.
+- Use `public.raw_contacts."Share Contact Detail"` to decide whether a player's own contact line has consent.
+  - `Yes` and similar true values mean consent is `Yes`.
+  - blank or non-true values mean consent is `No`.
 - Treat junior and parent consent independently.
-  - If the junior cannot share but the resolved parent contact can, show the parent details.
-  - If the parent cannot share but the junior can, show the junior details.
-  - Only show `No Consent` when no permitted line can be shown.
+  - If both junior and parent lines are shown, the `Consent` column should mirror them with `Self: Yes/No` and `Parent: Yes/No`.
+  - Always display the available phone and email details regardless of consent.
 - Also include `No Consent` rows in the generated review report every run.
 - If there is no current paid membership match but there is a unique exact contact match, set category to `Not Signed Up`.
 - If there is no unique exact-name match, set category to `No Match`.
@@ -54,6 +53,7 @@ This directory contains the league and squad source documents used to build team
 
 - Keep captains first, marked with `C`, and bold them.
 - Sort all non-captains by first name alphabetically.
+- Put the `Match` column last, after `Email`.
 - Use Avondale Tennis Club theming:
   - navy `#2F5496`
   - light blue `#D9E2F3`
@@ -64,6 +64,10 @@ This directory contains the league and squad source documents used to build team
   - per-team `.pdf`
 - Also generate the captain email distribution list on every run:
   - `generated/team-captains-email-list.txt`
+- Also generate the captain mailout manifests on every run:
+  - `generated/team-captain-email-jobs.json`
+  - `generated/team-captain-email-jobs.csv`
+  - `generated/CAPTAIN_EMAIL_SEND_LIST.md`
 - The `Match` column should show non-exact resolution types explicitly:
   - `Best Fit`
   - `Override`
@@ -73,13 +77,16 @@ This directory contains the league and squad source documents used to build team
   - root markdown review: [NO_MATCH_NAMES.md](./NO_MATCH_NAMES.md)
   - generated markdown copy: `generated/NO_MATCH_NAMES.md`
   - generated PDF copy: `generated/NO_MATCH_NAMES.pdf`
-- The generated sheets and PDFs must include a `No Consent` footnote explaining why phone/email may be withheld.
+- The generated sheets, CSVs, and PDFs must include a first footnote explaining that `Consent = No` means the captain may use the information for team management, but may not pass it on to anyone else.
 
 ## Generator
 
 - Main script: [generate_team_contact_lists.py](./generate_team_contact_lists.py)
 - Output folder: `generated/`
 - Per-team PDFs are written directly into `generated/`
+- Mailout helper scripts:
+  - [../scripts/sync-team-captain-mailout-to-n8n.sh](../scripts/sync-team-captain-mailout-to-n8n.sh)
+  - [../scripts/run-team-captain-mailout.sh](../scripts/run-team-captain-mailout.sh)
 
 Run with:
 

@@ -1,0 +1,387 @@
+{
+  "generated_at": "2026-04-02T09:33:51.707Z",
+  "dashboard": {
+    "id": 11,
+    "name": "Avondale Membership",
+    "tab_count": 7,
+    "dashcard_count": 38,
+    "question_dashcards": 35
+  },
+  "used_counts": {
+    "total": 42,
+    "by_type": {
+      "question": 42
+    }
+  },
+  "unused_counts": {
+    "total": 0,
+    "by_type": {},
+    "by_collection_name": {},
+    "by_database_id": {}
+  },
+  "direct": [
+    {
+      "dashcard_id": 1303,
+      "card_id": 1510,
+      "name": "n8n Executions by Workflow and Status",
+      "type": "question",
+      "tab": "Batch Executions",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1299,
+      "card_id": 1511,
+      "name": "n8n Recent Executions",
+      "type": "question",
+      "tab": "Batch Executions",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1328,
+      "card_id": 1610,
+      "name": "Global Settings",
+      "type": "question",
+      "tab": "Database",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1329,
+      "card_id": 1612,
+      "name": "Latest Raw Match Outcomes",
+      "type": "question",
+      "tab": "Database",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1331,
+      "card_id": 1613,
+      "name": "Ambiguous Raw Matches",
+      "type": "question",
+      "tab": "Database",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1332,
+      "card_id": 1614,
+      "name": "Latest Raw Match Audit",
+      "type": "question",
+      "tab": "Database",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1330,
+      "card_id": 1615,
+      "name": "Weak Name-Only Raw Matches",
+      "type": "question",
+      "tab": "Database",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1300,
+      "card_id": 1581,
+      "name": "Summary of Keys",
+      "type": "question",
+      "tab": "Keys",
+      "deps": [
+        1620,
+        1621,
+        1622
+      ]
+    },
+    {
+      "dashcard_id": 1316,
+      "card_id": 1451,
+      "name": "Age Ranges",
+      "type": "question",
+      "tab": "Memberships",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1301,
+      "card_id": 1465,
+      "name": "Count of Members - Previous Year",
+      "type": "question",
+      "tab": "Memberships",
+      "deps": [
+        1505
+      ]
+    },
+    {
+      "dashcard_id": 1315,
+      "card_id": 1466,
+      "name": "Count of Members - Current Year",
+      "type": "question",
+      "tab": "Memberships",
+      "deps": [
+        1506
+      ]
+    },
+    {
+      "dashcard_id": 1307,
+      "card_id": 1468,
+      "name": "Count of Non-Active Members - Previous Year",
+      "type": "question",
+      "tab": "Memberships",
+      "deps": [
+        1513
+      ]
+    },
+    {
+      "dashcard_id": 1312,
+      "card_id": 1469,
+      "name": "Count of Non-Active Members",
+      "type": "question",
+      "tab": "Memberships",
+      "deps": [
+        1514
+      ]
+    },
+    {
+      "dashcard_id": 1295,
+      "card_id": 1494,
+      "name": "Members by category",
+      "type": "question",
+      "tab": "Memberships",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1318,
+      "card_id": 1496,
+      "name": "Membership History Last 10 Years",
+      "type": "question",
+      "tab": "Memberships",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1319,
+      "card_id": 1497,
+      "name": "Membership History Last 10 Years - Table",
+      "type": "question",
+      "tab": "Memberships",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1296,
+      "card_id": 1500,
+      "name": "Member Signups by date",
+      "type": "question",
+      "tab": "Memberships",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1297,
+      "card_id": 1505,
+      "name": "Members - Previous Year",
+      "type": "question",
+      "tab": "Memberships",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1320,
+      "card_id": 1506,
+      "name": "Members - Current Year",
+      "type": "question",
+      "tab": "Memberships",
+      "deps": [
+        1502
+      ]
+    },
+    {
+      "dashcard_id": 1311,
+      "card_id": 1597,
+      "name": "Contacts - Selected Year",
+      "type": "question",
+      "tab": "Search",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1304,
+      "card_id": 1537,
+      "name": "Pending Signup Batch (Full Unconsolidated List)",
+      "type": "question",
+      "tab": "Signup Batches",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1305,
+      "card_id": 1542,
+      "name": "Processed Signups Base (Intermediate table)",
+      "type": "question",
+      "tab": "Signup Batches",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1314,
+      "card_id": 1575,
+      "name": "Signup Batches",
+      "type": "question",
+      "tab": "Signup Batches",
+      "deps": [
+        1611
+      ]
+    },
+    {
+      "dashcard_id": 1306,
+      "card_id": 1596,
+      "name": "Consolidated by Payer Address (for labels)",
+      "type": "question",
+      "tab": "Signup Batches",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1321,
+      "card_id": 1464,
+      "name": "Count of Members Not Renewed - Current Year",
+      "type": "question",
+      "tab": "Signup Statistics",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1310,
+      "card_id": 1467,
+      "name": "Count of New Members - Current Year",
+      "type": "question",
+      "tab": "Signup Statistics",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1309,
+      "card_id": 1472,
+      "name": "Current Members - Selected Year (Map)",
+      "type": "question",
+      "tab": "Signup Statistics",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1317,
+      "card_id": 1489,
+      "name": "List of Members Not Renewed - Current Year",
+      "type": "question",
+      "tab": "Signup Statistics",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1324,
+      "card_id": 1491,
+      "name": "List of New Members - Selected Year",
+      "type": "question",
+      "tab": "Signup Statistics",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1313,
+      "card_id": 1507,
+      "name": "Most Recent Signups",
+      "type": "question",
+      "tab": "Signup Statistics",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1323,
+      "card_id": 1576,
+      "name": "Signups - by day of week",
+      "type": "question",
+      "tab": "Signup Statistics",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1322,
+      "card_id": 1577,
+      "name": "Signups - by hour of day",
+      "type": "question",
+      "tab": "Signup Statistics",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1326,
+      "card_id": 1607,
+      "name": "List of Members Who Changed Package - Current Year",
+      "type": "question",
+      "tab": "Signup Statistics",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1325,
+      "card_id": 1608,
+      "name": "Count of Members Missing Signup Email",
+      "type": "question",
+      "tab": "Signup Statistics",
+      "deps": []
+    },
+    {
+      "dashcard_id": 1327,
+      "card_id": 1609,
+      "name": "List of Members Missing Signup Email",
+      "type": "question",
+      "tab": "Signup Statistics",
+      "deps": []
+    }
+  ],
+  "indirect": [
+    {
+      "card_id": 1502,
+      "name": "Members in Category - Selected Year",
+      "type": "question",
+      "via": 1506,
+      "via_dashcard_id": 1320
+    },
+    {
+      "card_id": 1505,
+      "name": "Members - Previous Year",
+      "type": "question",
+      "via": 1465,
+      "via_dashcard_id": 1301
+    },
+    {
+      "card_id": 1506,
+      "name": "Members - Current Year",
+      "type": "question",
+      "via": 1466,
+      "via_dashcard_id": 1315
+    },
+    {
+      "card_id": 1513,
+      "name": "Non-Active Members - Previous Year (Records)",
+      "type": "question",
+      "via": 1468,
+      "via_dashcard_id": 1307
+    },
+    {
+      "card_id": 1514,
+      "name": "Non-Active Members - Selected Year (Records)",
+      "type": "question",
+      "via": 1469,
+      "via_dashcard_id": 1312
+    },
+    {
+      "card_id": 1611,
+      "name": "Signup Batch Member Rows",
+      "type": "question",
+      "via": 1575,
+      "via_dashcard_id": 1314
+    },
+    {
+      "card_id": 1620,
+      "name": "Key Holders - Selected Year",
+      "type": "question",
+      "via": 1581,
+      "via_dashcard_id": 1300
+    },
+    {
+      "card_id": 1621,
+      "name": "Remaining Key Cases - Selected Year",
+      "type": "question",
+      "via": 1581,
+      "via_dashcard_id": 1300
+    },
+    {
+      "card_id": 1622,
+      "name": "Completed Key Issues Since Stock Baseline",
+      "type": "question",
+      "via": 1581,
+      "via_dashcard_id": 1300
+    }
+  ],
+  "unused_by_type_then_collection": {},
+  "unused": []
+}

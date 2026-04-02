@@ -1,0 +1,591 @@
+{
+  "name": "Send Team Captain Contact Lists",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "send-team-captain-contact-lists",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "d4000000-0000-0000-0000-000000000002",
+      "name": "Send Team Captain Contact Lists Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        220
+      ],
+      "webhookId": "send-team-captain-contact-lists"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'email_delivery_mode' THEN value END) AS default_delivery_mode,\n  MAX(CASE WHEN key = 'email_test_recipient' THEN value END) AS default_test_recipient,\n  MAX(CASE WHEN key = 'email_sender_name' THEN value END) AS email_sender_name,\n  MAX(CASE WHEN key = 'email_reply_to' THEN value END) AS email_reply_to,\n  MAX(CASE WHEN key = 'email_signature_template_key' THEN value END) AS email_signature_template_key\nFROM public.global_settings\nWHERE key IN (\n  'email_delivery_mode',\n  'email_test_recipient',\n  'email_sender_name',\n  'email_reply_to',\n  'email_signature_template_key'\n);"
+      },
+      "id": "d4000000-0000-0000-0000-000000000003",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        460,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const defaults = $('Load Global Settings').first()?.json ?? {};\nconst request = $('Send Team Captain Contact Lists Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst query = request.query ?? {};\nconst body = request.body ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst modeCandidates = [body.delivery_mode, body.deliveryMode, request.delivery_mode, request.deliveryMode, query.delivery_mode, query.deliveryMode, query.mode, defaults.default_delivery_mode];\nconst normalizedMode = String(modeCandidates.find((value) => clean(value) !== '') ?? 'test').trim().toLowerCase();\nconst deliveryMode = normalizedMode === 'production' ? 'production' : 'test';\nconst recipientCandidates = [body.test_recipient, body.testRecipient, request.test_recipient, request.testRecipient, query.test_recipient, query.testRecipient, defaults.default_test_recipient];\nconst testRecipient = String(recipientCandidates.find((value) => clean(value) !== '') ?? 'steve.short@gmail.com').trim();\nconst baseDir = clean(body.base_dir) || clean(query.base_dir) || '/home/node/.n8n-files/teams-mailout/current';\nconst jobs = Array.isArray(body.jobs) ? body.jobs : [];\nconst errorMessage = jobs.length ? '' : 'jobs is required';\nreturn [{ json: { base_dir: baseDir, sender_name: defaults.email_sender_name || 'Steve Short', reply_to: defaults.email_reply_to || 'members.avondaleltc@gmail.com', template_key: 'team_captain_contact_lists', signature_template_key: defaults.email_signature_template_key || 'signature', delivery_mode: deliveryMode, test_recipient: testRecipient, jobs, error_message: errorMessage } }];"
+      },
+      "id": "d4000000-0000-0000-0000-000000000004",
+      "name": "Resolve Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "request-error-check",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "d4000000-0000-0000-0000-000000000005",
+      "name": "Check Request Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        980,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $input.first().json ?? {};\nreturn [{ json: { message: input.error_message || 'Invalid request', delivery_mode: input.delivery_mode ?? 'test' } }];"
+      },
+      "id": "d4000000-0000-0000-0000-000000000006",
+      "name": "Build Error Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1240,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "d4000000-0000-0000-0000-000000000007",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1500,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $input.first().json ?? {};\nconst sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sql = `with main_template as (\n  select template_key, subject_template, text_template, html_template\n  from public.email_templates\n  where template_key = ${sqlLiteral(input.template_key || 'team_captain_contact_lists')}\n    and is_active = true\n    and template_type = 0\n  order by id desc\n  limit 1\n), signature_template as (\n  select template_key, subject_template, text_template, html_template\n  from public.email_templates\n  where template_key = ${sqlLiteral(input.signature_template_key || 'signature')}\n    and is_active = true\n    and template_type = 2\n  order by id desc\n  limit 1\n)\nselect\n  main_template.template_key,\n  main_template.subject_template,\n  main_template.text_template,\n  main_template.html_template,\n  signature_template.template_key as signature_template_key,\n  signature_template.text_template as signature_text_template,\n  signature_template.html_template as signature_html_template\nfrom main_template\nleft join signature_template on true;`;\nreturn [{ json: { ...input, sql } }];"
+      },
+      "id": "d4000000-0000-0000-0000-000000000008",
+      "name": "Build Signature SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1240,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "d4000000-0000-0000-0000-000000000009",
+      "name": "Load Signature Template",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1500,
+        320
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "fileSelector": "={{ $json.manifest_path }}",
+        "options": {
+          "dataPropertyName": "manifest",
+          "fileName": "team-captain-email-jobs.json",
+          "mimeType": "application/json"
+        }
+      },
+      "id": "d4000000-0000-0000-0000-000000000010",
+      "name": "Read Jobs Manifest",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1240,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const config = $('Resolve Request').first()?.json ?? {};\nconst template = $('Load Signature Template').first()?.json ?? {};\nconst jobs = Array.isArray(config.jobs) ? config.jobs : [];\nconst sendableJobs = jobs.filter((job) => Boolean(job?.can_send) && String(job?.captain_email ?? '').trim() !== '');\nif (!sendableJobs.length) {\n  return [{ json: { summary_only: true, message: 'No sendable captain jobs found', job_count: jobs.length, delivery_mode: config.delivery_mode } }];\n}\nif (!template.template_key) {\n  throw new Error(`Email template ${config.template_key || 'team_captain_contact_lists'} was not found`);\n}\nconst templateText = String(template.text_template ?? '').trim();\nconst signatureText = String(template.signature_text_template ?? '').trim();\nconst joinPath = (baseDir, fileName) => `${String(baseDir ?? '').replace(/\\/$/, '')}/${String(fileName ?? '').replace(/^\\//, '')}`;\nconst firstNameOf = (name) => String(name ?? '').trim().split(/\\s+/)[0] || 'Captain';\nconst applyTokens = (value, tokenMap) => {\n  let rendered = String(value ?? '');\n  for (const [token, replacement] of Object.entries(tokenMap)) {\n    rendered = rendered.split(token).join(String(replacement ?? ''));\n  }\n  return rendered.trim();\n};\nreturn sendableJobs.map((job) => {\n  const captainName = String(job.captain_name ?? '').trim();\n  const captainEmail = String(job.captain_email ?? '').trim();\n  const firstName = firstNameOf(captainName);\n  const nextTeamName = String(job.next_team_name ?? 'Reserves').trim() || 'Reserves';\n  const attachmentLines = [\n    `- your team: ${job.team_name}`,\n    nextTeamName === 'Reserves' ? '- reserves' : `- the next team down: ${nextTeamName}`,\n  ];\n  if (nextTeamName !== 'Reserves') {\n    attachmentLines.push('- reserves');\n  }\n  const tokenMap = {\n    '{{$json.first_name}}': firstName,\n    '{{$json.captain_name}}': captainName,\n    '{{$json.team_name}}': String(job.team_name ?? ''),\n    '{{$json.next_team_name}}': nextTeamName,\n    '{{$json.section}}': String(job.section ?? ''),\n    '{{$json.source_doc}}': String(job.source_doc ?? ''),\n    '{{$json.attachment_list}}': attachmentLines.join('\\n'),\n    '{{first_name}}': firstName,\n    '{{captain_name}}': captainName,\n    '{{team_name}}': String(job.team_name ?? ''),\n    '{{next_team_name}}': nextTeamName,\n    '{{section}}': String(job.section ?? ''),\n    '{{source_doc}}': String(job.source_doc ?? ''),\n    '{{attachment_list}}': attachmentLines.join('\\n'),\n  };\n  const renderedBody = applyTokens(templateText, tokenMap);\n  const renderedSignature = applyTokens(signatureText, tokenMap);\n  const composed = [renderedBody, renderedSignature].filter(Boolean).join('\\n\\n').trim();\n  const isTestMode = config.delivery_mode !== 'production';\n  const finalMessage = isTestMode\n    ? `${composed}\\n\\n---\\nTEST MODE\\nIntended recipient: ${captainEmail}`\n    : composed;\n  return {\n    json: {\n      summary_only: false,\n      section: job.section,\n      source_doc: job.source_doc,\n      team_name: job.team_name,\n      next_team_name: nextTeamName,\n      captain_name: captainName,\n      intended_recipient: captainEmail,\n      actual_recipient: isTestMode ? config.test_recipient : captainEmail,\n      own_pdf: job.own_pdf,\n      next_pdf: job.next_pdf,\n      reserves_pdf: job.reserves_pdf,\n      own_pdf_path: joinPath(config.base_dir, job.own_pdf),\n      next_pdf_path: joinPath(config.base_dir, job.next_pdf),\n      reserves_pdf_path: joinPath(config.base_dir, job.reserves_pdf),\n      sender_name: config.sender_name,\n      reply_to: config.reply_to,\n      delivery_mode: config.delivery_mode,\n      template_key: template.template_key,\n      signature_template_key: template.signature_template_key || config.signature_template_key || 'signature',\n      rendered_subject: applyTokens(template.subject_template ?? 'Avondale team contact lists: {{$json.team_name}}', tokenMap),\n      rendered_message: finalMessage,\n      email_type: 'text'\n    }\n  };\n});"
+      },
+      "id": "d4000000-0000-0000-0000-000000000011",
+      "name": "Build Send Items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "summary-only-check",
+              "leftValue": "={{ $json.summary_only }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "d4000000-0000-0000-0000-000000000012",
+      "name": "Summary Only?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2020,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "d4000000-0000-0000-0000-000000000013",
+      "name": "Respond No Jobs",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "fileSelector": "={{ $('Build Send Items').item.json.own_pdf_path }}",
+        "options": {
+          "dataPropertyName": "attachment_0",
+          "fileName": "={{ $('Build Send Items').item.json.own_pdf }}",
+          "mimeType": "application/pdf"
+        }
+      },
+      "id": "d4000000-0000-0000-0000-000000000014",
+      "name": "Read Own Attachment",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        2260,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "fileSelector": "={{ $('Build Send Items').item.json.next_pdf_path }}",
+        "options": {
+          "dataPropertyName": "attachment_1",
+          "fileName": "={{ $('Build Send Items').item.json.next_pdf }}",
+          "mimeType": "application/pdf"
+        }
+      },
+      "id": "d4000000-0000-0000-0000-000000000015",
+      "name": "Read Next Attachment",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        2520,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "fileSelector": "={{ $('Build Send Items').item.json.reserves_pdf_path }}",
+        "options": {
+          "dataPropertyName": "attachment_2",
+          "fileName": "={{ $('Build Send Items').item.json.reserves_pdf }}",
+          "mimeType": "application/pdf"
+        }
+      },
+      "id": "d4000000-0000-0000-0000-000000000016",
+      "name": "Read Reserves Attachment",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        2780,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const sourceJson = { ...($('Build Send Items').item.json ?? {}) };\nconst attachment0 = $('Read Own Attachment').item.binary?.attachment_0;\nconst attachment1 = $('Read Next Attachment').item.binary?.attachment_1;\nconst attachment2 = $('Read Reserves Attachment').item.binary?.attachment_2;\nif (!attachment0 || !attachment1 || !attachment2) {\n  throw new Error('Missing one or more attachment binaries');\n}\nreturn {\n  json: sourceJson,\n  binary: {\n    attachment_0: attachment0,\n    attachment_1: attachment1,\n    attachment_2: attachment2,\n  },\n};"
+      },
+      "id": "d4000000-0000-0000-0000-000000000020",
+      "name": "Assemble Email Item",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3040,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $('Build Send Items').item.json.actual_recipient }}",
+        "subject": "={{ $('Build Send Items').item.json.rendered_subject }}",
+        "emailType": "={{ $('Build Send Items').item.json.email_type }}",
+        "message": "={{ $('Build Send Items').item.json.rendered_message }}",
+        "options": {
+          "appendAttribution": false,
+          "replyTo": "={{ $('Build Send Items').item.json.reply_to }}",
+          "senderName": "={{ $('Build Send Items').item.json.sender_name }}",
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "attachment_0,attachment_1,attachment_2"
+              }
+            ]
+          }
+        }
+      },
+      "id": "d4000000-0000-0000-0000-000000000017",
+      "name": "Send Gmail Message",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3300,
+        520
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sourceItems = $('Build Send Items').all().map((item) => item.json ?? {});\nreturn [{\n  json: {\n    message: `Sent ${sourceItems.length} captain email(s) in ${sourceItems[0]?.delivery_mode ?? 'test'} mode`,\n    sent_count: sourceItems.length,\n    delivery_mode: sourceItems[0]?.delivery_mode ?? 'test',\n    sent: sourceItems.map((item) => ({\n      captain_name: item.captain_name,\n      team_name: item.team_name,\n      actual_recipient: item.actual_recipient,\n      intended_recipient: item.intended_recipient\n    }))\n  }\n}];"
+      },
+      "id": "d4000000-0000-0000-0000-000000000018",
+      "name": "Summarize Send",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3560,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "d4000000-0000-0000-0000-000000000019",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3820,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "Send Team Captain Contact Lists Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Resolve Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Request": {
+      "main": [
+        [
+          {
+            "node": "Check Request Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Request Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Signature SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Signature SQL": {
+      "main": [
+        [
+          {
+            "node": "Load Signature Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Signature Template": {
+      "main": [
+        [
+          {
+            "node": "Build Send Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Send Items": {
+      "main": [
+        [
+          {
+            "node": "Summary Only?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summary Only?": {
+      "main": [
+        [
+          {
+            "node": "Respond No Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read Own Attachment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Own Attachment": {
+      "main": [
+        [
+          {
+            "node": "Read Next Attachment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Next Attachment": {
+      "main": [
+        [
+          {
+            "node": "Read Reserves Attachment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Reserves Attachment": {
+      "main": [
+        [
+          {
+            "node": "Assemble Email Item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assemble Email Item": {
+      "main": [
+        [
+          {
+            "node": "Send Gmail Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Gmail Message": {
+      "main": [
+        [
+          {
+            "node": "Summarize Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize Send": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "pinData": {},
+  "versionId": "d4000000-0000-0000-0000-000000009999",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

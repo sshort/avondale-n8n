@@ -4,49 +4,48 @@ This file records the current non-trivial name matching used by [generate_team_c
 
 ## Remaining No Match Names
 
-- `Charlene Jacobs` - no unique candidate. Teams: B Squad
 
 ## No Consent Contact Details
 
-- `Alec Mach` - share contact detail not granted. Teams: B Squad
-- `Alek Katon` - share contact detail not granted. Teams: D Squad
-- `Alessandro Barcello` - share contact detail not granted. Teams: E Squad
-- `Alex katon` - share contact detail not granted. Teams: B Team, D Squad
-- `Alex Mach` - share contact detail not granted. Teams: C Squad
-- `Alistair Jones` - share contact detail not granted. Teams: A Squad, Reserves
-- `Andy Mc Elligot` - share contact detail not granted. Teams: B Squad, Reserves
-- `Antonias Nicolaidis` - share contact detail not granted. Teams: D Squad
-- `Antonis Nicolaidis` - share contact detail not granted. Teams: D Squad
-- `Ben Fowler` - share contact detail not granted. Teams: E Squad
-- `Ben Hammond Duncan` - share contact detail not granted. Teams: D Squad, E Squad
-- `Edward Long` - share contact detail not granted. Teams: Reserves
-- `Fran Jones` - share contact detail not granted. Teams: C Squad, D Squad
-- `Harry McIntyre` - share contact detail not granted. Teams: D Squad
-- `Helen Eyres` - share contact detail not granted. Teams: E Squad
-- `James Cholerton` - share contact detail not granted. Teams: Reserves
-- `Jessica Palmer` - share contact detail not granted. Teams: C Team, D Squad, E Squad
-- `Jo Baines` - share contact detail not granted. Teams: E Squad
-- `Joel Villamayor` - share contact detail not granted. Teams: D Squad, E Squad
-- `Katherine Rogers` - share contact detail not granted. Teams: B Team, C Squad
-- `Leila Warwick` - share contact detail not granted. Teams: A Squad
-- `Lindsey Evans` - share contact detail not granted. Teams: E Squad
-- `Liz Gruenstern` - share contact detail not granted. Teams: E Squad
-- `Liz Gruernstern` - share contact detail not granted. Teams: D Squad
-- `Liz Long` - share contact detail not granted. Teams: B Squad, Reserves
-- `Michael Palmer` - share contact detail not granted. Teams: B Squad
-- `Mo Clackett` - share contact detail not granted. Teams: Reserves
-- `Nigel Fisher` - share contact detail not granted. Teams: D Squad, E Squad
-- `Oliver Casselton` - share contact detail not granted. Teams: B Squad
-- `Paul Kemsley` - share contact detail not granted. Teams: A Squad
-- `Rob Bozier` - share contact detail not granted. Teams: B Squad
-- `Roni Asp` - share contact detail not granted. Teams: B Squad
-- `Sam Rush` - share contact detail not granted. Teams: A Squad, B Squad
-- `Santu Asp` - share contact detail not granted. Teams: B Squad
-- `Sean Elliott` - share contact detail not granted. Teams: Reserves
-- `Sue white` - share contact detail not granted. Teams: A Team, B Squad, E Squad
-- `Susie Cooke` - share contact detail not granted. Teams: D Squad
-- `Tom Van Klaveren` - share contact detail not granted. Teams: B Squad
-- `Tom Van Klavern` - share contact detail not granted. Teams: B Squad
+- `Alec Mach` - self and parent contact details do not permit onward sharing. Teams: B Squad
+- `Alek Katon` - self contact details do not permit onward sharing. Teams: D Squad
+- `Alessandro Barcello` - self and parent contact details do not permit onward sharing. Teams: E Squad
+- `Alex katon` - self contact details do not permit onward sharing. Teams: B Team, D Squad
+- `Alex Mach` - self and parent contact details do not permit onward sharing. Teams: C Squad
+- `Alistair Jones` - self contact details do not permit onward sharing. Teams: A Squad, Reserves
+- `Amy Palmer` - parent contact details do not permit onward sharing. Teams: A Squad
+- `Andy Mc Elligot` - self contact details do not permit onward sharing. Teams: B Squad, Reserves
+- `Antonias Nicolaidis` - parent contact details do not permit onward sharing. Teams: D Squad
+- `Antonis Nicolaidis` - parent contact details do not permit onward sharing. Teams: D Squad
+- `Ben Fowler` - parent contact details do not permit onward sharing. Teams: E Squad
+- `Ben Hammond Duncan` - self contact details do not permit onward sharing. Teams: D Squad, E Squad
+- `Charlene Jacobs` - self contact details do not permit onward sharing. Teams: B Squad
+- `Edward Long` - self contact details do not permit onward sharing. Teams: Reserves
+- `Fran Jones` - self contact details do not permit onward sharing. Teams: C Squad, D Squad
+- `Harry McIntyre` - self contact details do not permit onward sharing. Teams: D Squad
+- `Helen Eyres` - self contact details do not permit onward sharing. Teams: E Squad
+- `James Cholerton` - self contact details do not permit onward sharing. Teams: Reserves
+- `Jessica Palmer` - self contact details do not permit onward sharing. Teams: C Team, D Squad, E Squad
+- `Jo Baines` - self contact details do not permit onward sharing. Teams: E Squad
+- `Joel Villamayor` - self contact details do not permit onward sharing. Teams: D Squad, E Squad
+- `Katherine Rogers` - self contact details do not permit onward sharing. Teams: B Team, C Squad
+- `Leila Warwick` - self contact details do not permit onward sharing. Teams: A Squad
+- `Lindsey Evans` - self contact details do not permit onward sharing. Teams: E Squad
+- `Liz Gruenstern` - self contact details do not permit onward sharing. Teams: E Squad
+- `Liz Gruernstern` - self contact details do not permit onward sharing. Teams: D Squad
+- `Liz Long` - self contact details do not permit onward sharing. Teams: B Squad, Reserves
+- `Mo Clackett` - self contact details do not permit onward sharing. Teams: Reserves
+- `Nigel Fisher` - self contact details do not permit onward sharing. Teams: D Squad, E Squad
+- `Oliver Casselton` - self contact details do not permit onward sharing. Teams: B Squad
+- `Paul Kemsley` - self contact details do not permit onward sharing. Teams: A Squad
+- `Rob Bozier` - self contact details do not permit onward sharing. Teams: B Squad
+- `Roni Asp` - self contact details do not permit onward sharing. Teams: B Squad
+- `Sam Rush` - self contact details do not permit onward sharing. Teams: A Squad, B Squad
+- `Santu Asp` - self contact details do not permit onward sharing. Teams: B Squad
+- `Sue white` - self contact details do not permit onward sharing. Teams: A Team, B Squad, E Squad
+- `Susie Cooke` - self contact details do not permit onward sharing. Teams: D Squad
+- `Tom Van Klaveren` - self contact details do not permit onward sharing. Teams: B Squad
+- `Tom Van Klavern` - self contact details do not permit onward sharing. Teams: B Squad
 
 ## Explicit Full-Name Overrides
 

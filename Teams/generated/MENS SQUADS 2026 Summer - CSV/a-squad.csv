@@ -1,20 +1,20 @@
-Captain,Name,Match,Category,Phone,Email
-C,David Pharo,,Not Signed Up,07974395880,david.pharo@aon.com
-,Alistair Jones,Best Fit,Not Signed Up,No Consent,No Consent
-,Ben Martin,,Not Signed Up,07867 585811,martin.ben40000@gmail.com
-,David Jones,,Not Signed Up,07867303966,david999jonsey@icloud.com
-,Graham Friel,,Not Signed Up,07967 035875,gt_friel@hotmail.com
-,James Colpus,,Not Signed Up,07763134274,colpus9@gmail.com
-,Jon Soul,,Senior,07745000201,jonathan.f.soul@gmail.com
-,Mark Elliott,,Not Signed Up,07842970820,m.k.m.s.elliott@hotmail.co.uk
-,Paul Kemsley,,Not Signed Up,No Consent,No Consent
-,Peter Grant,,Senior,07736 252655,petergrant471@gmail.com
-,Stuart Lamb,,Not Signed Up,+447462185485,stuart.lamb@hotmail.co.uk
+Captain,Name,Category,Consent,Phone,Email,Match
+C,David Pharo,Not Signed Up,Yes,07974395880,david.pharo@aon.com,
+,Alistair Jones,Not Signed Up,No,07741319024,alistair@badmintonwycombe.co.uk,Best Fit
+,Ben Martin,Not Signed Up,Yes,07867 585811,martin.ben40000@gmail.com,
+,David Jones,Not Signed Up,Yes,07867303966,david999jonsey@icloud.com,
+,Graham Friel,Not Signed Up,Yes,07967 035875,gt_friel@hotmail.com,
+,James Colpus,Not Signed Up,Yes,07763134274,colpus9@gmail.com,
+,Jon Soul,Senior,Yes,07745000201,jonathan.f.soul@gmail.com,
+,Mark Elliott,Not Signed Up,Yes,07842970820,m.k.m.s.elliott@hotmail.co.uk,
+,Paul Kemsley,Not Signed Up,No,07747 105459,paul_kemsley@hotmail.com,
+,Peter Grant,Senior,Yes,07736 252655,petergrant471@gmail.com,
+,Stuart Lamb,Not Signed Up,Yes,+447462185485,stuart.lamb@hotmail.co.uk,
 
-"* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found."
-** No Match = no unique exact-name match was found in current club member/contact records.
-*** Best Fit = one row was chosen from several exact-name candidates using the best available contact evidence.
-**** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
-***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
-****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
-"******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld."
+"* Consent: No means the captain may use the phone/email for team management, but may not pass it on to anyone else."
+** Not Signed Up = no current membership was found.
+*** No Match = no unique exact-name match was found in current club member/contact records.
+**** Best Fit = one row was chosen from several exact-name candidates using the best available contact evidence.
+***** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
+****** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
+******* Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.

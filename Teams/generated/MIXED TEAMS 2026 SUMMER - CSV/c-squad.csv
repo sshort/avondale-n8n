@@ -1,25 +1,28 @@
-Captain,Name,Match,Category,Phone,Email
-C,Fran Jones,,Senior,No Consent,No Consent
-,Alex Mach,Nickname,Not Signed Up,No Consent,No Consent
-,Alexander Peacock,,Young Adult,07884156587,peacock156@googlemail.com
-,Alison Jamieson,Fuzzy,Senior,07593 569268,alison.jameson@gmail.com
-,David Alston,,Senior,07730771564,alstondr@hotmail.com
-,Diane Doyle,,Senior,07944 757679,dianeldoyle@gmail.com
-,James Carlisle,,Senior,07727 288364,jamescarli@hotmail.co.uk
-,Joanne Stanley,,Not Signed Up,07754 115078,joanneecairns@hotmail.com
-,Kim Field,,Senior,07500 660820,kimfield65@gmail.com
-,Lynne McKenzie,Fuzzy,Not Signed Up,07887 522574,Lynnmckenzie@live.co.uk
-,Mark Hill,,Not Signed Up,07902490639,markyh20@gmail.com
-,Mike Thornley,,Senior,07786 094178,mike33lufc@gmail.com
-,Pauline Snell,,Senior,07877300234,psnell66@gmail.com
-,Peter Smith,,Not Signed Up,07955644682,Peterrcsmith@hotmail.co.uk
-,Stuart Aberdeen,,Senior,07900247090,stuaberdeen@live.co.uk
-,Tom Blake,,Family,07920107557,t_blake@icloud.com
+Captain,Name,Category,Consent,Phone,Email,Match
+C,Fran Jones,Senior,No,07765 140012,fran.999.jones@gmail.com,
+,Alex Mach,Not Signed Up,"Self: No
+Parent: No","Self: 07724505363
+Parent: 07724505363","Self: martyna.mach@gmail.com
+Parent: martyna.mach@gmail.com",Nickname
+,Alexander Peacock,Young Adult,Yes,07884156587,peacock156@googlemail.com,
+,Alison Jamieson,Senior,Yes,07593 569268,alison.jameson@gmail.com,Fuzzy
+,David Alston,Senior,Yes,07730771564,alstondr@hotmail.com,
+,Diane Doyle,Senior,Yes,07944 757679,dianeldoyle@gmail.com,
+,James Carlisle,Senior,Yes,07727 288364,jamescarli@hotmail.co.uk,
+,Joanne Stanley,Not Signed Up,Yes,07754 115078,joanneecairns@hotmail.com,
+,Kim Field,Senior,Yes,07500 660820,kimfield65@gmail.com,
+,Lynne McKenzie,Not Signed Up,Yes,07887 522574,Lynnmckenzie@live.co.uk,Fuzzy
+,Mark Hill,Not Signed Up,Yes,07902490639,markyh20@gmail.com,
+,Mike Thornley,Senior,Yes,07786 094178,mike33lufc@gmail.com,
+,Pauline Snell,Senior,Yes,07877300234,psnell66@gmail.com,
+,Peter Smith,Not Signed Up,Yes,07955644682,Peterrcsmith@hotmail.co.uk,
+,Stuart Aberdeen,Senior,Yes,07900247090,stuaberdeen@live.co.uk,
+,Tom Blake,Family,Yes,07920107557,t_blake@icloud.com,
 
-"* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found."
-** No Match = no unique exact-name match was found in current club member/contact records.
-*** Best Fit = one row was chosen from several exact-name candidates using the best available contact evidence.
-**** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
-***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
-****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
-"******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld."
+"* Consent: No means the captain may use the phone/email for team management, but may not pass it on to anyone else."
+** Not Signed Up = no current membership was found.
+*** No Match = no unique exact-name match was found in current club member/contact records.
+**** Best Fit = one row was chosen from several exact-name candidates using the best available contact evidence.
+***** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
+****** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
+******* Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.

@@ -1,19 +1,19 @@
-Captain,Name,Match,Category,Phone,Email
-C,Sam Rush,Nickname,Senior,No Consent,No Consent
-,Andy Roxburgh,Nickname,Not Signed Up,07919459390,andy@roxburgh.je
-,Cath Pearson,,Senior,07803 177572,cath.pearson@ntlworld.com
-,Charlene Jacobs,,No Match,,
-,Richard Longworth,,Not Signed Up,07508833898,rickieboy1@hotmail.com
-,Rob Bozier,,Not Signed Up,No Consent,No Consent
-,Santu Asp,Fuzzy,Senior,No Consent,No Consent
-,Sue White,Nickname,Senior,No Consent,No Consent
-,Tom Van Klavern,Override,Not Signed Up,No Consent,No Consent
-,Wendy Day,,Senior,07887688900,W_mudd@yahoo.com
+Captain,Name,Category,Consent,Phone,Email,Match
+C,Sam Rush,Senior,No,07765 164044,samrush336@gmail.com,Nickname
+,Andy Roxburgh,Not Signed Up,Yes,07919459390,andy@roxburgh.je,Nickname
+,Cath Pearson,Senior,Yes,07803 177572,cath.pearson@ntlworld.com,
+,Charlene Jacobs,Senior,No,+447872314523,jacobscharlene@yahoo.com,
+,Richard Longworth,Not Signed Up,Yes,07508833898,rickieboy1@hotmail.com,
+,Rob Bozier,Not Signed Up,No,07969556875,robertbozier@yahoo.co.uk,
+,Santu Asp,Senior,No,07717 151014,santtu.asp@gmail.com,Fuzzy
+,Sue White,Senior,No,01256 893013,susan582009@hotmail.co.uk,Nickname
+,Tom Van Klavern,Not Signed Up,No,07502 285635,tvk24@hotmail.co.uk,Override
+,Wendy Day,Senior,Yes,07887688900,W_mudd@yahoo.com,
 
-"* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found."
-** No Match = no unique exact-name match was found in current club member/contact records.
-*** Best Fit = one row was chosen from several exact-name candidates using the best available contact evidence.
-**** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
-***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
-****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
-"******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld."
+"* Consent: No means the captain may use the phone/email for team management, but may not pass it on to anyone else."
+** Not Signed Up = no current membership was found.
+*** No Match = no unique exact-name match was found in current club member/contact records.
+**** Best Fit = one row was chosen from several exact-name candidates using the best available contact evidence.
+***** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
+****** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
+******* Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.

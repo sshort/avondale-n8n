@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-04-02T09:33:51.707Z",
+  "totals": {
+    "unused_total": 0,
+    "questions": 0,
+    "models": 0
+  },
+  "categories": {
+    "examples_collection": {
+      "count": 0
+    },
+    "no_collection": {
+      "count": 0
+    },
+    "source_derived": {
+      "count": 0
+    },
+    "high_duplication_items": {
+      "count": 0,
+      "group_count": 0
+    },
+    "likely_operational_keep_for_now": {
+      "count": 0
+    },
+    "heuristic_safer_delete_candidates": {
+      "count": 0
+    }
+  },
+  "top_duplicate_name_groups": [],
+  "likely_operational_items": [],
+  "safer_delete_candidates_sample": []
+}

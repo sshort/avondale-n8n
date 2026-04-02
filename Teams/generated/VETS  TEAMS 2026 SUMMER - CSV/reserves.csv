@@ -1,16 +1,16 @@
-Captain,Name,Match,Category,Phone,Email
-,DEREK CARDER,,Senior,07806 777845,derekcarder@rocketmail.com
-,GEORGINA RICHES,,Not Signed Up,07710475970,fam.riches@btinternet.com
-,JON CLACKETT,Nickname,Not Signed Up,07799 435600,jonathanclackett02@gmail.com
-,MAEW TATAM,,Not Signed Up,07885719965,walanda@hotmail.com
-,MO CLACKETT,Nickname,Senior,No Consent,No Consent
-,RAY RISTOW,,Senior,07801107701,ray.ristow@outlook.com
-,TIM PRESLAND,,Senior,07703129992,timpresland@gmail.com
+Captain,Name,Category,Consent,Phone,Email,Match
+,DEREK CARDER,Senior,Yes,07806 777845,derekcarder@rocketmail.com,
+,GEORGINA RICHES,Senior,Yes,07710475970,fam.riches@btinternet.com,
+,JON CLACKETT,Not Signed Up,Yes,07799 435600,jonathanclackett02@gmail.com,Nickname
+,MAEW TATAM,Not Signed Up,Yes,07885719965,walanda@hotmail.com,
+,MO CLACKETT,Senior,No,07703 196204,moclackett@gmail.com,Nickname
+,RAY RISTOW,Senior,Yes,07801107701,ray.ristow@outlook.com,
+,TIM PRESLAND,Senior,Yes,07703129992,timpresland@gmail.com,
 
-"* Not Signed Up = exact or resolved name matched in club records, but no current paid 2026 membership was found."
-** No Match = no unique exact-name match was found in current club member/contact records.
-*** Best Fit = one row was chosen from several exact-name candidates using the best available contact evidence.
-**** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
-***** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
-****** Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
-"******* No Consent = the current contact record does not allow contact details to be shared, so phone and email are withheld."
+"* Consent: No means the captain may use the phone/email for team management, but may not pass it on to anyone else."
+** Not Signed Up = no current membership was found.
+*** No Match = no unique exact-name match was found in current club member/contact records.
+**** Best Fit = one row was chosen from several exact-name candidates using the best available contact evidence.
+***** Override = resolved by an explicit override; this usually represents a typo or misspelling in the source data.
+****** Nickname = resolved by a short-name or nickname rule; this may also represent a typo or misspelling in the source data.
+******* Fuzzy = resolved by the cautious fuzzy fallback; this represents a typo or misspelling in the source data.
