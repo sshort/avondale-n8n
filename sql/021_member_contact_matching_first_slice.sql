@@ -26,6 +26,17 @@ AS $$
     );
 $$;
 
+CREATE OR REPLACE FUNCTION public.clean_phone_display(value text)
+RETURNS text
+LANGUAGE sql
+IMMUTABLE
+AS $$
+    SELECT NULLIF(
+        trim(regexp_replace(COALESCE(value, ''), '[\[\]]+', '', 'g')),
+        ''
+    );
+$$;
+
 CREATE OR REPLACE FUNCTION public.normalize_match_email(value text)
 RETURNS text
 LANGUAGE sql
@@ -395,11 +406,11 @@ BEGIN
         junior = s.junior,
         "Date of birth" = s."Date of birth",
         "Email address" = s."Email address",
-        "Phone number" = s."Phone number",
-        "Work number" = s."Work number",
-        "Mobile number" = s."Mobile number",
+        "Phone number" = public.clean_phone_display(s."Phone number"),
+        "Work number" = public.clean_phone_display(s."Work number"),
+        "Mobile number" = public.clean_phone_display(s."Mobile number"),
         "Emergency contact name" = s."Emergency contact name",
-        "Emergency phone number" = s."Emergency phone number",
+        "Emergency phone number" = public.clean_phone_display(s."Emergency phone number"),
         "Address 1" = s."Address 1",
         "Address 2" = s."Address 2",
         "Address 3" = s."Address 3",
@@ -477,11 +488,11 @@ BEGIN
         s.junior,
         s."Date of birth",
         s."Email address",
-        s."Phone number",
-        s."Work number",
-        s."Mobile number",
+        public.clean_phone_display(s."Phone number"),
+        public.clean_phone_display(s."Work number"),
+        public.clean_phone_display(s."Mobile number"),
         s."Emergency contact name",
-        s."Emergency phone number",
+        public.clean_phone_display(s."Emergency phone number"),
         s."Address 1",
         s."Address 2",
         s."Address 3",
@@ -992,11 +1003,11 @@ BEGIN
         "Start Date" = s."Start Date",
         "Expiry Date" = s."Expiry Date",
         "Email address" = s."Email address",
-        "Phone number" = s."Phone number",
-        "Work number" = s."Work number",
-        "Mobile number" = s."Mobile number",
+        "Phone number" = public.clean_phone_display(s."Phone number"),
+        "Work number" = public.clean_phone_display(s."Work number"),
+        "Mobile number" = public.clean_phone_display(s."Mobile number"),
         "Emergency contact name" = s."Emergency contact name",
-        "Emergency phone number" = s."Emergency phone number",
+        "Emergency phone number" = public.clean_phone_display(s."Emergency phone number"),
         "Address 1" = s."Address 1",
         "Address 2" = s."Address 2",
         "Address 3" = s."Address 3",
@@ -1102,11 +1113,11 @@ BEGIN
         s."Start Date",
         s."Expiry Date",
         s."Email address",
-        s."Phone number",
-        s."Work number",
-        s."Mobile number",
+        public.clean_phone_display(s."Phone number"),
+        public.clean_phone_display(s."Work number"),
+        public.clean_phone_display(s."Mobile number"),
         s."Emergency contact name",
-        s."Emergency phone number",
+        public.clean_phone_display(s."Emergency phone number"),
         s."Address 1",
         s."Address 2",
         s."Address 3",
