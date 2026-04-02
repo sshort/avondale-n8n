@@ -6,6 +6,7 @@ MODE="test"
 SKIP_GENERATE=0
 SKIP_SYNC=0
 SKIP_TRIGGER=0
+GENERATE_ONLY=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -24,14 +25,22 @@ while [[ $# -gt 0 ]]; do
     --skip-trigger)
       SKIP_TRIGGER=1
       ;;
+    --generate-only)
+      GENERATE_ONLY=1
+      ;;
     *)
       echo "Unknown option: $1" >&2
-      echo "Usage: $0 [--test|--production] [--skip-generate] [--skip-sync] [--skip-trigger]" >&2
+      echo "Usage: $0 [--test|--production] [--generate-only] [--skip-generate] [--skip-sync] [--skip-trigger]" >&2
       exit 1
       ;;
   esac
   shift
 done
+
+if [[ "$GENERATE_ONLY" -eq 1 ]]; then
+  SKIP_SYNC=1
+  SKIP_TRIGGER=1
+fi
 
 if [[ "$SKIP_GENERATE" -eq 0 ]]; then
   /mnt/c/dev/postgres-mcp-venv-linux/bin/python "$ROOT_DIR/Teams/generate_team_contact_lists.py"
