@@ -26,12 +26,27 @@ const buildUpdateSql = (workflowId, workflow) => {
     `connections = ${dollarQuote('connections', JSON.stringify(workflow.connections ?? {}))}::json`,
     `settings = ${dollarQuote('settings', JSON.stringify(workflow.settings ?? {}))}::json`,
     `"pinData" = ${dollarQuote('pinData', JSON.stringify(workflow.pinData ?? {}))}::json`,
+    `description = ${dollarQuote('description', workflow.description ?? '')}`,
     `"updatedAt" = NOW()`,
   ];
 
+  const historyUpdate = `UPDATE n8n.workflow_history
+SET name = ${dollarQuote('history_name', workflow.name)},
+    nodes = ${dollarQuote('history_nodes', JSON.stringify(workflow.nodes ?? []))}::json,
+    connections = ${dollarQuote('history_connections', JSON.stringify(workflow.connections ?? {}))}::json,
+    description = ${dollarQuote('history_description', workflow.description ?? '')},
+    "updatedAt" = NOW()
+WHERE "workflowId" = ${dollarQuote('history_workflow_id', workflowId)}
+  AND "versionId" = (
+    SELECT COALESCE("activeVersionId", "versionId")
+    FROM n8n.workflow_entity
+    WHERE id = ${dollarQuote('history_lookup_id', workflowId)}
+  );`;
+
   return `UPDATE n8n.workflow_entity
 SET ${parts.join(',\n    ')}
-WHERE id = ${dollarQuote('id', workflowId)};`;
+WHERE id = ${dollarQuote('id', workflowId)};
+${historyUpdate}`;
 };
 
 const statements = [];
