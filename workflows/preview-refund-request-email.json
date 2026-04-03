@@ -1,0 +1,489 @@
+{
+  "name": "Preview Refund Request Email",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "r3000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "preview-refund-request-email",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "r3000000-0000-0000-0000-000000000002",
+      "name": "Preview Refund Request Email Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "preview-refund-request-email"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'email_delivery_mode' THEN value END) AS default_delivery_mode,\n  MAX(CASE WHEN key = 'email_test_recipient' THEN value END) AS default_test_recipient,\n  MAX(CASE WHEN key = 'email_sender_name' THEN value END) AS email_sender_name,\n  MAX(CASE WHEN key = 'email_reply_to' THEN value END) AS email_reply_to,\n  MAX(CASE WHEN key = 'email_signature_template_key' THEN value END) AS email_signature_template_key,\n  MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url\nFROM public.global_settings\nWHERE key IN ('email_delivery_mode', 'email_test_recipient', 'email_sender_name', 'email_reply_to', 'email_signature_template_key', 'n8n_base_url');"
+      },
+      "id": "r3000000-0000-0000-0000-000000000003",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        460,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const settings = $('Load Global Settings').first()?.json ?? {};\nconst request = $('Preview Refund Request Email Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst query = request.query ?? request;\nconst headers = request.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst truthy = (value) => ['1', 'true', 'yes', 'y', 'on'].includes(clean(value).toLowerCase());\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst fallbackBaseUrl = clean(settings.n8n_base_url) || 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nconst refundId = Number.parseInt(clean(query.refund_id), 10);\nconst actionTypeRaw = clean(query.action_type);\nconst actionType = actionTypeRaw || (clean(query.template_key) === 'request_bank_details' ? 'request_bank_details' : 'submit_refund_request');\nconst templateKey = clean(query.template_key) || (actionType === 'request_bank_details' ? 'request_bank_details' : 'refund_request_treasury');\nconst defaultDeliveryMode = clean(settings.default_delivery_mode).toLowerCase() === 'production' ? 'production' : 'test';\nconst forceTest = truthy(query.test_mode) || clean(query.delivery_mode).toLowerCase() === 'test' || defaultDeliveryMode !== 'production';\nconst deliveryMode = forceTest ? 'test' : 'production';\nconst returnUrl = clean(query.return_url) || `${n8nBaseUrl}/webhook/refunds${Number.isInteger(refundId) ? `?id=${refundId}` : ''}`;\nconst validActions = ['request_bank_details', 'submit_refund_request'];\nconst errorMessage = !Number.isInteger(refundId)\n  ? 'Refund id is required.'\n  : !validActions.includes(actionType)\n    ? 'Refund email action is not recognised.'\n    : !templateKey\n      ? 'Email template is required.'\n      : '';\nreturn [{ json: {\n  refund_id: refundId,\n  action_type: actionType,\n  template_key: templateKey,\n  signature_template_key: settings.email_signature_template_key || 'signature',\n  sender_name: settings.email_sender_name || 'Steve Short',\n  reply_to: settings.email_reply_to || 'members.avondaleltc@gmail.com',\n  delivery_mode: deliveryMode,\n  test_recipient: clean(settings.default_test_recipient) || 'steve.short@gmail.com',\n  return_url: returnUrl,\n  n8n_base_url: n8nBaseUrl,\n  error_message: errorMessage\n} }];"
+      },
+      "id": "r3000000-0000-0000-0000-000000000004",
+      "name": "Resolve Preview Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "request-error-check",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "r3000000-0000-0000-0000-000000000005",
+      "name": "Check Request Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        980,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Resolve Preview Request').first().json ?? {};\nconst sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sql = `with main_template as (\n  select template_key, template_name, subject_template, text_template, html_template\n  from public.email_templates\n  where template_key = ${sqlLiteral(input.template_key)}\n    and is_active = true\n    and template_type = 0\n  order by id desc\n  limit 1\n), signature_template as (\n  select template_key, template_name, subject_template, text_template, html_template\n  from public.email_templates\n  where template_key = ${sqlLiteral(input.signature_template_key || 'signature')}\n    and is_active = true\n    and template_type = 2\n  order by id desc\n  limit 1\n)\nselect\n  (select template_key from main_template) as template_key,\n  (select template_name from main_template) as template_name,\n  (select subject_template from main_template) as subject_template,\n  (select text_template from main_template) as text_template,\n  (select html_template from main_template) as html_template,\n  (select template_key from signature_template) as signature_template_key,\n  (select text_template from signature_template) as signature_text_template,\n  (select html_template from signature_template) as signature_html_template,\n  case\n    when not exists (select 1 from main_template) then 'Email template ' || ${sqlLiteral(input.template_key)} || ' was not found or is not an active message template'\n    else null\n  end as error_message;`;\nreturn [{ json: { ...input, sql } }];"
+      },
+      "id": "r3000000-0000-0000-0000-000000000006",
+      "name": "Build Preview Context SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1240,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "r3000000-0000-0000-0000-000000000007",
+      "name": "Load Preview Context",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1500,
+        420
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Resolve Preview Request').first().json ?? {};\nconst sql = `WITH refund_row AS (\n  SELECT r.id, r.name, r.refund_for, r.reason, r.membership, r.amount, r.refund, r.months,\n         r.from_date, r.to_date, r.status, r.explanation, r.notes,\n         r.request_email_message_id, r.bank_details_message_id, r.treasury_email_message_id\n  FROM public.refunds r\n  WHERE r.id = ${input.refund_id}\n  LIMIT 1\n), base_member AS (\n  SELECT rm.id AS raw_member_id,\n         trim(concat_ws(' ', rm.\"First name\", rm.\"Last name\")) AS member_name,\n         NULLIF(trim(rm.\"Email address\"), '') AS member_email,\n         rm.\"Membership\" AS membership\n  FROM public.raw_members rm\n  CROSS JOIN refund_row r\n  WHERE COALESCE(rm.is_current, true) = true\n    AND trim(concat_ws(' ', rm.\"First name\", rm.\"Last name\")) = r.refund_for\n    AND (r.membership IS NULL OR r.membership = '' OR rm.\"Membership\" = r.membership)\n  ORDER BY CASE WHEN rm.\"Membership\" = r.membership THEN 0 ELSE 1 END, rm.id\n  LIMIT 1\n), best_contact AS (\n  SELECT bc.*\n  FROM refund_row r\n  LEFT JOIN base_member bm ON TRUE\n  LEFT JOIN LATERAL public.resolve_best_contact_row(\n    COALESCE(bm.member_name, r.refund_for),\n    COALESCE(bm.member_email, ''),\n    NULLIF(regexp_replace(COALESCE(bm.member_name, r.refund_for), '^\\\\S+\\\\s*', ''), ''),\n    EXISTS (\n      SELECT 1\n      FROM public.raw_members rmf\n      WHERE COALESCE(rmf.is_current, true) = true\n        AND trim(concat_ws(' ', rmf.\"First name\", rmf.\"Last name\")) = COALESCE(bm.member_name, r.refund_for)\n        AND rmf.\"Membership\" ILIKE '%Family%'\n    )\n  ) bc ON TRUE\n  LIMIT 1\n)\nSELECT r.*, COALESCE(NULLIF(TRIM(bc.email_address), ''), NULLIF(TRIM(bm.member_email), '')) AS member_email\nFROM refund_row r\nLEFT JOIN base_member bm ON TRUE\nLEFT JOIN best_contact bc ON TRUE;`;\nreturn [{ json: { ...input, sql } }];"
+      },
+      "id": "r3000000-0000-0000-0000-000000000008",
+      "name": "Build Refund SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1240,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "r3000000-0000-0000-0000-000000000009",
+      "name": "Load Refund Data",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1500,
+        620
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Resolve Preview Request').first()?.json ?? {};\nconst context = $('Load Preview Context').first()?.json ?? {};\nconst refund = $('Load Refund Data').first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst actionMeta = {\n  request_bank_details: {\n    label: 'Request Bank Details',\n    preview_title: 'Preview Bank Details Request',\n    intro: 'Review and edit the member-facing email before sending it.',\n    send_label: 'Send Bank Details Request',\n    allowed_statuses: ['New Request', 'Request Bank Details']\n  },\n  submit_refund_request: {\n    label: 'Submit Refund Request',\n    preview_title: 'Preview Treasury Refund Request',\n    intro: 'Review and edit the treasury request before sending it.',\n    send_label: 'Send Treasury Request',\n    allowed_statuses: ['Bank Details Obtained', 'Submitted for Refund']\n  }\n};\nconst meta = actionMeta[input.action_type] ?? null;\nconst intendedRecipient = input.action_type === 'submit_refund_request' ? 'treasury.avondaleltc@gmail.com' : clean(refund.member_email);\nconst errorMessage = input.error_message || context.error_message || !refund.id\n  ? (input.error_message || context.error_message || 'Refund not found.')\n  : !meta\n    ? 'Refund email action is not recognised.'\n    : !meta.allowed_statuses.includes(clean(refund.status))\n      ? `${meta.label} is only available when the refund status is ${meta.allowed_statuses.join(' or ')}.`\n      : !intendedRecipient\n        ? `No email address was found for ${clean(refund.refund_for) || 'this refund'}.`\n        : '';\nreturn [{ json: {\n  ...input,\n  ...refund,\n  template_name: context.template_name || input.template_key,\n  subject_template: context.subject_template || '',\n  text_template: context.text_template || '',\n  html_template: context.html_template || '',\n  signature_text_template: context.signature_text_template || '',\n  signature_html_template: context.signature_html_template || '',\n  intended_recipient: intendedRecipient,\n  preview_title: meta?.preview_title || 'Preview Refund Email',\n  preview_intro: meta?.intro || 'Review and edit the rendered email.',\n  send_label: meta?.send_label || 'Send Email',\n  action_label: meta?.label || input.action_type,\n  error_message: errorMessage\n} }];"
+      },
+      "id": "r3000000-0000-0000-0000-000000000010",
+      "name": "Merge Preview Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "context-error-check",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "r3000000-0000-0000-0000-000000000011",
+      "name": "Check Context Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2020,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const primary = $('Merge Preview Data').first()?.json ?? {};\nconst fallback = $('Resolve Preview Request').first()?.json ?? {};\nconst message = primary.error_message || fallback.error_message || 'Unable to prepare the refund email preview.';\nconst returnUrl = primary.return_url || fallback.return_url || '#';\nconst redirectTo = `${returnUrl}${String(returnUrl).includes('?') ? '&' : '?'}error=${encodeURIComponent(message)}${primary.refund_id ? `&id=${encodeURIComponent(primary.refund_id)}` : ''}`;\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0; url=${escapeHtml(redirectTo)}\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Refund Email Preview Failed</title><style>body{margin:0;padding:24px;background:#f7f8fc;font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:#2e3d4e}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 18px 40px rgba(53,72,91,.08);padding:28px}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#509ee3 0%,#2f80d8 100%);color:#fff}</style></head><body><div class=\"panel\"><h1>Refund Email Preview Failed</h1><p>${escapeHtml(message)}</p><p><a class=\"button\" href=\"${escapeHtml(redirectTo)}\">Back to refunds</a></p></div></body></html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "r3000000-0000-0000-0000-000000000012",
+      "name": "Build Error HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2280,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "r3000000-0000-0000-0000-000000000013",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2540,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Merge Preview Data').first().json ?? {};\nconst parseIsoDate = (value) => {\n  const raw = String(value ?? '').trim();\n  const match = raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);\n  if (!match) return null;\n  const [, yearText, monthText, dayText] = match;\n  return { year: Number.parseInt(yearText, 10), month: Number.parseInt(monthText, 10), day: Number.parseInt(dayText, 10) };\n};\nconst formatDate = (value) => {\n  const parsed = parseIsoDate(value);\n  if (!parsed) return String(value ?? '').trim();\n  return `${String(parsed.day).padStart(2, '0')}/${String(parsed.month).padStart(2, '0')}/${parsed.year}`;\n};\nconst formatMoney = (value) => {\n  const rounded = Math.round((Number(value) + Number.EPSILON) * 100) / 100;\n  const text = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2).replace(/\\.00$/, '').replace(/(\\.\\d)0$/, '$1');\n  return `£${text}`;\n};\nconst nameToken = input.action_type === 'request_bank_details' ? (input.refund_for ?? '') : (input.name ?? '');\nconst tokenMap = {\n  '{{name}}': nameToken,\n  '{{requested_by}}': input.name ?? '',\n  '{{refund_for}}': input.refund_for ?? '',\n  '{{reason}}': input.reason ?? '',\n  '{{membership}}': input.membership ?? '',\n  '{{amount}}': formatMoney(input.amount),\n  '{{from_date}}': formatDate(input.from_date),\n  '{{to_date}}': formatDate(input.to_date),\n  '{{months}}': String(input.months ?? ''),\n  '{{refund}}': formatMoney(input.refund),\n  '{{status}}': input.status ?? '',\n  '{{explanation}}': input.explanation ?? '',\n  '{{$json.name}}': nameToken,\n  '{{$json.requested_by}}': input.name ?? '',\n  '{{$json.refund_for}}': input.refund_for ?? '',\n  '{{$json.reason}}': input.reason ?? '',\n  '{{$json.membership}}': input.membership ?? '',\n  '{{$json.amount}}': formatMoney(input.amount),\n  '{{$json.from_date}}': formatDate(input.from_date),\n  '{{$json.to_date}}': formatDate(input.to_date),\n  '{{$json.months}}': String(input.months ?? ''),\n  '{{$json.refund}}': formatMoney(input.refund),\n  '{{$json.status}}': input.status ?? '',\n  '{{$json.explanation}}': input.explanation ?? ''\n};\nconst applyTokens = (value) => {\n  let rendered = String(value ?? '');\n  for (const [token, replacement] of Object.entries(tokenMap)) {\n    rendered = rendered.split(token).join(String(replacement));\n  }\n  return rendered.trim();\n};\nconst emailType = input.html_template && !input.text_template ? 'html' : 'text';\nconst bodySource = emailType === 'html' ? (input.html_template ?? input.text_template ?? '') : (input.text_template ?? input.html_template ?? '');\nconst signatureSource = emailType === 'html' ? (input.signature_html_template ?? input.signature_text_template ?? '') : (input.signature_text_template ?? input.signature_html_template ?? '');\nconst joinSeparator = emailType === 'html' ? '<br><br>' : '\\n\\n';\nconst actualRecipient = input.delivery_mode === 'production' ? input.intended_recipient : input.test_recipient;\nreturn [{ json: {\n  refund_id: input.refund_id,\n  action_type: input.action_type,\n  action_label: input.action_label,\n  preview_title: input.preview_title,\n  preview_intro: input.preview_intro,\n  send_label: input.send_label,\n  refund_for: input.refund_for,\n  membership: input.membership,\n  template_key: input.template_key,\n  template_name: input.template_name,\n  delivery_mode: input.delivery_mode,\n  test_recipient: input.test_recipient,\n  intended_recipient: input.intended_recipient,\n  actual_recipient: actualRecipient,\n  return_url: input.return_url,\n  sender_name: input.sender_name,\n  reply_to: input.reply_to,\n  rendered_subject: applyTokens(input.subject_template ?? 'Refund email'),\n  rendered_message: [applyTokens(bodySource), applyTokens(signatureSource)].filter(Boolean).join(joinSeparator).trim(),\n  email_type: emailType,\n  send_url: `${input.n8n_base_url}/webhook/send-refund-request-email`\n} }];"
+      },
+      "id": "r3000000-0000-0000-0000-000000000014",
+      "name": "Render Preview Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2280,
+        680
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $('Render Preview Data').first().json ?? {};\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst bodyPreview = escapeHtml(item.rendered_message).replace(/\\r?\\n/g, '&#10;');\nconst subjectPreview = escapeHtml(item.rendered_subject);\nconst modeChecked = item.delivery_mode !== 'production' ? ' checked' : '';\nconst modeLabel = item.delivery_mode === 'production' ? 'Production' : 'Test';\nconst recipientSummary = item.delivery_mode === 'production' ? escapeHtml(item.actual_recipient) : `${escapeHtml(item.actual_recipient)} (intended recipient: ${escapeHtml(item.intended_recipient)})`;\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>${escapeHtml(item.preview_title)}</title><style>:root{color-scheme:light;--bg:#f7f8fc;--panel:#ffffff;--ink:#2e3d4e;--muted:#6b7785;--line:#e2e8f0;--accent:#509ee3;--accent-dark:#2f80d8;--soft:#f2f7fd;--button-soft:#eef2f7}*{box-sizing:border-box}body{margin:0;padding:24px;background:linear-gradient(180deg,#fbfcfe 0%,var(--bg) 100%);font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:var(--ink)}.wrap{max-width:960px;margin:0 auto;display:grid;gap:20px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 40px rgba(53,72,91,.08);padding:28px}h1{margin:0 0 10px;font-size:32px;line-height:1.05;letter-spacing:-.02em}.meta{margin:0;color:var(--muted);line-height:1.5}.summary{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:20px}.summary-card{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--soft)}.summary-card h2{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}.summary-card p{margin:0;font-size:17px;line-height:1.4}.email-form{display:grid;gap:16px;margin-top:18px}.email-form label{display:grid;gap:8px;font-weight:700}.email-form input[type=text],.email-form textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit;background:#fff;color:var(--ink)}.email-form textarea{min-height:320px;resize:vertical;line-height:1.5}.checkbox-wrap{display:inline-flex;align-items:center;gap:10px;font-weight:600}.checkbox-wrap input{width:18px;height:18px}.actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.button,.secondary{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;border:0;cursor:pointer;font:inherit}.button{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-dark) 100%);color:#fff;box-shadow:0 10px 24px rgba(80,158,227,.22)}.secondary{background:var(--button-soft);color:var(--ink);border:1px solid var(--line)}</style></head><body><div class=\"wrap\"><section class=\"panel\"><h1>${escapeHtml(item.preview_title)}</h1><p class=\"meta\">${escapeHtml(item.preview_intro)}</p><div class=\"summary\"><div class=\"summary-card\"><h2>Refund For</h2><p>${escapeHtml(item.refund_for)}</p></div><div class=\"summary-card\"><h2>Membership</h2><p>${escapeHtml(item.membership)}</p></div><div class=\"summary-card\"><h2>Template</h2><p>${escapeHtml(item.template_name)}</p></div><div class=\"summary-card\"><h2>Recipient</h2><p>${recipientSummary}</p></div><div class=\"summary-card\"><h2>Mode</h2><p>${escapeHtml(modeLabel)}</p></div></div><form class=\"email-form\" method=\"POST\" action=\"${escapeHtml(item.send_url)}\"><input type=\"hidden\" name=\"refund_id\" value=\"${escapeHtml(item.refund_id)}\"><input type=\"hidden\" name=\"action_type\" value=\"${escapeHtml(item.action_type)}\"><input type=\"hidden\" name=\"template_key\" value=\"${escapeHtml(item.template_key)}\"><input type=\"hidden\" name=\"return_url\" value=\"${escapeHtml(item.return_url)}\"><input type=\"hidden\" name=\"email_type\" value=\"${escapeHtml(item.email_type)}\"><input type=\"hidden\" name=\"intended_recipient\" value=\"${escapeHtml(item.intended_recipient)}\"><input type=\"hidden\" name=\"refund_for\" value=\"${escapeHtml(item.refund_for)}\"><input type=\"hidden\" name=\"membership\" value=\"${escapeHtml(item.membership)}\"><label><span>Subject</span><input type=\"text\" name=\"rendered_subject\" value=\"${subjectPreview}\" required></label><label><span>Message</span><textarea name=\"rendered_message\" required>${bodyPreview}</textarea></label><label><span>Mode</span><span class=\"checkbox-wrap\"><input type=\"checkbox\" name=\"test_mode\" value=\"1\"${modeChecked}> Send in test mode</span></label><div class=\"actions\"><button type=\"submit\" class=\"button\">${escapeHtml(item.send_label)}</button><a class=\"secondary\" href=\"${escapeHtml(item.return_url)}\">Back to Refunds</a></div></form></section></div></body></html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "r3000000-0000-0000-0000-000000000015",
+      "name": "Build Preview HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2540,
+        680
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "r3000000-0000-0000-0000-000000000016",
+      "name": "Respond Preview",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2800,
+        680
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preview Refund Request Email Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Resolve Preview Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Preview Request": {
+      "main": [
+        [
+          {
+            "node": "Check Request Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Request Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Preview Context SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Preview Context SQL": {
+      "main": [
+        [
+          {
+            "node": "Load Preview Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Refund SQL": {
+      "main": [
+        [
+          {
+            "node": "Load Refund Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Preview Context": {
+      "main": [
+        [
+          {
+            "node": "Build Refund SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Refund Data": {
+      "main": [
+        [
+          {
+            "node": "Merge Preview Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Preview Data": {
+      "main": [
+        [
+          {
+            "node": "Check Context Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Context Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render Preview Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render Preview Data": {
+      "main": [
+        [
+          {
+            "node": "Build Preview HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Preview HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Preview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "pinData": {},
+  "versionId": "preview-refund-request-email-v4",
+  "active": true
+}

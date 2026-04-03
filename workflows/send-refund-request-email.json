@@ -1,0 +1,371 @@
+{
+  "name": "Send Refund Request Email",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "r4000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "send-refund-request-email",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "r4000000-0000-0000-0000-000000000002",
+      "name": "Send Refund Request Email Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "send-refund-request-email"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'email_test_recipient' THEN value END) AS default_test_recipient,\n  MAX(CASE WHEN key = 'email_sender_name' THEN value END) AS email_sender_name,\n  MAX(CASE WHEN key = 'email_reply_to' THEN value END) AS email_reply_to,\n  MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url\nFROM public.global_settings\nWHERE key IN ('email_test_recipient', 'email_sender_name', 'email_reply_to', 'n8n_base_url');"
+      },
+      "id": "r4000000-0000-0000-0000-000000000003",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        480,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const settings = $('Load Global Settings').first()?.json ?? {};\nconst request = $('Send Refund Request Email Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst body = request.body ?? request.query ?? {};\nconst headers = request.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst truthy = (value) => ['1', 'true', 'yes', 'y', 'on'].includes(clean(value).toLowerCase());\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst fallbackBaseUrl = clean(settings.n8n_base_url) || 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nconst refundId = Number.parseInt(clean(body.refund_id), 10);\nconst actionType = clean(body.action_type);\nconst renderedSubject = clean(body.rendered_subject);\nconst renderedMessage = clean(body.rendered_message);\nconst templateKey = clean(body.template_key);\nconst intendedRecipient = clean(body.intended_recipient);\nconst returnUrl = clean(body.return_url) || `${n8nBaseUrl}/webhook/refunds${Number.isInteger(refundId) ? `?id=${refundId}` : ''}`;\nconst deliveryMode = truthy(body.test_mode) ? 'test' : 'production';\nconst validActions = ['request_bank_details', 'submit_refund_request'];\nconst actionConfig = {\n  request_bank_details: {\n    successMessage: 'Bank details request sent',\n    nextStatus: 'Request Bank Details',\n    messageColumn: 'request_email_message_id',\n    title: 'Bank Details Request Sent'\n  },\n  submit_refund_request: {\n    successMessage: 'Refund request submitted to treasury',\n    nextStatus: 'Submitted for Refund',\n    messageColumn: 'treasury_email_message_id',\n    title: 'Treasury Request Sent'\n  }\n};\nconst config = actionConfig[actionType] ?? null;\nconst errorMessage = !Number.isInteger(refundId)\n  ? 'Refund id is required.'\n  : !validActions.includes(actionType)\n    ? 'Refund email action is not recognised.'\n    : !templateKey\n      ? 'Template key is required.'\n      : !renderedSubject\n        ? 'Email subject is required.'\n        : !renderedMessage\n          ? 'Email message is required.'\n          : !intendedRecipient\n            ? 'Recipient email is required.'\n            : '';\nreturn [{ json: {\n  refund_id: refundId,\n  action_type: actionType,\n  template_key: templateKey,\n  sender_name: settings.email_sender_name || 'Steve Short',\n  reply_to: settings.email_reply_to || 'members.avondaleltc@gmail.com',\n  delivery_mode: deliveryMode,\n  test_recipient: clean(settings.default_test_recipient) || 'steve.short@gmail.com',\n  return_url: returnUrl,\n  rendered_subject: renderedSubject,\n  rendered_message: renderedMessage,\n  email_type: clean(body.email_type).toLowerCase() === 'html' ? 'html' : 'text',\n  intended_recipient: intendedRecipient,\n  actual_recipient: deliveryMode === 'production' ? intendedRecipient : (clean(settings.default_test_recipient) || 'steve.short@gmail.com'),\n  success_message: config?.successMessage || 'Refund email sent',\n  next_status: config?.nextStatus || '',\n  message_column: config?.messageColumn || '',\n  success_title: config?.title || 'Refund Email Sent',\n  error_message: errorMessage\n} }];"
+      },
+      "id": "r4000000-0000-0000-0000-000000000004",
+      "name": "Resolve Send Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "request-error-check",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "r4000000-0000-0000-0000-000000000005",
+      "name": "Check Request Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1020,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Resolve Send Request').first().json ?? {};\nconst message = input.error_message || 'Unable to send refund email.';\nconst redirectTo = `${input.return_url || '#'}${(input.return_url || '').includes('?') ? '&' : '?'}error=${encodeURIComponent(message)}${input.refund_id ? `&id=${encodeURIComponent(input.refund_id)}` : ''}`;\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0; url=${escapeHtml(redirectTo)}\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Refund Email Not Sent</title><style>body{margin:0;padding:24px;background:#f7f8fc;font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:#2e3d4e}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 18px 40px rgba(53,72,91,.08);padding:28px}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#509ee3 0%,#2f80d8 100%);color:#fff}</style></head><body><div class=\"panel\"><h1>Refund Email Not Sent</h1><p>${escapeHtml(message)}</p><p><a class=\"button\" href=\"${escapeHtml(redirectTo)}\">Back to refunds</a></p></div></body></html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "r4000000-0000-0000-0000-000000000006",
+      "name": "Build Error HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "r4000000-0000-0000-0000-000000000007",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1540,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.actual_recipient }}",
+        "subject": "={{ $json.rendered_subject }}",
+        "emailType": "={{ $json.email_type }}",
+        "message": "={{ $json.rendered_message }}",
+        "options": {
+          "appendAttribution": false,
+          "replyTo": "={{ $json.reply_to }}",
+          "senderName": "={{ $json.sender_name }}"
+        }
+      },
+      "id": "r4000000-0000-0000-0000-000000000009",
+      "name": "Send Gmail Message",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1280,
+        420
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Resolve Send Request').first().json ?? {};\nconst result = $('Send Gmail Message').first()?.json ?? {};\nconst messageId = result.id || result.message?.id || '';\nconst sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sqlParts = [\n  `status = ${sqlLiteral(input.next_status)}`,\n  `${input.message_column} = ${sqlLiteral(messageId)}`,\n  'updated_at = now()'\n];\nif (input.next_status === 'Refund Processed') sqlParts.push('paid_at = now()');\nif (input.next_status === 'Refund Rejected') sqlParts.push('rejected_at = now()');\nconst sql = `UPDATE public.refunds SET ${sqlParts.join(', ')} WHERE id = ${input.refund_id} RETURNING id, refund_for, status;`;\nreturn [{ json: { ...input, message_id: messageId, sql } }];"
+      },
+      "id": "r4000000-0000-0000-0000-000000000008",
+      "name": "Build Update SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "r4000000-0000-0000-0000-000000000010",
+      "name": "Update Refund Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1800,
+        420
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $('Build Update SQL').first().json ?? {};\nconst updated = $('Update Refund Status').first()?.json ?? {};\nconst modeLabel = item.delivery_mode === 'production' ? 'Production' : 'Test';\nconst recipientSummary = item.delivery_mode === 'production' ? item.actual_recipient : `${item.actual_recipient} (intended recipient: ${item.intended_recipient})`;\nconst redirectTo = `${item.return_url || '#'}${(item.return_url || '').includes('?') ? '&' : '?'}message=${encodeURIComponent(item.success_message)}&id=${encodeURIComponent(updated.id || item.refund_id)}`;\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0; url=${escapeHtml(redirectTo)}\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>${escapeHtml(item.success_title)}</title><style>body{margin:0;padding:24px;background:#f7f8fc;font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:#2e3d4e}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 18px 40px rgba(53,72,91,.08);padding:28px}.pill{display:inline-flex;align-items:center;padding:8px 12px;border-radius:999px;background:#edf8f2;color:#1f7a4d;font-weight:700;margin:12px 0 18px}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#509ee3 0%,#2f80d8 100%);color:#fff}</style></head><body><div class=\"panel\"><h1>${escapeHtml(item.success_title)}</h1><p>Returning to refunds…</p><div class=\"pill\">${escapeHtml(modeLabel)} mode</div><p>Recipient: ${escapeHtml(recipientSummary)}</p><p><a class=\"button\" href=\"${escapeHtml(redirectTo)}\">Continue</a></p></div></body></html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "r4000000-0000-0000-0000-000000000011",
+      "name": "Build Success HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2060,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "r4000000-0000-0000-0000-000000000012",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2320,
+        420
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Refund Request Email Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Resolve Send Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Send Request": {
+      "main": [
+        [
+          {
+            "node": "Check Request Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Request Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Gmail Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Gmail Message": {
+      "main": [
+        [
+          {
+            "node": "Build Update SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Update SQL": {
+      "main": [
+        [
+          {
+            "node": "Update Refund Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Refund Status": {
+      "main": [
+        [
+          {
+            "node": "Build Success HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Success HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "pinData": {},
+  "versionId": "send-refund-request-email-v2",
+  "active": true
+}
