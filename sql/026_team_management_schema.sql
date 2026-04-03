@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS public.teams (
     section text,
     team_name text NOT NULL,
     season text NOT NULL,
+    sort_order integer NOT NULL DEFAULT 0,
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );

@@ -1,0 +1,3 @@
+ALTER TABLE public.refunds
+  ALTER COLUMN from_date DROP NOT NULL,
+  ALTER COLUMN to_date DROP NOT NULL;

@@ -47,7 +47,7 @@ override_matches AS (
         m."Status" AS status,
         m."Share Contact Detail" AS consent
     FROM base_players bp
-    JOIN public.team_name_overrides o ON o.source = bp.source_name
+    JOIN public.team_name_overrides o ON public.normalize_match_text(o.source) = bp.norm_source_name
     JOIN public.raw_members m 
       ON public.normalize_match_text(m."First name" || ' ' || m."Last name") = public.normalize_match_text(o.target)
      AND COALESCE(m.is_current, true) = true
@@ -56,6 +56,7 @@ override_matches AS (
 nickname_matches AS (
     -- Group 2b: First Name Nickname Matches (e.g. Kat Rogers -> Katherine Rogers)
     -- Splits source_name and looks for overrides on the FIRST part only.
+    -- Handles multi-part last names (e.g. "Jackie Sinclair Brown" -> "Jacqueline Sinclair Brown")
     SELECT 
         bp.team_player_id,
         m.id AS member_id,
@@ -69,12 +70,14 @@ nickname_matches AS (
         m."Share Contact Detail" AS consent
     FROM base_players bp
     JOIN public.team_name_overrides o 
-      ON o.source = split_part(bp.source_name, ' ', 1)
+      ON public.normalize_match_text(o.source) = public.normalize_match_text(split_part(bp.norm_source_name, ' ', 1))
     JOIN public.raw_members m 
       ON public.normalize_match_text(m."First name") = public.normalize_match_text(o.target)
-     AND public.normalize_match_text(m."Last name") = public.normalize_match_text(split_part(bp.source_name, ' ', 2))
+      -- Match everything after the first space as the last name
+     AND public.normalize_match_text(m."Last name") = public.normalize_match_text(substring(bp.norm_source_name from '\s+(.*)$'))
      AND COALESCE(m.is_current, true) = true
      AND m."Status" = 'Active'
+     WHERE bp.source_name LIKE '% %'
 ),
 contact_only_matches AS (
     -- Group 3: Contact-only matches (Not signed up this year)
