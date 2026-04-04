@@ -1,0 +1,570 @@
+{
+  "cache_invalidated_at": "2026-03-22T10:55:14.692493Z",
+  "description": null,
+  "archived": false,
+  "view_count": 150,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "timestamptz",
+      "semantic_type": null,
+      "lib/deduplicated-name": "signup_date",
+      "lib/original-name": "signup_date",
+      "name": "signup_date",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "signup_date",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "signup_date",
+        {
+          "base-type": "type/DateTimeWithLocalTZ"
+        }
+      ],
+      "effective_type": "type/DateTimeWithLocalTZ",
+      "lib/desired-column-alias": "signup_date",
+      "display_name": "signup_date",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 74,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": "2019-03-03T00:00:00Z",
+            "latest": "2026-04-03T18:50:41Z"
+          }
+        }
+      },
+      "base_type": "type/DateTimeWithLocalTZ"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "member",
+      "lib/original-name": "member",
+      "name": "member",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "member",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "member",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "member",
+      "display_name": "member",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 77,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 13.023809523809524
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "payer",
+      "lib/original-name": "payer",
+      "name": "payer",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "payer",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "payer",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "payer",
+      "display_name": "payer",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 63,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 12.988095238095237
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "product",
+      "lib/original-name": "product",
+      "name": "product",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "product",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "product",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "product",
+      "display_name": "product",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 8,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 14.369047619047619
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "batch_status",
+      "lib/original-name": "batch_status",
+      "name": "batch_status",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "batch_status",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "batch_status",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "batch_status",
+      "display_name": "batch_status",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 10.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Address 1",
+      "lib/original-name": "Address 1",
+      "name": "Address 1",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Address 1",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Address 1",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Address 1",
+      "display_name": "Address 1",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 62,
+          "nil%": 0.08333333333333333
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 13.535714285714286
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Address 2",
+      "lib/original-name": "Address 2",
+      "name": "Address 2",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Address 2",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Address 2",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Address 2",
+      "display_name": "Address 2",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 23,
+          "nil%": 0.6547619047619048
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 4.571428571428571
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "town",
+      "lib/original-name": "town",
+      "name": "town",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "town",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "town",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "town",
+      "display_name": "town",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 20,
+          "nil%": 0.08333333333333333
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 6.583333333333333
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "postcode",
+      "lib/original-name": "postcode",
+      "name": "postcode",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "postcode",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "postcode",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "postcode",
+      "display_name": "postcode",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 59,
+          "nil%": 0.08333333333333333
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 7.261904761904762
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "is_parent_2026",
+      "lib/original-name": "is_parent_2026",
+      "name": "is_parent_2026",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "is_parent_2026",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "is_parent_2026",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "is_parent_2026",
+      "display_name": "is_parent_2026",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.0,
+            "q3": 0.35723991346208517,
+            "max": 1.0,
+            "sd": 0.23802351185830545,
+            "avg": 0.05952380952380952
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "is_other_product",
+      "lib/original-name": "is_other_product",
+      "name": "is_other_product",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "is_other_product",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "is_other_product",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "is_other_product",
+      "display_name": "is_other_product",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.6427600865379148,
+            "q3": 1.0,
+            "max": 1.0,
+            "sd": 0.23802351185830545,
+            "avg": 0.9404761904761905
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "is_key",
+      "lib/original-name": "is_key",
+      "name": "is_key",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "is_key",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "is_key",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "is_key",
+      "display_name": "is_key",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.0,
+            "q3": 0.0,
+            "max": 0.0,
+            "sd": 0.0,
+            "avg": 0.0
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Processed Signups Base (Intermediate table)",
+  "last_query_start": "2026-04-03T21:27:00.682336Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-03T21:27:00.850231Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 54.2866666666666667,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-03-22T10:55:14.691334Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "native": "SELECT \n    s.signup_date,\n    s.member,\n    s.payer,\n    s.product,\n    b.status AS batch_status,\n    x.\"Address 1\", \n    x.\"Address 2\", \n    x.\"town\", \n    x.\"postcode\",\n    -- Create a simple 'True/False' column for the parent product\n    CASE WHEN s.product = '6. Parent 2026' THEN 1 ELSE 0 END AS is_parent_2026,\n    CASE WHEN s.product <> '6. Parent 2026' THEN 1 ELSE 0 END AS is_other_product,\n    CASE WHEN s.product = 'b. Pavilion Key' THEN 1 ELSE 0 END AS is_key\nFROM \"public\".\"signup_batches\" AS b\nINNER JOIN \"public\".\"member_signups\" AS s ON b.id = s.batch_id\nLEFT JOIN \"public\".\"raw_contacts\" AS x ON s.payer = CONCAT(x.\"First name\", ' ', x.\"Last name\")\nWHERE b.status = 'Processing'"
+      }
+    ]
+  },
+  "id": 1542,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "Geokow09_GhyFWG4Z51Ww",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 1,
+    "email": "steve@shortcentral.com",
+    "first_name": "Steve",
+    "last_name": "Short",
+    "timestamp": "2026-03-22T10:55:14.720981Z"
+  },
+  "visualization_settings": {
+    "table.pivot_column": "batch_status",
+    "table.cell_column": "is_parent_2026",
+    "column_settings": {
+      "[\"name\",\"is_key\"]": {
+        "column_title": "Is Key"
+      },
+      "[\"name\",\"member\"]": {
+        "column_title": "Member Name"
+      },
+      "[\"name\",\"town\"]": {
+        "column_title": "Town"
+      },
+      "[\"name\",\"postcode\"]": {
+        "column_title": "Postcode"
+      },
+      "[\"name\",\"is_other_product\"]": {
+        "column_title": "Is Non Parent"
+      },
+      "[\"name\",\"batch_status\"]": {
+        "column_title": "Batch Status"
+      },
+      "[\"name\",\"product\"]": {
+        "column_title": "Product"
+      },
+      "[\"name\",\"signup_date\"]": {
+        "column_title": "Signup Date"
+      },
+      "[\"name\",\"is_parent_2026\"]": {
+        "column_title": "Is Parent"
+      },
+      "[\"name\",\"payer\"]": {
+        "column_title": "Payer Name"
+      }
+    }
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-03-16T15:09:08.511431Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

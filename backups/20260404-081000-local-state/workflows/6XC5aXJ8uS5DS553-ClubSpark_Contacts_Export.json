@@ -1,0 +1,333 @@
+{
+  "name": "ClubSpark Contacts Export",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000016",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        200,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'clubspark_exporter_base_url' THEN value END) AS clubspark_exporter_base_url\nFROM public.global_settings\nWHERE key = 'clubspark_exporter_base_url';"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000017",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        450,
+        460
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const incoming = $('When Executed by Another Workflow').first()?.json ?? $('When clicking \\'Execute workflow\\'').first()?.json ?? {};\nconst cookieHeader = typeof incoming.cookieHeader === 'string' ? incoming.cookieHeader.trim() : '';\nconst userAgent = typeof incoming.userAgent === 'string' ? incoming.userAgent.trim() : '';\nreturn [{\n  json: {\n    targetUrl: 'https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts',\n    forceRefresh: [true, 'true', '1', 1, 'yes'].includes(incoming.forceRefresh),\n    cookieHeader: cookieHeader || undefined,\n    userAgent: userAgent || undefined,\n    authenticatedUrl: incoming.authenticatedUrl ?? undefined,\n    pageTitle: incoming.pageTitle ?? undefined,\n    cookieCount: incoming.cookieCount ?? undefined,\n    probe: incoming.probe ?? null,\n  },\n}];"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000018",
+      "name": "Prepare Auth Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "mode": "list",
+          "value": "JETtfbr4EGBAcCAA"
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000019",
+      "name": "Execute ClubSpark Auth Session",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        950,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Load Global Settings').first().json.clubspark_exporter_base_url + '/clubspark-export' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-ClubSpark-Target-Url",
+              "value": "https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts"
+            },
+            {
+              "name": "X-ClubSpark-Cookie-Header",
+              "value": "={{ $('Execute ClubSpark Auth Session').first().json.cookieHeader }}"
+            },
+            {
+              "name": "X-ClubSpark-User-Agent",
+              "value": "={{ $('Execute ClubSpark Auth Session').first().json.userAgent }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000015",
+      "name": "Fetch Contacts CSV",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst payload = item.json ?? {};\nconst csvText = String(payload.body ?? payload.data ?? payload.stdout ?? '').trim();\nconst detail = JSON.stringify(Object.keys(payload));\nif (!csvText) {\n  throw new Error(`ClubSpark exporter did not return CSV output. Payload keys: ${detail}`);\n}\nif (/^<!DOCTYPE html/i.test(csvText) || /^<html/i.test(csvText) || /<title>.*Sign in/i.test(csvText)) {\n  throw new Error('ClubSpark exporter returned HTML instead of CSV. The browser login did not complete successfully.');\n}\nfunction parseCsv(text) {\n  const rows = [];\n  let row = [], field = '', inQuotes = false;\n  for (let i = 0; i < text.length; i++) {\n    const ch = text[i], next = text[i + 1];\n    if (inQuotes) {\n      if (ch === '\"' && next === '\"') { field += '\"'; i++; }\n      else if (ch === '\"') { inQuotes = false; }\n      else { field += ch; }\n    } else {\n      if (ch === '\"') { inQuotes = true; }\n      else if (ch === ',') { row.push(field); field = ''; }\n      else if (ch === '\\r' && next === '\\n') { row.push(field); field = ''; rows.push(row); row = []; i++; }\n      else if (ch === '\\n' || ch === '\\r') { row.push(field); field = ''; rows.push(row); row = []; }\n      else { field += ch; }\n    }\n  }\n  if (field || row.length) { row.push(field); rows.push(row); }\n  return rows;\n}\nconst allRows = parseCsv(csvText);\nif (allRows.length < 2) throw new Error(`CSV has fewer than 2 rows (got ${allRows.length}).`);\nconst headers = allRows[0].map((h) => h.trim());\nif (!headers.includes('First name') || !headers.includes('Last name')) {\n  throw new Error(`ClubSpark export did not return the expected contacts CSV headers. Got: ${headers.slice(0, 8).join(', ')}`);\n}\nconst dataRows = allRows.slice(1).filter((r) => r.some((c) => c.trim() !== ''));\nif (!dataRows.length) {\n  return [{ json: { rowCount: 0, message: 'No data rows in CSV export.' } }];\n}\nreturn dataRows.map((row) => ({ json: Object.fromEntries(headers.map((h, i) => [h, (row[i] ?? '').trim()])) }));"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000008",
+      "name": "Parse Contacts CSV",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sqlInteger = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const digits = String(value).replace(/[^0-9-]+/g, '');\n  if (!digits || digits === '-') return 'NULL';\n  const parsed = Number.parseInt(digits, 10);\n  return Number.isNaN(parsed) ? 'NULL' : String(parsed);\n};\nconst rows = $input.all().map((item) => item.json ?? {});\nif (!rows.length) {\n  throw new Error('No parsed contact rows were available to build the import SQL.');\n}\nconst columns = [\n  { db: 'Venue ID', headers: ['Venue ID'] },\n  { db: 'Unique ID', headers: ['Unique ID'] },\n  { db: 'First name', headers: ['First name'] },\n  { db: 'Last name', headers: ['Last name'] },\n  { db: 'gender', headers: ['Gender'] },\n  { db: 'age', headers: ['Age'], type: 'integer' },\n  { db: 'junior', headers: ['Junior'] },\n  { db: 'Date of birth', headers: ['Date of birth'] },\n  { db: 'Email address', headers: ['Email address'] },\n  { db: 'Phone number', headers: ['Phone number'] },\n  { db: 'Work number', headers: ['Work number'] },\n  { db: 'Mobile number', headers: ['Mobile number'] },\n  { db: 'Emergency contact name', headers: ['Emergency contact name'] },\n  { db: 'Emergency phone number', headers: ['Emergency phone number'] },\n  { db: 'Address 1', headers: ['Address 1'] },\n  { db: 'Address 2', headers: ['Address 2'] },\n  { db: 'Address 3', headers: ['Address 3'] },\n  { db: 'town', headers: ['Town', 'town'] },\n  { db: 'county', headers: ['County', 'county'] },\n  { db: 'country', headers: ['Country', 'country'] },\n  { db: 'postcode', headers: ['Postcode', 'postcode'] },\n  { db: 'British Tennis Number', headers: ['British Tennis Number'], type: 'integer' },\n  { db: 'Date joined venue', headers: ['Date joined venue'] },\n  { db: 'Medical history', headers: ['Medical history'] },\n  { db: 'occupation', headers: ['Occupation', 'occupation'] },\n  { db: 'registered', headers: ['Registered', 'registered'] },\n  { db: 'unsubscribed', headers: ['Unsubscribed', 'unsubscribed'] },\n  { db: 'Member status', headers: ['Member status'] },\n  { db: 'Last active', headers: ['Last active'] },\n  { db: 'created', headers: ['Created', 'created'] },\n  { db: 'Receipt of Emails', headers: ['Receipt of Emails'] },\n  { db: 'Share Contact Detail', headers: ['Share Contact Detail'] },\n  { db: \"Member's Directory\", headers: [\"Member's Directory\"] },\n  { db: 'photography', headers: ['Photography', 'photography'] }\n];\nconst getValue = (row, headers) => {\n  for (const header of headers) {\n    if (Object.prototype.hasOwnProperty.call(row, header)) {\n      return row[header];\n    }\n  }\n  return null;\n};\nconst quotedColumns = columns.map(({ db }) => '\"' + db.replace(/\"/g, '\"\"') + '\"').join(', ');\nconst values = rows.map((row) => {\n  const record = columns.map((column) => {\n    const rawValue = getValue(row, column.headers);\n    return column.type === 'integer' ? sqlInteger(rawValue) : sqlLiteral(rawValue);\n  });\n  return '(' + record.join(', ') + ')';\n}).join(',\\n  ');\nconst sql = 'BEGIN;\\n' +\n  'SELECT * FROM public.prepare_raw_contacts_import_staging();\\n' +\n  'INSERT INTO public.raw_contacts_import_staging (' + quotedColumns + ')\\n' +\n  'VALUES\\n  ' + values + ';\\n' +\n  'SELECT * FROM public.reconcile_raw_contacts_from_staging();\\n' +\n  'COMMIT;';\nreturn [{ json: { sql, rowCount: rows.length } }];"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000011",
+      "name": "Build Insert SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000012",
+      "name": "Insert Into raw_contacts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1950,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) AS total_contacts FROM raw_contacts;"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000013",
+      "name": "Verify Row Count",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2200,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const counts = $input.first().json ?? {};\nconst session = $('Execute ClubSpark Auth Session').first().json ?? {};\nreturn [{\n  json: {\n    total_contacts: Number(counts.total_contacts ?? 0),\n    authenticated: session.authenticated === true,\n    targetUrl: session.targetUrl ?? 'https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts',\n    authenticatedUrl: session.authenticatedUrl ?? null,\n    pageTitle: session.pageTitle ?? null,\n    userAgent: session.userAgent ?? null,\n    cookieHeader: session.cookieHeader ?? null,\n    cookieCount: Number(session.cookieCount ?? 0),\n    probe: session.probe ?? null,\n  },\n}];"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000020",
+      "name": "Keep Session Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2450,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Prepare Auth Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Auth Request": {
+      "main": [
+        [
+          {
+            "node": "Execute ClubSpark Auth Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute ClubSpark Auth Session": {
+      "main": [
+        [
+          {
+            "node": "Fetch Contacts CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Contacts CSV": {
+      "main": [
+        [
+          {
+            "node": "Parse Contacts CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Contacts CSV": {
+      "main": [
+        [
+          {
+            "node": "Build Insert SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Insert SQL": {
+      "main": [
+        [
+          {
+            "node": "Insert Into raw_contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Into raw_contacts": {
+      "main": [
+        [
+          {
+            "node": "Verify Row Count",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Row Count": {
+      "main": [
+        [
+          {
+            "node": "Keep Session Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-13T10:10:50.019+00:00",
+  "updatedAt": "2026-03-27T10:51:41.975+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "64a7fd2c-4768-4300-8467-64f2d3a78545",
+  "triggerCount": 0,
+  "id": "6XC5aXJ8uS5DS553",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 74,
+  "description": null,
+  "activeVersionId": "64a7fd2c-4768-4300-8467-64f2d3a78545"
+}

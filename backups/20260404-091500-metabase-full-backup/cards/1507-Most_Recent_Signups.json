@@ -1,0 +1,557 @@
+{
+  "cache_invalidated_at": "2026-03-30T14:06:35.328242Z",
+  "description": null,
+  "archived": false,
+  "view_count": 246,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "timestamptz",
+      "semantic_type": null,
+      "lib/deduplicated-name": "signup_date",
+      "lib/original-name": "signup_date",
+      "name": "signup_date",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "signup_date",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "signup_date",
+        {
+          "base-type": "type/DateTimeWithLocalTZ"
+        }
+      ],
+      "effective_type": "type/DateTimeWithLocalTZ",
+      "lib/desired-column-alias": "signup_date",
+      "display_name": "signup_date",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 94,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": "2026-03-26T16:46:24Z",
+            "latest": "2026-04-03T18:50:41Z"
+          }
+        }
+      },
+      "base_type": "type/DateTimeWithLocalTZ"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "member",
+      "lib/original-name": "member",
+      "name": "member",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "member",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "member",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "member",
+      "display_name": "member",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 100,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 12.81
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "product",
+      "lib/original-name": "product",
+      "name": "product",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "product",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "product",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "product",
+      "display_name": "product",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 8,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 14.26
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "payer",
+      "lib/original-name": "payer",
+      "name": "payer",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "payer",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "payer",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "payer",
+      "display_name": "payer",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 80,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 12.83
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "numeric",
+      "semantic_type": "type/Cost",
+      "lib/deduplicated-name": "cost",
+      "lib/original-name": "cost",
+      "name": "cost",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "cost",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "cost",
+        {
+          "base-type": "type/Decimal"
+        }
+      ],
+      "effective_type": "type/Decimal",
+      "lib/desired-column-alias": "cost",
+      "display_name": "cost",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 10,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 13.0,
+            "q1": 60.39476704383968,
+            "q3": 237.95603977908374,
+            "max": 465.0,
+            "sd": 107.133289962466,
+            "avg": 156.44
+          }
+        }
+      },
+      "base_type": "type/Decimal"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": "type/Quantity",
+      "lib/deduplicated-name": "quantity",
+      "lib/original-name": "quantity",
+      "name": "quantity",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "quantity",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "quantity",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "quantity",
+      "display_name": "quantity",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 1.0,
+            "q1": 1.0,
+            "q3": 3.099964438297727,
+            "max": 6.0,
+            "sd": 1.5723301886761007,
+            "avg": 1.55
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "method",
+      "lib/original-name": "method",
+      "name": "method",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "method",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "method",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "method",
+      "display_name": "method",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 16.72
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": "type/Category",
+      "lib/deduplicated-name": "status",
+      "lib/original-name": "status",
+      "name": "status",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "status",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "status",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "status",
+      "display_name": "status",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 9.52
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "bigserial",
+      "semantic_type": "type/PK",
+      "lib/deduplicated-name": "id",
+      "lib/original-name": "id",
+      "name": "id",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "id",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "id",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "id",
+      "display_name": "id",
+      "fingerprint": null,
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "clubspark_status",
+      "lib/original-name": "clubspark_status",
+      "name": "clubspark_status",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "clubspark_status",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "clubspark_status",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "clubspark_status",
+      "display_name": "clubspark_status",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 6.11
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "int8",
+      "semantic_type": null,
+      "lib/deduplicated-name": "batch_id",
+      "lib/original-name": "batch_id",
+      "name": "batch_id",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "batch_id",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "batch_id",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "batch_id",
+      "display_name": "batch_id",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 5.0,
+            "q1": 5.382865323080775,
+            "q3": 6.0,
+            "max": 6.0,
+            "sd": 0.42923469599092784,
+            "avg": 5.76
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Most Recent Signups",
+  "last_query_start": "2026-04-04T07:28:02.535524Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-04T07:28:02.633296Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 120.7963800904977376,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-03-30T14:06:35.326173Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "native": "SELECT\n  signup_date,\n  member,\n  product,\n  payer,\n  cost,\n  quantity,\n  method,\n  status,\n  id,\n  clubspark_status,\n  batch_id\nFROM member_signups\nWHERE EXTRACT(YEAR FROM signup_date) = ({{year}})::int\nORDER BY signup_date DESC\nLIMIT 100;",
+        "lib/type": "mbql.stage/native",
+        "template-tags": {
+          "year": {
+            "type": "text",
+            "id": "year",
+            "name": "year",
+            "display-name": "Year",
+            "required": true
+          }
+        }
+      }
+    ]
+  },
+  "id": 1507,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "-jgLoV3F762IynNAk0LST",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-03-30T14:06:35.370914Z"
+  },
+  "visualization_settings": {
+    "table.columns": [
+      {
+        "name": "signup_date",
+        "enabled": true
+      },
+      {
+        "name": "member",
+        "enabled": true
+      },
+      {
+        "name": "product",
+        "enabled": true
+      },
+      {
+        "name": "payer",
+        "enabled": true
+      },
+      {
+        "name": "cost",
+        "enabled": true
+      },
+      {
+        "name": "quantity",
+        "enabled": true
+      },
+      {
+        "name": "method",
+        "enabled": true
+      },
+      {
+        "name": "status",
+        "enabled": true
+      },
+      {
+        "name": "id",
+        "enabled": true
+      },
+      {
+        "name": "clubspark_status",
+        "enabled": true
+      },
+      {
+        "name": "batch_id",
+        "enabled": true
+      }
+    ]
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [
+    {
+      "id": "year",
+      "type": "string/=",
+      "target": [
+        "variable",
+        [
+          "template-tag",
+          "year"
+        ]
+      ],
+      "name": "Year",
+      "slug": "year",
+      "required": true,
+      "isMultiSelect": false
+    }
+  ],
+  "dashboard_id": null,
+  "created_at": "2026-03-16T15:09:02.558975Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

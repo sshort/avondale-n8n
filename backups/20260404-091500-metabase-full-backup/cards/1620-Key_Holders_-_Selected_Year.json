@@ -1,0 +1,142 @@
+{
+  "cache_invalidated_at": null,
+  "description": null,
+  "archived": false,
+  "view_count": 0,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "name": "First name",
+      "database_type": "text",
+      "base_type": "type/Text",
+      "display_name": "First name",
+      "field_ref": [
+        "field",
+        "First name",
+        {
+          "base-type": "type/Text"
+        }
+      ]
+    },
+    {
+      "name": "Last name",
+      "database_type": "text",
+      "base_type": "type/Text",
+      "display_name": "Last name",
+      "field_ref": [
+        "field",
+        "Last name",
+        {
+          "base-type": "type/Text"
+        }
+      ]
+    },
+    {
+      "name": "Payment",
+      "database_type": "text",
+      "base_type": "type/Text",
+      "display_name": "Payment",
+      "field_ref": [
+        "field",
+        "Payment",
+        {
+          "base-type": "type/Text"
+        }
+      ]
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Key Holders - Selected Year",
+  "last_query_start": null,
+  "is_remote_synced": false,
+  "dashboard_count": 0,
+  "document_id": null,
+  "last_used_at": "2026-04-02T09:26:20.444906Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": null,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-02T09:26:20.444906Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "native": "WITH key_people AS (\n  SELECT lower(trim(m.\"First name\")) AS first_key,\n         lower(trim(m.\"Last name\")) AS last_key,\n         min(initcap(trim(m.\"First name\"))) AS first_name,\n         min(initcap(trim(m.\"Last name\"))) AS last_name,\n         CASE WHEN bool_or(m.\"Payment\" = 'Part Paid') THEN 'Part Paid' ELSE 'Paid' END AS payment_state\n  FROM raw_members m\n  JOIN membership_packages p ON m.\"Membership\" = p.name\n  WHERE p.category = 'Pavilion Key'\n    AND coalesce(m.is_current, true) = true\n  GROUP BY 1,2\n  HAVING bool_or(m.\"Status\" = 'Active' AND m.\"Payment\" IN ('Paid','Part Paid'))\n)\nSELECT first_name AS \"First name\",\n       last_name AS \"Last name\",\n       payment_state AS \"Payment\"\nFROM key_people\nORDER BY last_name, first_name;"
+      }
+    ]
+  },
+  "id": 1620,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "Xh0NaucqBnUvUxJr6Atsr",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-02T09:26:20.461227Z"
+  },
+  "visualization_settings": {},
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-04-02T09:26:20.444906Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

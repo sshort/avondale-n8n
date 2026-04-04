@@ -1,0 +1,531 @@
+{
+  "cache_invalidated_at": "2026-03-30T16:37:05.680058Z",
+  "description": null,
+  "archived": false,
+  "view_count": 244,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "First name",
+      "lib/original-name": "First name",
+      "name": "First name",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "First name",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "First name",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "First name",
+      "display_name": "First name",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 181,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 5.467213114754099
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Last name",
+      "lib/original-name": "Last name",
+      "name": "Last name",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Last name",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Last name",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Last name",
+      "display_name": "Last name",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 176,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 6.540983606557377
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Membership",
+      "lib/original-name": "Membership",
+      "name": "Membership",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Membership",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Membership",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Membership",
+      "display_name": "Membership",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 9,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 15.586065573770492
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Membership Category",
+      "lib/original-name": "Membership Category",
+      "name": "Membership Category",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Membership Category",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Membership Category",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Membership Category",
+      "display_name": "Membership Category",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 9,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 6.942622950819672
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Email address",
+      "lib/original-name": "Email address",
+      "name": "Email address",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Email address",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Email address",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Email address",
+      "display_name": "Email address",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 162,
+          "nil%": 0.3073770491803279
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.6926229508196721,
+            "percent-state": 0.0,
+            "average-length": 15.651639344262295
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Venue ID",
+      "lib/original-name": "Venue ID",
+      "name": "Venue ID",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Venue ID",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Venue ID",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Venue ID",
+      "display_name": "Venue ID",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 79,
+          "nil%": 0.680327868852459
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 5.35655737704918
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "British Tennis Number",
+      "lib/original-name": "British Tennis Number",
+      "name": "British Tennis Number",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "British Tennis Number",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "British Tennis Number",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "British Tennis Number",
+      "display_name": "British Tennis Number",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 50,
+          "nil%": 0.7991803278688525
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 1.790983606557377
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Postcode",
+      "lib/original-name": "Postcode",
+      "name": "Postcode",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Postcode",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Postcode",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Postcode",
+      "display_name": "Postcode",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 146,
+          "nil%": 0.3360655737704918
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 5.233606557377049
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Start Date",
+      "lib/original-name": "Start Date",
+      "name": "Start Date",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Start Date",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Start Date",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Start Date",
+      "display_name": "Start Date",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 10.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Expiry Date",
+      "lib/original-name": "Expiry Date",
+      "name": "Expiry Date",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Expiry Date",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Expiry Date",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Expiry Date",
+      "display_name": "Expiry Date",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 10.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "List of Members Not Renewed - Current Year",
+  "last_query_start": "2026-04-04T07:28:02.515891Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-04T07:28:02.633296Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 113.8333333333333333,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-03-30T16:37:05.677934Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "native": "WITH current_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS full_name,\n    src.\"Venue ID\",\n    src.\"British Tennis Number\",\n    src.\"First name\",\n    src.\"Last name\",\n    src.\"Membership\",\n    src.category,\n    src.\"Email address\",\n    src.\"Postcode\",\n    src.\"Start Date\",\n    src.\"Expiry Date\"\n  FROM (\n    SELECT\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = {{year}}\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n), previous_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS full_name,\n    src.\"Venue ID\",\n    src.\"British Tennis Number\",\n    src.\"First name\",\n    src.\"Last name\",\n    src.\"Membership\",\n    src.category,\n    src.\"Email address\",\n    src.\"Postcode\",\n    src.\"Start Date\",\n    src.\"Expiry Date\"\n  FROM (\n    SELECT\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = (({{year}})::int - 1)::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n)\nSELECT\n  p.\"First name\",\n  p.\"Last name\",\n  p.\"Membership\",\n  p.category AS \"Membership Category\",\n  p.\"Email address\",\n  p.\"Venue ID\",\n  p.\"British Tennis Number\",\n  p.\"Postcode\",\n  p.\"Start Date\",\n  p.\"Expiry Date\"\nFROM previous_members p\nWHERE NOT EXISTS (\n  SELECT 1 FROM current_members c WHERE c.person_key = p.person_key\n)\nORDER BY p.category, p.full_name;",
+        "lib/type": "mbql.stage/native",
+        "template-tags": {
+          "year": {
+            "name": "year",
+            "display-name": "Year",
+            "type": "text",
+            "id": "year",
+            "required": true
+          }
+        }
+      }
+    ]
+  },
+  "id": 1489,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "caHxUyoaivA3iaGZ-9QMv",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 1,
+    "email": "steve@shortcentral.com",
+    "first_name": "Steve",
+    "last_name": "Short",
+    "timestamp": "2026-03-30T16:37:05.709633Z"
+  },
+  "visualization_settings": {
+    "table": {
+      "columns": [
+        {
+          "name": "First name",
+          "enabled": true
+        },
+        {
+          "name": "Last name",
+          "enabled": true
+        },
+        {
+          "name": "Membership",
+          "enabled": true
+        },
+        {
+          "name": "Membership Category",
+          "enabled": true
+        },
+        {
+          "name": "Email address",
+          "enabled": true
+        },
+        {
+          "name": "Venue ID",
+          "enabled": true
+        },
+        {
+          "name": "British Tennis Number",
+          "enabled": true
+        },
+        {
+          "name": "Postcode",
+          "enabled": true
+        },
+        {
+          "name": "Start Date",
+          "enabled": true
+        },
+        {
+          "name": "Expiry Date",
+          "enabled": true
+        }
+      ]
+    }
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [
+    {
+      "id": "year",
+      "name": "Year",
+      "slug": "year",
+      "type": "category",
+      "target": [
+        "variable",
+        [
+          "template-tag",
+          "year"
+        ]
+      ]
+    }
+  ],
+  "dashboard_id": null,
+  "created_at": "2026-03-16T15:08:59.99133Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

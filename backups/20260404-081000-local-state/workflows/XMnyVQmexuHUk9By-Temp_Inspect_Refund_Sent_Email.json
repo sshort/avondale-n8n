@@ -1,0 +1,155 @@
+{
+  "name": "Temp Inspect Refund Sent Email",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "t1000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "tmp-inspect-refund-sent",
+        "httpMethod": "GET",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "t1000000-0000-0000-0000-000000000002",
+      "name": "Inspect Refund Sent Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "tmp-inspect-refund-sent"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const request = $('Inspect Refund Sent Webhook').first()?.json ?? $('When clicking \\'Execute workflow\\'').first()?.json ?? $input.first()?.json ?? {};\nconst query = request.query ?? request;\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst parseIntSafe = (value, fallback) => {\n  const parsed = Number.parseInt(clean(value), 10);\n  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;\n};\nreturn [{ json: { gmail_query: clean(query.q) || 'in:sent to:treasury.avondaleltc@gmail.com', gmail_limit: Math.min(parseIntSafe(query.limit, 25), 100) } }];"
+      },
+      "id": "t1000000-0000-0000-0000-000000000003",
+      "name": "Resolve Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "getAll",
+        "returnAll": false,
+        "limit": "={{ $json.gmail_limit }}",
+        "simple": false,
+        "filters": {
+          "q": "={{ $json.gmail_query }}"
+        },
+        "options": {}
+      },
+      "id": "t1000000-0000-0000-0000-000000000004",
+      "name": "Gmail Get Messages",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        760,
+        220
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const decodeHtml = (value) => {\n  if (!value) return '';\n  return String(value)\n    .replace(/&nbsp;/gi, ' ')\n    .replace(/&amp;/gi, '&')\n    .replace(/&quot;/gi, '\"')\n    .replace(/&#39;/gi, \"'\")\n    .replace(/&pound;/gi, '\\u00A3')\n    .replace(/&#163;/gi, '\\u00A3')\n    .replace(/&lt;/gi, '<')\n    .replace(/&gt;/gi, '>');\n};\nconst htmlToText = (html) => {\n  if (!html) return '';\n  return decodeHtml(\n    String(html)\n      .replace(/<br\\s*\\/?>/gi, '\\n')\n      .replace(/<\\/p>/gi, '\\n')\n      .replace(/<\\/div>/gi, '\\n')\n      .replace(/<\\/li>/gi, '\\n')\n      .replace(/<[^>]+>/g, ' ')\n      .replace(/\\r/g, '')\n      .replace(/[ \\t]+\\n/g, '\\n')\n      .replace(/\\n{3,}/g, '\\n\\n')\n      .trim(),\n  );\n};\nreturn [{ json: { messages: $input.all().map((item) => {\n  const json = item.json ?? {};\n  const headers = json.headers ?? json.email?.headers ?? {};\n  const metadata = json.metadata ?? json.email?.metadata ?? {};\n  const textHtml = json.textHtml ?? json.html ?? json.textAsHtml ?? json.bodyHtml ?? '';\n  const textPlain = json.textPlain ?? json.text ?? json.bodyText ?? '';\n  const normalizedText = textPlain && textPlain.trim() ? decodeHtml(textPlain) : htmlToText(textHtml);\n  return {\n    id: json.id ?? null,\n    message_id: json.messageId ?? json.message_id ?? headers['message-id'] ?? headers.messageId ?? metadata['message-id'] ?? metadata.messageId ?? null,\n    subject: json.subject ?? headers.subject ?? metadata.subject ?? null,\n    sent_date: json.date ?? json.sentDate ?? json.sent_date ?? headers.sent_date ?? headers.date ?? metadata.date ?? null,\n    preview: normalizedText.slice(0, 800),\n  };\n}) } }];"
+      },
+      "id": "t1000000-0000-0000-0000-000000000005",
+      "name": "Build Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1020,
+        220
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Resolve Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inspect Refund Sent Webhook": {
+      "main": [
+        [
+          {
+            "node": "Resolve Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Request": {
+      "main": [
+        [
+          {
+            "node": "Gmail Get Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Get Messages": {
+      "main": [
+        [
+          {
+            "node": "Build Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-03T06:47:03.273+00:00",
+  "updatedAt": "2026-04-03T18:50:44.964+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "3856fb9f-c07b-4822-8458-c23620c5f663",
+  "triggerCount": 1,
+  "id": "XMnyVQmexuHUk9By",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 24,
+  "description": null,
+  "activeVersionId": "3856fb9f-c07b-4822-8458-c23620c5f663"
+}

@@ -1,0 +1,511 @@
+{
+  "name": "Send Member Calculation Email",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "r7000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "send-member-calculation-email",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "r7000000-0000-0000-0000-000000000002",
+      "name": "Send Member Calculation Email Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "send-member-calculation-email"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT MAX(CASE WHEN key = 'email_test_recipient' THEN value END) AS default_test_recipient,\n  MAX(CASE WHEN key = 'email_sender_name' THEN value END) AS email_sender_name,\n  MAX(CASE WHEN key = 'email_reply_to' THEN value END) AS email_reply_to\nFROM public.global_settings\nWHERE key IN ('email_test_recipient', 'email_sender_name', 'email_reply_to');"
+      },
+      "id": "r7000000-0000-0000-0000-000000000003",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        480,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT r.id, r.name, r.refund_for, r.reason, r.membership, r.amount, r.refund,\n       r.from_date, r.to_date, r.status, r.explanation,\n       m.email as member_email\nFROM public.refunds r\nLEFT JOIN public.members m ON r.refund_for = m.name OR r.refund_for = m.full_name\nWHERE r.id = {{ $json.refund_id }}\nLIMIT 1;"
+      },
+      "id": "r7000000-0000-0000-0000-000000000004",
+      "name": "Load Refund Details",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        480,
+        420
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT template_key, template_name, subject_template, text_template, html_template\nFROM public.email_templates\nWHERE template_key = 'refund_calculation_member'\n  AND is_active = true\n  AND template_type = 0\nORDER BY id DESC\nLIMIT 1;"
+      },
+      "id": "r7000000-0000-0000-0000-000000000005",
+      "name": "Load Member Email Template",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        480,
+        620
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const settings = $('Load Global Settings').first()?.json ?? {};\nconst request = $('Send Member Calculation Email Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst body = request.body ?? {};\nconst headers = request.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst truthy = (value) => ['1', 'true', 'yes', 'y', 'on'].includes(clean(value).toLowerCase());\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst refundId = parseInt(clean(body.refund_id), 10);\nconst memberEmail = clean(body.member_email);\nconst returnUrl = clean(body.return_url) || `${deriveBaseUrl(headers, 'http://n8n:5678')}/webhook/refund-status-form?id=${refundId}`;\nconst testMode = truthy(body.test_mode);\nconst refund = $('Load Refund Details').first()?.json ?? {};\nconst template = $('Load Member Email Template').first()?.json ?? {};\nconst errorMessage = !refundId || isNaN(refundId) ? 'refund_id is required' : !refund.id ? 'Refund not found' : !template.template_key ? 'Email template not found' : '';\nreturn [{ json: {\n  refund_id: refundId,\n  refund_for: refund.refund_for ?? '',\n  membership: refund.membership ?? '',\n  amount: refund.amount ?? 0,\n  refund: refund.refund ?? 0,\n  from_date: refund.from_date ?? '',\n  to_date: refund.to_date ?? '',\n  reason: refund.reason ?? '',\n  explanation: refund.explanation ?? '',\n  status: refund.status ?? '',\n  member_email: memberEmail || refund.member_email || '',\n  intended_recipient: memberEmail || refund.member_email || '',\n  actual_recipient: testMode ? (clean(settings.default_test_recipient) || 'steve.short@gmail.com') : (memberEmail || refund.member_email || ''),\n  delivery_mode: testMode ? 'test' : 'production',\n  template_key: template.template_key || 'refund_calculation_member',\n  template_name: template.template_name || 'Refund Calculation - Request Bank Details',\n  subject_template: template.subject_template || 'Your refund calculation from Avondale LTC',\n  text_template: template.text_template || '',\n  html_template: template.html_template || '',\n  sender_name: clean(settings.email_sender_name) || 'Steve Short',\n  reply_to: clean(settings.email_reply_to) || 'members.avondaleltc@gmail.com',\n  return_url: returnUrl,\n  error_message: errorMessage\n} }];"
+      },
+      "id": "r7000000-0000-0000-0000-000000000006",
+      "name": "Resolve Send Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "request-error-check",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operation": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "r7000000-0000-0000-0000-000000000007",
+      "name": "Check Request Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1020,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Resolve Send Request').first().json ?? {};\nconst message = input.error_message || 'Unable to send member calculation email.';\nconst returnUrl = input.return_url || '#';\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#39;');\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Email Not Sent</title><style>body{margin:0;padding:24px;background:#f7f8fc;font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:#2e3d4e}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 18px 40px rgba(53,72,91,.08);padding:28px}h1{margin:0 0 10px;font-size:30px}p{color:#6b7785;line-height:1.5}.message{margin:18px 0;padding:14px 16px;border-radius:14px;background:#fdecec;color:#b93a3a;font-weight:700}.actions{margin-top:22px;display:flex;gap:12px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#509ee3 0%,#2f80d8 100%);color:#fff}</style></head><body><div class=\"panel\"><h1>Member Calculation Email Not Sent</h1><p>The refund calculation email could not be sent.</p><div class=\"message\">${escapeHtml(message)}</div><div class=\"actions\"><a class=\"button\" href=\"${escapeHtml(returnUrl)}\">Back to Status Form</a></div></div></body></html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "r7000000-0000-0000-0000-000000000008",
+      "name": "Build Error HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "r7000000-0000-0000-0000-000000000009",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1540,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Resolve Send Request').first().json ?? {};\nconst formatDate = (value) => {\n  if (!value) return '';\n  const d = new Date(value);\n  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;\n};\nconst formatMoney = (value) => {\n  const rounded = Math.round((Number(value) + Number.EPSILON) * 100) / 100;\n  return `£${Number.isInteger(rounded) ? rounded : rounded.toFixed(2)}`;\n};\nconst applyTokens = (value) => {\n  if (!value) return '';\n  return value\n    .replace(/\\{\\{name\\}\\}/g, input.refund_for ?? '')\n    .replace(/\\{\\{refund_for\\}\\}/g, input.refund_for ?? '')\n    .replace(/\\{\\{reason\\}\\}/g, input.reason ?? '')\n    .replace(/\\{\\{membership\\}\\}/g, input.membership ?? '')\n    .replace(/\\{\\{amount\\}\\}/g, formatMoney(input.amount))\n    .replace(/\\{\\{refund\\}\\}/g, formatMoney(input.refund))\n    .replace(/\\{\\{from_date\\}\\}/g, formatDate(input.from_date))\n    .replace(/\\{\\{to_date\\}\\}/g, formatDate(input.to_date))\n    .replace(/\\{\\{explanation\\}\\}/g, input.explanation ?? '');\n};\nconst subject = applyTokens(input.subject_template);\nconst message = applyTokens(input.text_template);\nreturn [{ json: {\n  sender_name: input.sender_name,\n  reply_to: input.reply_to,\n  recipient: input.actual_recipient,\n  subject,\n  message,\n  refund_id: input.refund_id,\n  intended_recipient: input.intended_recipient,\n  delivery_mode: input.delivery_mode,\n  return_url: input.return_url\n} }];"
+      },
+      "id": "r7000000-0000-0000-0000-000000000010",
+      "name": "Render Email Content",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.recipient }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.message }}",
+        "options": {
+          "appendAttribution": false,
+          "replyTo": "={{ $json.reply_to }}",
+          "senderName": "={{ $json.sender_name }}"
+        }
+      },
+      "id": "r7000000-0000-0000-0000-000000000011",
+      "name": "Send Gmail Message",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1540,
+        620
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Render Email Content').first().json ?? {};\nconst result = $('Send Gmail Message').first()?.json ?? {};\nconst messageId = result.id || result.message?.id || '';\nreturn [{ json: { ...input, message_id: messageId } }];"
+      },
+      "id": "r7000000-0000-0000-0000-000000000012",
+      "name": "Capture Message ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Capture Message ID').first().json ?? {};\nconst sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sql = `UPDATE public.refunds\nSET status = 'Awaiting Bank Details',\n    request_email_message_id = ${sqlLiteral(input.message_id)},\n    updated_at = now()\nWHERE id = ${input.refund_id}\nRETURNING id, status, refund_for;`;\nreturn [{ json: { sql } }];"
+      },
+      "id": "r7000000-0000-0000-0000-000000000013",
+      "name": "Build Update SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        820
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "r7000000-0000-0000-0000-000000000014",
+      "name": "Update Refund Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2060,
+        820
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Capture Message ID').first().json ?? {};\nconst updated = $('Update Refund Status').first()?.json ?? {};\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#39;');\nconst modeLabel = input.delivery_mode === 'production' ? 'Production' : 'Test';\nconst recipientSummary = input.delivery_mode === 'production' ? escapeHtml(input.intended_recipient) : `${escapeHtml(input.actual_recipient)} (intended: ${escapeHtml(input.intended_recipient)})`;\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Member Calculation Email Sent</title><style>body{margin:0;padding:24px;background:#f7f8fc;font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:#2e3d4e}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 18px 40px rgba(53,72,91,.08);padding:28px}h1{margin:0 0 10px;font-size:30px}p{color:#6b7785;line-height:1.5}.pill{display:inline-flex;align-items:center;padding:8px 12px;border-radius:999px;background:#edf8f2;color:#1f7a4d;font-weight:700;margin:12px 0 18px}dl{display:grid;grid-template-columns:max-content 1fr;gap:10px 16px;margin:0}dt{font-weight:700}dd{margin:0;color:#2e3d4e}.actions{margin-top:22px;display:flex;gap:12px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#509ee3 0%,#2f80d8 100%);color:#fff}</style></head><body><div class=\"panel\"><h1>Member Calculation Email Sent</h1><p>The refund calculation email has been sent to the member.</p><div class=\"pill\">${escapeHtml(modeLabel)} mode</div><dl><dt>Refund ID</dt><dd>${input.refund_id}</dd><dt>Refund For</dt><dd>${escapeHtml(input.refund_for)}</dd><dt>Recipient</dt><dd>${recipientSummary}</dd><dt>New Status</dt><dd>${escapeHtml(updated.status || 'Awaiting Bank Details')}</dd><dt>Message ID</dt><dd>${escapeHtml(input.message_id)}</dd></dl><div class=\"actions\"><a class=\"button\" href=\"${escapeHtml(input.return_url)}\">Back to Status Form</a></div></div></body></html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "r7000000-0000-0000-0000-000000000015",
+      "name": "Build Success HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2320,
+        820
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "r7000000-0000-0000-0000-000000000016",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2580,
+        820
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Member Calculation Email Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load Refund Details",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load Member Email Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Resolve Send Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Refund Details": {
+      "main": [
+        [
+          {
+            "node": "Resolve Send Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Member Email Template": {
+      "main": [
+        [
+          {
+            "node": "Resolve Send Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Send Request": {
+      "main": [
+        [
+          {
+            "node": "Check Request Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Request Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render Email Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render Email Content": {
+      "main": [
+        [
+          {
+            "node": "Send Gmail Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Gmail Message": {
+      "main": [
+        [
+          {
+            "node": "Capture Message ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Capture Message ID": {
+      "main": [
+        [
+          {
+            "node": "Build Update SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Update SQL": {
+      "main": [
+        [
+          {
+            "node": "Update Refund Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Refund Status": {
+      "main": [
+        [
+          {
+            "node": "Build Success HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Success HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-03T07:53:07.887+00:00",
+  "updatedAt": "2026-04-03T07:53:07.887+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "ec228207-d5c9-4cbc-b26c-8ab8b4c1ccbb",
+  "triggerCount": 1,
+  "id": "LFcdt6IoOg5ufU7Z",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 29,
+  "description": null,
+  "activeVersionId": "ec228207-d5c9-4cbc-b26c-8ab8b4c1ccbb"
+}

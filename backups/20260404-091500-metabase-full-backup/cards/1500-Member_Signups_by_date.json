@@ -1,0 +1,283 @@
+{
+  "cache_invalidated_at": "2026-03-22T11:06:06.829839Z",
+  "description": null,
+  "archived": false,
+  "view_count": 239,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": 9,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "timestamptz",
+      "semantic_type": "type/PK",
+      "table_id": 9,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "signup_date",
+      "lib/original-name": "signup_date",
+      "lib/breakout?": false,
+      "unit": "day",
+      "name": "signup_date",
+      "lib/source": "source/previous-stage",
+      "lib/source-column-alias": "signup_date",
+      "lib/original-display-name": "Signup Date",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        212,
+        null
+      ],
+      "effective_type": "type/DateTimeWithLocalTZ",
+      "active": true,
+      "id": 212,
+      "lib/desired-column-alias": "signup_date",
+      "position": 0,
+      "visibility_type": "normal",
+      "inherited_temporal_unit": "day",
+      "display_name": "Signup Date: Day",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 191,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": "2025-02-23T17:31:42Z",
+            "latest": "2025-03-27T09:42:15Z"
+          }
+        }
+      },
+      "base_type": "type/DateTimeWithLocalTZ"
+    },
+    {
+      "database_type": "int8",
+      "semantic_type": "type/Quantity",
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "count",
+      "lib/original-name": "count",
+      "lib/breakout?": false,
+      "name": "count",
+      "lib/source": "source/previous-stage",
+      "lib/source-column-alias": "count",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        "count",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "count",
+      "display_name": "Count",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 13,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 3.0,
+            "q1": 6.792893218813452,
+            "q3": 14.5,
+            "max": 31.0,
+            "sd": 6.345226927534173,
+            "avg": 11.19047619047619
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "query",
+  "name": "Member Signups by date",
+  "last_query_start": "2026-04-04T07:35:53.815403Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-04T07:35:53.973415Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 118.4085106382978723,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-03-22T11:06:06.828619Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "aggregation": [
+          [
+            "count",
+            {
+              "lib/uuid": "ea4e0960-1e85-43f4-ba21-5d68b39bd8ec",
+              "effective-type": "type/Integer"
+            }
+          ]
+        ],
+        "lib/type": "mbql.stage/mbql",
+        "source-table": 9,
+        "breakout": [
+          [
+            "field",
+            {
+              "lib/uuid": "cd88db04-32c7-429e-80e4-3664383b1da9",
+              "effective-type": "type/DateTimeWithLocalTZ",
+              "base-type": "type/DateTimeWithLocalTZ",
+              "temporal-unit": "day"
+            },
+            212
+          ]
+        ],
+        "joins": [
+          {
+            "lib/type": "mbql/join",
+            "fields": [
+              [
+                "field",
+                {
+                  "base-type": "type/Text",
+                  "join-alias": "Membership Packages - Product",
+                  "lib/uuid": "7c17a344-cf9e-4439-a8ac-0d94b6b203c6"
+                },
+                295
+              ]
+            ],
+            "strategy": "left-join",
+            "alias": "Membership Packages - Product",
+            "conditions": [
+              [
+                "=",
+                {
+                  "lib/uuid": "174ac21b-492a-4245-a10e-3ced3ea9b593"
+                },
+                [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "089f6101-1b56-4cbd-a44e-17655fac445f"
+                  },
+                  "product"
+                ],
+                [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "join-alias": "Membership Packages - Product",
+                    "lib/uuid": "067e3407-1693-4a5c-8966-649b831a89ae"
+                  },
+                  296
+                ]
+              ]
+            ],
+            "stages": [
+              {
+                "lib/type": "mbql.stage/mbql",
+                "source-table": 21
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "lib/type": "mbql.stage/mbql",
+        "filters": [
+          [
+            ">",
+            {
+              "lib/uuid": "99eacfa9-8caa-4faf-a9f2-a6f04e9bdd09"
+            },
+            [
+              "field",
+              {
+                "lib/uuid": "5d413465-2510-4178-b928-e3d8767686ac",
+                "effective-type": "type/DateTimeWithLocalTZ",
+                "inherited-temporal-unit": "day",
+                "base-type": "type/DateTimeWithLocalTZ"
+              },
+              "signup_date"
+            ],
+            "2026-03-01"
+          ]
+        ]
+      }
+    ]
+  },
+  "id": 1500,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "bar",
+  "archived_directly": false,
+  "entity_id": "im6gHZXgz1a4tnImAgG8u",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 1,
+    "email": "steve@shortcentral.com",
+    "first_name": "Steve",
+    "last_name": "Short",
+    "timestamp": "2026-03-22T11:06:06.86428Z"
+  },
+  "visualization_settings": {
+    "graph.dimensions": [
+      "signup_date"
+    ],
+    "graph.x_axis.scale": "timeseries",
+    "graph.metrics": [
+      "count"
+    ]
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-03-16T15:09:01.699057Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

@@ -1,0 +1,309 @@
+{
+  "name": "ClubSpark Members Export",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "b1c2d3e4-0001-0001-0001-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "b1c2d3e4-0001-0001-0001-000000000010",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        200,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'clubspark_exporter_base_url' THEN value END) AS clubspark_exporter_base_url\nFROM public.global_settings\nWHERE key = 'clubspark_exporter_base_url';"
+      },
+      "id": "b1c2d3e4-0001-0001-0001-000000000011",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        450,
+        460
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const incoming = $('When Executed by Another Workflow').first()?.json ?? $('When clicking \\'Execute workflow\\'').first()?.json ?? {};\nconst cookieHeader = typeof incoming.cookieHeader === 'string' ? incoming.cookieHeader.trim() : '';\nconst userAgent = typeof incoming.userAgent === 'string' ? incoming.userAgent.trim() : '';\nreturn [{\n  json: {\n    targetUrl: 'https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Membership/Members',\n    forceRefresh: [true, 'true', '1', 1, 'yes'].includes(incoming.forceRefresh),\n    cookieHeader: cookieHeader || undefined,\n    userAgent: userAgent || undefined,\n    authenticatedUrl: incoming.authenticatedUrl ?? undefined,\n    pageTitle: incoming.pageTitle ?? undefined,\n    cookieCount: incoming.cookieCount ?? undefined,\n    probe: incoming.probe ?? null,\n  },\n}];"
+      },
+      "id": "b1c2d3e4-0001-0001-0001-000000000012",
+      "name": "Prepare Auth Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "mode": "list",
+          "value": "JETtfbr4EGBAcCAA"
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "b1c2d3e4-0001-0001-0001-000000000013",
+      "name": "Execute ClubSpark Auth Session",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        950,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Load Global Settings').first().json.clubspark_exporter_base_url + '/clubspark-members-export' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-ClubSpark-Target-Url",
+              "value": "https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Membership/Members"
+            },
+            {
+              "name": "X-ClubSpark-Cookie-Header",
+              "value": "={{ $('Execute ClubSpark Auth Session').first().json.cookieHeader }}"
+            },
+            {
+              "name": "X-ClubSpark-User-Agent",
+              "value": "={{ $('Execute ClubSpark Auth Session').first().json.userAgent }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "b1c2d3e4-0001-0001-0001-000000000002",
+      "name": "Fetch Members CSV",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst payload = item.json ?? {};\nconst csvText = String(payload.body ?? payload.data ?? payload.stdout ?? '').trim();\nconst detail = JSON.stringify(Object.keys(payload));\nif (!csvText) {\n  throw new Error(`ClubSpark members exporter did not return CSV output. Payload keys: ${detail}`);\n}\nif (/^<!DOCTYPE html/i.test(csvText) || /^<html/i.test(csvText) || /<title>.*Sign in/i.test(csvText)) {\n  throw new Error('ClubSpark members exporter returned HTML instead of CSV. The browser login did not complete successfully.');\n}\nfunction parseCsv(text) {\n  const rows = [];\n  let row = [], field = '', inQuotes = false;\n  for (let i = 0; i < text.length; i++) {\n    const ch = text[i], next = text[i + 1];\n    if (inQuotes) {\n      if (ch === '\"' && next === '\"') { field += '\"'; i++; }\n      else if (ch === '\"') { inQuotes = false; }\n      else { field += ch; }\n    } else {\n      if (ch === '\"') { inQuotes = true; }\n      else if (ch === ',') { row.push(field); field = ''; }\n      else if (ch === '\\r' && next === '\\n') { row.push(field); field = ''; rows.push(row); row = []; i++; }\n      else if (ch === '\\n' || ch === '\\r') { row.push(field); field = ''; rows.push(row); row = []; }\n      else { field += ch; }\n    }\n  }\n  if (field || row.length) { row.push(field); rows.push(row); }\n  return rows;\n}\nconst allRows = parseCsv(csvText);\nif (allRows.length < 2) throw new Error(`CSV has fewer than 2 rows (got ${allRows.length}).`);\nconst headers = allRows[0].map((h) => h.trim());\nif (!headers.includes('First name') || !headers.includes('Membership')) {\n  throw new Error(`ClubSpark export did not return the expected members CSV headers. Got: ${headers.slice(0, 8).join(', ')}`);\n}\nconst dataRows = allRows.slice(1).filter((r) => r.some((c) => c.trim() !== ''));\nif (!dataRows.length) {\n  return [{ json: { rowCount: 0, message: 'No data rows in CSV export.' } }];\n}\nreturn dataRows.map((row) => ({ json: Object.fromEntries(headers.map((h, i) => [h, (row[i] ?? '').trim()])) }));"
+      },
+      "id": "b1c2d3e4-0001-0001-0001-000000000003",
+      "name": "Parse Members CSV",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sqlInteger = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const digits = String(value).replace(/[^0-9-]+/g, '');\n  if (!digits || digits === '-') return 'NULL';\n  const parsed = Number.parseInt(digits, 10);\n  return Number.isNaN(parsed) ? 'NULL' : String(parsed);\n};\nconst sqlNumeric = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const normalized = String(value).replace(/,/g, '').replace(/[^0-9.-]+/g, '');\n  if (!normalized || normalized === '-' || normalized === '.' || normalized === '-.') return 'NULL';\n  const parsed = Number.parseFloat(normalized);\n  return Number.isNaN(parsed) ? 'NULL' : String(parsed);\n};\nconst rows = $input.all().map((item) => item.json ?? {});\nif (!rows.length) {\n  throw new Error('No parsed member rows were available to build the import SQL.');\n}\nconst columns = [\n  { db: 'Venue ID', headers: ['Venue ID'] },\n  { db: 'First name', headers: ['First name'] },\n  { db: 'Last name', headers: ['Last name'] },\n  { db: 'Gender', headers: ['Gender'] },\n  { db: 'Age', headers: ['Age'], type: 'integer' },\n  { db: 'Junior', headers: ['Junior'] },\n  { db: 'Date of birth', headers: ['Date of birth'] },\n  { db: 'Membership', headers: ['Membership'] },\n  { db: 'Payment', headers: ['Payment'] },\n  { db: 'Cost', headers: ['Cost'], type: 'numeric' },\n  { db: 'Paid', headers: ['Paid'], type: 'numeric' },\n  { db: 'Paid Credit Card', headers: ['Paid Credit Card'], type: 'numeric' },\n  { db: 'Paid Direct Debit', headers: ['Paid Direct Debit'], type: 'numeric' },\n  { db: 'Paid Cash', headers: ['Paid Cash'], type: 'numeric' },\n  { db: 'Paid Cheque', headers: ['Paid Cheque'], type: 'numeric' },\n  { db: 'Paid Other', headers: ['Paid Other'], type: 'numeric' },\n  { db: 'Gift aid', headers: ['Gift aid'] },\n  { db: 'Status', headers: ['Status'] },\n  { db: 'Start Date', headers: ['Start Date'] },\n  { db: 'Expiry Date', headers: ['Expiry Date'] },\n  { db: 'Email address', headers: ['Email address'] },\n  { db: 'Phone number', headers: ['Phone number'] },\n  { db: 'Work number', headers: ['Work number'] },\n  { db: 'Mobile number', headers: ['Mobile number'] },\n  { db: 'Emergency contact name', headers: ['Emergency contact name'] },\n  { db: 'Emergency phone number', headers: ['Emergency phone number'] },\n  { db: 'Address 1', headers: ['Address 1'] },\n  { db: 'Address 2', headers: ['Address 2'] },\n  { db: 'Address 3', headers: ['Address 3'] },\n  { db: 'Town', headers: ['Town'] },\n  { db: 'County', headers: ['County'] },\n  { db: 'Country', headers: ['Country'] },\n  { db: 'Postcode', headers: ['Postcode'] },\n  { db: 'British Tennis Number', headers: ['British Tennis Number'] },\n  { db: 'Date joined venue', headers: ['Date joined venue'] },\n  { db: 'Medical history', headers: ['Medical history'] },\n  { db: 'Venue source', headers: ['Venue source', ' Venue source'] },\n  { db: 'Contact source', headers: ['Contact source'] },\n  { db: 'Occupation', headers: ['Occupation'] },\n  { db: 'Tags provided', headers: ['Tags provided'] },\n  { db: 'Key pin number', headers: ['Key pin number'] },\n  { db: 'Registered', headers: ['Registered'] },\n  { db: 'Member status', headers: ['Member status'] },\n  { db: 'Receipt of Emails', headers: ['Receipt of Emails'] },\n  { db: 'Share Contact Detail', headers: ['Share Contact Detail'] },\n  { db: \"Member's Directory\", headers: [\"Member's Directory\"] },\n  { db: 'Photography', headers: ['Photography'] },\n  { db: ' Venue source', headers: [' Venue source', 'Venue source'] }\n];\nconst getValue = (row, headers) => {\n  for (const header of headers) {\n    if (Object.prototype.hasOwnProperty.call(row, header)) {\n      return row[header];\n    }\n  }\n  return null;\n};\nconst quotedColumns = columns.map(({ db }) => '\"' + db.replace(/\"/g, '\"\"') + '\"').join(', ');\nconst values = rows.map((row) => {\n  const record = columns.map((column) => {\n    const rawValue = getValue(row, column.headers);\n    if (column.type === 'integer') return sqlInteger(rawValue);\n    if (column.type === 'numeric') return sqlNumeric(rawValue);\n    return sqlLiteral(rawValue);\n  });\n  return '(' + record.join(', ') + ')';\n}).join(',\\n  ');\nconst sql = 'BEGIN;\\n' +\n  'SELECT * FROM public.prepare_raw_members_import_staging();\\n' +\n  'INSERT INTO public.raw_members_import_staging (' + quotedColumns + ')\\n' +\n  'VALUES\\n  ' + values + ';\\n' +\n  'SELECT * FROM public.reconcile_raw_members_from_staging();\\n' +\n  'COMMIT;';\nreturn [{ json: { sql, rowCount: rows.length } }];"
+      },
+      "id": "b1c2d3e4-0001-0001-0001-000000000004",
+      "name": "Build Insert SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "b1c2d3e4-0001-0001-0001-000000000005",
+      "name": "Insert Into raw_members",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1950,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) AS total_members FROM raw_members;"
+      },
+      "id": "b1c2d3e4-0001-0001-0001-000000000006",
+      "name": "Verify Row Count",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2200,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Prepare Auth Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Auth Request": {
+      "main": [
+        [
+          {
+            "node": "Execute ClubSpark Auth Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute ClubSpark Auth Session": {
+      "main": [
+        [
+          {
+            "node": "Fetch Members CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Members CSV": {
+      "main": [
+        [
+          {
+            "node": "Parse Members CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Members CSV": {
+      "main": [
+        [
+          {
+            "node": "Build Insert SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Insert SQL": {
+      "main": [
+        [
+          {
+            "node": "Insert Into raw_members",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Into raw_members": {
+      "main": [
+        [
+          {
+            "node": "Verify Row Count",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-16T14:23:59.95+00:00",
+  "updatedAt": "2026-03-27T10:51:42.157+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "6bbd7c03-20c4-4d08-981d-1068337293ad",
+  "triggerCount": 0,
+  "id": "0cLfjgMnyQeFcJ8T",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 56,
+  "description": null,
+  "activeVersionId": "6bbd7c03-20c4-4d08-981d-1068337293ad"
+}

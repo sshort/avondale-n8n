@@ -1,0 +1,446 @@
+{
+  "cache_invalidated_at": null,
+  "description": "Detail list for membership summary click-through.",
+  "archived": false,
+  "view_count": 15,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "member_name",
+      "lib/original-name": "member_name",
+      "name": "member_name",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "member_name",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "member_name",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "member_name",
+      "display_name": "member_name",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 18.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "category",
+      "lib/original-name": "category",
+      "name": "category",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "category",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "category",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "category",
+      "display_name": "category",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 6.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Membership",
+      "lib/original-name": "Membership",
+      "name": "Membership",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Membership",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Membership",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Membership",
+      "display_name": "Membership",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 14.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Payment",
+      "lib/original-name": "Payment",
+      "name": "Payment",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Payment",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Payment",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Payment",
+      "display_name": "Payment",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 4.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": "type/Category",
+      "lib/deduplicated-name": "Status",
+      "lib/original-name": "Status",
+      "name": "Status",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Status",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Status",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Status",
+      "display_name": "Status",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 6.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Email address",
+      "lib/original-name": "Email address",
+      "name": "Email address",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Email address",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Email address",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Email address",
+      "display_name": "Email address",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.5
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.5,
+            "percent-state": 0.0,
+            "average-length": 9.5
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Phone number",
+      "lib/original-name": "Phone number",
+      "name": "Phone number",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Phone number",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Phone number",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Phone number",
+      "display_name": "Phone number",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.5
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 6.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Mobile number",
+      "lib/original-name": "Mobile number",
+      "name": "Mobile number",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Mobile number",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Mobile number",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Mobile number",
+      "display_name": "Mobile number",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.5
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 6.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Postcode",
+      "lib/original-name": "Postcode",
+      "name": "Postcode",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Postcode",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Postcode",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Postcode",
+      "display_name": "Postcode",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.5
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 4.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Members in Category - Selected Year",
+  "last_query_start": "2026-04-04T07:27:53.578422Z",
+  "is_remote_synced": false,
+  "dashboard_count": 0,
+  "document_id": null,
+  "last_used_at": "2026-04-04T07:27:53.589916Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 37.0000000000000000,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-03-16T15:09:01.923465Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "template-tags": {
+          "year": {
+            "name": "year",
+            "display-name": "Year",
+            "id": "year",
+            "type": "text",
+            "required": true
+          },
+          "category": {
+            "name": "category",
+            "display-name": "Category",
+            "id": "category",
+            "type": "text",
+            "required": true
+          }
+        },
+        "native": "SELECT\n  concat(m.\"First name\", ' ', m.\"Last name\") AS member_name,\n  p.category,\n  m.\"Membership\",\n  m.\"Payment\",\n  m.\"Status\",\n  m.\"Email address\",\n  m.\"Phone number\",\n  m.\"Mobile number\",\n  m.\"Postcode\"\nFROM public.raw_members AS m\nJOIN public.membership_packages AS p\n  ON m.\"Membership\" = p.name\nWHERE p.season = {{year}}\n  AND p.category = {{category}}\n  AND m.\"Status\" = 'Active'\n  AND m.\"Payment\" IN ('Paid', 'Part Paid')\nORDER BY m.\"Last name\", m.\"First name\";"
+      }
+    ]
+  },
+  "id": 1502,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "7_kvPgDqX_3Dxi9AaJZS-",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-03-16T15:09:01.940691Z"
+  },
+  "visualization_settings": {
+    "table.pivot_column": "Membership",
+    "table.cell_column": "Postcode"
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-03-16T15:09:01.923465Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

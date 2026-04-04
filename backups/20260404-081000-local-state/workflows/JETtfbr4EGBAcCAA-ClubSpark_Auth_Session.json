@@ -1,0 +1,261 @@
+{
+  "name": "ClubSpark Auth Session",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "c5c10001-1111-4111-8111-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "c5c10001-1111-4111-8111-000000000002",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        200,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'clubspark_exporter_base_url' THEN value END) AS clubspark_exporter_base_url\nFROM public.global_settings\nWHERE key = 'clubspark_exporter_base_url';"
+      },
+      "id": "c5c10001-1111-4111-8111-000000000005",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        460,
+        380
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const getOrigin = (value) => {\n  const text = String(value ?? '').trim();\n  const match = text.match(/^https?:\\/\\/[^/]+/i);\n  return match ? match[0] : null;\n};\nconst settings = $input.first().json ?? {};\nconst incoming = $('When Executed by Another Workflow').first()?.json ?? $('When clicking \\'Execute workflow\\'').first()?.json ?? {};\nconst defaultTargetUrl = 'https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts';\nconst targetUrl = String(incoming.targetUrl ?? defaultTargetUrl).trim() || defaultTargetUrl;\nconst targetOrigin = getOrigin(targetUrl);\nconst forceRefresh = [true, 'true', '1', 1, 'yes'].includes(incoming.forceRefresh);\nconst requestedMaxAge = Number.parseFloat(String(incoming.maxAgeMinutes ?? incoming.cacheMaxAgeMinutes ?? '20'));\nconst maxAgeMinutes = Number.isFinite(requestedMaxAge) && requestedMaxAge > 0 ? requestedMaxAge : 20;\nconst providedCookieHeader = typeof incoming.cookieHeader === 'string' ? incoming.cookieHeader.trim() : '';\nconst providedUserAgent = typeof incoming.userAgent === 'string' ? incoming.userAgent.trim() : '';\nconst hasProvidedSession = Boolean(!forceRefresh && providedCookieHeader && providedUserAgent);\nconst staticData = $getWorkflowStaticData('global');\nconst fetchedAtMs = staticData.fetchedAt ? Date.parse(staticData.fetchedAt) : NaN;\nlet sameOrigin = true;\ntry {\n  const cachedOrigin = staticData.sessionOrigin ?? (staticData.targetUrl ? getOrigin(staticData.targetUrl) : null);\n  sameOrigin = cachedOrigin && targetOrigin ? cachedOrigin === targetOrigin : true;\n} catch {\n  sameOrigin = false;\n}\nconst hasCachedSession = Boolean(\n  !hasProvidedSession\n  && !forceRefresh\n  && staticData.cookieHeader\n  && staticData.userAgent\n  && Number.isFinite(fetchedAtMs)\n  && (Date.now() - fetchedAtMs) <= (maxAgeMinutes * 60 * 1000)\n  && sameOrigin\n);\nreturn [{\n  json: {\n    clubspark_exporter_base_url: settings.clubspark_exporter_base_url,\n    targetUrl,\n    maxAgeMinutes,\n    forceRefresh,\n    useCachedSession: hasProvidedSession || hasCachedSession,\n    authenticated: (hasProvidedSession || hasCachedSession) ? true : undefined,\n    authenticatedUrl: hasProvidedSession\n      ? (incoming.authenticatedUrl ?? targetUrl)\n      : hasCachedSession\n        ? (staticData.authenticatedUrl ?? targetUrl)\n        : undefined,\n    pageTitle: hasProvidedSession\n      ? (incoming.pageTitle ?? null)\n      : hasCachedSession\n        ? (staticData.pageTitle ?? null)\n        : undefined,\n    userAgent: hasProvidedSession ? providedUserAgent : hasCachedSession ? staticData.userAgent : undefined,\n    cookieHeader: hasProvidedSession ? providedCookieHeader : hasCachedSession ? staticData.cookieHeader : undefined,\n    cookieCount: hasProvidedSession\n      ? Number(incoming.cookieCount ?? 0)\n      : hasCachedSession\n        ? Number(staticData.cookieCount ?? 0)\n        : undefined,\n    probe: hasProvidedSession\n      ? {\n          source: 'input_session',\n          targetOrigin,\n        }\n      : hasCachedSession\n        ? {\n            source: 'workflow_static_data',\n            fetchedAt: staticData.fetchedAt ?? null,\n            maxAgeMinutes,\n            targetOrigin,\n          }\n        : null,\n  },\n}];"
+      },
+      "id": "c5c10001-1111-4111-8111-000000000006",
+      "name": "Resolve Auth Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c5c10001-1111-4111-8111-000000000007-condition",
+              "leftValue": "={{ $json.useCachedSession === true }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c5c10001-1111-4111-8111-000000000007",
+      "name": "Reuse Cached Session?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        940,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Resolve Auth Request').first().json.clubspark_exporter_base_url + '/clubspark-auth-session' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-ClubSpark-Target-Url",
+              "value": "={{ $json.targetUrl }}"
+            }
+          ]
+        }
+      },
+      "id": "c5c10001-1111-4111-8111-000000000003",
+      "name": "Request Auth Session",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1180,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const getOrigin = (value) => {\n  const text = String(value ?? '').trim();\n  const match = text.match(/^https?:\\/\\/[^/]+/i);\n  return match ? match[0] : null;\n};\nconst payload = $input.first().json ?? {};\nif (payload.authenticated !== true || !payload.cookieHeader || !payload.userAgent) {\n  throw new Error('ClubSpark auth session did not return a reusable authenticated session.');\n}\nconst staticData = $getWorkflowStaticData('global');\nstaticData.fetchedAt = new Date().toISOString();\nstaticData.targetUrl = payload.targetUrl ?? null;\nstaticData.sessionOrigin = payload.targetUrl ? getOrigin(payload.targetUrl) : null;\nstaticData.authenticatedUrl = payload.authenticatedUrl ?? payload.targetUrl ?? null;\nstaticData.pageTitle = payload.pageTitle ?? null;\nstaticData.userAgent = payload.userAgent;\nstaticData.cookieHeader = payload.cookieHeader;\nstaticData.cookieCount = Number(payload.cookieCount ?? 0);\nreturn [{ json: payload }];"
+      },
+      "id": "c5c10001-1111-4111-8111-000000000008",
+      "name": "Cache Auth Session",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1420,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $input.first().json ?? {};\nif (!payload.cookieHeader) {\n  throw new Error('ClubSpark auth session did not return a reusable cookie header.');\n}\nif (payload.authenticated !== true) {\n  throw new Error('ClubSpark auth session did not report authenticated=true.');\n}\nreturn [{\n  json: {\n    authenticated: payload.authenticated,\n    targetUrl: payload.targetUrl,\n    authenticatedUrl: payload.authenticatedUrl,\n    pageTitle: payload.pageTitle,\n    userAgent: payload.userAgent,\n    cookieHeader: payload.cookieHeader,\n    cookieCount: payload.cookieCount,\n    probe: payload.probe ?? null,\n  },\n}];"
+      },
+      "id": "c5c10001-1111-4111-8111-000000000004",
+      "name": "Keep Reusable Session",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1660,
+        380
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Resolve Auth Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Auth Request": {
+      "main": [
+        [
+          {
+            "node": "Reuse Cached Session?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reuse Cached Session?": {
+      "main": [
+        [
+          {
+            "node": "Keep Reusable Session",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Request Auth Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request Auth Session": {
+      "main": [
+        [
+          {
+            "node": "Cache Auth Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cache Auth Session": {
+      "main": [
+        [
+          {
+            "node": "Keep Reusable Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-20T15:32:20.657+00:00",
+  "updatedAt": "2026-03-27T11:00:03.971+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": {
+    "global": {
+      "fetchedAt": "2026-04-04T07:00:14.148Z",
+      "targetUrl": "https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts",
+      "authenticatedUrl": "https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts",
+      "pageTitle": "Clubspark / Admin / Contacts",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/136.0.7103.25 Safari/537.36",
+      "cookieHeader": "lastVenue=AvondaleTennisClub; __cf_bm=Fx_h2Gqcb7DtzndWvr_g7POpMLewxalo7T0COlUot9g-1775286000.6482632-1.0.1.1-nQPuedPL20Ve.lsFiRo7MdPiiJEH7OIscDT_PJFQlMAu6CJL3olpnG7Ylf3bhMyGtuzlUD9AlfcMxQ0HDWOd0qjsvS9DGI6QzImy6eR1s4R_JNtwStXalKBzoUReK5n4; CsAuth=77u/PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48U2VjdXJpdHlDb250ZXh0VG9rZW4gcDE6SWQ9Il8zMmY4ZmU0Zi00YmFlLTQzNmQtYWJjZi1jZDczNjE2Y2ZhNmYtREI3NUM4MjM1MkQ1NDZENUQ2MkQzMDY1QjQ2MkFEM0EiIHhtbG5zOnAxPSJodHRwOi8vZG9jcy5vYXNpcy1vcGVuLm9yZy93c3MvMjAwNC8wMS9vYXNpcy0yMDA0MDEtd3NzLXdzc2VjdXJpdHktdXRpbGl0eS0xLjAueHNkIiB4bWxucz0iaHR0cDovL2RvY3Mub2FzaXMtb3Blbi5vcmcvd3Mtc3gvd3Mtc2VjdXJlY29udmVyc2F0aW9uLzIwMDUxMiI+PElkZW50aWZpZXI+dXJuOnV1aWQ6YTdhMTY2OTYtMDI1Yi00MjY4LWFlNjItZDM2ZjZhODA4MDIwPC9JZGVudGlmaWVyPjxDb29raWUgeG1sbnM9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwNi8wNS9zZWN1cml0eSI+WlluR1hBUjlPa1pBemRvS25DQ2NZQUd6ZWlXb1hmbmx0S096OFVIRHNKbExaK0xVaEVHZlFsQjI4OHJkcnJLOFlodG95OS9VWGhYK3FXOUdvRlJIeGRGOGQ5SlMvb2VRMFIzcmxMQ2MybVhvYUpyZzBBMWJpMWF2aExkb2NwWXNCbE1ROEx6NzIrU1VmZEFoeHFHaEE4UlNyVTdkV2FIVFhWTWI4Y0RoQW5ES2VRQ1N6cDB5aDhWMWgwRzdobWFwU0tqNWwyQkQwSWxETjN1L1h6SnpQL1ZLUGovY1NiVG54VG5qZzhlTS9Dcm1za2VaZ0FZSzgxQUQzUzg0V1BaZVJKb3hBM0QrTkdISm5MS1Azd0dGOEFMdzlLME5ONW5hakxlb1JjZXVRTVlCeFBrWlpvNkROaHZkWXc3OEQ3cG42RWwyTk5TY2Y1TjdQYjd5S1dIVlVBam5ZOTBTNWNHaS9EbzZUYTBpbzV6TTY5dkRsQytrS1I2bGwyeVp5NzhucU1yb0VmeTNrNzNKUytiVWxjWCtjQmNsSGNJcThWM1RwMWc3RW00b3UvTmVaOEViZkdIdmlaRDRnamhGMVJxR1gwLytka1BLc3VUWjdzazFSY0g0ZFBaa1psVXVQUnh6OVZaS3g2QW9HN3hXTTlvb1pVSzNGOEJVQUtkZUNad25IZllEcVNpTk9ick1ncnZJMTl5dUpqSkdHdHB6dmI0YlNiSmdDWWpHQ2lsYi93cFVLWko5UCtHUWtoWFNnd0dhNGQrbWFpQUJQT0JULzE2VzZMN2l4cmU1RDBIelJ1VmpVcnRFK0U1TW9qdzY2S1JnRHFFOFFKZ2VtaVBUcmZHR0RXT3VWcURBTyt6YmdOWG1LeElDNHFrREE0eUJGNXB2KzdkckxTRHZaR1NaVlFFaVdwZzVBWVN1ckxZVE5JNGNKQUVJVWxWOHZGYW1zVFJxeTE1VVl1SVBJeEM0LzE5azFlQmlleDAxYnY1bDQzZ0orQkp2N2hoQWtBS0E4b01yTmhKbUZSMmhOamlPMnR5TElWOTlFd0E2eE1VZGRSWVd2VXFVSTVudGpNUU43Q3RJUkJ0eUtyNUNScjZwSjEzcTM4Y003NjVDY2p2dEtEV0xRNHN0UHFHeHkyTjE5cGp3R3hwNTBMUjNpWFhBSmtHQzRySTk5VEhmdzB5bTlOQUZHZW5TYTFRR3ZWYzdkZEQvM3dKUG9iRkdsL1BkS2NrUGRuMG5YbGpEaW9wcHRSRkVkVDVSQzBkYkhoZEtWMlJqU201R0Z1ZFR0MzVSemRXUkpmNmd6c3A4dHJoMXFxMytFdENhQ281ZG80MUFSbjlnRW96VGlIZEpIM0N6VXpVZXFsa1hXWjJrNytReTJOZ2UzSktpTHVtZW9hRUdrZW9HMFkv; CsAuth1=czJZVEZ0aDkySUN0aG1yejZZUVlQMjJXbGc0Z1k4cDRIQWkrOFc0Ym9aMnpuSzI0TGc1SnZyQmYvdGYzcWc3VjY3eUNwYXhSbHlsNVpidzduVDRvNXI2WG9ObWNSUDlkeGV1Rk01aHlQZm9wbklSSG5yYkJVQTdkVElQdHVwTUFteXV4cHV0ND08L0Nvb2tpZT48L1NlY3VyaXR5Q29udGV4dFRva2VuPg==; _gcl_au=1.1.317382421.1775286010; _gid=GA1.3.887995140.1775286010; _gat_UA-9407701-4=1; _ga_R8CDFT1V4H=GS2.1.s1775286010$o1$g0$t1775286010$j60$l0$h0; _ga=GA1.1.1131682973.1775286010; _ga_5THG22YLMH=GS2.1.s1775286010$o1$g0$t1775286010$j60$l0$h0; _ga_5CZ62BC06S=GS2.1.s1775286010$o1$g0$t1775286010$j60$l0$h0; _ga_N6HHPLH4XC=GS2.1.s1775286010$o1$g0$t1775286010$j60$l0$h0; osano_consentmanager_uuid=1f83a636-a566-47f0-b376-484628c037b3; osano_consentmanager=ifNWsvhY8EW2nq6xUlFXpGz3kVYuT-qEN3EOCZXwaMl7PJt1e4KL0Mnptv_ixbEkDXhaJGGgFKj6uUm-lz3y--YMl7ZOqO26ZhphfC71IQQ9TfiRfGfk7-BZW4SJumLj7Rn7NMDd_2iC_ZJoz7b-kzpxHDxSIcPSX-ZWff_-r0a6ZkDrYvB1Sa9FbBugBkCL0RbZykWXcjmwRLUQYob2EITqK3W6Fy7gQFyhOnK4ersY5CPim4VXGe6STJom1jlE5qaee4HVnMcGGSaO4fqScKk2aHs7oqewsb2VJYzU_pamldg4cPFIcC1B_rw85OgE",
+      "cookieCount": 14,
+      "sessionOrigin": "https://clubspark.lta.org.uk"
+    }
+  },
+  "pinData": null,
+  "versionId": "2a0ab02e-f3b3-42fb-958c-ef19ccabbb2b",
+  "triggerCount": 0,
+  "id": "JETtfbr4EGBAcCAA",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 245,
+  "description": null,
+  "activeVersionId": "2a0ab02e-f3b3-42fb-958c-ef19ccabbb2b"
+}
