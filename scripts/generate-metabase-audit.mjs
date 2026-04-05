@@ -385,14 +385,15 @@ function buildClassificationMarkdown(classification) {
 const cards = await getJson('/api/card');
 const dashboard = await getJson(`/api/dashboard/${DASHBOARD_ID}`);
 const collections = await getJson('/api/collection');
+const DOCS_DIR = `${ROOT}/docs`;
 
 const audit = buildAudit(cards, dashboard, collections);
 const classification = buildClassification(audit);
 
-await writeFile(`${ROOT}/METABASE_DASHBOARD_11_AUDIT.json`, JSON.stringify(audit, null, 2));
-await writeFile(`${ROOT}/METABASE_DASHBOARD_11_AUDIT.md`, buildAuditMarkdown(cards, audit));
-await writeFile(`${ROOT}/METABASE_UNUSED_CLASSIFICATION.json`, JSON.stringify(classification, null, 2));
-await writeFile(`${ROOT}/METABASE_UNUSED_CLASSIFICATION.md`, buildClassificationMarkdown(classification));
+await writeFile(`${DOCS_DIR}/METABASE_DASHBOARD_11_AUDIT.json`, JSON.stringify(audit, null, 2));
+await writeFile(`${DOCS_DIR}/METABASE_DASHBOARD_11_AUDIT.md`, buildAuditMarkdown(cards, audit));
+await writeFile(`${DOCS_DIR}/METABASE_UNUSED_CLASSIFICATION.json`, JSON.stringify(classification, null, 2));
+await writeFile(`${DOCS_DIR}/METABASE_UNUSED_CLASSIFICATION.md`, buildClassificationMarkdown(classification));
 
 console.log(
   JSON.stringify(

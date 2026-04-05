@@ -17,6 +17,10 @@ This file contains specific instructions for AI agents working on this repositor
 
 ## Technical Standards
 
+### Documents
+
+- keep documents in the docs folder
+
 ### ExecPlans
 - When writing complex features or significant refactors, use an **ExecPlan** (as described in `.agent/PLANS.md`) from design to implementation.
 
@@ -35,4 +39,4 @@ This file contains specific instructions for AI agents working on this repositor
 - Use the `docker compose` configuration in the root for service updates.
 
 ## Reference Services
-- **Services List**: See **[SERVICES.md](file:///mnt/c/dev/avondale-n8n/SERVICES.md)** for a consolidated list of entry points and monitoring URLs.
+- **Services List**: See **[docs/SERVICES.md](file:///mnt/c/dev/avondale-n8n/docs/SERVICES.md)** for a consolidated list of entry points and monitoring URLs.

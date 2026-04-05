@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DB_URL="${1:-postgresql://postgres@homedb:5432/postgres}"
+DB_URL="${1:-postgresql://postgres@192.168.1.248:5432/postgres}"
 
 PSQL=(psql "$DB_URL" -v ON_ERROR_STOP=1 -F $'\t' -At)
 

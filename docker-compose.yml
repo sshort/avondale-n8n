@@ -18,7 +18,7 @@ services:
       - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_DATABASE=postgres
-      - DB_POSTGRESDB_HOST=homedb
+      - DB_POSTGRESDB_HOST=192.168.1.248
       - DB_POSTGRESDB_PORT=5432
       - DB_POSTGRESDB_USER=postgres
       - DB_POSTGRESDB_SCHEMA=n8n

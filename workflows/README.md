@@ -30,8 +30,8 @@ Notes:
 - Manual batch additions are stored in `public.signup_batch_manual_items`, not `public.member_signups`. The combined batch views `vw_signup_batch_items`, `vw_signup_batch_consolidated`, and `vw_signup_batches_summary` are the reporting surface for labels, exports, and dashboard counts.
 - The cloud `n8n.workflow_entity` sync deliberately writes `activeVersionId = NULL` because the cloud database is only used as a reporting copy for Metabase, not as a runnable replica of local workflow history.
 - `complete-signup-batch.json` expects the operator to edit the `Set Batch Id` code node before manual execution.
-- The no-address batch email mechanism is documented in [NO_ADDRESS_BATCH_EMAILS.md](/mnt/c/dev/avondale-n8n/NO_ADDRESS_BATCH_EMAILS.md).
-- The manual batch item mechanism is documented in [MANUAL_BATCH_ITEMS.md](/mnt/c/dev/avondale-n8n/MANUAL_BATCH_ITEMS.md).
+- The no-address batch email mechanism is documented in [NO_ADDRESS_BATCH_EMAILS.md](/mnt/c/dev/avondale-n8n/docs/NO_ADDRESS_BATCH_EMAILS.md).
+- The manual batch item mechanism is documented in [MANUAL_BATCH_ITEMS.md](/mnt/c/dev/avondale-n8n/docs/MANUAL_BATCH_ITEMS.md).
 - Non-secret runtime values are now centralized in `public.global_settings`, seeded by [009_global_settings.sql](/mnt/c/dev/avondale-n8n/sql/009_global_settings.sql). Current keys include:
   - `clubspark_exporter_base_url`
   - `gotenberg_base_url`
