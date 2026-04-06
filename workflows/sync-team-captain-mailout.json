@@ -1,0 +1,91 @@
+{
+  "name": "Sync Team Captain Mailout",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "sync-team-captain-mailout",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "r6000000-0000-0000-0000-000000000001",
+      "name": "Sync Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "sync-team-captain-mailout"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const { execSync } = require('child_process');\ntry {\n  const result = execSync('bash /mnt/c/dev/avondale-n8n/scripts/sync-team-captain-mailout-to-n8n.sh', {\n    encoding: 'utf8',\n    timeout: 60000,\n    cwd: '/mnt/c/dev/avondale-n8n'\n  });\n  return [{ json: { success: true, output: result } }];\n} catch (error) {\n  return [{ json: { success: false, error: error.message || error.stderr || 'Unknown error' } }];\n}"
+      },
+      "id": "r6000000-0000-0000-0000-000000000002",
+      "name": "Run Sync Script",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.success ? 'Mailout data synced to n8n successfully' : 'Error: ' + $json.error }}",
+        "options": {
+          "responseCode": "={{ $json.success ? 200 : 500 }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/plain"
+              }
+            ]
+          }
+        }
+      },
+      "id": "r6000000-0000-0000-0000-000000000003",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        740,
+        140
+      ]
+    }
+  ],
+  "connections": {
+    "Sync Webhook": {
+      "main": [
+        [
+          {
+            "node": "Run Sync Script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Sync Script": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  }
+}

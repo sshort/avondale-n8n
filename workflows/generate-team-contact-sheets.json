@@ -1,0 +1,143 @@
+{
+  "name": "Generate Team Contact Sheets",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "generate-team-contact-sheets",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "r5000000-0000-0000-0000-000000000001",
+      "name": "Generate Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "generate-team-contact-sheets"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $input.first()?.json ?? {};\nconst body = input.body ?? {};\nconst clean = (v) => v === null || v === undefined ? '' : String(v).trim();\nconst category = clean(body.category) || 'ALL';\nconst season = clean(body.season) || '2026';\nreturn [{ json: { category, season, teams_dir: '/mnt/c/dev/avondale-n8n/Teams', output_dir: '/mnt/c/dev/avondale-n8n/Teams/generated' } }];"
+      },
+      "id": "r5000000-0000-0000-0000-000000000002",
+      "name": "Resolve Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Resolve Input').first().json ?? {};\nconst season = input.season;\nconst teamsDir = input.teams_dir;\nconst outputDir = input.output_dir;\nconst category = input.category;\n\n// Map category to DOCX files\nconst categoryFiles = {\n  'ALL': ['MENS SQUADS 2026 Summer.docx', 'LADIES TEAMS 2026 Summer.docx', 'MIXED TEAMS 2026 SUMMER.docx', 'VETS  TEAMS 2026 SUMMER.docx'],\n  'Mens': ['MENS SQUADS 2026 Summer.docx'],\n  'Ladies': ['LADIES TEAMS 2026 Summer.docx'],\n  'Mixed': ['MIXED TEAMS 2026 SUMMER.docx'],\n  'Vets': ['VETS  TEAMS 2026 SUMMER.docx']\n};\n\nconst files = categoryFiles[category] || categoryFiles['ALL'];\nconst filesJson = JSON.stringify(files);\n\nconst script = `/mnt/c/dev/postgres-mcp-venv-linux/bin/python /mnt/c/dev/avondale-n8n/Teams/generate_team_contact_lists.py`;\nconst env = { TEAM_CONTACTS_SEASON: '${season}' };\n\nreturn [{ json: { script, env, files: filesJson, category, season, teams_dir: teamsDir, output_dir: outputDir } }];"
+      },
+      "id": "r5000000-0000-0000-0000-000000000003",
+      "name": "Build Command",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Build Command').first().json ?? {};\nconst { execSync } = require('child_process');\ntry {\n  const result = execSync(input.script, {\n    env: { ...process.env, ...input.env },\n    cwd: input.teams_dir,\n    encoding: 'utf8',\n    timeout: 120000\n  });\n  return [{ json: { success: true, output: result, category: input.category, season: input.season } }];\n} catch (error) {\n  return [{ json: { success: false, error: error.message || error.stderr || 'Unknown error', category: input.category, season: input.season } }];\n}"
+      },
+      "id": "r5000000-0000-0000-0000-000000000004",
+      "name": "Run Generator",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.success ? 'Contact sheets generated successfully for ' + $json.category + ' (Season ' + $json.season + ')' : 'Error: ' + $json.error }}",
+        "options": {
+          "responseCode": "={{ $json.success ? 200 : 500 }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/plain"
+              }
+            ]
+          }
+        }
+      },
+      "id": "r5000000-0000-0000-0000-000000000005",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1260,
+        140
+      ]
+    }
+  ],
+  "connections": {
+    "Generate Webhook": {
+      "main": [
+        [
+          {
+            "node": "Resolve Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Input": {
+      "main": [
+        [
+          {
+            "node": "Build Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Command": {
+      "main": [
+        [
+          {
+            "node": "Run Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Generator": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  }
+}
