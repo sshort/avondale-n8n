@@ -258,7 +258,22 @@ async function hideChrome(page) {
   }).catch(() => {});
 }
 
-async function suppressSensitiveColumns(page, rawColumnHeaders) {
+async function preparePdfRendering(page) {
+  await page.addStyleTag({
+    content: `
+      [data-export-map-image="true"] {
+        display: block !important;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: contain !important;
+        print-color-adjust: exact !important;
+        -webkit-print-color-adjust: exact !important;
+      }
+    `,
+  }).catch(() => {});
+}
+
+async function protectSensitiveColumns(page, rawColumnHeaders, reportMode = 'render') {
   const targetHeaders = normalizeStringArray(rawColumnHeaders)
     .map(normalizeHeaderName)
     .filter(Boolean);
@@ -267,7 +282,7 @@ async function suppressSensitiveColumns(page, rawColumnHeaders) {
     return;
   }
 
-  await page.evaluate((headers) => {
+  await page.evaluate(({ headers, mode }) => {
     const normalized = (value) => String(value ?? '')
       .trim()
       .replace(/\s+/g, ' ')
@@ -281,6 +296,39 @@ async function suppressSensitiveColumns(page, rawColumnHeaders) {
       if (!element) return;
       element.style.setProperty('display', 'none', 'important');
       element.setAttribute('data-export-hidden-column', 'true');
+    };
+
+    const maskText = (value) => String(value ?? '').replace(/[^\s]/g, '*');
+
+    const stripSensitiveLinks = (element) => {
+      if (!element) return;
+      for (const link of element.querySelectorAll('a')) {
+        link.removeAttribute('href');
+        link.removeAttribute('target');
+        link.removeAttribute('rel');
+        link.style.setProperty('pointer-events', 'none', 'important');
+        link.style.setProperty('text-decoration', 'none', 'important');
+        link.style.setProperty('color', 'inherit', 'important');
+      }
+    };
+
+    const maskElement = (element) => {
+      if (!element) return;
+      stripSensitiveLinks(element);
+
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+      const textNodes = [];
+      let current = walker.nextNode();
+      while (current) {
+        textNodes.push(current);
+        current = walker.nextNode();
+      }
+
+      for (const textNode of textNodes) {
+        textNode.textContent = maskText(textNode.textContent);
+      }
+
+      element.setAttribute('data-export-masked-column', 'true');
     };
 
     const gridSelectors = [
@@ -306,14 +354,20 @@ async function suppressSensitiveColumns(page, rawColumnHeaders) {
             if (headerId) {
               matchedHeaders.add(headerId);
             }
-            hideElement(headerWrapper);
+            if (mode === 'anonymise') {
+              hideElement(headerWrapper);
+            }
           }
         }
 
         for (const cell of grid.querySelectorAll('[data-column-id]')) {
           const columnId = cell.getAttribute('data-column-id') ?? '';
           if (targets.has(normalized(columnId)) || matchedHeaders.has(columnId)) {
-            hideElement(cell);
+            if (mode === 'anonymise') {
+              hideElement(cell);
+            } else if (mode === 'redact') {
+              maskElement(cell);
+            }
           }
         }
       }
@@ -326,6 +380,9 @@ async function suppressSensitiveColumns(page, rawColumnHeaders) {
       headers.forEach((headerCell, index) => {
         if (targets.has(normalized(headerCell.textContent))) {
           headerIndexes.push(index);
+          if (mode === 'anonymise') {
+            hideElement(headerCell);
+          }
         }
       });
 
@@ -335,25 +392,203 @@ async function suppressSensitiveColumns(page, rawColumnHeaders) {
 
       for (const row of table.querySelectorAll('tr')) {
         headerIndexes.forEach((index) => {
-          hideElement(row.children[index]);
+          const cell = row.children[index];
+          if (mode === 'anonymise') {
+            hideElement(cell);
+          } else if (mode === 'redact' && row.parentElement?.tagName !== 'THEAD') {
+            maskElement(cell);
+          }
         });
       }
     }
-  }, targetHeaders);
+  }, { headers: targetHeaders, mode: reportMode });
+}
+
+function bufferToDataUrl(buffer, mimeType = 'image/png') {
+  return `data:${mimeType};base64,${buffer.toString('base64')}`;
+}
+
+async function isMeaningfulMapCapture(page, dataUrl) {
+  return page.evaluate(async (source) => {
+    const image = new Image();
+    image.src = source;
+
+    if (typeof image.decode === 'function') {
+      await image.decode().catch(() => {});
+    } else {
+      await new Promise((resolve) => {
+        image.addEventListener('load', resolve, { once: true });
+        image.addEventListener('error', resolve, { once: true });
+      });
+    }
+
+    const width = image.naturalWidth || image.width;
+    const height = image.naturalHeight || image.height;
+    if (!width || !height) {
+      return false;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    if (!context) {
+      return false;
+    }
+
+    context.drawImage(image, 0, 0);
+    const pixels = context.getImageData(0, 0, width, height).data;
+    const sampleStepX = Math.max(1, Math.floor(width / 32));
+    const sampleStepY = Math.max(1, Math.floor(height / 24));
+    let sampled = 0;
+    let nonBlank = 0;
+
+    for (let y = 0; y < height; y += sampleStepY) {
+      for (let x = 0; x < width; x += sampleStepX) {
+        const offset = ((y * width) + x) * 4;
+        const red = pixels[offset];
+        const green = pixels[offset + 1];
+        const blue = pixels[offset + 2];
+        const alpha = pixels[offset + 3];
+        sampled += 1;
+
+        const nearWhite = red > 245 && green > 245 && blue > 245;
+        const nearTransparent = alpha < 10;
+        if (!nearWhite && !nearTransparent) {
+          nonBlank += 1;
+        }
+      }
+    }
+
+    return sampled > 0 && (nonBlank / sampled) >= 0.04;
+  }, dataUrl);
+}
+
+async function captureStableMapSnapshot(page, mapContent) {
+  const maxAttempts = 5;
+  let lastCapture = null;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    await mapContent.scrollIntoViewIfNeeded().catch(() => {});
+    await mapContent.locator('.leaflet-tile-loaded').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+    await page.waitForTimeout(1200 + (attempt * 300));
+
+    const bounds = await mapContent.boundingBox().catch(() => null);
+    if (!bounds || bounds.width < 40 || bounds.height < 40) {
+      continue;
+    }
+
+    const clip = {
+      x: Math.max(0, Math.floor(bounds.x)),
+      y: Math.max(0, Math.floor(bounds.y)),
+      width: Math.max(1, Math.floor(bounds.width)),
+      height: Math.max(1, Math.floor(bounds.height)),
+    };
+
+    const screenshot = await page.screenshot({ clip, type: 'png' });
+    const dataUrl = bufferToDataUrl(screenshot);
+    lastCapture = {
+      bounds,
+      dataUrl,
+    };
+
+    if (await isMeaningfulMapCapture(page, dataUrl)) {
+      return lastCapture;
+    }
+  }
+
+  return lastCapture;
+}
+
+async function snapshotMapVisualizations(page) {
+  const mapRoots = page.locator('[data-viz-ui-name="Map"]');
+  const mapCount = await mapRoots.count();
+
+  for (let index = 0; index < mapCount; index += 1) {
+    const mapRoot = mapRoots.nth(index);
+    const mapContent = mapRoot.locator('[data-element-id], .CardVisualization').first();
+
+    if (!await mapContent.isVisible().catch(() => false)) {
+      continue;
+    }
+
+    const capture = await captureStableMapSnapshot(page, mapContent);
+    if (!capture?.dataUrl) {
+      continue;
+    }
+
+    await mapContent.evaluate(async (element, payload) => {
+      if (element.querySelector('[data-export-map-image="true"]')) {
+        return;
+      }
+
+      const replacement = document.createElement('img');
+      replacement.src = payload.imageSrc;
+      replacement.alt = 'Map snapshot';
+      replacement.setAttribute('data-export-map-image', 'true');
+      replacement.style.width = '100%';
+      replacement.style.height = '100%';
+      replacement.style.display = 'block';
+      replacement.style.objectFit = 'contain';
+      replacement.style.background = '#ffffff';
+      if (payload.width && payload.height) {
+        element.style.width = `${payload.width}px`;
+        element.style.height = `${payload.height}px`;
+        element.style.minHeight = `${payload.height}px`;
+      }
+
+      if (typeof replacement.decode === 'function') {
+        await replacement.decode().catch(() => {});
+      } else {
+        await new Promise((resolve) => {
+          replacement.addEventListener('load', resolve, { once: true });
+          replacement.addEventListener('error', resolve, { once: true });
+        });
+      }
+
+      while (element.firstChild) {
+        element.removeChild(element.firstChild);
+      }
+
+      element.appendChild(replacement);
+    }, {
+      imageSrc: capture.dataUrl,
+      width: capture.bounds?.width ? Math.round(capture.bounds.width) : null,
+      height: capture.bounds?.height ? Math.round(capture.bounds.height) : null,
+    });
+  }
 }
 
 async function waitForTabRender(page, settleMs) {
   const busySelectors = [
     '[data-testid="loading-spinner"]',
     '[data-testid="spinner"]',
+    '[data-testid="loading-indicator"]',
     '.LoadingSpinner',
     '.Icon-spinner',
     '.spinner-border',
   ];
 
   for (const selector of busySelectors) {
-    await page.locator(selector).first().waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+    await page.waitForFunction(
+      (currentSelector) => Array.from(document.querySelectorAll(currentSelector))
+        .every((element) => {
+          const htmlElement = element;
+          const style = window.getComputedStyle(htmlElement);
+          return style.display === 'none'
+            || style.visibility === 'hidden'
+            || htmlElement.getClientRects().length === 0;
+        }),
+      selector,
+      { timeout: 30000 },
+    ).catch(() => {});
   }
+
+  await page.waitForFunction(
+    () => !/\b\d+\/\d+\s+loaded\b/i.test(document.title),
+    { timeout: 20000 },
+  ).catch(() => {});
 
   await waitForIdle(page);
   await page.waitForTimeout(settleMs);
@@ -361,9 +596,26 @@ async function waitForTabRender(page, settleMs) {
 
 async function selectTab(page, tab) {
   const preferred = page.getByRole('tab', { name: tab.name, exact: true }).first();
+  if (await preferred.isVisible().catch(() => false)) {
+    const selected = await preferred.getAttribute('aria-selected').catch(() => null);
+    if (selected === 'true') {
+      return false;
+    }
+  }
+
+  const caseInsensitiveTab = page.getByRole('tab', {
+    name: new RegExp(tab.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'),
+  }).first();
+  if (await caseInsensitiveTab.isVisible().catch(() => false)) {
+    const selected = await caseInsensitiveTab.getAttribute('aria-selected').catch(() => null);
+    if (selected === 'true') {
+      return false;
+    }
+  }
+
   const fallbacks = [
     preferred,
-    page.getByRole('tab', { name: new RegExp(tab.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') }).first(),
+    caseInsensitiveTab,
     page.locator(`[data-tab-id="${tab.id}"]`).first(),
     page.locator(`[href*="tab=${tab.id}"]`).first(),
     page.locator('button, a').filter({ hasText: tab.name }).first(),
@@ -381,12 +633,18 @@ async function selectTab(page, tab) {
   throw new Error(`Could not find dashboard tab "${tab.name}" (${tab.id}).`);
 }
 
-async function renderTabPdf(page, tab, pdfOptions, sensitiveColumnHeaders = []) {
+async function renderTabPdf(page, tab, pdfOptions, sensitiveColumnHeaders = [], reportMode = 'render') {
+  await page.emulateMedia({ media: 'screen' }).catch(() => {});
   await selectTab(page, tab);
   await waitForTabRender(page, 1500);
-  await suppressSensitiveColumns(page, sensitiveColumnHeaders);
+  await page.emulateMedia({ media: 'print' }).catch(() => {});
+  await waitForTabRender(page, 800);
+  await snapshotMapVisualizations(page);
+  await protectSensitiveColumns(page, sensitiveColumnHeaders, reportMode);
   await page.waitForTimeout(200);
-  return page.pdf(pdfOptions);
+  const pdfBuffer = await page.pdf(pdfOptions);
+  await page.emulateMedia({ media: 'screen' }).catch(() => {});
+  return pdfBuffer;
 }
 
 async function mergePdfBuffers(buffers) {
@@ -523,12 +781,13 @@ try {
 
   await waitForDashboardShell(page);
   await hideChrome(page);
+  await preparePdfRendering(page);
   await waitForTabRender(page, 1000);
 
   const buffers = [];
   for (const tab of tabs) {
     console.error(`[metabase-report-export] Rendering tab ${tab.name}`);
-    const pdfBuffer = await renderTabPdf(page, tab, pdfOptions, sensitiveColumnHeaders);
+    const pdfBuffer = await renderTabPdf(page, tab, pdfOptions, sensitiveColumnHeaders, reportMode);
     buffers.push(pdfBuffer);
   }
 
