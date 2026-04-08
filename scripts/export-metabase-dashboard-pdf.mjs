@@ -61,6 +61,24 @@ function normalizeBaseUrl(value) {
   return text.replace(/\/+$/, '');
 }
 
+function normalizeStringArray(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => String(item ?? '').trim())
+      .filter(Boolean);
+  }
+
+  const text = String(value ?? '').trim();
+  if (!text) {
+    return [];
+  }
+
+  return text
+    .split(/[\n,;]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function buildDashboardUrl(baseUrl, dashboardId, filters = {}) {
   const url = new URL(`${baseUrl}/dashboard/${dashboardId}`);
   for (const [key, value] of Object.entries(filters ?? {})) {
@@ -109,6 +127,26 @@ function normalizePdfOptions(raw) {
   };
 }
 
+function normalizeRedactionProfile(raw) {
+  const profile = raw && typeof raw === 'object' ? raw : {};
+  return {
+    useRegex: profile.useRegex === true,
+    wholeWordSearch: profile.wholeWordSearch === true,
+    convertPdfToImage: profile.convertPdfToImage === true,
+    customPadding: profile.customPadding ?? 2,
+    redactColor: String(profile.redactColor ?? '#000000'),
+    columnHeaders: normalizeStringArray(profile.columnHeaders),
+    terms: normalizeStringArray(profile.terms),
+  };
+}
+
+function normalizeHeaderName(value) {
+  return String(value ?? '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase();
+}
+
 function resolveCredentials(payload) {
   const login = payload.login && typeof payload.login === 'object' ? payload.login : {};
   const username = String(
@@ -137,6 +175,7 @@ async function waitForIdle(page) {
 
 async function waitForDashboardShell(page) {
   const selectors = [
+    'main',
     '[role="main"]',
     '.Dashboard',
     '.dashboard-parameters-widget-container',
@@ -219,6 +258,90 @@ async function hideChrome(page) {
   }).catch(() => {});
 }
 
+async function suppressSensitiveColumns(page, rawColumnHeaders) {
+  const targetHeaders = normalizeStringArray(rawColumnHeaders)
+    .map(normalizeHeaderName)
+    .filter(Boolean);
+
+  if (!targetHeaders.length) {
+    return;
+  }
+
+  await page.evaluate((headers) => {
+    const normalized = (value) => String(value ?? '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .toLowerCase();
+    const targets = new Set(headers.map(normalized).filter(Boolean));
+    if (!targets.size) {
+      return;
+    }
+
+    const hideElement = (element) => {
+      if (!element) return;
+      element.style.setProperty('display', 'none', 'important');
+      element.setAttribute('data-export-hidden-column', 'true');
+    };
+
+    const gridSelectors = [
+      '[data-testid="table-scroll-container"][role="grid"]',
+      '[role="grid"][data-testid="table-scroll-container"]',
+      '[role="grid"]',
+    ];
+
+    for (const selector of gridSelectors) {
+      for (const grid of document.querySelectorAll(selector)) {
+        const matchedHeaders = new Set();
+
+        for (const headerWrapper of grid.querySelectorAll('[data-header-id]')) {
+          const headerId = headerWrapper.getAttribute('data-header-id') ?? '';
+          const headerText =
+            headerWrapper.querySelector('[role="columnheader"], [data-testid="cell-data"]')?.textContent
+            ?? headerWrapper.textContent
+            ?? headerId;
+          const normalizedHeaderId = normalized(headerId);
+          const normalizedHeaderText = normalized(headerText);
+
+          if (targets.has(normalizedHeaderId) || targets.has(normalizedHeaderText)) {
+            if (headerId) {
+              matchedHeaders.add(headerId);
+            }
+            hideElement(headerWrapper);
+          }
+        }
+
+        for (const cell of grid.querySelectorAll('[data-column-id]')) {
+          const columnId = cell.getAttribute('data-column-id') ?? '';
+          if (targets.has(normalized(columnId)) || matchedHeaders.has(columnId)) {
+            hideElement(cell);
+          }
+        }
+      }
+    }
+
+    for (const table of document.querySelectorAll('table')) {
+      const headerIndexes = [];
+      const headers = Array.from(table.querySelectorAll('thead th'));
+
+      headers.forEach((headerCell, index) => {
+        if (targets.has(normalized(headerCell.textContent))) {
+          headerIndexes.push(index);
+        }
+      });
+
+      if (!headerIndexes.length) {
+        continue;
+      }
+
+      for (const row of table.querySelectorAll('tr')) {
+        headerIndexes.forEach((index) => {
+          hideElement(row.children[index]);
+        });
+      }
+    }
+  }, targetHeaders);
+}
+
 async function waitForTabRender(page, settleMs) {
   const busySelectors = [
     '[data-testid="loading-spinner"]',
@@ -258,9 +381,11 @@ async function selectTab(page, tab) {
   throw new Error(`Could not find dashboard tab "${tab.name}" (${tab.id}).`);
 }
 
-async function renderTabPdf(page, tab, pdfOptions) {
+async function renderTabPdf(page, tab, pdfOptions, sensitiveColumnHeaders = []) {
   await selectTab(page, tab);
   await waitForTabRender(page, 1500);
+  await suppressSensitiveColumns(page, sensitiveColumnHeaders);
+  await page.waitForTimeout(200);
   return page.pdf(pdfOptions);
 }
 
@@ -274,6 +399,66 @@ async function mergePdfBuffers(buffers) {
   }
 
   return Buffer.from(await merged.save());
+}
+
+async function runStirling(stirlingBaseUrl, pathSuffix, sourceBuffer, fields = {}, apiKey = "") {
+  const form = new FormData();
+  form.append('fileInput', new Blob([sourceBuffer], { type: 'application/pdf' }), 'report.pdf');
+
+  for (const [key, value] of Object.entries(fields)) {
+    if (value === null || value === undefined) continue;
+    const text = String(value).trim();
+    if (!text) continue;
+    form.append(key, text);
+  }
+
+  const headers = apiKey ? { 'X-API-KEY': apiKey } : undefined;
+
+  const response = await fetch(`${stirlingBaseUrl}${pathSuffix}`, {
+    method: 'POST',
+    headers,
+    body: form,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Stirling request failed (${response.status}) for ${pathSuffix}: ${errorText}`);
+  }
+
+  return Buffer.from(await response.arrayBuffer());
+}
+
+async function postProcessPdfBuffer(sourceBuffer, options) {
+  const stirlingBaseUrl = normalizeBaseUrl(options.stirlingBaseUrl);
+  const stirlingApiKey = String(options.stirlingApiKey ?? '').trim();
+  if (!stirlingBaseUrl) {
+    return sourceBuffer;
+  }
+
+  let resultBuffer = await runStirling(stirlingBaseUrl, '/api/v1/security/sanitize-pdf', sourceBuffer, {}, stirlingApiKey);
+
+  if (options.reportMode !== 'redact') {
+    return resultBuffer;
+  }
+
+  const profile = normalizeRedactionProfile(options.redactionProfile);
+  const extraTerms = normalizeStringArray(options.extraRedactionTerms);
+  const redactTerms = [...profile.terms, ...extraTerms].filter(Boolean);
+
+  if (!redactTerms.length) {
+    throw new Error('Redact mode was selected but no redaction terms were provided.');
+  }
+
+  resultBuffer = await runStirling(stirlingBaseUrl, '/api/v1/security/auto-redact', resultBuffer, {
+    listOfText: redactTerms.join('\n'),
+    useRegex: profile.useRegex ? 'true' : 'false',
+    wholeWordSearch: profile.wholeWordSearch ? 'true' : 'false',
+    customPadding: profile.customPadding ?? 2,
+    redactColor: profile.redactColor,
+    convertPDFToImage: profile.convertPdfToImage ? 'true' : 'false',
+  }, stirlingApiKey);
+
+  return resultBuffer;
 }
 
 function sanitizeFileComponent(value) {
@@ -293,6 +478,17 @@ const tabs = (Array.isArray(payload.tabs) ? payload.tabs : []).map(normalizeTab)
 const filters = payload.filters && typeof payload.filters === 'object' ? payload.filters : {};
 const pdfOptions = normalizePdfOptions(payload.pdf);
 const credentials = resolveCredentials(payload);
+const stirlingBaseUrl = normalizeBaseUrl(payload.stirlingBaseUrl ?? process.env.STIRLING_BASE_URL);
+const stirlingApiKey = String(payload.stirlingApiKey ?? process.env.STIRLING_API_KEY ?? '').trim();
+const reportMode = String(payload.reportMode ?? 'render').trim().toLowerCase();
+const redactionProfile = payload.redactionProfile && typeof payload.redactionProfile === 'object'
+  ? payload.redactionProfile
+  : {};
+const normalizedRedactionProfile = normalizeRedactionProfile(redactionProfile);
+const extraRedactionTerms = normalizeStringArray(payload.extraRedactionTerms);
+const sensitiveColumnHeaders = ['redact', 'anonymise'].includes(reportMode)
+  ? normalizedRedactionProfile.columnHeaders
+  : [];
 
 if (!metabaseBaseUrl) {
   throw new Error('Missing metabaseBaseUrl in payload or METABASE_BASE_URL in environment.');
@@ -332,14 +528,21 @@ try {
   const buffers = [];
   for (const tab of tabs) {
     console.error(`[metabase-report-export] Rendering tab ${tab.name}`);
-    const pdfBuffer = await renderTabPdf(page, tab, pdfOptions);
+    const pdfBuffer = await renderTabPdf(page, tab, pdfOptions, sensitiveColumnHeaders);
     buffers.push(pdfBuffer);
   }
 
   const merged = await mergePdfBuffers(buffers);
+  const finalBuffer = await postProcessPdfBuffer(merged, {
+    stirlingBaseUrl,
+    stirlingApiKey,
+    reportMode,
+    redactionProfile: normalizedRedactionProfile,
+    extraRedactionTerms,
+  });
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
-  await fs.writeFile(outputPath, merged);
-  console.error(`[metabase-report-export] Wrote merged PDF for ${dashboardName} to ${outputPath}`);
+  await fs.writeFile(outputPath, finalBuffer);
+  console.error(`[metabase-report-export] Wrote processed PDF for ${dashboardName} to ${outputPath}`);
 } finally {
   await context.close().catch(() => {});
   await browser.close().catch(() => {});

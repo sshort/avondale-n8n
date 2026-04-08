@@ -14,7 +14,7 @@ Avondale n8n is a powerful low-code automation platform that streamlines club me
 - **Signup Statistics**: Latest signups, missing signup detection, visial map, new members, non-renewals, package changes
 - **Signup Batches**: Full visibility into processing batches, ability to generate labels and envelops
 - **Batch Executions**: Status of all workflow executions
-- **Key Management**: Summary of key holders, remaining cases, and completion tracking
+- **Key Management**: Summary of key holders, key stock, unknown cases, and automatic stock reduction when keys are sent
 - **Database Audit**: Global settings, raw match outcomes, ambiguous matches, weak matches and audit trails
 - **Refund Management**: View refunds, create and calculate refunds, track refund related emails
 - **Non-Active Member Tracking**: Monitor lapsed members for re-engagement
@@ -25,7 +25,7 @@ Avondale n8n is a powerful low-code automation platform that streamlines club me
 - **Label Printing**: Batch print address labels - for larger batches
 - **Envelope Printing**: Envelope printing - for smaller batches
 - **No-Address Detection**: Automatically identifies members missing postal addresses
-= **BAckfill Missing Signups**: Backfill missing signups for members who did not register correctly
+= **Backfill Missing Signups**: Backfill missing signups for members who have registered using ClubSpark
 - **Templated Emails**: Personalized emails for reminders, and notifications
 - **Status Tracking**: Complete visibility from new application through to completed onboarding
 
@@ -38,9 +38,9 @@ Avondale n8n is a powerful low-code automation platform that streamlines club me
 - **Treasury Integration**: Send email request to treasurer for payment processing
 
 ### Member Lookup
-- **Member Search**: Fast member search, multiple member search
+- **Member Search**: Fast member search, multiple member search - to fulfil contact requests from team organisers and captains
 - **Member Details**: View consolidated member details page - recent memberships, signups, batch information
-- **Add Tags And Keys**: Manually add tags and keys for members for lost tags and when members do not register correctly
+- **Add Tags And Keys**: Manually add tags and keys for members for lost tags and when members do not register using ClubSpark
 - **Template Emails**: Personalized emails for reminders, and notifications
 
 ### Team Sheet Management

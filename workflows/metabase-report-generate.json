@@ -1,0 +1,226 @@
+{
+  "name": "Metabase Report Generate",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f3000000-0000-0000-0000-000000000101",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "f3000000-0000-0000-0000-000000000102",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "path": "report-generate",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f3000000-0000-0000-0000-000000000103",
+      "name": "Report Generate Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        220
+      ],
+      "webhookId": "report-generate"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'clubspark_exporter_base_url' THEN value END) AS clubspark_exporter_base_url,\n  MAX(CASE WHEN key = 'stirling_base_url' THEN value END) AS stirling_base_url,\n  MAX(CASE WHEN key = 'metabase_base_url' THEN value END) AS metabase_base_url,\n  MAX(CASE WHEN key = 'metabase_report_dashboards_json' THEN value END) AS metabase_report_dashboards_json,\n  MAX(CASE WHEN key = 'metabase_report_redaction_profiles_json' THEN value END) AS metabase_report_redaction_profiles_json\nFROM public.global_settings\nWHERE key IN ('clubspark_exporter_base_url', 'stirling_base_url', 'metabase_base_url', 'metabase_report_dashboards_json', 'metabase_report_redaction_profiles_json');"
+      },
+      "id": "f3000000-0000-0000-0000-000000000104",
+      "name": "Load Report Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        520,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const trigger = $('Report Generate Webhook').first()?.json ?? $('When Executed by Another Workflow').first()?.json ?? $('When clicking \\'Execute workflow\\'').first()?.json ?? {};\nconst request = trigger.body ?? trigger.query ?? trigger ?? {};\nconst settings = $('Load Report Settings').first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst toArray = (value) => {\n  if (Array.isArray(value)) return value.map(clean).filter(Boolean);\n  const text = clean(value);\n  return text ? [text] : [];\n};\nconst parseJsonSetting = (value, fallback) => {\n  const text = clean(value);\n  if (!text) return fallback;\n  try {\n    return JSON.parse(text);\n  } catch (error) {\n    throw new Error(`Invalid JSON in global settings: ${error.message}`);\n  }\n};\nconst sanitizeName = (value) => clean(value).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'metabase-report';\nconst splitTerms = (value) => clean(value).split(/[\\n,;]+/).map((entry) => entry.trim()).filter(Boolean);\nconst dashboards = parseJsonSetting(settings.metabase_report_dashboards_json, []);\nconst profiles = parseJsonSetting(settings.metabase_report_redaction_profiles_json, []);\nif (!dashboards.length) throw new Error('No Metabase dashboards are configured in global_settings.');\nconst requestedDashboardId = clean(request.dashboard_id);\nconst dashboard = dashboards.find((candidate) => String(candidate.id) === requestedDashboardId) || dashboards[0];\nconst reportMode = clean(request.report_mode) || 'redact';\nif (!['redact', 'anonymise'].includes(reportMode)) throw new Error(`Unsupported report_mode: ${reportMode}`);\nconst requestedTabs = toArray(request['tabs[]'] ?? request.tabs);\nconst resolvedTabs = (requestedTabs.length ? requestedTabs : (dashboard.defaultTabs ?? []).map(String))\n  .map((tabId) => (dashboard.tabs ?? []).find((tab) => String(tab.id) === String(tabId)))\n  .filter(Boolean);\nif (!resolvedTabs.length) throw new Error('At least one valid dashboard tab must be selected.');\nconst selectedProfileId = clean(request.redaction_profile) || clean(profiles[0]?.id);\nconst redactionProfile = profiles.find((candidate) => String(candidate.id) === selectedProfileId) || profiles[0] || null;\nconst extraTerms = splitTerms(request.extra_redaction_terms);\nif (reportMode === 'redact' && !redactionProfile && !extraTerms.length) throw new Error('Redact mode requires a profile or extra redact terms.');\nconst filters = {};\nconst filterMap = dashboard.filterMap ?? {};\nconst year = clean(request.year);\nconst search = clean(request.search);\nif (year) filters[clean(filterMap.year) || 'year'] = year;\nif (search) filters[clean(filterMap.search) || 'search'] = search;\nconst anonymisedDashboardId = Number(dashboard.anonymisedDashboardId ?? 0);\nconst hasDedicatedAnonymisedDashboard = Number.isInteger(anonymisedDashboardId) && anonymisedDashboardId > 0;\nconst effectiveDashboardId = reportMode === 'anonymise' && hasDedicatedAnonymisedDashboard ? anonymisedDashboardId : Number(dashboard.id);\nconst effectiveDashboardName = reportMode === 'anonymise' && hasDedicatedAnonymisedDashboard ? `${dashboard.name} (Anonymised)` : dashboard.name;\nconst timestamp = new Date().toISOString().replace(/[:.]/g, '-');\nconst baseOutputName = sanitizeName(clean(request.output_name) || `${dashboard.slug || dashboard.name}-${reportMode}-${timestamp}`);\nreturn [{\n  json: {\n    dashboardId: Number(effectiveDashboardId),\n    dashboardName: effectiveDashboardName,\n    originalDashboardId: Number(dashboard.id),\n    originalDashboardName: dashboard.name,\n    reportMode,\n    filters,\n    outputName: baseOutputName,\n    tabs: resolvedTabs,\n    redactionProfile,\n    extraRedactionTerms: extraTerms,\n    metabaseBaseUrl: clean(settings.metabase_base_url),\n    clubsparkExporterBaseUrl: clean(settings.clubspark_exporter_base_url),\n    stirlingBaseUrl: clean(settings.stirling_base_url),\n  },\n}];"
+      },
+      "id": "f3000000-0000-0000-0000-000000000105",
+      "name": "Prepare Report Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        820,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.clubsparkExporterBaseUrl.replace(/\\/+$/, '') + '/metabase-dashboard-pdf' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { metabaseBaseUrl: $json.metabaseBaseUrl, dashboardId: $json.dashboardId, dashboardName: $json.dashboardName, tabs: $json.tabs, filters: $json.filters, pdf: { format: 'A4', landscape: false, printBackground: true }, stirlingBaseUrl: $json.stirlingBaseUrl, reportMode: $json.reportMode, redactionProfile: $json.redactionProfile, extraRedactionTerms: $json.extraRedactionTerms } }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "id": "f3000000-0000-0000-0000-000000000106",
+      "name": "Render Dashboard PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first();\nconst binary = item.binary?.data;\nif (!binary?.data) {\n  throw new Error('The exporter did not return a PDF binary payload.');\n}\nconst outputName = String(item.json?.outputName ?? 'metabase-report').replace(/[^A-Za-z0-9._-]+/g, '-');\nreturn [{\n  json: {\n    ...(item.json ?? {}),\n    generatedAt: new Date().toISOString(),\n  },\n  binary: {\n    data: {\n      ...binary,\n      mimeType: 'application/pdf',\n      fileName: `${outputName}.pdf`,\n      fileExtension: 'pdf',\n    },\n  },\n}];"
+      },
+      "id": "f3000000-0000-0000-0000-000000000107",
+      "name": "Finalize PDF",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1380,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "binary",
+        "responseDataSource": "set",
+        "inputFieldName": "data",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "f3000000-0000-0000-0000-000000000108",
+      "name": "Respond PDF",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1660,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Report Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Load Report Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Report Generate Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Report Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Report Settings": {
+      "main": [
+        [
+          {
+            "node": "Prepare Report Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Report Request": {
+      "main": [
+        [
+          {
+            "node": "Render Dashboard PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render Dashboard PDF": {
+      "main": [
+        [
+          {
+            "node": "Finalize PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finalize PDF": {
+      "main": [
+        [
+          {
+            "node": "Respond PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "pinData": null,
+  "versionId": "1abf6110-f97b-4795-8e6b-fbe028f9b2a5",
+  "active": true
+}
