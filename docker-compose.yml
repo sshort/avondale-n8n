@@ -40,6 +40,10 @@ services:
       - CLUBSPARK_PASSWORD=HQ#zo7P8C$
       - LTA_USERNAME=sshort
       - LTA_PASSWORD=fH8Urv2XrtZwXra!
+      - METABASE_BASE_URL=http://192.168.1.138:3000
+      # Configure these on the host before using the Metabase report exporter.
+      # - METABASE_EMAIL=
+      # - METABASE_PASSWORD=
 
   gotenberg:
     container_name: gotenberg

@@ -14,6 +14,7 @@ This file lists the active services running via Docker on the n8n server.
 | **homecloud** | [http://192.168.1.201](http://192.168.1.201) | Nextcloud / private storage. |
 | **ClubSpark Exporter** | [http://192.168.1.237:3001/health](http://192.168.1.237:3001/health) | Exporter API (Health check). |
 | **AppSmith** | [http://192.168.1.237:8080](http://192.168.1.237:8080) | Internal admin application. |
+| **Stirling PDF** | [http://192.168.1.197:8080](http://192.168.1.197:8080) | PDF post-processing service used for report sanitizing and redaction. |
 
 ## Monitoring & Management
 
@@ -30,10 +31,19 @@ This file lists the active services running via Docker on the n8n server.
 | **Portainer** | HTTP(s) | `https://192.168.1.237:9443` | Ignore TLS: `Yes` |
 | **Exporter** | HTTP(s) | `http://192.168.1.237:3001/health` | Status: `200` |
 | **AppSmith** | HTTP(s) | `http://192.168.1.237:8080` | Status: `200` |
+| **Stirling PDF** | HTTP(s) | `http://192.168.1.197:8080/api/v1/info/status` | Status: `200` |
 | **homedb** | TCP Port | `192.168.1.248:5432` | Postgres |
 | **metabase** | HTTP(s) | `http://192.168.1.138:3000` | Status: `200` |
 | **syncthing** | HTTP(s) | `http://192.168.1.133:8384` | Status: `200` |
 | **homecloud** | HTTP(s) | `http://192.168.1.201` | Status: `200` |
 
 ---
+Additional exporter endpoints on `clubspark-exporter`:
+
+- `POST /clubspark-export`
+- `POST /clubspark-members-export`
+- `POST /clubspark-members-main-contacts-export`
+- `POST /clubspark-auth-session`
+- `POST /metabase-dashboard-pdf`
+
 *Note: Portainer also listens on http://192.168.1.237:9000 if HTTPS is not required.*

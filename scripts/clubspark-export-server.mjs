@@ -15,14 +15,17 @@ const exporters = new Map([
   ['/clubspark-export', {
     scriptPath: path.join(scriptDir, 'export-clubspark-contacts-local.mjs'),
     contentType: 'text/csv; charset=utf-8',
+    responseType: 'text',
   }],
   ['/clubspark-members-export', {
     scriptPath: path.join(scriptDir, 'export-clubspark-members-local.mjs'),
     contentType: 'text/csv; charset=utf-8',
+    responseType: 'text',
   }],
   ['/clubspark-members-main-contacts-export', {
     scriptPath: path.join(scriptDir, 'export-clubspark-members-local.mjs'),
     contentType: 'text/csv; charset=utf-8',
+    responseType: 'text',
     extraEnv: {
       CLUBSPARK_MEMBER_VIEW_LABEL: 'Main Contacts',
       CLUBSPARK_MEMBER_VIEW_VALUE: 'contacts',
@@ -31,6 +34,13 @@ const exporters = new Map([
   ['/clubspark-auth-session', {
     scriptPath: path.join(scriptDir, 'export-clubspark-auth-session-local.mjs'),
     contentType: 'application/json; charset=utf-8',
+    responseType: 'text',
+  }],
+  ['/metabase-dashboard-pdf', {
+    scriptPath: path.join(scriptDir, 'export-metabase-dashboard-pdf.mjs'),
+    contentType: 'application/pdf',
+    responseType: 'binary',
+    outputExtension: '.pdf',
   }],
 ]);
 
@@ -44,25 +54,33 @@ function readHeader(req, name) {
   return typeof value === 'string' ? value : '';
 }
 
-function runExporter(scriptPath, extraEnv = {}) {
-  const runKey = JSON.stringify([scriptPath, extraEnv]);
+function runExporter(exporter, requestBody = '', extraEnv = {}) {
+  const runKey = JSON.stringify([exporter.scriptPath, requestBody, extraEnv]);
 
   if (activeRuns.has(runKey)) {
     return activeRuns.get(runKey);
   }
 
   const runPromise = new Promise((resolve) => {
+    const outputExtension =
+      typeof exporter.outputExtension === 'string' && exporter.outputExtension.startsWith('.')
+        ? exporter.outputExtension
+        : exporter.responseType === 'binary'
+          ? '.bin'
+          : '.txt';
     const outputPath = path.join(
       os.tmpdir(),
-      `clubspark-export-${path.basename(scriptPath)}-${Date.now()}-${Math.random().toString(36).slice(2)}.csv`,
+      `clubspark-export-${path.basename(exporter.scriptPath)}-${Date.now()}-${Math.random().toString(36).slice(2)}${outputExtension}`,
     );
-    const child = spawn(process.execPath, [scriptPath], {
+    const child = spawn(process.execPath, [exporter.scriptPath], {
       cwd: scriptDir,
       env: {
         ...process.env,
         ...extraEnv,
         HEADLESS: 'true',
         CLUBSPARK_OUTPUT: outputPath,
+        EXPORT_OUTPUT: outputPath,
+        EXPORTER_PAYLOAD_JSON: requestBody,
       },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -86,7 +104,9 @@ function runExporter(scriptPath, extraEnv = {}) {
 
       if (code === 0) {
         try {
-          body = await fs.readFile(outputPath, 'utf8');
+          body = exporter.responseType === 'binary'
+            ? await fs.readFile(outputPath)
+            : await fs.readFile(outputPath, 'utf8');
         } catch {
           // Fall back to stdout if the exporter did not write the temp file.
         }
@@ -173,7 +193,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   process.stdout.write(`[${new Date().toISOString()}] Running exporter: ${exporter.scriptPath}\n`);
-  const result = await runExporter(exporter.scriptPath, {
+  const result = await runExporter(exporter, requestBody, {
     ...(exporter.extraEnv ?? {}),
     ...extraEnv,
   });

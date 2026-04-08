@@ -2,6 +2,7 @@
   "name": "clubspark-exporter",
   "private": true,
   "dependencies": {
+    "pdf-lib": "1.17.1",
     "playwright": "1.52.0"
   }
 }

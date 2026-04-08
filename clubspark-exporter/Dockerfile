@@ -9,6 +9,7 @@ RUN npm install --omit=dev
 COPY scripts/export-clubspark-contacts-local.mjs ./
 COPY scripts/export-clubspark-members-local.mjs ./
 COPY scripts/export-clubspark-auth-session-local.mjs ./
+COPY scripts/export-metabase-dashboard-pdf.mjs ./
 COPY scripts/clubspark-export-server.mjs ./
 
 EXPOSE 3001

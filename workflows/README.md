@@ -17,6 +17,8 @@ Files:
 - `add-manual-batch-item.json`: the local workflow that adds shoe tags, parent tags, and keys directly to a batch without creating a fake `member_signups` row. It inserts into `signup_batch_manual_items` with `source = 'manual'`.
 - `manual-batch-item-form.json`: the local workflow that serves the HTML form used from Metabase. It lets an operator choose manual shoe tag / parent tag / key counts for a selected member, then submits to `add-manual-batch-item`.
 - `capture-membership-history-season-snapshot.json`: the local workflow that captures the current season membership counts into `membership_history_snapshots` and refreshes the matching wide-year column in `membership_history`. It is scheduled for `:30` every hour.
+- `metabase-report-form.json`: the HTML form workflow for operator-driven dashboard PDF generation. It serves the dashboard selector, tab checklist, report mode selector, and redaction inputs from `global_settings`.
+- `metabase-report-generate.json`: the PDF generation workflow. It validates the submitted form, calls the local `clubspark-exporter` Playwright service, then post-processes the merged PDF with Stirling PDF.
 
 Notes:
 
@@ -32,9 +34,14 @@ Notes:
 - `complete-signup-batch.json` expects the operator to edit the `Set Batch Id` code node before manual execution.
 - The no-address batch email mechanism is documented in [NO_ADDRESS_BATCH_EMAILS.md](/mnt/c/dev/avondale-n8n/docs/NO_ADDRESS_BATCH_EMAILS.md).
 - The manual batch item mechanism is documented in [MANUAL_BATCH_ITEMS.md](/mnt/c/dev/avondale-n8n/docs/MANUAL_BATCH_ITEMS.md).
+- The Metabase report PDF workflow is documented in [METABASE_REPORT_PDF_WORKFLOW_SPEC.md](/mnt/c/dev/avondale-n8n/docs/METABASE_REPORT_PDF_WORKFLOW_SPEC.md).
 - Non-secret runtime values are now centralized in `public.global_settings`, seeded by [009_global_settings.sql](/mnt/c/dev/avondale-n8n/sql/009_global_settings.sql). Current keys include:
   - `clubspark_exporter_base_url`
   - `gotenberg_base_url`
+  - `metabase_base_url`
+  - `stirling_base_url`
+  - `metabase_report_dashboards_json`
+  - `metabase_report_redaction_profiles_json`
   - `clubspark_venue_slug`
   - `email_sender_name`
   - `email_reply_to`
