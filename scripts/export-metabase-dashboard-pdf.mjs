@@ -261,6 +261,60 @@ async function hideChrome(page) {
 async function preparePdfRendering(page) {
   await page.addStyleTag({
     content: `
+      @media print {
+        .react-grid-item[data-export-keep-together="true"] {
+          break-inside: avoid !important;
+          page-break-inside: avoid !important;
+          -webkit-column-break-inside: avoid !important;
+        }
+
+        .react-grid-item[data-export-force-new-page="true"] {
+          break-before: page !important;
+          page-break-before: always !important;
+          break-inside: avoid !important;
+          page-break-inside: avoid !important;
+          -webkit-column-break-inside: avoid !important;
+          position: relative !important;
+          inset: auto !important;
+          top: auto !important;
+          left: auto !important;
+          transform: none !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          margin-top: 6mm !important;
+        }
+
+        .react-grid-item[data-export-force-new-page="true"] * {
+          break-inside: avoid !important;
+          page-break-inside: avoid !important;
+          -webkit-column-break-inside: avoid !important;
+        }
+
+        [data-export-hidden-original-card="true"] {
+          display: none !important;
+        }
+
+        [data-export-standalone-card="true"] {
+          break-before: page !important;
+          page-break-before: always !important;
+          break-inside: avoid !important;
+          page-break-inside: avoid !important;
+          -webkit-column-break-inside: avoid !important;
+          display: block !important;
+          width: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          background: #ffffff !important;
+        }
+
+        [data-export-standalone-card="true"] img {
+          display: block !important;
+          width: 100% !important;
+          height: auto !important;
+          object-fit: contain !important;
+        }
+      }
+
       [data-export-map-image="true"] {
         display: block !important;
         width: 100% !important;
@@ -271,6 +325,126 @@ async function preparePdfRendering(page) {
       }
     `,
   }).catch(() => {});
+}
+
+async function keepDashcardsTogether(page, rawTitles = []) {
+  const targetTitles = normalizeStringArray(rawTitles)
+    .map(normalizeHeaderName)
+    .filter(Boolean);
+
+  if (!targetTitles.length) {
+    return;
+  }
+
+  await page.evaluate(({ titles }) => {
+    const normalize = (value) => String(value ?? '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .toLowerCase();
+
+    const targets = new Set(titles);
+    if (!targets.size) {
+      return;
+    }
+
+    for (const gridItem of document.querySelectorAll('.react-grid-item')) {
+      const titleNodes = gridItem.querySelectorAll('a, h1, h2, h3, h4, h5, h6, [role="heading"], [data-testid="dashcard-title"]');
+      const matchesTarget = Array.from(titleNodes).some((node) => targets.has(normalize(node.textContent)));
+      if (matchesTarget) {
+        gridItem.setAttribute('data-export-keep-together', 'true');
+      }
+    }
+  }, { titles: targetTitles });
+}
+
+async function forceDashcardsOntoNewPage(page, rawTitles = []) {
+  const targetTitles = normalizeStringArray(rawTitles)
+    .map(normalizeHeaderName)
+    .filter(Boolean);
+
+  if (!targetTitles.length) {
+    return;
+  }
+
+  await page.evaluate(({ titles }) => {
+    const normalize = (value) => String(value ?? '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .toLowerCase();
+
+    const targets = new Set(titles);
+    if (!targets.size) {
+      return;
+    }
+
+    for (const gridItem of document.querySelectorAll('.react-grid-item')) {
+      const titleNodes = gridItem.querySelectorAll('a, h1, h2, h3, h4, h5, h6, [role="heading"], [data-testid="dashcard-title"]');
+      const matchesTarget = Array.from(titleNodes).some((node) => targets.has(normalize(node.textContent)));
+      if (matchesTarget) {
+        gridItem.setAttribute('data-export-force-new-page', 'true');
+        gridItem.setAttribute('data-export-keep-together', 'true');
+      }
+    }
+  }, { titles: targetTitles });
+}
+
+async function snapshotDashcardsByTitle(page, rawTitles = []) {
+  const targetTitles = new Set(
+    normalizeStringArray(rawTitles)
+      .map(normalizeHeaderName)
+      .filter(Boolean),
+  );
+
+  if (!targetTitles.size) {
+    return [];
+  }
+
+  const cards = page.locator('.react-grid-item');
+  const cardCount = await cards.count();
+  const snapshots = [];
+
+  for (let index = 0; index < cardCount; index += 1) {
+    const card = cards.nth(index);
+    const titleText = await card.evaluate((element) => {
+      const titleNode = element.querySelector('a, h1, h2, h3, h4, h5, h6, [role="heading"], [data-testid="dashcard-title"]');
+      return titleNode?.textContent ?? '';
+    }).catch(() => '');
+
+    if (!targetTitles.has(normalizeHeaderName(titleText))) {
+      continue;
+    }
+
+    await card.scrollIntoViewIfNeeded().catch(() => {});
+    await page.waitForTimeout(300);
+
+    const handle = await card.elementHandle();
+    const bounds = await handle?.boundingBox().catch(() => null);
+    if (!handle || !bounds || bounds.width < 40 || bounds.height < 40) {
+      continue;
+    }
+
+    const clip = {
+      x: Math.max(0, Math.floor(bounds.x)),
+      y: Math.max(0, Math.floor(bounds.y)),
+      width: Math.max(1, Math.ceil(bounds.width)),
+      height: Math.max(1, Math.ceil(bounds.height)),
+    };
+
+    const screenshot = await page.screenshot({ clip, type: 'png' });
+    snapshots.push({
+      title: titleText.trim(),
+      imageBuffer: screenshot,
+      width: clip.width,
+      height: clip.height,
+    });
+
+    await card.evaluate((element) => {
+      element.setAttribute('data-export-hidden-original-card', 'true');
+      element.style.setProperty('display', 'none', 'important');
+    });
+  }
+
+  return snapshots;
 }
 
 async function protectSensitiveColumns(page, rawColumnHeaders, reportMode = 'render') {
@@ -640,9 +814,16 @@ async function renderTabPdf(page, tab, pdfOptions, sensitiveColumnHeaders = [], 
   await page.emulateMedia({ media: 'print' }).catch(() => {});
   await waitForTabRender(page, 800);
   await snapshotMapVisualizations(page);
+  const standaloneDashcardSnapshots = await snapshotDashcardsByTitle(page, [
+    'Member Signups by date - YoY Comparison (Weekly)',
+  ]);
+  await keepDashcardsTogether(page, [
+    'Member Signups by date - YoY Comparison (Weekly)',
+  ]);
   await protectSensitiveColumns(page, sensitiveColumnHeaders, reportMode);
   await page.waitForTimeout(200);
-  const pdfBuffer = await page.pdf(pdfOptions);
+  let pdfBuffer = await page.pdf(pdfOptions);
+  pdfBuffer = await appendSnapshotPagesToPdfBuffer(pdfBuffer, standaloneDashcardSnapshots, pdfOptions);
   await page.emulateMedia({ media: 'screen' }).catch(() => {});
   return pdfBuffer;
 }
@@ -657,6 +838,78 @@ async function mergePdfBuffers(buffers) {
   }
 
   return Buffer.from(await merged.save());
+}
+
+function parsePdfDistanceToPoints(value, fallbackPoints = 0) {
+  const text = String(value ?? '').trim();
+  if (!text) {
+    return fallbackPoints;
+  }
+
+  const match = text.match(/^([0-9]*\.?[0-9]+)\s*(pt|px|mm|cm|in)?$/i);
+  if (!match) {
+    return fallbackPoints;
+  }
+
+  const numericValue = Number.parseFloat(match[1]);
+  const unit = String(match[2] ?? 'pt').toLowerCase();
+
+  switch (unit) {
+    case 'mm':
+      return numericValue * 72 / 25.4;
+    case 'cm':
+      return numericValue * 72 / 2.54;
+    case 'in':
+      return numericValue * 72;
+    case 'px':
+      return numericValue * 72 / 96;
+    case 'pt':
+    default:
+      return numericValue;
+  }
+}
+
+async function appendSnapshotPagesToPdfBuffer(sourceBuffer, snapshots, pdfOptions) {
+  if (!snapshots.length) {
+    return sourceBuffer;
+  }
+
+  const document = await PDFDocument.load(sourceBuffer);
+  if (document.getPageCount() > 1) {
+    document.removePage(document.getPageCount() - 1);
+  }
+  const templatePage = document.getPages()[0];
+  const pageWidth = templatePage?.getWidth?.() ?? 595.92;
+  const pageHeight = templatePage?.getHeight?.() ?? 842.88;
+
+  const marginTop = parsePdfDistanceToPoints(pdfOptions.margin?.top, 28.35);
+  const marginRight = parsePdfDistanceToPoints(pdfOptions.margin?.right, 28.35);
+  const marginBottom = parsePdfDistanceToPoints(pdfOptions.margin?.bottom, 34.02);
+  const marginLeft = parsePdfDistanceToPoints(pdfOptions.margin?.left, 28.35);
+  const availableWidth = Math.max(1, pageWidth - marginLeft - marginRight);
+  const availableHeight = Math.max(1, pageHeight - marginTop - marginBottom);
+
+  for (const snapshot of snapshots) {
+    const embeddedImage = await document.embedPng(snapshot.imageBuffer);
+    const scale = Math.min(
+      availableWidth / snapshot.width,
+      availableHeight / snapshot.height,
+    );
+    const renderWidth = snapshot.width * scale;
+    const renderHeight = snapshot.height * scale;
+    const x = marginLeft + ((availableWidth - renderWidth) / 2);
+    const y = marginBottom + ((availableHeight - renderHeight) / 2);
+
+    const page = document.addPage([pageWidth, pageHeight]);
+    page.drawImage(embeddedImage, {
+      x,
+      y,
+      width: renderWidth,
+      height: renderHeight,
+    });
+  }
+
+  return Buffer.from(await document.save());
 }
 
 async function runStirling(stirlingBaseUrl, pathSuffix, sourceBuffer, fields = {}, apiKey = "") {
