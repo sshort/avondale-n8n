@@ -262,56 +262,8 @@ async function preparePdfRendering(page) {
   await page.addStyleTag({
     content: `
       @media print {
-        .react-grid-item[data-export-keep-together="true"] {
-          break-inside: avoid !important;
-          page-break-inside: avoid !important;
-          -webkit-column-break-inside: avoid !important;
-        }
-
-        .react-grid-item[data-export-force-new-page="true"] {
-          break-before: page !important;
-          page-break-before: always !important;
-          break-inside: avoid !important;
-          page-break-inside: avoid !important;
-          -webkit-column-break-inside: avoid !important;
-          position: relative !important;
-          inset: auto !important;
-          top: auto !important;
-          left: auto !important;
-          transform: none !important;
-          width: 100% !important;
-          max-width: 100% !important;
-          margin-top: 6mm !important;
-        }
-
-        .react-grid-item[data-export-force-new-page="true"] * {
-          break-inside: avoid !important;
-          page-break-inside: avoid !important;
-          -webkit-column-break-inside: avoid !important;
-        }
-
         [data-export-hidden-original-card="true"] {
           display: none !important;
-        }
-
-        [data-export-standalone-card="true"] {
-          break-before: page !important;
-          page-break-before: always !important;
-          break-inside: avoid !important;
-          page-break-inside: avoid !important;
-          -webkit-column-break-inside: avoid !important;
-          display: block !important;
-          width: 100% !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          background: #ffffff !important;
-        }
-
-        [data-export-standalone-card="true"] img {
-          display: block !important;
-          width: 100% !important;
-          height: auto !important;
-          object-fit: contain !important;
         }
       }
 
@@ -327,75 +279,49 @@ async function preparePdfRendering(page) {
   }).catch(() => {});
 }
 
-async function keepDashcardsTogether(page, rawTitles = []) {
-  const targetTitles = normalizeStringArray(rawTitles)
-    .map(normalizeHeaderName)
-    .filter(Boolean);
-
-  if (!targetTitles.length) {
-    return;
+function normalizeSnapshotTarget(raw) {
+  if (raw === null || raw === undefined) {
+    return null;
   }
 
-  await page.evaluate(({ titles }) => {
-    const normalize = (value) => String(value ?? '')
-      .trim()
-      .replace(/\s+/g, ' ')
-      .toLowerCase();
-
-    const targets = new Set(titles);
-    if (!targets.size) {
-      return;
-    }
-
-    for (const gridItem of document.querySelectorAll('.react-grid-item')) {
-      const titleNodes = gridItem.querySelectorAll('a, h1, h2, h3, h4, h5, h6, [role="heading"], [data-testid="dashcard-title"]');
-      const matchesTarget = Array.from(titleNodes).some((node) => targets.has(normalize(node.textContent)));
-      if (matchesTarget) {
-        gridItem.setAttribute('data-export-keep-together', 'true');
-      }
-    }
-  }, { titles: targetTitles });
-}
-
-async function forceDashcardsOntoNewPage(page, rawTitles = []) {
-  const targetTitles = normalizeStringArray(rawTitles)
-    .map(normalizeHeaderName)
-    .filter(Boolean);
-
-  if (!targetTitles.length) {
-    return;
+  if (typeof raw === 'string' || typeof raw === 'number') {
+    const text = String(raw).trim();
+    return text ? { title: text } : null;
   }
 
-  await page.evaluate(({ titles }) => {
-    const normalize = (value) => String(value ?? '')
-      .trim()
-      .replace(/\s+/g, ' ')
-      .toLowerCase();
+  if (typeof raw !== 'object') {
+    return null;
+  }
 
-    const targets = new Set(titles);
-    if (!targets.size) {
-      return;
-    }
+  const title = normalizeHeaderName(raw.title ?? raw.name ?? '');
+  const dashcardKey = String(raw.dashcardKey ?? raw.dashcardId ?? '').trim();
+  const cardKey = String(raw.cardKey ?? raw.cardId ?? '').trim();
 
-    for (const gridItem of document.querySelectorAll('.react-grid-item')) {
-      const titleNodes = gridItem.querySelectorAll('a, h1, h2, h3, h4, h5, h6, [role="heading"], [data-testid="dashcard-title"]');
-      const matchesTarget = Array.from(titleNodes).some((node) => targets.has(normalize(node.textContent)));
-      if (matchesTarget) {
-        gridItem.setAttribute('data-export-force-new-page', 'true');
-        gridItem.setAttribute('data-export-keep-together', 'true');
-      }
-    }
-  }, { titles: targetTitles });
+  if (!title && !dashcardKey && !cardKey) {
+    return null;
+  }
+
+  return {
+    title,
+    dashcardKey,
+    cardKey,
+  };
 }
 
-async function snapshotDashcardsByTitle(page, rawTitles = []) {
-  const targetTitles = new Set(
-    normalizeStringArray(rawTitles)
-      .map(normalizeHeaderName)
-      .filter(Boolean),
-  );
+function normalizeSnapshotTargets(rawTargets) {
+  if (!Array.isArray(rawTargets)) {
+    return [];
+  }
 
-  if (!targetTitles.size) {
+  return rawTargets
+    .map(normalizeSnapshotTarget)
+    .filter(Boolean);
+}
+
+async function snapshotDashcards(page, rawTargets = []) {
+  const targets = normalizeSnapshotTargets(rawTargets);
+
+  if (!targets.length) {
     return [];
   }
 
@@ -405,12 +331,26 @@ async function snapshotDashcardsByTitle(page, rawTitles = []) {
 
   for (let index = 0; index < cardCount; index += 1) {
     const card = cards.nth(index);
-    const titleText = await card.evaluate((element) => {
+    const cardDescriptor = await card.evaluate((element) => {
       const titleNode = element.querySelector('a, h1, h2, h3, h4, h5, h6, [role="heading"], [data-testid="dashcard-title"]');
-      return titleNode?.textContent ?? '';
+      return {
+        title: titleNode?.textContent ?? '',
+        dashcardKey: element.querySelector('[data-dashcard-key]')?.getAttribute('data-dashcard-key') ?? '',
+        cardKey: element.querySelector('[data-card-key]')?.getAttribute('data-card-key') ?? '',
+      };
     }).catch(() => '');
 
-    if (!targetTitles.has(normalizeHeaderName(titleText))) {
+    const normalizedTitle = normalizeHeaderName(cardDescriptor?.title ?? '');
+    const normalizedDashcardKey = String(cardDescriptor?.dashcardKey ?? '').trim();
+    const normalizedCardKey = String(cardDescriptor?.cardKey ?? '').trim();
+
+    const matchesTarget = targets.some((target) => (
+      (target.title && target.title === normalizedTitle)
+      || (target.dashcardKey && target.dashcardKey === normalizedDashcardKey)
+      || (target.cardKey && target.cardKey === normalizedCardKey)
+    ));
+
+    if (!matchesTarget) {
       continue;
     }
 
@@ -432,7 +372,7 @@ async function snapshotDashcardsByTitle(page, rawTitles = []) {
 
     const screenshot = await page.screenshot({ clip, type: 'png' });
     snapshots.push({
-      title: titleText.trim(),
+      title: String(cardDescriptor?.title ?? '').trim(),
       imageBuffer: screenshot,
       width: clip.width,
       height: clip.height,
@@ -807,19 +747,14 @@ async function selectTab(page, tab) {
   throw new Error(`Could not find dashboard tab "${tab.name}" (${tab.id}).`);
 }
 
-async function renderTabPdf(page, tab, pdfOptions, sensitiveColumnHeaders = [], reportMode = 'render') {
+async function renderTabPdf(page, tab, pdfOptions, sensitiveColumnHeaders = [], reportMode = 'render', snapshotTargets = []) {
   await page.emulateMedia({ media: 'screen' }).catch(() => {});
   await selectTab(page, tab);
   await waitForTabRender(page, 1500);
   await page.emulateMedia({ media: 'print' }).catch(() => {});
   await waitForTabRender(page, 800);
   await snapshotMapVisualizations(page);
-  const standaloneDashcardSnapshots = await snapshotDashcardsByTitle(page, [
-    'Member Signups by date - YoY Comparison (Weekly)',
-  ]);
-  await keepDashcardsTogether(page, [
-    'Member Signups by date - YoY Comparison (Weekly)',
-  ]);
+  const standaloneDashcardSnapshots = await snapshotDashcards(page, snapshotTargets);
   await protectSensitiveColumns(page, sensitiveColumnHeaders, reportMode);
   await page.waitForTimeout(200);
   let pdfBuffer = await page.pdf(pdfOptions);
@@ -995,6 +930,7 @@ const reportMode = String(payload.reportMode ?? 'render').trim().toLowerCase();
 const redactionProfile = payload.redactionProfile && typeof payload.redactionProfile === 'object'
   ? payload.redactionProfile
   : {};
+const snapshotTargets = normalizeSnapshotTargets(payload.snapshotDashcards);
 const normalizedRedactionProfile = normalizeRedactionProfile(redactionProfile);
 const extraRedactionTerms = normalizeStringArray(payload.extraRedactionTerms);
 const sensitiveColumnHeaders = ['redact', 'anonymise'].includes(reportMode)
@@ -1040,7 +976,7 @@ try {
   const buffers = [];
   for (const tab of tabs) {
     console.error(`[metabase-report-export] Rendering tab ${tab.name}`);
-    const pdfBuffer = await renderTabPdf(page, tab, pdfOptions, sensitiveColumnHeaders, reportMode);
+    const pdfBuffer = await renderTabPdf(page, tab, pdfOptions, sensitiveColumnHeaders, reportMode, snapshotTargets);
     buffers.push(pdfBuffer);
   }
 

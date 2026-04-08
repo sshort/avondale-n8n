@@ -50,4 +50,5 @@ Notes:
   - `no_address_email_template_key`
   - `gmail_test_email_template_key`
   - `signup_imap_mailbox`
+- `metabase_report_dashboards_json` can also carry per-dashboard export overrides such as `snapshotDashcards`, which identifies dashcards by stable keys like `dashcardKey` or `cardKey` when a chart needs to be appended as a standalone PDF page.
 - Secrets remain in n8n credentials or environment variables. The settings table is only for non-secret values such as service endpoints, reply-to addresses, template keys, and venue slugs.

@@ -34,6 +34,9 @@ VALUES
           "year": "year",
           "search": "search"
         },
+        "snapshotDashcards": [
+          { "dashcardKey": 1499 }
+        ],
         "anonymisedDashboardId": null
       }
     ]$$,

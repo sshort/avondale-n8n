@@ -58,6 +58,13 @@ It reads a non-secret dashboard catalog from `public.global_settings`:
 
 This keeps the workflow importable and lets operators update dashboard/tab metadata without editing workflow JSON.
 
+The dashboard catalog can also carry PDF-export overrides. Current supported override:
+
+- `snapshotDashcards`
+  - array of selector objects such as `{ "dashcardKey": 1499 }` or `{ "cardKey": 1626 }`
+  - matching dashcards are hidden in the browser render and appended back as standalone image pages in the final PDF
+  - use this for charts that Chromium otherwise splits across a page break
+
 ## Modes
 
 ### `redact`
@@ -95,6 +102,9 @@ Expected JSON payload:
     "year": "2026",
     "search": "Steve"
   },
+  "snapshotDashcards": [
+    { "dashcardKey": 1499 }
+  ],
   "pdf": {
     "format": "A4",
     "landscape": false,
