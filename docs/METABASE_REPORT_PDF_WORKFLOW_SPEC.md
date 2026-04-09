@@ -62,8 +62,11 @@ The dashboard catalog can also carry PDF-export overrides. Current supported ove
 
 - `snapshotDashcards`
   - array of selector objects such as `{ "dashcardKey": 1499 }` or `{ "cardKey": 1626 }`
-  - matching dashcards are hidden in the browser render and appended back as standalone image pages in the final PDF
-  - use this for charts that Chromium otherwise splits across a page break
+  - optional `placement` supports `append` or `inline`
+  - optional `waitForText` array waits for specific visible text inside the dashcard before the snapshot is taken
+  - `append` hides the original dashcard and appends it back as a standalone image page in the final PDF
+  - `inline` replaces the broken dashcard in place with an image snapshot before printing
+  - use this for charts that Chromium splits across a page break, or cards that render blank in print mode
 
 ## Modes
 
@@ -75,11 +78,10 @@ The dashboard catalog can also carry PDF-export overrides. Current supported ove
 
 ### `anonymise`
 
-- if the dashboard catalog defines `anonymisedDashboardId`, render that dashboard instead
+- render the selected live dashboard tabs
+- pseudonymise configured PII table/grid cells in the browser before printing
 - sanitize the PDF
-- do not rely on PDF-only masking as a substitute for a true anonymised source dashboard
-
-If no anonymised dashboard id is configured, the generation workflow fails fast with a clear error.
+- current scope is visible table/grid cells; chart labels and map points are not rewritten by this mode
 
 ## Exporter Contract
 
@@ -103,7 +105,15 @@ Expected JSON payload:
     "search": "Steve"
   },
   "snapshotDashcards": [
-    { "dashcardKey": 1499 }
+    { "dashcardKey": 1499, "placement": "append" },
+    {
+      "dashcardKey": 1380,
+      "placement": "inline",
+      "waitForText": [
+        "How many people currently hold keys?",
+        "How many key-related cases are we dealing with?"
+      ]
+    }
   ],
   "pdf": {
     "format": "A4",
@@ -161,5 +171,5 @@ The form currently supports:
 ## Known Limits
 
 - The allowlisted dashboard tabs are seeded from the repository backup. If dashboard tabs change in Metabase, update `metabase_report_dashboards_json`.
-- `anonymise` is only safe when an anonymised dashboard exists. The workflow deliberately refuses to fake anonymisation by pretending redaction is equivalent.
+- `anonymise` is implemented as pseudonymisation in the exporter. It keeps one live dashboard and swaps visible PII values for stable fake data during the report run.
 - The tab click logic in Playwright is selector-based and should be validated against the live dashboard after deployment.

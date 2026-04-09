@@ -35,7 +35,15 @@ VALUES
           "search": "search"
         },
         "snapshotDashcards": [
-          { "dashcardKey": 1499 }
+          { "dashcardKey": 1499, "placement": "append" },
+          {
+            "dashcardKey": 1380,
+            "placement": "inline",
+            "waitForText": [
+              "How many people currently hold keys?",
+              "How many key-related cases are we dealing with?"
+            ]
+          }
         ],
         "anonymisedDashboardId": null
       }
@@ -53,6 +61,20 @@ VALUES
         "convertPdfToImage": true,
         "customPadding": 2,
         "redactColor": "#000000",
+        "columnHeaders": [
+          "Member",
+          "Payer",
+          "British Tennis Number",
+          "Venue ID",
+          "Email address",
+          "Name",
+          "Member Name",
+          "Payer Name",
+          "Refund For",
+          "Reason",
+          "Address 1",
+          "Address 2"
+        ],
         "terms": [
           "[A-Z0-9._%+-]+@[A-Z0-9.-]+\\\\.[A-Z]{2,}",
           "\\\\b(?:[A-Z]{1,2}\\\\d[A-Z\\\\d]? ?\\\\d[A-Z]{2})\\\\b",

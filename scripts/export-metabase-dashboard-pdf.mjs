@@ -286,7 +286,7 @@ function normalizeSnapshotTarget(raw) {
 
   if (typeof raw === 'string' || typeof raw === 'number') {
     const text = String(raw).trim();
-    return text ? { title: text } : null;
+    return text ? { title: text, placement: 'append' } : null;
   }
 
   if (typeof raw !== 'object') {
@@ -296,6 +296,10 @@ function normalizeSnapshotTarget(raw) {
   const title = normalizeHeaderName(raw.title ?? raw.name ?? '');
   const dashcardKey = String(raw.dashcardKey ?? raw.dashcardId ?? '').trim();
   const cardKey = String(raw.cardKey ?? raw.cardId ?? '').trim();
+  const placement = String(raw.placement ?? 'append').trim().toLowerCase() === 'inline'
+    ? 'inline'
+    : 'append';
+  const waitForText = normalizeStringArray(raw.waitForText);
 
   if (!title && !dashcardKey && !cardKey) {
     return null;
@@ -305,6 +309,8 @@ function normalizeSnapshotTarget(raw) {
     title,
     dashcardKey,
     cardKey,
+    placement,
+    waitForText,
   };
 }
 
@@ -344,18 +350,23 @@ async function snapshotDashcards(page, rawTargets = []) {
     const normalizedDashcardKey = String(cardDescriptor?.dashcardKey ?? '').trim();
     const normalizedCardKey = String(cardDescriptor?.cardKey ?? '').trim();
 
-    const matchesTarget = targets.some((target) => (
+    const matchingTarget = targets.find((target) => (
       (target.title && target.title === normalizedTitle)
       || (target.dashcardKey && target.dashcardKey === normalizedDashcardKey)
       || (target.cardKey && target.cardKey === normalizedCardKey)
     ));
 
-    if (!matchesTarget) {
+    if (!matchingTarget) {
       continue;
     }
 
     await card.scrollIntoViewIfNeeded().catch(() => {});
     await page.waitForTimeout(300);
+    for (const expectedText of matchingTarget.waitForText ?? []) {
+      await card.getByText(expectedText, { exact: false }).first()
+        .waitFor({ state: 'visible', timeout: 20000 })
+        .catch(() => {});
+    }
 
     const handle = await card.elementHandle();
     const bounds = await handle?.boundingBox().catch(() => null);
@@ -371,6 +382,51 @@ async function snapshotDashcards(page, rawTargets = []) {
     };
 
     const screenshot = await page.screenshot({ clip, type: 'png' });
+    if (matchingTarget.placement === 'inline') {
+      const imageSrc = `data:image/png;base64,${screenshot.toString('base64')}`;
+      await card.evaluate(async (element, payload) => {
+        if (element.querySelector('[data-export-inline-snapshot="true"]')) {
+          return;
+        }
+
+        Array.from(element.children).forEach((child) => {
+          child.style.setProperty('display', 'none', 'important');
+        });
+
+        element.style.setProperty('height', `${payload.height}px`, 'important');
+        element.style.setProperty('min-height', `${payload.height}px`, 'important');
+        element.style.setProperty('overflow', 'hidden', 'important');
+        element.style.setProperty('background', '#ffffff', 'important');
+
+        const replacement = document.createElement('img');
+        replacement.src = payload.imageSrc;
+        replacement.alt = payload.alt;
+        replacement.setAttribute('data-export-inline-snapshot', 'true');
+        replacement.style.display = 'block';
+        replacement.style.width = '100%';
+        replacement.style.height = '100%';
+        replacement.style.objectFit = 'contain';
+        replacement.style.objectPosition = 'top left';
+        replacement.style.background = '#ffffff';
+
+        element.appendChild(replacement);
+
+        if (typeof replacement.decode === 'function') {
+          await replacement.decode().catch(() => {});
+        } else {
+          await new Promise((resolve) => {
+            replacement.addEventListener('load', resolve, { once: true });
+            replacement.addEventListener('error', resolve, { once: true });
+          });
+        }
+      }, {
+        imageSrc,
+        height: clip.height,
+        alt: String(cardDescriptor?.title ?? '').trim() || 'Card snapshot',
+      });
+      continue;
+    }
+
     snapshots.push({
       title: String(cardDescriptor?.title ?? '').trim(),
       imageBuffer: screenshot,
@@ -406,10 +462,116 @@ async function protectSensitiveColumns(page, rawColumnHeaders, reportMode = 'ren
       return;
     }
 
-    const hideElement = (element) => {
-      if (!element) return;
-      element.style.setProperty('display', 'none', 'important');
-      element.setAttribute('data-export-hidden-column', 'true');
+    const firstNames = [
+      'Alex', 'Cameron', 'Charlie', 'Elliot', 'Fraser', 'Harper', 'Imogen', 'Jamie',
+      'Kieran', 'Lauren', 'Lewis', 'Megan', 'Niamh', 'Orla', 'Poppy', 'Rosie',
+      'Rory', 'Sophie', 'Toby', 'Zara', 'Aisling', 'Ben', 'Ciara', 'Euan',
+      'Fiona', 'Grace', 'Holly', 'Isla', 'Lucy', 'Molly', 'Noah', 'Owen',
+      'Rhys', 'Saoirse', 'Sian', 'Theo', 'Aoife', 'Callum', 'Eilidh', 'Freya',
+    ];
+    const lastNames = [
+      'Abbott', 'Ainsworth', 'Armstrong', 'Atkinson', 'Bailey', 'Barlow', 'Bennett', 'Bishop',
+      'Blake', 'Brennan', 'Brooks', 'Campbell', 'Carroll', 'Clarke', 'Coleman', 'Davies',
+      'Dawson', 'Doyle', 'Duncan', 'Ellis', 'Evans', 'Farrell', 'Fletcher', 'Foster',
+      'Gallagher', 'Grant', 'Griffiths', 'Hargreaves', 'Hartley', 'Hughes', 'Kavanagh', 'Keane',
+      'Kennedy', 'Lennon', 'Lewis', 'Lloyd', 'McBride', 'McKenna', 'Mitchell', 'Monaghan',
+      'Morgan', 'Murphy', 'Nolan', 'Owen', 'Palmer', 'Pritchard', 'Quinn', 'Reid',
+      'Roberts', 'Shaw', 'Sinclair', 'Spencer', 'Sullivan', 'Turner', 'Walsh', 'Wheeler',
+      'Whitaker', 'Wilkinson', 'Woodward', 'Worthington',
+    ];
+
+    const ensurePseudonymState = () => {
+      if (!window.__codexExportPseudonymState) {
+        window.__codexExportPseudonymState = {
+          counters: Object.create(null),
+          values: Object.create(null),
+        };
+      }
+
+      return window.__codexExportPseudonymState;
+    };
+
+    const nextPseudonymIndex = (state, category) => {
+      state.counters[category] = (state.counters[category] ?? 0) + 1;
+      return state.counters[category];
+    };
+
+    const resolvePseudonymCategory = (headerLabel) => {
+      const label = normalized(headerLabel);
+      if (!label) {
+        return 'text';
+      }
+      if (label.includes('email')) {
+        return 'email';
+      }
+      if (label.includes('british tennis number')) {
+        return 'british-tennis-number';
+      }
+      if (label.includes('venue id')) {
+        return 'venue-id';
+      }
+      if (label.includes('address 1')) {
+        return 'address-line-1';
+      }
+      if (label.includes('address 2')) {
+        return 'address-line-2';
+      }
+      if ([
+        'member',
+        'payer',
+        'refund for',
+        'name',
+        'member name',
+        'payer name',
+      ].includes(label)) {
+        return 'person-name';
+      }
+
+      return 'text';
+    };
+
+    const buildPseudonymValue = (category, index) => {
+      switch (category) {
+        case 'person-name': {
+          const firstIndex = (index - 1) % firstNames.length;
+          const lastIndex = ((index - 1) * 7) % lastNames.length;
+          const cycle = Math.floor((index - 1) / (firstNames.length * lastNames.length));
+          const baseName = `${firstNames[firstIndex]} ${lastNames[lastIndex]}`;
+          return cycle > 0 ? `${baseName} ${cycle + 1}` : baseName;
+        }
+        case 'email':
+          return `contact${String(index).padStart(3, '0')}@example.invalid`;
+        case 'venue-id':
+          return `VID-${String(index).padStart(4, '0')}`;
+        case 'british-tennis-number':
+          return `99${String(index).padStart(8, '0')}`;
+        case 'address-line-1':
+          return `${100 + index} Example Road`;
+        case 'address-line-2':
+          return `Suite ${index}`;
+        case 'text':
+        default:
+          return `Value ${String(index).padStart(3, '0')}`;
+      }
+    };
+
+    const pseudonymizeValue = (headerLabel, rawValue) => {
+      const originalValue = String(rawValue ?? '').trim();
+      if (!originalValue) {
+        return originalValue;
+      }
+
+      const category = resolvePseudonymCategory(headerLabel);
+      const key = normalized(originalValue);
+      const state = ensurePseudonymState();
+      state.values[category] ??= Object.create(null);
+
+      if (!state.values[category][key]) {
+        const index = nextPseudonymIndex(state, category);
+        state.values[category][key] = buildPseudonymValue(category, index);
+      }
+
+      return state.values[category][key];
     };
 
     const maskText = (value) => String(value ?? '').replace(/[^\s]/g, '*');
@@ -445,6 +607,21 @@ async function protectSensitiveColumns(page, rawColumnHeaders, reportMode = 'ren
       element.setAttribute('data-export-masked-column', 'true');
     };
 
+    const pseudonymizeElement = (element, headerLabel) => {
+      if (!element || element.getAttribute('data-export-pseudonymised-column') === 'true') {
+        return;
+      }
+
+      stripSensitiveLinks(element);
+      const replacement = pseudonymizeValue(headerLabel, element.textContent);
+      if (!replacement) {
+        return;
+      }
+
+      element.textContent = replacement;
+      element.setAttribute('data-export-pseudonymised-column', 'true');
+    };
+
     const gridSelectors = [
       '[data-testid="table-scroll-container"][role="grid"]',
       '[role="grid"][data-testid="table-scroll-container"]',
@@ -454,6 +631,7 @@ async function protectSensitiveColumns(page, rawColumnHeaders, reportMode = 'ren
     for (const selector of gridSelectors) {
       for (const grid of document.querySelectorAll(selector)) {
         const matchedHeaders = new Set();
+        const matchedHeaderLabels = new Map();
 
         for (const headerWrapper of grid.querySelectorAll('[data-header-id]')) {
           const headerId = headerWrapper.getAttribute('data-header-id') ?? '';
@@ -467,18 +645,17 @@ async function protectSensitiveColumns(page, rawColumnHeaders, reportMode = 'ren
           if (targets.has(normalizedHeaderId) || targets.has(normalizedHeaderText)) {
             if (headerId) {
               matchedHeaders.add(headerId);
-            }
-            if (mode === 'anonymise') {
-              hideElement(headerWrapper);
+              matchedHeaderLabels.set(headerId, normalizedHeaderText || normalizedHeaderId);
             }
           }
         }
 
         for (const cell of grid.querySelectorAll('[data-column-id]')) {
           const columnId = cell.getAttribute('data-column-id') ?? '';
+          const headerLabel = matchedHeaderLabels.get(columnId) ?? normalized(columnId);
           if (targets.has(normalized(columnId)) || matchedHeaders.has(columnId)) {
             if (mode === 'anonymise') {
-              hideElement(cell);
+              pseudonymizeElement(cell, headerLabel);
             } else if (mode === 'redact') {
               maskElement(cell);
             }
@@ -492,11 +669,9 @@ async function protectSensitiveColumns(page, rawColumnHeaders, reportMode = 'ren
       const headers = Array.from(table.querySelectorAll('thead th'));
 
       headers.forEach((headerCell, index) => {
-        if (targets.has(normalized(headerCell.textContent))) {
-          headerIndexes.push(index);
-          if (mode === 'anonymise') {
-            hideElement(headerCell);
-          }
+        const headerLabel = normalized(headerCell.textContent);
+        if (targets.has(headerLabel)) {
+          headerIndexes.push({ index, headerLabel });
         }
       });
 
@@ -505,10 +680,12 @@ async function protectSensitiveColumns(page, rawColumnHeaders, reportMode = 'ren
       }
 
       for (const row of table.querySelectorAll('tr')) {
-        headerIndexes.forEach((index) => {
+        headerIndexes.forEach(({ index, headerLabel }) => {
           const cell = row.children[index];
           if (mode === 'anonymise') {
-            hideElement(cell);
+            if (row.parentElement?.tagName !== 'THEAD') {
+              pseudonymizeElement(cell, headerLabel);
+            }
           } else if (mode === 'redact' && row.parentElement?.tagName !== 'THEAD') {
             maskElement(cell);
           }
@@ -751,19 +928,36 @@ async function renderTabPdf(page, tab, pdfOptions, sensitiveColumnHeaders = [], 
   await page.emulateMedia({ media: 'screen' }).catch(() => {});
   await selectTab(page, tab);
   await waitForTabRender(page, 1500);
+  const standaloneDashcardSnapshots = await snapshotDashcards(page, snapshotTargets);
   await page.emulateMedia({ media: 'print' }).catch(() => {});
   await waitForTabRender(page, 800);
   await snapshotMapVisualizations(page);
-  const standaloneDashcardSnapshots = await snapshotDashcards(page, snapshotTargets);
   await protectSensitiveColumns(page, sensitiveColumnHeaders, reportMode);
   await page.waitForTimeout(200);
-  let pdfBuffer = await page.pdf(pdfOptions);
+  let pdfBuffer = await renderSingleSnapshotTabPdf(page, pdfOptions);
+  if (!pdfBuffer) {
+    pdfBuffer = await page.pdf(pdfOptions);
+  }
   pdfBuffer = await appendSnapshotPagesToPdfBuffer(pdfBuffer, standaloneDashcardSnapshots, pdfOptions);
   await page.emulateMedia({ media: 'screen' }).catch(() => {});
   return pdfBuffer;
 }
 
-async function mergePdfBuffers(buffers) {
+async function mergePdfBuffers(buffers, options = {}) {
+  if (!Array.isArray(buffers) || !buffers.length) {
+    throw new Error('At least one PDF buffer is required for merge.');
+  }
+
+  if (buffers.length === 1) {
+    return Buffer.from(buffers[0]);
+  }
+
+  const stirlingBaseUrl = normalizeBaseUrl(options.stirlingBaseUrl);
+  const stirlingApiKey = String(options.stirlingApiKey ?? '').trim();
+  if (stirlingBaseUrl) {
+    return runStirlingMerge(stirlingBaseUrl, buffers, stirlingApiKey);
+  }
+
   const merged = await PDFDocument.create();
 
   for (const buffer of buffers) {
@@ -773,6 +967,30 @@ async function mergePdfBuffers(buffers) {
   }
 
   return Buffer.from(await merged.save());
+}
+
+function resolvePdfPageSize(pdfOptions) {
+  const format = String(pdfOptions?.format ?? 'A4').trim().toUpperCase();
+  let width = 595.92;
+  let height = 842.88;
+
+  switch (format) {
+    case 'LETTER':
+      width = 612;
+      height = 792;
+      break;
+    case 'LEGAL':
+      width = 612;
+      height = 1008;
+      break;
+    case 'A4':
+    default:
+      width = 595.92;
+      height = 842.88;
+      break;
+  }
+
+  return pdfOptions?.landscape ? [height, width] : [width, height];
 }
 
 function parsePdfDistanceToPoints(value, fallbackPoints = 0) {
@@ -847,6 +1065,72 @@ async function appendSnapshotPagesToPdfBuffer(sourceBuffer, snapshots, pdfOption
   return Buffer.from(await document.save());
 }
 
+async function renderSingleSnapshotTabPdf(page, pdfOptions) {
+  const clip = await page.evaluate(() => {
+    const visibleCards = Array.from(document.querySelectorAll('.react-grid-item'))
+      .filter((element) => {
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return style.display !== 'none'
+          && style.visibility !== 'hidden'
+          && rect.width > 40
+          && rect.height > 40;
+      });
+
+    if (visibleCards.length !== 1) {
+      return null;
+    }
+
+    const card = visibleCards[0];
+    if (!card.querySelector('[data-export-inline-snapshot="true"]')) {
+      return null;
+    }
+
+    const cardRect = card.getBoundingClientRect();
+    const padding = 8;
+
+    return {
+      x: Math.max(0, Math.floor(cardRect.left + window.scrollX) - padding),
+      y: Math.max(0, Math.floor(cardRect.top + window.scrollY) - padding),
+      width: Math.max(1, Math.ceil(cardRect.width) + (padding * 2)),
+      height: Math.max(1, Math.ceil(cardRect.height) + (padding * 2)),
+    };
+  });
+
+  if (!clip) {
+    return null;
+  }
+
+  const screenshot = await page.screenshot({ clip, type: 'png' });
+  const document = await PDFDocument.create();
+  const [pageWidth, pageHeight] = resolvePdfPageSize(pdfOptions);
+  const marginTop = parsePdfDistanceToPoints(pdfOptions.margin?.top, 28.35);
+  const marginRight = parsePdfDistanceToPoints(pdfOptions.margin?.right, 28.35);
+  const marginBottom = parsePdfDistanceToPoints(pdfOptions.margin?.bottom, 34.02);
+  const marginLeft = parsePdfDistanceToPoints(pdfOptions.margin?.left, 28.35);
+  const availableWidth = Math.max(1, pageWidth - marginLeft - marginRight);
+  const availableHeight = Math.max(1, pageHeight - marginTop - marginBottom);
+  const embeddedImage = await document.embedPng(screenshot);
+  const scale = Math.min(
+    availableWidth / clip.width,
+    availableHeight / clip.height,
+  );
+  const renderWidth = clip.width * scale;
+  const renderHeight = clip.height * scale;
+  const x = marginLeft + ((availableWidth - renderWidth) / 2);
+  const y = pageHeight - marginTop - renderHeight;
+
+  const pdfPage = document.addPage([pageWidth, pageHeight]);
+  pdfPage.drawImage(embeddedImage, {
+    x,
+    y,
+    width: renderWidth,
+    height: renderHeight,
+  });
+
+  return Buffer.from(await document.save());
+}
+
 async function runStirling(stirlingBaseUrl, pathSuffix, sourceBuffer, fields = {}, apiKey = "") {
   const form = new FormData();
   form.append('fileInput', new Blob([sourceBuffer], { type: 'application/pdf' }), 'report.pdf');
@@ -869,6 +1153,30 @@ async function runStirling(stirlingBaseUrl, pathSuffix, sourceBuffer, fields = {
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(`Stirling request failed (${response.status}) for ${pathSuffix}: ${errorText}`);
+  }
+
+  return Buffer.from(await response.arrayBuffer());
+}
+
+async function runStirlingMerge(stirlingBaseUrl, sourceBuffers, apiKey = "") {
+  const form = new FormData();
+  sourceBuffers.forEach((buffer, index) => {
+    const filename = `report-${String(index + 1).padStart(2, '0')}.pdf`;
+    form.append('fileInput', new Blob([buffer], { type: 'application/pdf' }), filename);
+  });
+  form.append('sortType', 'orderProvided');
+  form.append('removeCertSign', 'true');
+
+  const headers = apiKey ? { 'X-API-KEY': apiKey } : undefined;
+  const response = await fetch(`${stirlingBaseUrl}/api/v1/general/merge-pdfs`, {
+    method: 'POST',
+    headers,
+    body: form,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Stirling merge failed (${response.status}): ${errorText}`);
   }
 
   return Buffer.from(await response.arrayBuffer());
@@ -980,7 +1288,10 @@ try {
     buffers.push(pdfBuffer);
   }
 
-  const merged = await mergePdfBuffers(buffers);
+  const merged = await mergePdfBuffers(buffers, {
+    stirlingBaseUrl,
+    stirlingApiKey,
+  });
   const finalBuffer = await postProcessPdfBuffer(merged, {
     stirlingBaseUrl,
     stirlingApiKey,
