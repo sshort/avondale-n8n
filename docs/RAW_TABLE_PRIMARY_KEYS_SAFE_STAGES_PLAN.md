@@ -443,6 +443,22 @@ Promote `id` to the formal durable primary key after behavior is already stable.
 
 Finish the migration cleanly without exposing unnecessary technical columns to end users.
 
+## Stage 12: Thin Contact History Retention
+
+- prune `public.raw_contacts_historical` to one retained row per contact identity per `snapshot_year`
+- keep operational contact history in `public.raw_contacts` via:
+  - `id`
+  - `first_seen_at`
+  - `last_seen_at`
+  - `is_current`
+- add an explicit yearly snapshot function instead of restoring per-import contact archiving
+  - `public.archive_raw_contacts_yearly_snapshot()`
+- leave `public.vw_raw_contacts_all` in place for compatibility, but treat `raw_contacts_historical` as yearly-only history
+
+### Goal
+
+Keep historical contact storage bounded and useful without reintroducing the retired per-import snapshot pattern.
+
 ## Recommended Implementation Order
 
 1. Preparation and explicit column cleanup
@@ -455,6 +471,7 @@ Finish the migration cleanly without exposing unnecessary technical columns to e
 8. Verify repeated imports and syncs
 9. Enforce `NOT NULL` and primary keys
 10. Clean up old paths
+11. Thin historical contact retention to yearly snapshots only
 
 ## Rollback Strategy
 
