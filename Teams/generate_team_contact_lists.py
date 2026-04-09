@@ -49,6 +49,29 @@ THEME = {
     "grey": "6B7280",
 }
 
+CAPTAIN_ATTACHMENT_MODE_DEFAULT = "own-next-plus-reserves"
+CAPTAIN_ATTACHMENT_MODE_ALIASES = {
+    "1": "own-plus-reserves",
+    "2": "own-next-plus-reserves",
+    "3": "all-in-section",
+    "own-plus-reserves": "own-plus-reserves",
+    "ownplusreserves": "own-plus-reserves",
+    "own+reserves": "own-plus-reserves",
+    "own-reserves": "own-plus-reserves",
+    "own-next-plus-reserves": "own-next-plus-reserves",
+    "ownnextplusreserves": "own-next-plus-reserves",
+    "own+next+reserves": "own-next-plus-reserves",
+    "current": "own-next-plus-reserves",
+    "all-in-section": "all-in-section",
+    "allinsection": "all-in-section",
+    "all": "all-in-section",
+}
+CAPTAIN_ATTACHMENT_MODE_LABELS = {
+    "own-plus-reserves": "Own team plus reserves",
+    "own-next-plus-reserves": "Own team, next team down, plus reserves",
+    "all-in-section": "All team sheets in the same section",
+}
+
 
 @dataclass
 class ContactCandidate:
@@ -110,6 +133,13 @@ class ContactDisplay:
 
 
 @dataclass
+class CaptainEmailAttachment:
+    team_name: str
+    file_name: str
+    kind: str
+
+
+@dataclass
 class CaptainEmailJob:
     source_doc: str
     section: str
@@ -117,21 +147,53 @@ class CaptainEmailJob:
     next_team_name: str
     captain_name: str
     captain_email: str
-    own_pdf: str
-    next_pdf: str
-    reserves_pdf: str
+    attachment_mode: str
+    attachments: list[CaptainEmailAttachment]
     can_send: bool
     blocked_reason: str
 
 
+def normalize_captain_attachment_mode(value: str) -> str:
+    normalized = str(value or CAPTAIN_ATTACHMENT_MODE_DEFAULT).strip().casefold().replace("_", "-")
+    if not normalized:
+        return CAPTAIN_ATTACHMENT_MODE_DEFAULT
+    try:
+        return CAPTAIN_ATTACHMENT_MODE_ALIASES[normalized]
+    except KeyError as exc:
+        available = ", ".join(sorted(CAPTAIN_ATTACHMENT_MODE_LABELS.keys()))
+        raise argparse.ArgumentTypeError(
+            f"Unknown captain attachment mode '{value}'. Use one of: {available}, or 1/2/3."
+        ) from exc
+
+
 def parse_args() -> argparse.Namespace:
+    mode_help = "\n".join([
+        "Captain attachment modes:",
+        "  1 / own-plus-reserves",
+        "      Send the captain their own team sheet plus the reserves sheet.",
+        "  2 / own-next-plus-reserves",
+        "      Send the captain their own team sheet, the next team down, plus reserves.",
+        "  3 / all-in-section",
+        "      Send the captain every team sheet in their section.",
+        "",
+        "The same value can be provided via TEAM_CAPTAIN_ATTACHMENT_MODE.",
+    ])
     parser = argparse.ArgumentParser(
         description="Generate Avondale team contact sheets and captain mailout manifests."
+        ,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=mode_help,
     )
     parser.add_argument(
-        "--captain-mailout-group",
-        default=os.environ.get("TEAM_CAPTAIN_MAILOUT_GROUP", "all"),
-        help="Restrict captain mailout manifests to one section, for example Mens, Ladies, Mixed, Vets, or all.",
+        "--captain-attachment-mode",
+        type=normalize_captain_attachment_mode,
+        default=normalize_captain_attachment_mode(
+            os.environ.get("TEAM_CAPTAIN_ATTACHMENT_MODE", CAPTAIN_ATTACHMENT_MODE_DEFAULT)
+        ),
+        help=(
+            "Captain attachment mode: "
+            "own-plus-reserves (1), own-next-plus-reserves (2, default), or all-in-section (3)."
+        ),
     )
     return parser.parse_args()
 
@@ -1235,11 +1297,81 @@ def section_label_from_title(title: str) -> str:
     return first_word.title()
 
 
-def build_captain_email_jobs(source_doc: str, title: str, teams: dict[str, list[dict[str, str]]]) -> list[CaptainEmailJob]:
+def attachment_file_name(source_doc: str, team_name: str) -> str:
+    return f"{source_doc} - {team_slug(team_name)}.pdf"
+
+
+def attachment_kind_label(attachment: CaptainEmailAttachment) -> str:
+    if attachment.kind == "own":
+        return f"your team: {attachment.team_name}"
+    if attachment.kind == "next":
+        return f"the next team down: {attachment.team_name}"
+    if attachment.kind == "reserves":
+        return "reserves"
+    return attachment.team_name
+
+
+def attachment_mode_summary(mode: str) -> str:
+    summaries = {
+        "own-plus-reserves": "Each captain receives their own team sheet plus the reserves sheet.",
+        "own-next-plus-reserves": "Each captain receives their own team sheet, the next team down, and the reserves sheet.",
+        "all-in-section": "Each captain receives every team sheet in their section, including reserves where present.",
+    }
+    return summaries[mode]
+
+
+def build_captain_email_attachments(
+    source_doc: str,
+    team_name: str,
+    next_team_name: str,
+    reserves_name: str,
+    all_team_names: list[str],
+    attachment_mode: str,
+) -> list[CaptainEmailAttachment]:
+    attachment_plan: list[tuple[str, str]] = []
+    if attachment_mode == "own-plus-reserves":
+        attachment_plan.append(("own", team_name))
+        if reserves_name:
+            attachment_plan.append(("reserves", reserves_name))
+    elif attachment_mode == "own-next-plus-reserves":
+        attachment_plan.append(("own", team_name))
+        if next_team_name:
+            attachment_plan.append(("next", next_team_name))
+        if reserves_name:
+            attachment_plan.append(("reserves", reserves_name))
+    elif attachment_mode == "all-in-section":
+        attachment_plan.extend(("section", candidate) for candidate in all_team_names if candidate)
+    else:
+        raise ValueError(f"Unsupported attachment mode: {attachment_mode}")
+
+    attachments: list[CaptainEmailAttachment] = []
+    seen_files: set[str] = set()
+    for kind, candidate_name in attachment_plan:
+        if not candidate_name:
+            continue
+        file_name = attachment_file_name(source_doc, candidate_name)
+        if file_name in seen_files:
+            continue
+        seen_files.add(file_name)
+        attachments.append(
+            CaptainEmailAttachment(
+                team_name=candidate_name.title(),
+                file_name=file_name,
+                kind=kind,
+            )
+        )
+    return attachments
+
+
+def build_captain_email_jobs(
+    source_doc: str,
+    title: str,
+    teams: dict[str, list[dict[str, str]]],
+    attachment_mode: str,
+) -> list[CaptainEmailJob]:
     jobs: list[CaptainEmailJob] = []
     team_names = list(teams.keys())
     reserves_name = next((name for name in team_names if name.casefold() == "reserves"), "")
-    reserves_pdf = f"{source_doc} - {team_slug(reserves_name)}.pdf" if reserves_name else ""
     section = section_label_from_title(title)
 
     ordered_non_reserves = [name for name in team_names if name.casefold() != "reserves"]
@@ -1248,12 +1380,23 @@ def build_captain_email_jobs(source_doc: str, title: str, teams: dict[str, list[
         captain_row = next((row for row in rows if row["captain"] == "C"), None)
         if not captain_row:
             continue
-        own_pdf = f"{source_doc} - {team_slug(team_name)}.pdf"
         next_team_name = ordered_non_reserves[index + 1] if index + 1 < len(ordered_non_reserves) else reserves_name
-        next_pdf = f"{source_doc} - {team_slug(next_team_name)}.pdf" if next_team_name else ""
+        attachments = build_captain_email_attachments(
+            source_doc=source_doc,
+            team_name=team_name,
+            next_team_name=next_team_name,
+            reserves_name=reserves_name,
+            all_team_names=team_names,
+            attachment_mode=attachment_mode,
+        )
         captain_email = extract_preferred_email(captain_row["email"])
-        can_send = bool(captain_email and own_pdf and next_pdf and reserves_pdf)
-        blocked_reason = "" if can_send else "No captain email address available"
+        blocked_reasons = []
+        if not captain_email:
+            blocked_reasons.append("No captain email address available")
+        if not attachments:
+            blocked_reasons.append("No attachments available for this team")
+        can_send = not blocked_reasons
+        blocked_reason = "; ".join(blocked_reasons)
         jobs.append(
             CaptainEmailJob(
                 source_doc=source_doc,
@@ -1262,9 +1405,8 @@ def build_captain_email_jobs(source_doc: str, title: str, teams: dict[str, list[
                 next_team_name=next_team_name.title() if next_team_name else "",
                 captain_name=captain_row["name"],
                 captain_email=captain_email,
-                own_pdf=own_pdf,
-                next_pdf=next_pdf,
-                reserves_pdf=reserves_pdf,
+                attachment_mode=attachment_mode,
+                attachments=attachments,
                 can_send=can_send,
                 blocked_reason=blocked_reason,
             )
@@ -1273,11 +1415,11 @@ def build_captain_email_jobs(source_doc: str, title: str, teams: dict[str, list[
 
 
 def write_captain_email_jobs_json(
-    jobs: list[CaptainEmailJob], output_path: Path, mailout_group: str
+    jobs: list[CaptainEmailJob], output_path: Path, attachment_mode: str
 ) -> None:
     payload = {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
-        "mailout_group": mailout_group,
+        "attachment_mode": attachment_mode,
         "jobs": [
             {
                 "source_doc": job.source_doc,
@@ -1286,9 +1428,15 @@ def write_captain_email_jobs_json(
                 "next_team_name": job.next_team_name,
                 "captain_name": job.captain_name,
                 "captain_email": job.captain_email,
-                "own_pdf": job.own_pdf,
-                "next_pdf": job.next_pdf,
-                "reserves_pdf": job.reserves_pdf,
+                "attachment_mode": job.attachment_mode,
+                "attachments": [
+                    {
+                        "team_name": attachment.team_name,
+                        "file_name": attachment.file_name,
+                        "kind": attachment.kind,
+                    }
+                    for attachment in job.attachments
+                ],
                 "can_send": job.can_send,
                 "blocked_reason": job.blocked_reason,
             }
@@ -1307,9 +1455,9 @@ def write_captain_email_jobs_csv(jobs: list[CaptainEmailJob], output_path: Path)
             "next_team_name",
             "captain_name",
             "captain_email",
-            "own_pdf",
-            "next_pdf",
-            "reserves_pdf",
+            "attachment_mode",
+            "attachment_count",
+            "attachments",
             "can_send",
             "blocked_reason",
         ])
@@ -1320,25 +1468,24 @@ def write_captain_email_jobs_csv(jobs: list[CaptainEmailJob], output_path: Path)
                 job.next_team_name,
                 job.captain_name,
                 job.captain_email,
-                job.own_pdf,
-                job.next_pdf,
-                job.reserves_pdf,
+                job.attachment_mode,
+                len(job.attachments),
+                "; ".join(attachment.file_name for attachment in job.attachments),
                 "yes" if job.can_send else "no",
                 job.blocked_reason,
             ])
 
 
 def write_captain_email_send_list(
-    jobs: list[CaptainEmailJob], output_path: Path, mailout_group: str
+    jobs: list[CaptainEmailJob], output_path: Path, attachment_mode: str
 ) -> None:
-    scope_suffix = "" if mailout_group.casefold() == "all" else f" ({mailout_group})"
     lines = [
-        f"# Team Captain Email Send List{scope_suffix}",
+        "# Team Captain Email Send List",
         "",
-        "Each captain should receive:",
-        "- their own team contact list PDF",
-        "- the next team down in order",
-        "- the corresponding reserves PDF",
+        f"Attachment mode: `{attachment_mode}`",
+        CAPTAIN_ATTACHMENT_MODE_LABELS[attachment_mode],
+        "",
+        attachment_mode_summary(attachment_mode),
         "",
     ]
     by_section: dict[str, list[CaptainEmailJob]] = defaultdict(list)
@@ -1350,9 +1497,16 @@ def write_captain_email_send_list(
             email_text = f"`{job.captain_email}`" if job.captain_email else f"`{job.blocked_reason or 'No email'}`"
             lines.append(f"- {job.captain_name} — {email_text}")
             lines.append("  Attach:")
-            lines.append(f"  [{job.own_pdf}](/mnt/c/dev/avondale-n8n/Teams/generated/{job.own_pdf.replace(' ', '%20')})")
-            lines.append(f"  [{job.next_pdf}](/mnt/c/dev/avondale-n8n/Teams/generated/{job.next_pdf.replace(' ', '%20')})")
-            lines.append(f"  [{job.reserves_pdf}](/mnt/c/dev/avondale-n8n/Teams/generated/{job.reserves_pdf.replace(' ', '%20')})")
+            for attachment in job.attachments:
+                attachment_link = (
+                    f"[{attachment.file_name}]"
+                    f"(/mnt/c/dev/avondale-n8n/Teams/generated/{attachment.file_name.replace(' ', '%20')})"
+                )
+                lines.append(
+                    "  - "
+                    f"{attachment_kind_label(attachment)} — "
+                    f"{attachment_link}"
+                )
             if not job.can_send:
                 lines.append(f"  Blocked: {job.blocked_reason}")
         lines.append("")
@@ -1361,24 +1515,6 @@ def write_captain_email_send_list(
 
 def team_slug(team_name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", team_name.casefold()).strip("-")
-
-
-def filter_captain_email_jobs(
-    jobs: list[CaptainEmailJob], requested_group: str
-) -> tuple[list[CaptainEmailJob], str]:
-    normalized = str(requested_group or "all").strip()
-    if not normalized or normalized.casefold() == "all":
-        return jobs, "all"
-
-    filtered = [job for job in jobs if job.section.casefold() == normalized.casefold()]
-    if filtered:
-        return filtered, filtered[0].section
-
-    available = ", ".join(sorted({job.section for job in jobs}))
-    raise SystemExit(
-        f"No captain mailout jobs match group '{requested_group}'. Available groups: {available}"
-    )
-
 
 def write_pdf(title: str, teams: dict[str, list[dict[str, str]]], output_path: Path) -> None:
     styles = getSampleStyleSheet()
@@ -1479,7 +1615,14 @@ def main() -> None:
         )
         all_review_entries.extend(review_entries)
         all_resolved_teams[docx_path.stem] = resolved_teams
-        all_captain_jobs.extend(build_captain_email_jobs(docx_path.stem, title, resolved_teams))
+        all_captain_jobs.extend(
+            build_captain_email_jobs(
+                docx_path.stem,
+                title,
+                resolved_teams,
+                args.captain_attachment_mode,
+            )
+        )
 
         workbook_path = OUTPUT_DIR / f"{docx_path.stem} - Contact Lists.xlsx"
         csv_dir = OUTPUT_DIR / f"{docx_path.stem} - CSV"
@@ -1500,28 +1643,25 @@ def main() -> None:
         print(f"{docx_path.name}: sheets={len(resolved_teams)} no_match={no_match_count} not_signed_up={not_signed_count}")
 
     review_groups = group_review_entries(all_review_entries)
-    selected_captain_jobs, selected_mailout_group = filter_captain_email_jobs(
-        all_captain_jobs,
-        args.captain_mailout_group,
-    )
     write_captain_email_list(all_resolved_teams, OUTPUT_DIR / "team-captains-email-list.txt")
     write_captain_email_jobs_json(
-        selected_captain_jobs,
+        all_captain_jobs,
         OUTPUT_DIR / "team-captain-email-jobs.json",
-        selected_mailout_group,
+        args.captain_attachment_mode,
     )
-    write_captain_email_jobs_csv(selected_captain_jobs, OUTPUT_DIR / "team-captain-email-jobs.csv")
+    write_captain_email_jobs_csv(all_captain_jobs, OUTPUT_DIR / "team-captain-email-jobs.csv")
     write_captain_email_send_list(
-        selected_captain_jobs,
+        all_captain_jobs,
         OUTPUT_DIR / "CAPTAIN_EMAIL_SEND_LIST.md",
-        selected_mailout_group,
+        args.captain_attachment_mode,
     )
     write_nickname_csv(review_groups, OUTPUT_DIR / "nickname-matches.csv")
     write_review_markdown(review_groups, BASE_DIR / "NO_MATCH_NAMES.md")
     write_review_markdown(review_groups, OUTPUT_DIR / "NO_MATCH_NAMES.md")
     write_review_pdf(review_groups, OUTPUT_DIR / "NO_MATCH_NAMES.pdf")
     print(
-        f"Captain mailout manifest group={selected_mailout_group} jobs={len(selected_captain_jobs)}"
+        "Captain mailout manifest "
+        f"mode={args.captain_attachment_mode} jobs={len(all_captain_jobs)}"
     )
 
 

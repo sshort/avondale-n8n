@@ -7,10 +7,48 @@ SKIP_GENERATE=0
 SKIP_SYNC=0
 SKIP_TRIGGER=0
 GENERATE_ONLY=0
-GROUP=""
+LIST_ONLY=0
+ATTACHMENT_MODE=""
+
+usage() {
+  cat <<'EOF'
+Usage: run-team-captain-mailout.sh [options]
+
+Options:
+  --test
+      Send in test mode.
+  --production
+      Send in production mode.
+  --attachment-mode <mode>
+      Choose which PDFs each captain receives.
+      Modes:
+        1 | own-plus-reserves
+            Own team sheet plus reserves.
+        2 | own-next-plus-reserves
+            Own team sheet, next team down, plus reserves. This is the default.
+        3 | all-in-section
+            Every team sheet in the captain's section.
+  --list-only
+      Generate the files and print the captain/file send list without syncing or sending.
+  --generate-only
+      Generate the files only. Do not sync or trigger n8n.
+  --skip-generate
+      Reuse the existing generated files.
+  --skip-sync
+      Do not copy the generated bundle to n8n.
+  --skip-trigger
+      Do not trigger the n8n webhook.
+  -h, --help
+      Show this help text.
+EOF
+}
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
     --production)
       MODE="production"
       ;;
@@ -29,17 +67,20 @@ while [[ $# -gt 0 ]]; do
     --generate-only)
       GENERATE_ONLY=1
       ;;
-    --group)
+    --list-only)
+      LIST_ONLY=1
+      ;;
+    --attachment-mode)
       if [[ $# -lt 2 ]]; then
-        echo "Missing value for --group" >&2
+        echo "Missing value for --attachment-mode" >&2
         exit 1
       fi
-      GROUP="$2"
+      ATTACHMENT_MODE="$2"
       shift
       ;;
     *)
       echo "Unknown option: $1" >&2
-      echo "Usage: $0 [--test|--production] [--group <section>] [--generate-only] [--skip-generate] [--skip-sync] [--skip-trigger]" >&2
+      usage >&2
       exit 1
       ;;
   esac
@@ -51,13 +92,28 @@ if [[ "$GENERATE_ONLY" -eq 1 ]]; then
   SKIP_TRIGGER=1
 fi
 
+if [[ "$LIST_ONLY" -eq 1 ]]; then
+  SKIP_SYNC=1
+  SKIP_TRIGGER=1
+fi
+
 if [[ "$SKIP_GENERATE" -eq 0 ]]; then
-  if [[ -n "$GROUP" ]]; then
-    TEAM_CAPTAIN_MAILOUT_GROUP="$GROUP" \
+  if [[ -n "$ATTACHMENT_MODE" ]]; then
+    TEAM_CAPTAIN_ATTACHMENT_MODE="$ATTACHMENT_MODE" \
       /mnt/c/dev/postgres-mcp-venv-linux/bin/python "$ROOT_DIR/Teams/generate_team_contact_lists.py"
   else
     /mnt/c/dev/postgres-mcp-venv-linux/bin/python "$ROOT_DIR/Teams/generate_team_contact_lists.py"
   fi
+fi
+
+if [[ "$LIST_ONLY" -eq 1 ]]; then
+  review_md="${TEAM_MAILOUT_GENERATED_DIR:-$ROOT_DIR/Teams/generated}/CAPTAIN_EMAIL_SEND_LIST.md"
+  if [[ ! -f "$review_md" ]]; then
+    echo "Missing send list: $review_md" >&2
+    exit 1
+  fi
+  cat "$review_md"
+  exit 0
 fi
 
 if [[ "$SKIP_SYNC" -eq 0 ]]; then
@@ -72,7 +128,7 @@ if [[ "$SKIP_TRIGGER" -eq 0 ]]; then
   trap 'rm -f "$payload_file"' EXIT
   jq --arg mode "$MODE" \
     --arg base_dir "${TEAM_MAILOUT_CONTAINER_DIR:-/home/node/.n8n-files/teams-mailout/current}" \
-    '{delivery_mode: $mode, base_dir: $base_dir, jobs: .jobs}' \
+    '{delivery_mode: $mode, base_dir: $base_dir, attachment_mode: .attachment_mode, jobs: .jobs}' \
     "$manifest_json" > "$payload_file"
   echo "Triggering: $webhook_url"
   curl -sS \
