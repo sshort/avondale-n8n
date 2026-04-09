@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import csv
 import io
 import json
@@ -121,6 +122,18 @@ class CaptainEmailJob:
     reserves_pdf: str
     can_send: bool
     blocked_reason: str
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Generate Avondale team contact sheets and captain mailout manifests."
+    )
+    parser.add_argument(
+        "--captain-mailout-group",
+        default=os.environ.get("TEAM_CAPTAIN_MAILOUT_GROUP", "all"),
+        help="Restrict captain mailout manifests to one section, for example Mens, Ladies, Mixed, Vets, or all.",
+    )
+    return parser.parse_args()
 
 def run_query(sql: str) -> list[dict[str, str]]:
     result = subprocess.run(
@@ -1000,6 +1013,20 @@ def write_review_markdown(review_groups: dict[str, list[dict[str, object]]], out
     output_path.write_text(review_markdown_text(review_groups), encoding="utf-8")
 
 
+def write_nickname_csv(review_groups: dict[str, list[dict[str, object]]], output_path: Path) -> None:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["source_name", "target_name", "reason", "teams"])
+        for item in review_groups["nickname"]:
+            writer.writerow([
+                item["display_name"],
+                item["target_name"],
+                item["reason"],
+                ", ".join(sorted(item["teams"])),
+            ])
+
+
 def write_review_pdf(review_groups: dict[str, list[dict[str, object]]], output_path: Path) -> None:
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle(
@@ -1245,9 +1272,12 @@ def build_captain_email_jobs(source_doc: str, title: str, teams: dict[str, list[
     return jobs
 
 
-def write_captain_email_jobs_json(jobs: list[CaptainEmailJob], output_path: Path) -> None:
+def write_captain_email_jobs_json(
+    jobs: list[CaptainEmailJob], output_path: Path, mailout_group: str
+) -> None:
     payload = {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "mailout_group": mailout_group,
         "jobs": [
             {
                 "source_doc": job.source_doc,
@@ -1298,9 +1328,12 @@ def write_captain_email_jobs_csv(jobs: list[CaptainEmailJob], output_path: Path)
             ])
 
 
-def write_captain_email_send_list(jobs: list[CaptainEmailJob], output_path: Path) -> None:
+def write_captain_email_send_list(
+    jobs: list[CaptainEmailJob], output_path: Path, mailout_group: str
+) -> None:
+    scope_suffix = "" if mailout_group.casefold() == "all" else f" ({mailout_group})"
     lines = [
-        "# Team Captain Email Send List",
+        f"# Team Captain Email Send List{scope_suffix}",
         "",
         "Each captain should receive:",
         "- their own team contact list PDF",
@@ -1328,6 +1361,23 @@ def write_captain_email_send_list(jobs: list[CaptainEmailJob], output_path: Path
 
 def team_slug(team_name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", team_name.casefold()).strip("-")
+
+
+def filter_captain_email_jobs(
+    jobs: list[CaptainEmailJob], requested_group: str
+) -> tuple[list[CaptainEmailJob], str]:
+    normalized = str(requested_group or "all").strip()
+    if not normalized or normalized.casefold() == "all":
+        return jobs, "all"
+
+    filtered = [job for job in jobs if job.section.casefold() == normalized.casefold()]
+    if filtered:
+        return filtered, filtered[0].section
+
+    available = ", ".join(sorted({job.section for job in jobs}))
+    raise SystemExit(
+        f"No captain mailout jobs match group '{requested_group}'. Available groups: {available}"
+    )
 
 
 def write_pdf(title: str, teams: dict[str, list[dict[str, str]]], output_path: Path) -> None:
@@ -1410,6 +1460,7 @@ def write_pdf(title: str, teams: dict[str, list[dict[str, str]]], output_path: P
 
 
 def main() -> None:
+    args = parse_args()
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     members_by_name, contacts_by_name, signups_by_name, junior_main_contacts_by_name = load_lookup_data()
     all_review_entries: list[ReviewEntry] = []
@@ -1449,13 +1500,29 @@ def main() -> None:
         print(f"{docx_path.name}: sheets={len(resolved_teams)} no_match={no_match_count} not_signed_up={not_signed_count}")
 
     review_groups = group_review_entries(all_review_entries)
+    selected_captain_jobs, selected_mailout_group = filter_captain_email_jobs(
+        all_captain_jobs,
+        args.captain_mailout_group,
+    )
     write_captain_email_list(all_resolved_teams, OUTPUT_DIR / "team-captains-email-list.txt")
-    write_captain_email_jobs_json(all_captain_jobs, OUTPUT_DIR / "team-captain-email-jobs.json")
-    write_captain_email_jobs_csv(all_captain_jobs, OUTPUT_DIR / "team-captain-email-jobs.csv")
-    write_captain_email_send_list(all_captain_jobs, OUTPUT_DIR / "CAPTAIN_EMAIL_SEND_LIST.md")
+    write_captain_email_jobs_json(
+        selected_captain_jobs,
+        OUTPUT_DIR / "team-captain-email-jobs.json",
+        selected_mailout_group,
+    )
+    write_captain_email_jobs_csv(selected_captain_jobs, OUTPUT_DIR / "team-captain-email-jobs.csv")
+    write_captain_email_send_list(
+        selected_captain_jobs,
+        OUTPUT_DIR / "CAPTAIN_EMAIL_SEND_LIST.md",
+        selected_mailout_group,
+    )
+    write_nickname_csv(review_groups, OUTPUT_DIR / "nickname-matches.csv")
     write_review_markdown(review_groups, BASE_DIR / "NO_MATCH_NAMES.md")
     write_review_markdown(review_groups, OUTPUT_DIR / "NO_MATCH_NAMES.md")
     write_review_pdf(review_groups, OUTPUT_DIR / "NO_MATCH_NAMES.pdf")
+    print(
+        f"Captain mailout manifest group={selected_mailout_group} jobs={len(selected_captain_jobs)}"
+    )
 
 
 if __name__ == "__main__":

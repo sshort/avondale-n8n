@@ -7,6 +7,7 @@ SKIP_GENERATE=0
 SKIP_SYNC=0
 SKIP_TRIGGER=0
 GENERATE_ONLY=0
+GROUP=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -28,9 +29,17 @@ while [[ $# -gt 0 ]]; do
     --generate-only)
       GENERATE_ONLY=1
       ;;
+    --group)
+      if [[ $# -lt 2 ]]; then
+        echo "Missing value for --group" >&2
+        exit 1
+      fi
+      GROUP="$2"
+      shift
+      ;;
     *)
       echo "Unknown option: $1" >&2
-      echo "Usage: $0 [--test|--production] [--generate-only] [--skip-generate] [--skip-sync] [--skip-trigger]" >&2
+      echo "Usage: $0 [--test|--production] [--group <section>] [--generate-only] [--skip-generate] [--skip-sync] [--skip-trigger]" >&2
       exit 1
       ;;
   esac
@@ -43,7 +52,12 @@ if [[ "$GENERATE_ONLY" -eq 1 ]]; then
 fi
 
 if [[ "$SKIP_GENERATE" -eq 0 ]]; then
-  /mnt/c/dev/postgres-mcp-venv-linux/bin/python "$ROOT_DIR/Teams/generate_team_contact_lists.py"
+  if [[ -n "$GROUP" ]]; then
+    TEAM_CAPTAIN_MAILOUT_GROUP="$GROUP" \
+      /mnt/c/dev/postgres-mcp-venv-linux/bin/python "$ROOT_DIR/Teams/generate_team_contact_lists.py"
+  else
+    /mnt/c/dev/postgres-mcp-venv-linux/bin/python "$ROOT_DIR/Teams/generate_team_contact_lists.py"
+  fi
 fi
 
 if [[ "$SKIP_SYNC" -eq 0 ]]; then
