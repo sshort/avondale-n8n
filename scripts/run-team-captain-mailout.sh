@@ -25,9 +25,9 @@ Options:
         1 | own-plus-reserves
             Own team sheet plus reserves.
         2 | own-next-plus-reserves
-            Own team sheet, next team down, plus reserves. This is the default.
+            Own team sheet, next team down, plus reserves.
         3 | all-in-section
-            Every team sheet in the captain's section.
+            Every team sheet in the captain's section. This is the default.
   --list-only
       Generate the files and print the captain/file send list without syncing or sending.
   --generate-only

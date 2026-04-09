@@ -49,7 +49,7 @@ THEME = {
     "grey": "6B7280",
 }
 
-CAPTAIN_ATTACHMENT_MODE_DEFAULT = "own-next-plus-reserves"
+CAPTAIN_ATTACHMENT_MODE_DEFAULT = "all-in-section"
 CAPTAIN_ATTACHMENT_MODE_ALIASES = {
     "1": "own-plus-reserves",
     "2": "own-next-plus-reserves",
@@ -192,7 +192,7 @@ def parse_args() -> argparse.Namespace:
         ),
         help=(
             "Captain attachment mode: "
-            "own-plus-reserves (1), own-next-plus-reserves (2, default), or all-in-section (3)."
+            "own-plus-reserves (1), own-next-plus-reserves (2), or all-in-section (3, default)."
         ),
     )
     return parser.parse_args()
