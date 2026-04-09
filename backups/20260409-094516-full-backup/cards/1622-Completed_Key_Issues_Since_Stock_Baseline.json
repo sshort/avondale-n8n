@@ -1,0 +1,210 @@
+{
+  "cache_invalidated_at": null,
+  "description": null,
+  "archived": false,
+  "view_count": 1,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "bigserial",
+      "semantic_type": null,
+      "lib/deduplicated-name": "batch_id",
+      "lib/original-name": "batch_id",
+      "name": "batch_id",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "batch_id",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "batch_id",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "batch_id",
+      "display_name": "batch_id",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 0,
+          "nil%": null
+        },
+        "type": {
+          "type/Number": {
+            "min": null,
+            "q1": null,
+            "q3": null,
+            "max": null,
+            "sd": null,
+            "avg": null
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "timestamptz",
+      "semantic_type": null,
+      "lib/deduplicated-name": "completed_at",
+      "lib/original-name": "completed_at",
+      "name": "completed_at",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "completed_at",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "completed_at",
+        {
+          "base-type": "type/DateTimeWithLocalTZ"
+        }
+      ],
+      "effective_type": "type/DateTimeWithLocalTZ",
+      "lib/desired-column-alias": "completed_at",
+      "display_name": "completed_at",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 0,
+          "nil%": null
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": null,
+            "latest": null
+          }
+        }
+      },
+      "base_type": "type/DateTimeWithLocalTZ"
+    },
+    {
+      "database_type": "int8",
+      "semantic_type": null,
+      "lib/deduplicated-name": "keys_issued",
+      "lib/original-name": "keys_issued",
+      "name": "keys_issued",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "keys_issued",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "keys_issued",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "keys_issued",
+      "display_name": "keys_issued",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 0,
+          "nil%": null
+        },
+        "type": {
+          "type/Number": {
+            "min": null,
+            "q1": null,
+            "q3": null,
+            "max": null,
+            "sd": null,
+            "avg": null
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Completed Key Issues Since Stock Baseline",
+  "last_query_start": "2026-04-02T09:28:13.197274Z",
+  "is_remote_synced": false,
+  "dashboard_count": 0,
+  "document_id": null,
+  "last_used_at": "2026-04-02T09:28:13.199607Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 99.0000000000000000,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-02T09:26:20.701364Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "native": "WITH stock AS (\n  SELECT coalesce(max(CASE WHEN key = 'keys_stock_baseline_completed_batch_id' THEN value END), '0')::bigint AS baseline_batch_id\n  FROM public.global_settings\n)\nSELECT b.id AS batch_id,\n       b.completed_at AS completed_at,\n       coalesce(s.key_tags, 0) AS keys_issued\nFROM public.signup_batches b\nLEFT JOIN public.vw_signup_batches_summary s ON s.batch_id = b.id\nCROSS JOIN stock\nWHERE b.status = $$Complete$$\n  AND b.id > stock.baseline_batch_id\n  AND coalesce(s.key_tags, 0) > 0\nORDER BY b.id DESC;"
+      }
+    ]
+  },
+  "id": 1622,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "3sY_IdwPAAVkvhDeXIayy",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-02T09:26:20.725656Z"
+  },
+  "visualization_settings": {},
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-04-02T09:26:20.701364Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

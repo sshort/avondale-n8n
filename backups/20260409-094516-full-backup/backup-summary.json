@@ -1,0 +1,26 @@
+{
+  "timestamp": "20260409-094516",
+  "backup_dir": "/mnt/c/dev/avondale-n8n/backups/20260409-094516-full-backup",
+  "archive_path": "/mnt/c/dev/avondale-n8n/backups/20260409-094516-full-backup.tar.gz",
+  "postgres": {
+    "host": "192.168.1.248",
+    "port": "5432",
+    "database": "postgres",
+    "dumps": [
+      "local-public.dump",
+      "local-n8n.dump"
+    ]
+  },
+  "metabase": {
+    "base_url": "http://192.168.1.138:3000",
+    "card_count": 52,
+    "dashboard_count": 16,
+    "collection_count": 6,
+    "table_count": 117,
+    "database_count": 2
+  },
+  "n8n": {
+    "backup_mode": "config",
+    "workflow_count": 52
+  }
+}

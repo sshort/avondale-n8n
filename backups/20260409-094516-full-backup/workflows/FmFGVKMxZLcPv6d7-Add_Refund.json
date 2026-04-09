@@ -1,0 +1,316 @@
+{
+  "name": "Add Refund",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "r2000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "add-refund",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "r2000000-0000-0000-0000-000000000002",
+      "name": "Add Refund Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "add-refund"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url FROM public.global_settings WHERE key = 'n8n_base_url';"
+      },
+      "id": "r2000000-0000-0000-0000-000000000006",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        480,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const settings = $('Load Global Settings').first()?.json ?? {};\nconst request = $('Add Refund Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst body = request.body ?? request.query ?? request ?? {};\nconst headers = request.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst parseNumber = (value) => {\n  const normalized = clean(value).replace(/,/g, '');\n  if (!normalized) return null;\n  const parsed = Number.parseFloat(normalized);\n  return Number.isFinite(parsed) ? parsed : null;\n};\nconst parseDateInput = (value) => {\n  const raw = clean(value);\n  if (!raw) return '';\n  if (/^\\d{4}-\\d{2}-\\d{2}$/.test(raw)) return raw;\n  const match = raw.match(/^(\\d{1,2})\\/(\\d{1,2})\\/(\\d{4})$/);\n  if (!match) return raw;\n  const [, day, month, year] = match;\n  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;\n};\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst fallbackBaseUrl = clean(settings.n8n_base_url) || 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nreturn [{ json: {\n  name: clean(body.name),\n  refund_for: clean(body.refund_for ?? body.for_name ?? body.for),\n  reason: clean(body.reason),\n  membership: clean(body.membership),\n  amount: parseNumber(body.amount),\n  from_date: parseDateInput(body.from_date ?? body.fromDate),\n  to_date: parseDateInput(body.to_date ?? body.toDate),\n  created_by: clean(body.created_by) || 'refund_form_webhook',\n  return_url: clean(body.return_url) || `${n8nBaseUrl}/webhook/refunds`,\n  n8n_base_url: n8nBaseUrl\n} }];"
+      },
+      "id": "r2000000-0000-0000-0000-000000000003",
+      "name": "Resolve Inputs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sqlNumeric = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return String(Number(value));\n};\nconst parseIsoDate = (value) => {\n  const raw = clean(value);\n  const match = raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);\n  if (!match) return null;\n  const [, yearText, monthText, dayText] = match;\n  const year = Number.parseInt(yearText, 10);\n  const month = Number.parseInt(monthText, 10);\n  const day = Number.parseInt(dayText, 10);\n  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return null;\n  if (month < 1 || month > 12 || day < 1 || day > 31) return null;\n  return { year, month, day, iso: `${yearText}-${monthText}-${dayText}` };\n};\nconst formatMoney = (value) => {\n  const rounded = Math.round((Number(value) + Number.EPSILON) * 100) / 100;\n  const text = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2).replace(/\\.00$/, '').replace(/(\\.\\d)0$/, '$1');\n  return `£${text}`;\n};\nconst fail = (message) => [{ json: { ok: false, response_code: 400, message, return_url: item.return_url, n8n_base_url: item.n8n_base_url } }];\nif (!clean(item.name)) return fail('Requestor name is required.');\nif (!clean(item.refund_for)) return fail('Member name is required.');\nif (!clean(item.reason)) return fail('Reason is required.');\nif (!clean(item.membership)) return fail('Membership is required.');\nif (item.amount === null || !Number.isFinite(Number(item.amount)) || Number(item.amount) < 0) return fail('Amount must be a valid number greater than or equal to zero.');\nconst fromDate = parseIsoDate(item.from_date);\nconst toDate = parseIsoDate(item.to_date);\nif (!fromDate) return fail('From date must be a valid date.');\nif (!toDate) return fail('To date must be a valid date.');\nconst fromMonthNumber = (fromDate.year * 12) + fromDate.month;\nconst toMonthNumber = (toDate.year * 12) + toDate.month;\nconst months = toMonthNumber - fromMonthNumber;\nif (months < 1) return fail('To date must be at least one calendar month after from date.');\nconst refund = Math.round((Number(item.amount) * Math.max(months - 1, 0)) / 12);\nconst explanation = `Refund of membership. Reason Player ${clean(item.reason)}. Repayment = ${formatMoney(item.amount)} * (${months}-1)/12 months = ${formatMoney(refund)}`;\nreturn [{ json: {\n  ok: true,\n  return_url: item.return_url,\n  n8n_base_url: item.n8n_base_url,\n  sql: `with inserted as (\\n  insert into public.refunds (\\n    name,\\n    refund_for,\\n    reason,\\n    membership,\\n    amount,\\n    from_date,\\n    to_date,\\n    months,\\n    refund,\\n    status,\\n    explanation,\\n    created_by\\n  ) values (\\n    ${sqlLiteral(item.name)},\\n    ${sqlLiteral(item.refund_for)},\\n    ${sqlLiteral(item.reason)},\\n    ${sqlLiteral(item.membership)},\\n    ${sqlNumeric(item.amount)},\\n    ${sqlLiteral(fromDate.iso)}::date,\\n    ${sqlLiteral(toDate.iso)}::date,\\n    ${months},\\n    ${sqlNumeric(refund)},\\n    'New Request',\\n    ${sqlLiteral(explanation)},\\n    ${sqlLiteral(item.created_by)}\\n  )\\n  returning id, refund_for, membership, status\\n)\\nselect * from inserted;`\n} }];"
+      },
+      "id": "r2000000-0000-0000-0000-000000000004",
+      "name": "Build Insert SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "is-invalid",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "r2000000-0000-0000-0000-000000000007",
+      "name": "Check Validation Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1300,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "r2000000-0000-0000-0000-000000000005",
+      "name": "Insert Refund",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1560,
+        320
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Build Insert SQL').first()?.json ?? {};\nconst inserted = $('Insert Refund').first()?.json ?? {};\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst redirectTo = `${input.return_url || '#'}${(input.return_url || '').includes('?') ? '&' : '?'}message=${encodeURIComponent(inserted.id ? `Refund ${inserted.id} created for ${inserted.refund_for}` : 'Refund created')}${inserted.id ? `&id=${encodeURIComponent(inserted.id)}` : ''}`;\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0; url=${escapeHtml(redirectTo)}\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Refund Created</title><style>body{margin:0;padding:24px;background:#f7f8fc;font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:#2e3d4e}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 18px 40px rgba(53,72,91,.08);padding:28px}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#509ee3 0%,#2f80d8 100%);color:#fff}</style></head><body><div class=\"panel\"><h1>Refund Created</h1><p>Returning to refunds…</p><p><a class=\"button\" href=\"${escapeHtml(redirectTo)}\">Continue</a></p></div></body></html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "r2000000-0000-0000-0000-000000000008",
+      "name": "Build Success HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1820,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Build Insert SQL').first()?.json ?? {};\nconst message = input.message || 'Refund could not be created.';\nconst redirectTo = `${input.return_url || '#'}${(input.return_url || '').includes('?') ? '&' : '?'}error=${encodeURIComponent(message)}`;\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0; url=${escapeHtml(redirectTo)}\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Refund Not Created</title><style>body{margin:0;padding:24px;background:#f7f8fc;font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:#2e3d4e}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 18px 40px rgba(53,72,91,.08);padding:28px}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#509ee3 0%,#2f80d8 100%);color:#fff}</style></head><body><div class=\"panel\"><h1>Refund Not Created</h1><p>${escapeHtml(message)}</p><p><a class=\"button\" href=\"${escapeHtml(redirectTo)}\">Back to refunds</a></p></div></body></html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "r2000000-0000-0000-0000-000000000009",
+      "name": "Build Error HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "r2000000-0000-0000-0000-000000000010",
+      "name": "Respond Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2080,
+        220
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Refund Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Resolve Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Inputs": {
+      "main": [
+        [
+          {
+            "node": "Build Insert SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Insert SQL": {
+      "main": [
+        [
+          {
+            "node": "Check Validation Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Validation Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert Refund",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Refund": {
+      "main": [
+        [
+          {
+            "node": "Build Success HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Success HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-03T06:32:34.187+00:00",
+  "updatedAt": "2026-04-03T12:15:28.488+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": {},
+  "pinData": {},
+  "versionId": "48337cf9-c4ad-466b-957c-c861c618fb71",
+  "triggerCount": 1,
+  "id": "FmFGVKMxZLcPv6d7",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 65,
+  "description": null,
+  "activeVersionId": "48337cf9-c4ad-466b-957c-c861c618fb71"
+}

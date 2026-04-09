@@ -1,0 +1,103 @@
+{
+  "name": "Debug Webhook",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "debug-webhook",
+        "httpMethod": "POST",
+        "responseMode": "responseNode"
+      },
+      "id": "debug-wh",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst html = '<!doctype html><html><head><meta charset=\"utf-8\"><title>Debug</title></head><body><h1>Debug</h1><pre>' + JSON.stringify(item, null, 2) + '</pre></body></html>';\nreturn [{ json: { html } }];",
+        "mode": "runOnceForAllItems",
+        "language": "javaScript"
+      },
+      "id": "debug-code",
+      "name": "Debug Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "debug-respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        700,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Debug Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Debug Code": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-03T08:37:21.405+00:00",
+  "updatedAt": "2026-04-03T08:37:21.405+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "b2ceafa0-7793-45eb-b12d-20e9eaf8dd35",
+  "triggerCount": 1,
+  "id": "dMDJ7ewXKFSSq428",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 38,
+  "description": null,
+  "activeVersionId": "b2ceafa0-7793-45eb-b12d-20e9eaf8dd35"
+}

@@ -8,6 +8,10 @@ require_cmd() {
   fi
 }
 
+log() {
+  printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
+}
+
 safe_name() {
   printf '%s' "${1:-unnamed}" | sed 's/[^A-Za-z0-9._-]/_/g'
 }
@@ -26,6 +30,7 @@ pg_port="${PGPORT:-5432}"
 pg_database="${PGDATABASE:-postgres}"
 pg_user="${PGUSER:-postgres}"
 pg_password="${PGPASSWORD:-6523Tike}"
+n8n_backup_mode="${N8N_BACKUP_MODE:-config}"
 
 metabase_url="${METABASE_URL:-http://192.168.1.138:3000}"
 metabase_api_key="${METABASE_API_KEY:-mb_QZv1nRGkOw0sC4395vpxm3RSk0pguw0o3O5PPHm5J9U=}"
@@ -43,6 +48,9 @@ export PGPASSWORD="$pg_password"
 
 db_url="postgresql://${pg_user}:${pg_password}@${pg_host}:${pg_port}/${pg_database}"
 
+log "Starting full backup into $backup_dir"
+log "n8n backup mode: $n8n_backup_mode"
+
 api_get() {
   local path="$1"
   curl --fail --silent --show-error --max-time 120 \
@@ -50,32 +58,81 @@ api_get() {
     "${metabase_url%/}${path}"
 }
 
-pg_dump -h "$pg_host" -p "$pg_port" -U "$pg_user" -d "$pg_database" -n public -Fc -f "$backup_dir/local-public.dump"
-pg_dump -h "$pg_host" -p "$pg_port" -U "$pg_user" -d "$pg_database" -n n8n -Fc -f "$backup_dir/local-n8n.dump"
+n8n_dump_args=(-h "$pg_host" -p "$pg_port" -U "$pg_user" -d "$pg_database" -n n8n -Fc -f "$backup_dir/local-n8n.dump")
 
+case "$n8n_backup_mode" in
+  full)
+    ;;
+  config)
+    # Keep workflow/config tables but skip bulky runtime and execution history payloads by default.
+    n8n_dump_args+=(
+      --exclude-table-data='n8n.execution_data'
+      --exclude-table-data='n8n.execution_entity'
+      --exclude-table-data='n8n.execution_metadata'
+      --exclude-table-data='n8n.execution_annotations'
+      --exclude-table-data='n8n.execution_annotation_tags'
+      --exclude-table-data='n8n.insights_by_period'
+      --exclude-table-data='n8n.insights_raw'
+      --exclude-table-data='n8n.insights_metadata'
+      --exclude-table-data='n8n.chat_hub_messages'
+      --exclude-table-data='n8n.chat_hub_sessions'
+      --exclude-table-data='n8n.chat_hub_agents'
+      --exclude-table-data='n8n.test_case_execution'
+      --exclude-table-data='n8n.test_run'
+      --exclude-table-data='n8n.processed_data'
+      --exclude-table-data='n8n.invalid_auth_token'
+      --exclude-table-data='n8n.oauth_access_tokens'
+      --exclude-table-data='n8n.oauth_refresh_tokens'
+      --exclude-table-data='n8n.oauth_authorization_codes'
+      --exclude-table-data='n8n.auth_provider_sync_history'
+    )
+    ;;
+  *)
+    echo "Unsupported N8N_BACKUP_MODE: $n8n_backup_mode (expected: config or full)" >&2
+    exit 1
+    ;;
+esac
+
+log "Dumping PostgreSQL public schema"
+pg_dump -h "$pg_host" -p "$pg_port" -U "$pg_user" -d "$pg_database" -n public -Fc -f "$backup_dir/local-public.dump"
+log "Dumping PostgreSQL n8n schema ($n8n_backup_mode mode)"
+pg_dump "${n8n_dump_args[@]}"
+
+log "Fetching Metabase inventory"
 api_get "/api/card" | jq '.' > "$backup_dir/local-metabase-cards.json"
 api_get "/api/dashboard" | jq '.' > "$backup_dir/local-metabase-dashboards.json"
 api_get "/api/table" | jq '.' > "$backup_dir/local-metabase-tables.json"
 api_get "/api/collection" | jq '.' > "$backup_dir/local-metabase-collections.json"
 api_get "/api/database" | jq '.' > "$backup_dir/local-metabase-databases.json"
 
+card_count="$(jq 'length' "$backup_dir/local-metabase-cards.json")"
+dashboard_count="$(jq 'length' "$backup_dir/local-metabase-dashboards.json")"
+collection_count="$(jq 'length' "$backup_dir/local-metabase-collections.json")"
+table_count="$(jq 'length' "$backup_dir/local-metabase-tables.json")"
+database_count="$(jq 'length' "$backup_dir/local-metabase-databases.json")"
+
+log "Exporting $card_count Metabase cards"
 jq -r '.[] | [.id, (.name // "unnamed")] | @tsv' "$backup_dir/local-metabase-cards.json" | \
 while IFS=$'\t' read -r card_id card_name; do
   api_get "/api/card/$card_id" | jq '.' > "$cards_dir/${card_id}-$(safe_name "$card_name").json"
 done
 
+log "Exporting $dashboard_count Metabase dashboards"
 jq -r '.[] | [.id, (.name // "unnamed")] | @tsv' "$backup_dir/local-metabase-dashboards.json" | \
 while IFS=$'\t' read -r dashboard_id dashboard_name; do
   api_get "/api/dashboard/$dashboard_id" | jq '.' > "$dashboards_dir/${dashboard_id}-$(safe_name "$dashboard_name").json"
 done
 
+log "Exporting $collection_count Metabase collection item lists"
 jq -r '.[] | [.id, (.name // "unnamed")] | @tsv' "$backup_dir/local-metabase-collections.json" | \
 while IFS=$'\t' read -r collection_id collection_name; do
   api_get "/api/collection/$collection_id/items" | jq '.' > "$collections_dir/${collection_id}-$(safe_name "$collection_name")-items.json"
 done
 
+log "Exporting Metabase root collection items"
 api_get "/api/collection/root/items" | jq '.' > "$collections_dir/root-Our_analytics-items.json"
 
+log "Exporting n8n workflow list"
 psql "$db_url" -Atc "
   select coalesce(
     json_agg(
@@ -92,6 +149,9 @@ psql "$db_url" -Atc "
   from n8n.workflow_entity;
 " | jq '.' > "$backup_dir/local-workflow-list.json"
 
+workflow_count="$(jq 'length' "$backup_dir/local-workflow-list.json")"
+
+log "Exporting $workflow_count n8n workflow definitions"
 psql "$db_url" -F $'\t' -Atc "
   select id, regexp_replace(name, '[^A-Za-z0-9._-]+', '_', 'g')
   from n8n.workflow_entity
@@ -107,16 +167,11 @@ psql "$db_url" -F $'\t' -Atc "
   " | jq '.' > "$workflows_dir/${workflow_id}-${workflow_name}.json"
 done
 
+log "Validating PostgreSQL dump files"
 pg_restore -l "$backup_dir/local-public.dump" >/dev/null
 pg_restore -l "$backup_dir/local-n8n.dump" >/dev/null
 
-card_count="$(jq 'length' "$backup_dir/local-metabase-cards.json")"
-dashboard_count="$(jq 'length' "$backup_dir/local-metabase-dashboards.json")"
-collection_count="$(jq 'length' "$backup_dir/local-metabase-collections.json")"
-table_count="$(jq 'length' "$backup_dir/local-metabase-tables.json")"
-database_count="$(jq 'length' "$backup_dir/local-metabase-databases.json")"
-workflow_count="$(jq 'length' "$backup_dir/local-workflow-list.json")"
-
+log "Writing backup summary"
 jq -n \
   --arg timestamp "$timestamp" \
   --arg backup_dir "$backup_dir" \
@@ -124,6 +179,7 @@ jq -n \
   --arg pg_host "$pg_host" \
   --arg pg_port "$pg_port" \
   --arg pg_database "$pg_database" \
+  --arg n8n_backup_mode "$n8n_backup_mode" \
   --arg metabase_url "$metabase_url" \
   --argjson card_count "$card_count" \
   --argjson dashboard_count "$dashboard_count" \
@@ -153,11 +209,14 @@ jq -n \
       database_count: $database_count
     },
     n8n: {
+      backup_mode: $n8n_backup_mode,
       workflow_count: $workflow_count
     }
   }' > "$backup_dir/backup-summary.json"
 
+log "Creating compressed archive ${backup_dir}.tar.gz"
 tar -C "$backup_root" -czf "${backup_dir}.tar.gz" "$(basename "$backup_dir")"
 
+log "Backup complete"
 printf '%s\n' "$backup_dir"
 printf '%s\n' "${backup_dir}.tar.gz"
