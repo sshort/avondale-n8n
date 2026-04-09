@@ -4,16 +4,22 @@ This file contains specific instructions for AI agents working on this repositor
 
 ## Project Management & Tracking
 
-### Obsidian Kanban Board
-- **File**: `/mnt/c/dev/avondale-notes/Dev Kanban.md`
+### Planka Board
+- **Project**: `Avondale`
+- **Board**: `Dev Kanban`
+- **URL**: `http://192.168.1.139/boards/1749307018184754195`
 - **Requirement**: Keep this board up to date for **significant functionality changes** and **large effort jobs**.
 - **Process**:
-    1. **New Card**: Create a new card if one doesn't exist for the task.
-    2. **In Progress**: Move the card to `## In Progress` before starting the work.
-    3. **Complete**: Move the card to `## Complete` and mark as `[x]` once the task is finished/verified.
-- **Notes**: Keep notes in a notes sub directory
-    1. When a card is moved to In Progress, create a new note in the kanban-notes sub directory.
-    2. When a card is moved to Completed, move the note into the kanban-completed sub directory.
+    1. **New Card**: Create a new card in Planka if one does not exist for the task.
+    2. **Categorisation**: Add one or more relevant Planka labels so the task is clearly categorised.
+    3. **In Progress**: Move the card to the `In Progress` list before starting the work.
+    4. **Complete**: Move the card to the `Complete` list once the task is finished and verified.
+- **Notes**:
+    1. Keep notes in the Planka card description/checklists where practical.
+    2. Markdown notes can also be kept in `/mnt/c/dev/avondale-notes/kanban-notes` and `/mnt/c/dev/avondale-notes/kanban-completed` when a longer working note is useful.
+    3. When a card is moved to `In Progress`, create or update the matching note content in Planka and, if used, in `kanban-notes`.
+    4. When a card is moved to `Complete`, ensure the final notes are present in Planka and, if a markdown note exists, move it into `kanban-completed`.
+    5. Treat Planka as the source of truth for task state; markdown files are optional supporting notes.
 
 ## Technical Standards
 

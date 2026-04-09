@@ -165,15 +165,30 @@
     },
     {
       "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ $json }}",
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const result = $input.first()?.json ?? {};\nconst escapeHtml = (value) => String(value ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\\\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst responseCode = Number(result.response_code ?? 200);\nconst isSuccess = responseCode >= 200 && responseCode < 300;\nconst details = [\n  ['Action', result.action],\n  ['Member', result.member],\n  ['Product', result.product],\n  ['Signup ID', result.signup_id],\n  ['Batch ID', result.batch_id],\n  ['Batch Signup Count', result.signup_count],\n  ['Source', result.source],\n].filter(([, value]) => value !== null && value !== undefined && String(value).trim() !== '');\nconst extraMessage = result.batch_message && String(result.batch_message).trim() !== '' ? `<p class=\"note\">${escapeHtml(result.batch_message)}</p>` : '';\nconst detailHtml = details.map(([label, value]) => `<div class=\"detail\"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join('');\nconst html = `<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Missing Signup Capture Result</title>\n  <style>\n    :root {\n      color-scheme: light;\n      --bg: #f4f7fb;\n      --panel: #ffffff;\n      --ink: #1f2937;\n      --muted: #667085;\n      --line: #d7e0ea;\n      --success: #166534;\n      --success-soft: #ecfdf3;\n      --error: #b42318;\n      --error-soft: #fef3f2;\n      --button: #e9eef5;\n    }\n    * { box-sizing: border-box; }\n    body {\n      margin: 0;\n      padding: 24px;\n      background: linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);\n      color: var(--ink);\n      font-family: Lato, Arial, sans-serif;\n    }\n    .panel {\n      max-width: 780px;\n      margin: 0 auto;\n      background: var(--panel);\n      border: 1px solid var(--line);\n      border-radius: 18px;\n      padding: 28px;\n      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);\n    }\n    .badge {\n      display: inline-flex;\n      padding: 6px 12px;\n      border-radius: 999px;\n      font-size: 13px;\n      font-weight: 700;\n      letter-spacing: 0.04em;\n      text-transform: uppercase;\n      color: ${isSuccess ? 'var(--success)' : 'var(--error)'};\n      background: ${isSuccess ? 'var(--success-soft)' : 'var(--error-soft)'};\n    }\n    h1 {\n      margin: 16px 0 8px;\n      font-size: 32px;\n      line-height: 1.1;\n    }\n    p {\n      margin: 0;\n      color: var(--muted);\n      line-height: 1.6;\n      font-size: 16px;\n    }\n    .note {\n      margin-top: 12px;\n    }\n    .details {\n      display: grid;\n      gap: 12px;\n      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));\n      margin-top: 24px;\n    }\n    .detail {\n      border: 1px solid var(--line);\n      border-radius: 14px;\n      padding: 14px 16px;\n      background: #f8fafc;\n    }\n    .detail span {\n      display: block;\n      margin-bottom: 6px;\n      color: var(--muted);\n      font-size: 13px;\n      font-weight: 700;\n      text-transform: uppercase;\n      letter-spacing: 0.04em;\n    }\n    .detail strong {\n      font-size: 17px;\n      line-height: 1.4;\n      word-break: break-word;\n    }\n    .actions {\n      display: flex;\n      gap: 12px;\n      flex-wrap: wrap;\n      margin-top: 24px;\n    }\n    button {\n      appearance: none;\n      border: 1px solid var(--line);\n      border-radius: 999px;\n      background: var(--button);\n      color: var(--ink);\n      font: inherit;\n      font-weight: 700;\n      padding: 12px 18px;\n      cursor: pointer;\n    }\n  </style>\n</head>\n<body>\n  <main class=\"panel\">\n    <span class=\"badge\">${isSuccess ? 'Success' : 'Action needed'}</span>\n    <h1>Missing signup capture</h1>\n    <p>${escapeHtml(result.message ?? (isSuccess ? 'Signup capture updated.' : 'The request could not be completed.'))}</p>\n    ${extraMessage}\n    ${detailHtml ? `<section class=\"details\">${detailHtml}</section>` : ''}\n    <div class=\"actions\">\n      <button type=\"button\" onclick=\"window.close()\">Close</button>\n    </div>\n  </main>\n</body>\n</html>`;\nreturn [{ json: { ...result, response_code: responseCode, html } }];"
+      },
+      "id": "c47d8f75-90aa-4f30-9b75-100000000011",
+      "name": "Build Result Page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2210,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
         "options": {
           "responseCode": "={{ Number($json.response_code || 200) }}",
           "responseHeaders": {
             "entries": [
               {
                 "name": "Content-Type",
-                "value": "application/json; charset=utf-8"
+                "value": "text/html; charset=utf-8"
               }
             ]
           }
@@ -278,7 +293,7 @@
       "main": [
         [
           {
-            "node": "Respond Result",
+            "node": "Build Result Page",
             "type": "main",
             "index": 0
           }
@@ -286,6 +301,17 @@
       ]
     },
     "Build Direct Response": {
+      "main": [
+        [
+          {
+            "node": "Build Result Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Result Page": {
       "main": [
         [
           {

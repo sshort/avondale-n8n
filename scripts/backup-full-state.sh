@@ -24,6 +24,9 @@ cards_dir="$backup_dir/cards"
 dashboards_dir="$backup_dir/dashboards"
 collections_dir="$backup_dir/collections"
 workflows_dir="$backup_dir/workflows"
+planka_dir="$backup_dir/planka"
+planka_projects_dir="$planka_dir/projects"
+planka_boards_dir="$planka_dir/boards"
 
 pg_host="${PGHOST:-192.168.1.248}"
 pg_port="${PGPORT:-5432}"
@@ -35,6 +38,9 @@ n8n_backup_mode="${N8N_BACKUP_MODE:-config}"
 
 metabase_url="${METABASE_URL:-http://192.168.1.138:3000}"
 metabase_api_key="${METABASE_API_KEY:-mb_QZv1nRGkOw0sC4395vpxm3RSk0pguw0o3O5PPHm5J9U=}"
+planka_url="${PLANKA_URL:-http://192.168.1.139}"
+planka_email="${PLANKA_EMAIL:-steve.short@gmail.com}"
+planka_password="${PLANKA_PASSWORD:-CbJ5S0RcwU1dBrz5LJL3}"
 
 require_cmd curl
 require_cmd jq
@@ -43,7 +49,7 @@ require_cmd pg_restore
 require_cmd psql
 require_cmd tar
 
-mkdir -p "$cards_dir" "$dashboards_dir" "$collections_dir" "$workflows_dir"
+mkdir -p "$cards_dir" "$dashboards_dir" "$collections_dir" "$workflows_dir" "$planka_projects_dir" "$planka_boards_dir"
 
 export PGPASSWORD="$pg_password"
 
@@ -58,6 +64,21 @@ api_get() {
   curl --fail --silent --show-error --max-time 120 \
     -H "x-api-key: $metabase_api_key" \
     "${metabase_url%/}${path}"
+}
+
+planka_login() {
+  curl --fail --silent --show-error --max-time 120 \
+    -F "emailOrUsername=$planka_email" \
+    -F "password=$planka_password" \
+    "${planka_url%/}/api/access-tokens" | jq -r '.item'
+}
+
+planka_api_get() {
+  local token="$1"
+  local path="$2"
+  curl --fail --silent --show-error --max-time 120 \
+    -H "Authorization: Bearer $token" \
+    "${planka_url%/}${path}"
 }
 
 public_dump_args=(-h "$pg_host" -p "$pg_port" -U "$pg_user" -d "$pg_database" -n public -Fc -f "$backup_dir/local-public.dump")
@@ -188,6 +209,34 @@ psql "$db_url" -F $'\t' -Atc "
   " | jq '.' > "$workflows_dir/${workflow_id}-${workflow_name}.json"
 done
 
+log "Logging into Planka"
+planka_token="$(planka_login)"
+if [[ -z "$planka_token" || "$planka_token" == "null" ]]; then
+  echo "Failed to obtain Planka API token" >&2
+  exit 1
+fi
+
+log "Exporting Planka user profile"
+planka_api_get "$planka_token" "/api/users/me" | jq '.' > "$planka_dir/local-planka-user.json"
+
+log "Exporting Planka project inventory"
+planka_api_get "$planka_token" "/api/projects" | jq '.' > "$planka_dir/local-planka-projects.json"
+
+planka_project_count="$(jq '.items | length' "$planka_dir/local-planka-projects.json")"
+planka_board_count="$(jq '.included.boards | length' "$planka_dir/local-planka-projects.json")"
+
+log "Exporting $planka_project_count Planka projects"
+jq -r '.items[] | [.id, (.name // "unnamed")] | @tsv' "$planka_dir/local-planka-projects.json" | \
+while IFS=$'\t' read -r project_id project_name; do
+  planka_api_get "$planka_token" "/api/projects/$project_id" | jq '.' > "$planka_projects_dir/${project_id}-$(safe_name "$project_name").json"
+done
+
+log "Exporting $planka_board_count Planka boards"
+jq -r '.included.boards[] | [.id, (.name // "unnamed")] | @tsv' "$planka_dir/local-planka-projects.json" | \
+while IFS=$'\t' read -r board_id board_name; do
+  planka_api_get "$planka_token" "/api/boards/$board_id" | jq '.' > "$planka_boards_dir/${board_id}-$(safe_name "$board_name").json"
+done
+
 log "Validating PostgreSQL dump files"
 pg_restore -l "$backup_dir/local-public.dump" >/dev/null
 pg_restore -l "$backup_dir/local-n8n.dump" >/dev/null
@@ -203,12 +252,15 @@ jq -n \
   --arg public_backup_mode "$public_backup_mode" \
   --arg n8n_backup_mode "$n8n_backup_mode" \
   --arg metabase_url "$metabase_url" \
+  --arg planka_url "$planka_url" \
   --argjson card_count "$card_count" \
   --argjson dashboard_count "$dashboard_count" \
   --argjson collection_count "$collection_count" \
   --argjson table_count "$table_count" \
   --argjson database_count "$database_count" \
   --argjson workflow_count "$workflow_count" \
+  --argjson planka_project_count "$planka_project_count" \
+  --argjson planka_board_count "$planka_board_count" \
   '{
     timestamp: $timestamp,
     backup_dir: $backup_dir,
@@ -234,6 +286,11 @@ jq -n \
     n8n: {
       backup_mode: $n8n_backup_mode,
       workflow_count: $workflow_count
+    },
+    planka: {
+      base_url: $planka_url,
+      project_count: $planka_project_count,
+      board_count: $planka_board_count
     }
   }' > "$backup_dir/backup-summary.json"
 
