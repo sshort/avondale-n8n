@@ -30,6 +30,7 @@ pg_port="${PGPORT:-5432}"
 pg_database="${PGDATABASE:-postgres}"
 pg_user="${PGUSER:-postgres}"
 pg_password="${PGPASSWORD:-6523Tike}"
+public_backup_mode="${PUBLIC_BACKUP_MODE:-lean}"
 n8n_backup_mode="${N8N_BACKUP_MODE:-config}"
 
 metabase_url="${METABASE_URL:-http://192.168.1.138:3000}"
@@ -49,6 +50,7 @@ export PGPASSWORD="$pg_password"
 db_url="postgresql://${pg_user}:${pg_password}@${pg_host}:${pg_port}/${pg_database}"
 
 log "Starting full backup into $backup_dir"
+log "public backup mode: $public_backup_mode"
 log "n8n backup mode: $n8n_backup_mode"
 
 api_get() {
@@ -58,8 +60,24 @@ api_get() {
     "${metabase_url%/}${path}"
 }
 
-n8n_dump_args=(-h "$pg_host" -p "$pg_port" -U "$pg_user" -d "$pg_database" -n n8n -Fc -f "$backup_dir/local-n8n.dump")
+public_dump_args=(-h "$pg_host" -p "$pg_port" -U "$pg_user" -d "$pg_database" -n public -Fc -f "$backup_dir/local-public.dump")
 
+case "$public_backup_mode" in
+  full)
+    ;;
+  lean)
+    # Skip bulky audit data that is useful for investigations but not needed for a normal restore.
+    public_dump_args+=(
+      --exclude-table-data='public.raw_reconcile_match_audit'
+    )
+    ;;
+  *)
+    echo "Unsupported PUBLIC_BACKUP_MODE: $public_backup_mode (expected: lean or full)" >&2
+    exit 1
+    ;;
+esac
+
+n8n_dump_args=(-h "$pg_host" -p "$pg_port" -U "$pg_user" -d "$pg_database" -n n8n -Fc -f "$backup_dir/local-n8n.dump")
 case "$n8n_backup_mode" in
   full)
     ;;
@@ -80,6 +98,9 @@ case "$n8n_backup_mode" in
       --exclude-table-data='n8n.test_case_execution'
       --exclude-table-data='n8n.test_run'
       --exclude-table-data='n8n.processed_data'
+      --exclude-table-data='n8n.workflow_history'
+      --exclude-table-data='n8n.workflow_publish_history'
+      --exclude-table-data='n8n.workflow_statistics'
       --exclude-table-data='n8n.invalid_auth_token'
       --exclude-table-data='n8n.oauth_access_tokens'
       --exclude-table-data='n8n.oauth_refresh_tokens'
@@ -93,8 +114,8 @@ case "$n8n_backup_mode" in
     ;;
 esac
 
-log "Dumping PostgreSQL public schema"
-pg_dump -h "$pg_host" -p "$pg_port" -U "$pg_user" -d "$pg_database" -n public -Fc -f "$backup_dir/local-public.dump"
+log "Dumping PostgreSQL public schema ($public_backup_mode mode)"
+pg_dump "${public_dump_args[@]}"
 log "Dumping PostgreSQL n8n schema ($n8n_backup_mode mode)"
 pg_dump "${n8n_dump_args[@]}"
 
@@ -179,6 +200,7 @@ jq -n \
   --arg pg_host "$pg_host" \
   --arg pg_port "$pg_port" \
   --arg pg_database "$pg_database" \
+  --arg public_backup_mode "$public_backup_mode" \
   --arg n8n_backup_mode "$n8n_backup_mode" \
   --arg metabase_url "$metabase_url" \
   --argjson card_count "$card_count" \
@@ -195,6 +217,7 @@ jq -n \
       host: $pg_host,
       port: $pg_port,
       database: $pg_database,
+      public_backup_mode: $public_backup_mode,
       dumps: [
         "local-public.dump",
         "local-n8n.dump"
