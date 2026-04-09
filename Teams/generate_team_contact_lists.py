@@ -31,6 +31,7 @@ from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, 
 BASE_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = BASE_DIR / "generated"
 NAME_OVERRIDE_FILE = BASE_DIR / "name_overrides.csv"
+NICKNAME_FILE = BASE_DIR / "nicknames.csv"
 DB_DSN = os.environ.get(
     "TEAM_CONTACTS_DSN",
     "postgresql://postgres:6523Tike@192.168.1.248:5432/postgres",
@@ -228,7 +229,22 @@ def load_name_overrides() -> dict[str, set[str]]:
     return overrides
 
 
-NAME_OVERRIDES = load_name_overrides()
+def load_nicknames() -> dict[str, set[str]]:
+    nicknames: dict[str, set[str]] = defaultdict(set)
+    if not NICKNAME_FILE.exists():
+        return nicknames
+    with NICKNAME_FILE.open(newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        for row in reader:
+            source = normalize_name(row.get("source", ""))
+            target = normalize_name(row.get("target", ""))
+            if source and target:
+                nicknames[source].add(target)
+    return nicknames
+
+
+EXACT_NAME_OVERRIDES = load_name_overrides()
+NICKNAME_OVERRIDES = load_nicknames()
 
 
 def clean_name(value: str) -> str:
@@ -695,8 +711,8 @@ def disambiguate_contact_candidates(
 def nickname_variants(first_name: str) -> set[str]:
     norm_first = normalize_name(first_name)
     variants = {norm_first}
-    if norm_first in NAME_OVERRIDES:
-        variants |= NAME_OVERRIDES[norm_first]
+    if norm_first in NICKNAME_OVERRIDES:
+        variants |= NICKNAME_OVERRIDES[norm_first]
     return variants
 
 
@@ -766,7 +782,7 @@ def resolve_row(
     junior_main_contacts_by_name: dict[str, list[JuniorMainContactCandidate]],
 ) -> dict[str, str]:
     norm_name = normalize_name(name)
-    override_name = next(iter(NAME_OVERRIDES.get(norm_name, set())), "")
+    override_name = next(iter(EXACT_NAME_OVERRIDES.get(norm_name, set())), "")
     override_applied = bool(override_name)
     if override_name:
         norm_name = override_name
@@ -850,7 +866,7 @@ def resolve_row(
             "match_note": "Nickname",
             "review_section": "nickname",
             "review_target": candidate_full_name(member_candidates[0]),
-            "review_reason": "first-name override",
+            "review_reason": "nickname mapping from nicknames.csv",
             "no_consent_reason": contact_display.no_consent_reason,
         }
 
@@ -863,7 +879,7 @@ def resolve_row(
             "match_note": "Nickname",
             "review_section": "nickname",
             "review_target": candidate_full_name(signup_candidates[0]),
-            "review_reason": "first-name override",
+            "review_reason": "nickname mapping from nicknames.csv",
             "no_consent_reason": contact_display.no_consent_reason,
         }
 
@@ -876,7 +892,7 @@ def resolve_row(
             "match_note": "Best Fit" if best_fit_applied else "Nickname",
             "review_section": "nickname",
             "review_target": candidate_full_name(contact_candidates[0]),
-            "review_reason": "first-name override",
+            "review_reason": "nickname mapping from nicknames.csv",
             "no_consent_reason": contact_display.no_consent_reason,
         }
 

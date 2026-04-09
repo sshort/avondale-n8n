@@ -40,9 +40,10 @@ This directory contains the league and squad source documents used to build team
   - same surname required
   - one unique candidate only
   - nickname/short-name expansion is allowed, for example `Jacquie` -> `Jacqueline`
-- Apply manual overrides from [name_overrides.csv](./name_overrides.csv) before leaving a row as `No Match`.
-- The override file may contain multiple target rows for the same source short name, for example `Sam -> Samuel` and `Sam -> Samantha`.
-- If the override expansion produces more than one candidate for the same surname, leave the row as `No Match`.
+- Apply manual exact-name overrides from [name_overrides.csv](./name_overrides.csv) before leaving a row as `No Match`.
+- Apply first-name nickname aliases from [nicknames.csv](./nicknames.csv) during the nickname/short-name matching pass.
+- The nickname file may contain multiple target rows for the same source short name, for example `Sam -> Samuel` and `Sam -> Samantha`.
+- If the nickname expansion produces more than one candidate for the same surname, leave the row as `No Match`.
 - After exact and override-based nickname matching both fail, allow a cautious fuzzy final pass:
   - same first initial and surname initial required
   - one unique clear candidate only
