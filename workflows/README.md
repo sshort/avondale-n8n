@@ -19,6 +19,9 @@ Files:
 - `capture-membership-history-season-snapshot.json`: the local workflow that captures the current season membership counts into `membership_history_snapshots`, refreshes the matching wide-year column in `membership_history`, and refreshes the yearly `raw_contacts_historical` snapshot. It is scheduled daily at `02:30`.
 - `metabase-report-form.json`: the HTML form workflow for operator-driven dashboard PDF generation. It serves the dashboard selector, tab checklist, report mode selector, and redaction inputs from `global_settings`.
 - `metabase-report-generate.json`: the PDF generation workflow. It validates the submitted form, calls the local `clubspark-exporter` Playwright service, then post-processes the merged PDF with Stirling PDF.
+- `generate-team-contact-sheets.json`: the local team-sheet generator workflow. It runs the same Python generator as `Teams/generate_team_contact_lists.py`, accepts the same captain attachment mode, and can optionally mirror the shell runner by listing the planned sends, syncing the generated bundle to n8n, and triggering the captain mailout webhook.
+- `sync-team-captain-mailout.json`: the workflow that copies the generated team-sheet bundle onto the local n8n host/container.
+- `send-team-captain-contact-lists.json`: the local team-captain mailout workflow. It accepts the generated manifest jobs, resolves attachments, applies delivery mode/test recipient settings, and sends one email per captain.
 
 Notes:
 
