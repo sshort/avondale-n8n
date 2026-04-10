@@ -1,0 +1,341 @@
+{
+  "name": "Update Refund Status",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "r5000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "update-refund-status",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "r5000000-0000-0000-0000-000000000002",
+      "name": "Update Refund Status Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "update-refund-status"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url FROM public.global_settings WHERE key = 'n8n_base_url';"
+      },
+      "id": "r5000000-0000-0000-0000-000000000003",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        480,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const request = $('Update Refund Status Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst body = request.body ?? request.query ?? {};\nconst headers = request.headers ?? {};\nconst settings = $('Load Global Settings').first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst fallbackBaseUrl = clean(settings.n8n_base_url) || 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nconst validStatuses = ['New Request', 'Request Bank Details', 'Bank Details Obtained', 'Submitted for Refund', 'Refund Processed', 'Refund Rejected'];\nconst id = Number.parseInt(clean(body.id), 10);\nconst action = clean(body.action) || 'update_status';\nconst status = clean(body.status);\nconst notes = clean(body.notes);\nconst requestEmailMessageId = clean(body.request_email_message_id);\nconst bankDetailsMessageId = clean(body.bank_details_message_id);\nconst treasuryEmailMessageId = clean(body.treasury_email_message_id);\nconst returnUrl = clean(body.return_url) || `${n8nBaseUrl}/webhook/refunds${Number.isInteger(id) ? `?id=${id}` : ''}`;\nconst errorMessage = !Number.isInteger(id)\n  ? 'Refund id is required.'\n  : !['update_status', 'delete'].includes(action)\n    ? 'Action must be update_status or delete.'\n    : action !== 'delete' && !status\n      ? 'Status is required.'\n      : action !== 'delete' && !validStatuses.includes(status)\n        ? `Status must be one of: ${validStatuses.join(', ')}`\n        : '';\nreturn [{ json: { id, action, status, notes, request_email_message_id: requestEmailMessageId, bank_details_message_id: bankDetailsMessageId, treasury_email_message_id: treasuryEmailMessageId, error_message: errorMessage, return_url: returnUrl, n8n_base_url: n8nBaseUrl } }];"
+      },
+      "id": "r5000000-0000-0000-0000-000000000004",
+      "name": "Resolve Update Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "request-error-check",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "r5000000-0000-0000-0000-000000000005",
+      "name": "Check Request Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1020,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Resolve Update Request').first().json ?? {};\nconst message = input.error_message || 'Unable to update refund status.';\nconst redirectTo = `${input.return_url || '#'}${(input.return_url || '').includes('?') ? '&' : '?'}error=${encodeURIComponent(message)}`;\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0; url=${escapeHtml(redirectTo)}\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Refund Status Update Failed</title><style>body{margin:0;padding:24px;background:#f7f8fc;font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:#2e3d4e}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 18px 40px rgba(53,72,91,.08);padding:28px}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#509ee3 0%,#2f80d8 100%);color:#fff}</style></head><body><div class=\"panel\"><h1>Refund Status Update Failed</h1><p>${escapeHtml(message)}</p><p><a class=\"button\" href=\"${escapeHtml(redirectTo)}\">Back to refunds</a></p></div></body></html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "r5000000-0000-0000-0000-000000000006",
+      "name": "Build Error HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "r5000000-0000-0000-0000-000000000007",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1540,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $('Resolve Update Request').first().json ?? {};\nconst sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nlet sql;\nif (item.action === 'delete') {\n  sql = `DELETE FROM public.refunds WHERE id = ${item.id} RETURNING id, refund_for;`;\n} else {\n  const sqlParts = [`status = ${sqlLiteral(item.status)}`];\n  if (item.request_email_message_id) sqlParts.push(`request_email_message_id = ${sqlLiteral(item.request_email_message_id)}`);\n  if (item.bank_details_message_id) sqlParts.push(`bank_details_message_id = ${sqlLiteral(item.bank_details_message_id)}`);\n  if (item.treasury_email_message_id) sqlParts.push(`treasury_email_message_id = ${sqlLiteral(item.treasury_email_message_id)}`);\n  if (item.status === 'Refund Processed') sqlParts.push('paid_at = now()');\n  if (item.status === 'Refund Rejected') sqlParts.push('rejected_at = now()');\n  if (item.notes) sqlParts.push(`notes = ${sqlLiteral(item.notes)}`);\n  sqlParts.push('updated_at = now()');\n  sql = `UPDATE public.refunds SET ${sqlParts.join(', ')} WHERE id = ${item.id} RETURNING id, status, refund_for, membership, refund;`;\n}\nreturn [{ json: { sql, ...item } }];"
+      },
+      "id": "r5000000-0000-0000-0000-000000000008",
+      "name": "Build Update SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "r5000000-0000-0000-0000-000000000009",
+      "name": "Update Refund Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1540,
+        420
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $('Resolve Update Request').first().json ?? {};\nconst updated = $('Update Refund Status').first()?.json ?? {};\nconst isDelete = item.action === 'delete';\nconst message = isDelete\n  ? (updated.id ? `Refund ${updated.id} deleted` : 'Refund deleted')\n  : (updated.id ? `Refund ${updated.id} updated to ${updated.status || item.status}` : 'Refund status updated');\nconst redirectBase = isDelete ? (item.n8n_base_url ? `${item.n8n_base_url}/webhook/refunds` : '#') : (item.return_url || '#');\nconst redirectTo = `${redirectBase}${redirectBase.includes('?') ? '&' : '?'}message=${encodeURIComponent(message)}${isDelete ? '' : `&id=${encodeURIComponent(updated.id || item.id)}`}`;\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst title = isDelete ? 'Refund Deleted' : 'Refund Status Updated';\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0; url=${escapeHtml(redirectTo)}\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>${title}</title><style>body{margin:0;padding:24px;background:#f7f8fc;font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:#2e3d4e}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 18px 40px rgba(53,72,91,.08);padding:28px}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#509ee3 0%,#2f80d8 100%);color:#fff}</style></head><body><div class=\"panel\"><h1>${title}</h1><p>Returning to refunds…</p><p><a class=\"button\" href=\"${escapeHtml(redirectTo)}\">Continue</a></p></div></body></html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "r5000000-0000-0000-0000-000000000010",
+      "name": "Build Success HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "r5000000-0000-0000-0000-000000000011",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2060,
+        420
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Refund Status Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Resolve Update Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Update Request": {
+      "main": [
+        [
+          {
+            "node": "Check Request Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Request Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Update SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Update SQL": {
+      "main": [
+        [
+          {
+            "node": "Update Refund Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Refund Status": {
+      "main": [
+        [
+          {
+            "node": "Build Success HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Success HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-03T07:53:07.829+00:00",
+  "updatedAt": "2026-04-03T17:45:01.632+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": {},
+  "pinData": {},
+  "versionId": "850a1387-7318-4419-a16d-9e6dbb4fa0cb",
+  "triggerCount": 1,
+  "id": "ouYD0m2No7IBTYH4",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 164,
+  "description": null,
+  "activeVersionId": "850a1387-7318-4419-a16d-9e6dbb4fa0cb"
+}

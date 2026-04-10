@@ -1,0 +1,135 @@
+{
+  "description": "Overview of sample data and hypothetical sales",
+  "archived": false,
+  "view_count": 9,
+  "collection_position": null,
+  "dashcards": [],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "initially_published_at": null,
+  "can_write": true,
+  "can_set_cache_policy": true,
+  "tabs": [
+    {
+      "id": 14,
+      "dashboard_id": 12,
+      "name": "Overview",
+      "position": 0,
+      "entity_id": "78IWrB5U1DEtAygk3wRSs",
+      "created_at": "2026-03-13T14:48:25.163685Z",
+      "updated_at": "2026-03-13T14:48:25.163685Z"
+    },
+    {
+      "id": 15,
+      "dashboard_id": 12,
+      "name": "Portfolio Performance",
+      "position": 1,
+      "entity_id": "7Bw0H_QfLGU8g2TlaO-EL",
+      "created_at": "2026-03-13T14:48:25.163685Z",
+      "updated_at": "2026-03-13T14:48:25.163685Z"
+    },
+    {
+      "id": 16,
+      "dashboard_id": 12,
+      "name": "Website Analysis",
+      "position": 2,
+      "entity_id": "4VtfCGG2ETVDrVF6UJ60M",
+      "created_at": "2026-03-13T14:48:25.163685Z",
+      "updated_at": "2026-03-13T14:48:25.163685Z"
+    }
+  ],
+  "enable_embedding": false,
+  "collection_id": 2,
+  "show_in_getting_started": false,
+  "name": "E-commerce Insights",
+  "is_remote_synced": false,
+  "width": "fixed",
+  "caveats": null,
+  "collection_authority_level": null,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-03-13T14:27:51.014459Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "last_used_param_values": {},
+  "id": 12,
+  "last_viewed_at": "2026-03-13T14:27:51.014459Z",
+  "position": null,
+  "archived_directly": false,
+  "entity_id": "SF4lN4ROs3j0Q0HIIpWxO",
+  "param_fields": {},
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-03-13T14:48:25.393726Z"
+  },
+  "collection": {
+    "authority_level": null,
+    "description": "Some examples to get started with",
+    "archived": false,
+    "workspace_id": null,
+    "slug": "examples",
+    "archive_operation_id": null,
+    "name": "Examples",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": true,
+    "effective_location": "/",
+    "id": 2,
+    "archived_directly": null,
+    "entity_id": "HyB3nRtqb7pBPhFG26evI",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-27T09:23:06.022054Z"
+  },
+  "parameters": [
+    {
+      "id": "81cd957",
+      "name": "Date Range",
+      "required": false,
+      "sectionId": "date",
+      "slug": "date_range",
+      "type": "date/all-options"
+    },
+    {
+      "id": "efd919c7",
+      "name": "Date Grouping",
+      "sectionId": "temporal-unit",
+      "slug": "date_grouping",
+      "type": "temporal-unit"
+    },
+    {
+      "default": [
+        "Doohickey",
+        "Gizmo",
+        "Gadget",
+        "Widget"
+      ],
+      "id": "9d9cddd4",
+      "name": "Product Category",
+      "required": true,
+      "sectionId": "string",
+      "slug": "product_category",
+      "type": "string/="
+    },
+    {
+      "id": "1ebab259",
+      "isMultiSelect": false,
+      "name": "Vendor",
+      "sectionId": "string",
+      "slug": "vendor",
+      "type": "string/="
+    }
+  ],
+  "auto_apply_filters": true,
+  "created_at": "2026-03-13T14:27:51.014459Z",
+  "public_uuid": null,
+  "points_of_interest": null,
+  "can_delete": false
+}

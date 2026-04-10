@@ -1,0 +1,156 @@
+{
+  "cache_invalidated_at": "2026-04-01T08:20:02.926162Z",
+  "description": null,
+  "archived": false,
+  "view_count": 382,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "int8",
+      "semantic_type": "type/Quantity",
+      "lib/deduplicated-name": "count",
+      "lib/original-name": "count",
+      "name": "count",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "count",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "count",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "count",
+      "display_name": "count",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 248.0,
+            "q1": 248.0,
+            "q3": 248.0,
+            "max": 248.0,
+            "sd": null,
+            "avg": 248.0
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Count of Members - Current Year",
+  "last_query_start": "2026-04-09T07:49:53.541574Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-09T07:49:53.981589Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 66.5054054054054054,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-01T08:20:02.924974Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "native": "SELECT\n  count(*) AS count\nFROM raw_members AS m\nJOIN membership_packages AS p\n  ON m.\"Membership\" = p.name\nWHERE p.season = ({{year}})::text\n  AND p.category <> 'Pavilion Key'\n  AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  AND m.\"Status\" = 'Active';",
+        "template-tags": {
+          "year": {
+            "name": "year",
+            "display-name": "Year",
+            "type": "text",
+            "id": "year",
+            "required": true
+          }
+        }
+      }
+    ]
+  },
+  "id": 1466,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "scalar",
+  "archived_directly": false,
+  "entity_id": "6xsR9EDIRevVoB3LoIMm_",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-01T08:20:02.962433Z"
+  },
+  "visualization_settings": {
+    "scalar.segments": [],
+    "click_behavior": {
+      "type": "link",
+      "linkType": "url",
+      "linkTemplate": "/question/1506?year={{year}}"
+    }
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-03-16T15:08:56.544843Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}
