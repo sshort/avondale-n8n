@@ -1,0 +1,177 @@
+{
+  "id": null,
+  "name": "Delete Manual Batch Item",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f4200000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "delete-manual-batch-item",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f4200000-0000-0000-0000-000000000002",
+      "name": "Delete Manual Batch Item Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "delete-manual-batch-item"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $input.first()?.json ?? {};\nconst source = input.query ?? input;\nconst headers = source.headers ?? input.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst sqlLiteral = (value) => `'${String(value).replace(/'/g, \"''\")}'`;\nconst rawBatchId = clean(source.batch_id ?? source.batchId);\nconst rawSourceId = clean(source.source_id ?? source.sourceId ?? source.item_id ?? source.itemId);\nconst parsedBatchId = Number.parseInt(rawBatchId, 10);\nconst parsedSourceId = Number.parseInt(rawSourceId, 10);\nconst confirmDelete = ['1', 'true', 'yes', 'delete'].includes(clean(source.confirm ?? source.confirmed).toLowerCase());\nconst fallbackBaseUrl = 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nif (!Number.isInteger(parsedBatchId) || parsedBatchId <= 0 || !Number.isInteger(parsedSourceId) || parsedSourceId <= 0) {\n  return [{\n    json: {\n      batch_id: rawBatchId,\n      source_id: rawSourceId,\n      confirm_delete: confirmDelete,\n      response_code: 400,\n      n8n_base_url: n8nBaseUrl,\n      sql: \"SELECT NULL::bigint AS batch_id, NULL::bigint AS source_id, false AS item_exists, false AS can_delete, ''::text AS batch_status, false AS confirm_delete, false AS deleted, NULL::timestamptz AS item_date, NULL::text AS member, NULL::text AS payer, NULL::integer AS regular_tags, NULL::integer AS parent_tags, NULL::integer AS key_tags, NULL::text AS notes;\"\n    }\n  }];\n}\nconst sql = `\nWITH requested AS (\n  SELECT\n    ${sqlLiteral(parsedBatchId)}::bigint AS batch_id,\n    ${sqlLiteral(parsedSourceId)}::bigint AS source_id,\n    ${confirmDelete ? 'true' : 'false'} AS confirm_delete\n),\ntarget AS (\n  SELECT\n    mi.id AS source_id,\n    mi.batch_id,\n    mi.created_at AS item_date,\n    mi.member,\n    mi.payer,\n    mi.regular_tags,\n    mi.parent_tags,\n    mi.key_tags,\n    mi.notes,\n    b.status AS batch_status\n  FROM public.signup_batch_manual_items mi\n  JOIN public.signup_batches b\n    ON b.id = mi.batch_id\n  JOIN requested r\n    ON r.batch_id = mi.batch_id\n   AND r.source_id = mi.id\n),\ndeleted AS (\n  DELETE FROM public.signup_batch_manual_items mi\n  USING target t, requested r\n  WHERE r.confirm_delete = true\n    AND t.batch_status = 'Processing'\n    AND mi.id = t.source_id\n    AND mi.batch_id = t.batch_id\n  RETURNING mi.id\n)\nSELECT\n  r.batch_id,\n  r.source_id,\n  (t.source_id IS NOT NULL) AS item_exists,\n  COALESCE(t.batch_status, '') AS batch_status,\n  (t.source_id IS NOT NULL AND t.batch_status = 'Processing') AS can_delete,\n  r.confirm_delete,\n  (d.id IS NOT NULL) AS deleted,\n  t.item_date,\n  t.member,\n  t.payer,\n  t.regular_tags,\n  t.parent_tags,\n  t.key_tags,\n  t.notes\nFROM requested r\nLEFT JOIN target t ON true\nLEFT JOIN deleted d ON true;`;\nreturn [{\n  json: {\n    batch_id: parsedBatchId,\n    source_id: parsedSourceId,\n    confirm_delete: confirmDelete,\n    response_code: 200,\n    n8n_base_url: n8nBaseUrl,\n    sql,\n  }\n}];\n"
+      },
+      "id": "f4200000-0000-0000-0000-000000000003",
+      "name": "Build Delete Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "f4200000-0000-0000-0000-000000000004",
+      "name": "Load Or Delete Manual Item",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        820,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const source = $('Build Delete Query').first()?.json ?? {};\nconst row = $input.first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst escapeHtml = (value) => clean(value)\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst formatDateTime = (value) => {\n  const raw = clean(value);\n  if (!raw) return 'Not available';\n  const date = new Date(raw);\n  if (Number.isNaN(date.getTime())) return raw;\n  return date.toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' });\n};\nconst batchId = clean(row.batch_id || source.batch_id);\nconst sourceId = clean(row.source_id || source.source_id);\nconst n8nBaseUrl = clean(source.n8n_base_url) || 'http://n8n:5678';\nconst reviewUrl = `${n8nBaseUrl}/webhook/signup-batch-review?batch_id=${encodeURIComponent(batchId)}`;\nconst selfUrl = `${n8nBaseUrl}/webhook/delete-manual-batch-item?batch_id=${encodeURIComponent(batchId)}&source_id=${encodeURIComponent(sourceId)}`;\nconst itemExists = row.item_exists === true || clean(row.item_exists).toLowerCase() === 'true';\nconst canDelete = row.can_delete === true || clean(row.can_delete).toLowerCase() === 'true';\nconst confirmDelete = row.confirm_delete === true || clean(source.confirm_delete).toLowerCase() === 'true';\nconst deleted = row.deleted === true || clean(row.deleted).toLowerCase() === 'true';\nconst batchStatus = clean(row.batch_status) || 'Unknown';\nconst responseCode = !itemExists ? 404 : confirmDelete && !deleted ? 409 : 200;\nconst details = [\n  ['Batch', batchId],\n  ['Manual Item', sourceId],\n  ['Added', formatDateTime(row.item_date)],\n  ['Member', row.member],\n  ['Payer', row.payer],\n  ['Shoe Tags', row.regular_tags],\n  ['Parents', row.parent_tags],\n  ['Keys', row.key_tags],\n  ['Notes', row.notes],\n].filter(([, value]) => clean(value) !== '' && clean(value) !== 'Not available');\nconst detailHtml = details.map(([label, value]) => `<div class=\"detail\"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join('');\nlet badge = 'Action needed';\nlet badgeClass = 'badge warning';\nlet title = 'Delete Manual Batch Item';\nlet message = 'Review the manual batch item below before deleting it permanently.';\nlet actionHtml = `<form method=\"get\" action=\"${selfUrl}\"><input type=\"hidden\" name=\"confirm\" value=\"1\"><div class=\"actions\"><button class=\"button danger\" type=\"submit\">Delete Item Permanently</button><a class=\"button secondary\" href=\"${reviewUrl}\">Back to Review</a><button type=\"button\" class=\"button secondary\" onclick=\"window.close()\">Close</button></div></form>`;\nif (!itemExists) {\n  badge = 'Not found';\n  badgeClass = 'badge error';\n  title = 'Manual Batch Item Not Found';\n  message = 'The requested manual batch item no longer exists for this batch.';\n  actionHtml = `<div class=\"actions\"><a class=\"button secondary\" href=\"${reviewUrl}\">Back to Review</a><button type=\"button\" class=\"button secondary\" onclick=\"window.close()\">Close</button></div>`;\n} else if (!canDelete) {\n  badge = 'Locked';\n  badgeClass = 'badge error';\n  title = 'Deletion Not Available';\n  message = `Manual batch items can only be deleted while the batch is Processing. Current status: ${batchStatus}.`;\n  actionHtml = `<div class=\"actions\"><a class=\"button secondary\" href=\"${reviewUrl}\">Back to Review</a><button type=\"button\" class=\"button secondary\" onclick=\"window.close()\">Close</button></div>`;\n} else if (deleted) {\n  badge = 'Deleted';\n  badgeClass = 'badge success';\n  title = 'Manual Batch Item Deleted';\n  message = 'The manual batch item was removed permanently from this batch.';\n  actionHtml = `<div class=\"actions\"><a class=\"button secondary\" href=\"${reviewUrl}\">Back to Review</a><button type=\"button\" class=\"button secondary\" onclick=\"window.close()\">Close</button></div>`;\n} else if (confirmDelete) {\n  badge = 'Action needed';\n  badgeClass = 'badge error';\n  title = 'Delete Did Not Complete';\n  message = 'The delete request did not complete. Reload the review page and try again.';\n  actionHtml = `<div class=\"actions\"><a class=\"button secondary\" href=\"${reviewUrl}\">Back to Review</a><button type=\"button\" class=\"button secondary\" onclick=\"window.close()\">Close</button></div>`;\n}\nconst html = `<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>${escapeHtml(title)}</title>\n  <style>\n    :root {\n      color-scheme: light;\n      --bg: #f7f8fc;\n      --panel: #ffffff;\n      --ink: #2e3d4e;\n      --muted: #6b7785;\n      --line: #e2e8f0;\n      --accent: #509ee3;\n      --danger: #b42318;\n      --danger-soft: #fef3f2;\n      --success: #166534;\n      --success-soft: #ecfdf3;\n      --warning: #9a6700;\n      --warning-soft: #fff7ed;\n      --button-soft: #eef2f7;\n    }\n    * { box-sizing: border-box; }\n    body {\n      margin: 0;\n      padding: 24px;\n      font-family: Lato, 'Helvetica Neue', Arial, sans-serif;\n      color: var(--ink);\n      background: linear-gradient(180deg, #fbfcfe 0%, var(--bg) 100%);\n    }\n    .panel {\n      max-width: 820px;\n      margin: 0 auto;\n      background: var(--panel);\n      border: 1px solid var(--line);\n      border-radius: 18px;\n      padding: 28px;\n      box-shadow: 0 18px 40px rgba(53, 72, 91, 0.08);\n    }\n    .badge {\n      display: inline-flex;\n      padding: 6px 12px;\n      border-radius: 999px;\n      font-size: 13px;\n      font-weight: 700;\n      text-transform: uppercase;\n      letter-spacing: 0.04em;\n    }\n    .badge.warning { color: var(--warning); background: var(--warning-soft); }\n    .badge.error { color: var(--danger); background: var(--danger-soft); }\n    .badge.success { color: var(--success); background: var(--success-soft); }\n    h1 {\n      margin: 16px 0 8px;\n      font-size: 32px;\n      line-height: 1.1;\n    }\n    p {\n      margin: 0;\n      color: var(--muted);\n      line-height: 1.6;\n      font-size: 16px;\n    }\n    .warning-box {\n      margin-top: 18px;\n      padding: 16px 18px;\n      border-radius: 14px;\n      border: 1px solid #fecdca;\n      background: var(--danger-soft);\n      color: var(--danger);\n      font-weight: 700;\n      line-height: 1.5;\n    }\n    .details {\n      display: grid;\n      gap: 12px;\n      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));\n      margin-top: 24px;\n    }\n    .detail {\n      border: 1px solid var(--line);\n      border-radius: 14px;\n      padding: 14px 16px;\n      background: #f8fafc;\n    }\n    .detail span {\n      display: block;\n      margin-bottom: 6px;\n      color: var(--muted);\n      font-size: 13px;\n      font-weight: 700;\n      text-transform: uppercase;\n      letter-spacing: 0.04em;\n    }\n    .detail strong {\n      font-size: 17px;\n      line-height: 1.4;\n      word-break: break-word;\n    }\n    .actions {\n      display: flex;\n      gap: 12px;\n      flex-wrap: wrap;\n      margin-top: 24px;\n    }\n    .button {\n      display: inline-flex;\n      align-items: center;\n      justify-content: center;\n      padding: 12px 18px;\n      border-radius: 999px;\n      font: inherit;\n      font-weight: 700;\n      text-decoration: none;\n      border: 0;\n      cursor: pointer;\n    }\n    .button.danger {\n      color: #fff;\n      background: linear-gradient(135deg, var(--danger) 0%, #912018 100%);\n      box-shadow: 0 10px 24px rgba(180, 35, 24, 0.22);\n    }\n    .button.secondary {\n      color: var(--ink);\n      background: var(--button-soft);\n      border: 1px solid var(--line);\n    }\n  </style>\n</head>\n<body>\n  <main class=\"panel\">\n    <span class=\"${badgeClass}\">${escapeHtml(badge)}</span>\n    <h1>${escapeHtml(title)}</h1>\n    <p>${escapeHtml(message)}</p>\n    ${!deleted && itemExists && canDelete ? '<div class=\"warning-box\">This is a hard delete. The manual batch item will be removed permanently from labels, envelopes, exports, and batch totals.</div>' : ''}\n    ${detailHtml ? `<section class=\"details\">${detailHtml}</section>` : ''}\n    ${actionHtml}\n  </main>\n</body>\n</html>`;\nreturn [{ json: { ...row, response_code: responseCode, html } }];\n"
+      },
+      "id": "f4200000-0000-0000-0000-000000000005",
+      "name": "Build Delete HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": "={{ Number($json.response_code || 200) }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "f4200000-0000-0000-0000-000000000006",
+      "name": "Respond Delete",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1420,
+        220
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Build Delete Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Manual Batch Item Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build Delete Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Delete Query": {
+      "main": [
+        [
+          {
+            "node": "Load Or Delete Manual Item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Or Delete Manual Item": {
+      "main": [
+        [
+          {
+            "node": "Build Delete HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Delete HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Delete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "delete-manual-batch-item-v1",
+  "triggerCount": 1,
+  "tags": null
+}
