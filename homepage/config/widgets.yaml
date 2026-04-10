@@ -1,0 +1,15 @@
+- search:
+    provider: duckduckgo
+    target: _blank
+
+- datetime:
+    text_size: xl
+    format:
+      dateStyle: short
+      timeStyle: short
+      hourCycle: h23
+
+- resources:
+    cpu: true
+    memory: true
+    disk: /

@@ -1,0 +1,122 @@
+- Applications:
+    - Metabase:
+        icon: metabase.png
+        href: http://192.168.1.138:3000
+        description: Analytics and reporting
+        target: _blank
+    - Appsmith:
+        icon: appsmith.png
+        href: http://192.168.1.209
+        description: Internal tools
+        target: _blank
+    - Planka:
+        icon: planka.png
+        href: http://192.168.1.139
+        description: Kanban board
+        target: _blank
+    - n8n:
+        icon: n8n.png
+        href: http://192.168.1.237:5678
+        description: Workflow automation
+        target: _blank
+        server: local-docker
+        container: n8n
+        showStats: true
+    - Home Assistant:
+        icon: home-assistant.png
+        href: http://192.168.1.232:8123
+        description: Home automation
+        target: _blank
+    - PDF Tools:
+        icon: paperless-ngx.png
+        href: http://192.168.1.197:3000
+        description: PDF tools
+        target: _blank
+    - Stirling PDF:
+        icon: mdi-file-pdf-box
+        href: http://192.168.1.197:8080
+        description: PDF post-processing
+        target: _blank
+
+- Storage & Network:
+    - Homecloud:
+        icon: nextcloud.png
+        href: https://192.168.1.201/
+        description: Private cloud storage
+        target: _blank
+    - Syncthing:
+        icon: syncthing.png
+        href: http://192.168.1.133:8384
+        description: File synchronization
+        target: _blank
+    - Pi-hole:
+        icon: pi-hole.png
+        href: http://192.168.1.212/admin/
+        description: DNS and ad blocking
+        target: _blank
+
+- Infra & Admin:
+    - Proxmox:
+        icon: proxmox.png
+        href: https://192.168.1.2:8006
+        description: Proxmox VE node pve
+        target: _blank
+    - Pangolin:
+        icon: mdi-shield-home-outline
+        href: https://proxy.shortcentral.com
+        description: Reverse proxy admin
+        target: _blank
+    - Beszel:
+        icon: mdi-monitor-dashboard
+        href: http://192.168.1.2:8090
+        description: Monitoring dashboard
+        target: _blank
+    - Uptime Kuma:
+        icon: uptime-kuma.png
+        href: http://192.168.1.234:3001
+        description: Service monitoring
+        target: _blank
+    - Dozzle:
+        icon: mdi-text-box-search-outline
+        href: http://192.168.1.105:8888
+        description: Container log viewer
+        target: _blank
+    - HomeDB:
+        icon: postgresql.png
+        href: http://192.168.1.248
+        description: PostgreSQL host
+        target: _blank
+
+- Local Containers:
+    - homepage:
+        icon: homepage.png
+        href: http://192.168.1.237:3004
+        description: This dashboard
+        target: _blank
+        server: local-docker
+        container: homepage
+        showStats: true
+    - n8n:
+        icon: n8n.png
+        href: http://192.168.1.237:5678
+        description: Main workflow engine
+        target: _blank
+        server: local-docker
+        container: n8n
+        showStats: true
+    - n8n-mcp:
+        icon: mdi-robot-outline
+        href: http://192.168.1.237:3000
+        description: MCP server
+        target: _blank
+        server: local-docker
+        container: n8n-mcp
+        showStats: true
+    - gotenberg:
+        icon: mdi-file-pdf-box
+        href: http://192.168.1.237:3002
+        description: PDF rendering
+        target: _blank
+        server: local-docker
+        container: gotenberg
+        showStats: true

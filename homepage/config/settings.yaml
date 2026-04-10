@@ -1,0 +1,24 @@
+title: ShortCentral Homepage
+description: Proxmox service directory
+background:
+  color: slate
+color: slate
+headerStyle: boxed
+statusStyle: dot
+showStats: true
+fullWidth: true
+maxGroupColumns: 6
+
+layout:
+  Applications:
+    style: row
+    columns: 4
+  Storage & Network:
+    style: row
+    columns: 3
+  Infra & Admin:
+    style: row
+    columns: 3
+  Local Containers:
+    style: row
+    columns: 4
