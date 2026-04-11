@@ -19,6 +19,23 @@ For the best chance of success:
 
 ## Common Problems
 
+### I am not receiving emails from Avondale or ClubSpark
+
+If you are not getting membership confirmation emails or other ClubSpark messages, check these common causes:
+
+**Check your spam or junk folder** - emails may be filtered there.
+
+**Add these senders to your trusted contacts or address book**:
+- `members.avondaleltc@gmail.com`
+- `avondalecoaching@virginmedia.com`
+- `mail@clubspark.co.uk`
+
+**Other checks**:
+- make sure your email address is correct on your ClubSpark profile
+- check your inbox rules and filters
+- if you use a work email, check with your IT department
+- try adding the addresses above before expecting next email
+
 ### The ClubSpark page will not load properly
 
 Try:

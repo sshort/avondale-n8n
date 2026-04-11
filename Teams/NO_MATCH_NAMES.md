@@ -59,19 +59,19 @@ This file records the current non-trivial name matching used by [generate_team_c
 
 ## Short-Name / Nickname Matches
 
-- `Alec Mach` -> `Aleksander Mach` - first-name override. Teams: B Squad
-- `Alex Mach` -> `Aleksander Mach` - first-name override. Teams: C Squad
-- `Andy Roxburgh` -> `Andrew Roxburgh` - first-name override. Teams: B Squad
-- `Becky Cockerill` -> `Rebecca Cockerill` - first-name override. Teams: Reserves
-- `Jacquie Conway` -> `Jacqueline Conway` - first-name override. Teams: A Team, B Squad
-- `Jon Clackett` -> `Jonathan Clackett` - first-name override. Teams: C Squad, Reserves
-- `Matt Napper` -> `Matthew Napper` - first-name override. Teams: E Squad, Reserves
-- `Mo Clackett` -> `Maureen Clackett` - first-name override. Teams: Reserves
-- `PETE SMITH` -> `Peter Smith` - first-name override. Teams: B Team
-- `Sam Rush` -> `Samantha Rush` - first-name override. Teams: A Squad, B Squad
-- `Sue white` -> `Susan White` - first-name override. Teams: A Team, B Squad, E Squad
-- `Tom Van Klaveren` -> `Thomas Van Klaveren` - first-name override. Teams: B Squad
-- `Val Rowlands` -> `Valerie Rowlands` - first-name override. Teams: Reserves
+- `Alec Mach` -> `Aleksander Mach` - nickname mapping from nicknames.csv. Teams: B Squad
+- `Alex Mach` -> `Aleksander Mach` - nickname mapping from nicknames.csv. Teams: C Squad
+- `Andy Roxburgh` -> `Andrew Roxburgh` - nickname mapping from nicknames.csv. Teams: B Squad
+- `Becky Cockerill` -> `Rebecca Cockerill` - nickname mapping from nicknames.csv. Teams: Reserves
+- `Jacquie Conway` -> `Jacqueline Conway` - nickname mapping from nicknames.csv. Teams: A Team, B Squad
+- `Jon Clackett` -> `Jonathan Clackett` - nickname mapping from nicknames.csv. Teams: C Squad, Reserves
+- `Matt Napper` -> `Matthew Napper` - nickname mapping from nicknames.csv. Teams: E Squad, Reserves
+- `Mo Clackett` -> `Maureen Clackett` - nickname mapping from nicknames.csv. Teams: Reserves
+- `PETE SMITH` -> `Peter Smith` - nickname mapping from nicknames.csv. Teams: B Team
+- `Sam Rush` -> `Samantha Rush` - nickname mapping from nicknames.csv. Teams: A Squad, B Squad
+- `Sue white` -> `Susan White` - nickname mapping from nicknames.csv. Teams: A Team, B Squad, E Squad
+- `Tom Van Klaveren` -> `Thomas Van Klaveren` - nickname mapping from nicknames.csv. Teams: B Squad
+- `Val Rowlands` -> `Valerie Rowlands` - nickname mapping from nicknames.csv. Teams: Reserves
 
 ## Fuzzy Matches
 
