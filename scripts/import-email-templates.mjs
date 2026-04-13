@@ -6,6 +6,7 @@ const rootDir = process.argv[2] ?? '/mnt/c/dev/avondale-data/Email Templates';
 const excludedNames = new Set(['images.txt', 'To Do.txt']);
 const subjectOverrides = new Map([
   ['shoe_tag_pigeon_hole', 'Message from Avondale about your tags'],
+  ['membership_payment_received', 'Membership Payment Received'],
 ]);
 
 const templateTypeOverrides = new Map([
@@ -38,6 +39,13 @@ const titleize = (value) =>
     .map((part) => part.replace(/\.[^.]+$/, ''))
     .join(' / ');
 
+const humanizeKey = (value) =>
+  value
+    .split('_')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+
 const normalizeRelativePath = (relativePath) => relativePath.replace(/\\/g, '/');
 
 const isTemplateFile = (relativePath) => {
@@ -67,9 +75,11 @@ const templateTypeForKey = (templateKey) => templateTypeOverrides.get(templateKe
 
 const stripSubjectLine = (content) => {
   const normalized = content
-    .replace(/^\uFEFF?"/, '')
+    .replace(/^\uFEFF?/, '')
+    .replace(/^"/, '')
     .replace(/"\s*$/, '')
-    .replace(/\r\n/g, '\n');
+    .replace(/\r\n/g, '\n')
+    .trimStart();
   const match = normalized.match(/^Subject:\s*(.+?)\n\n?/i);
   if (!match) return { subject: null, body: normalized };
   return {
@@ -78,8 +88,48 @@ const stripSubjectLine = (content) => {
   };
 };
 
+const stripMessageTextSignature = (content) =>
+  String(content ?? '')
+    .replace(/\u00a0/g, ' ')
+    .replace(/\r\n/g, '\n')
+    .replace(/\n?(Regards|Kind regards|Best regards|Yours sincerely|Yours faithfully)\b[\s\S]*$/i, '')
+    .trim();
+
+const stripMessageHtmlSignature = (content) => {
+  const normalized = String(content ?? '').replace(/\u00a0/g, ' ');
+  const signoffMatch = normalized.match(/<p>\s*(Regards|Kind regards|Best regards|Yours sincerely|Yours faithfully)\b/i);
+  if (signoffMatch && signoffMatch.index !== undefined) {
+    return normalized.slice(0, signoffMatch.index).trim();
+  }
+
+  const inlineSignoffRegex = /\b(Regards|Kind regards|Best regards|Yours sincerely|Yours faithfully)\s*<br\s*\/?>/gi;
+  let inlineSignoffMatch = inlineSignoffRegex.exec(normalized);
+  let lastInlineSignoffIndex = inlineSignoffMatch?.index;
+  while (inlineSignoffMatch) {
+    lastInlineSignoffIndex = inlineSignoffMatch.index;
+    inlineSignoffMatch = inlineSignoffRegex.exec(normalized);
+  }
+  if (lastInlineSignoffIndex !== undefined) {
+    return normalized
+      .slice(0, lastInlineSignoffIndex)
+      .replace(/(?:<br\s*\/?>\s*)+$/i, '')
+      .trim();
+  }
+
+  const footerAnchorIndex = normalized.lastIndexOf('https://avondaletennisclub.co.uk/');
+  if (footerAnchorIndex >= 0) {
+    const footerHrIndex = normalized.lastIndexOf('<hr', footerAnchorIndex);
+    if (footerHrIndex >= 0) {
+      return normalized.slice(0, footerHrIndex).trim();
+    }
+  }
+
+  return normalized.trim();
+};
+
 const normalizeTemplateSyntax = (content) =>
   String(content ?? '')
+    .replace(/\u00a0/g, ' ')
     .replace(/<first name>/gi, '{{$json.first_name}}')
     .replace(/<last name>/gi, '{{$json.last_name}}')
     .replace(/<email address>/gi, '{{$json.email_address}}')
@@ -99,7 +149,46 @@ const normalizeTemplateSyntax = (content) =>
     .replace(/\{contact\.postcode\}/g, '{{$json.postcode}}')
     .replace(/\{member\.first_name\}/g, '{{$json.first_name}}')
     .replace(/\{member\.last_name\}/g, '{{$json.last_name}}')
-    .replace(/\{member\.email_address\}/g, '{{$json.email_address}}');
+    .replace(/\{member\.email_address\}/g, '{{$json.email_address}}')
+    .replace(/\{domain\.address\}/g, '');
+
+const escapeHtml = (value) =>
+  String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+const htmlToText = (content) =>
+  String(content ?? '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/div>/gi, '\n\n')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<li>/gi, '- ')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+const textToHtml = (content) => {
+  const paragraphs = String(content ?? '')
+    .trim()
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, '<br>')}</p>`);
+  return paragraphs.join('\n');
+};
 
 const walk = async (dir) => {
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -159,6 +248,25 @@ for (const file of files) {
   }
 
   grouped.set(key, group);
+}
+
+for (const group of grouped.values()) {
+  if (group.template_type === 0) {
+    group.text_template = stripMessageTextSignature(group.text_template);
+    group.html_template = stripMessageHtmlSignature(group.html_template);
+  }
+
+  if (!group.subject_template && group.template_type === 0) {
+    group.subject_template = subjectOverrides.get(group.template_key) ?? humanizeKey(group.template_key);
+  }
+
+  if (!group.text_template && group.html_template) {
+    group.text_template = htmlToText(group.html_template);
+  }
+
+  if (!group.html_template && group.text_template) {
+    group.html_template = textToHtml(group.text_template);
+  }
 }
 
 const values = Array.from(grouped.values())

@@ -158,10 +158,10 @@
 | Cloud & Collaboration | 3 | 6 |
 | Web Applications | 4 | 5 |
 | Automation & Integration | 3 | 7 |
-| Utilities | 4 | 5 |
+| Utilities | 3 | 3 |
 | Analytics & BI | 1 | 2 |
 | Smart Home | 1 | 1 |
-| **Total** | **19 VMs** | **~40 services** |
+| **Total** | **18 VMs** | **~38 services** |
 
 ## Cross-cutting Services
 

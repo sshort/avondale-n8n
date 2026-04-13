@@ -38,7 +38,7 @@ VALUES (
   0,
   'Please confirm whether we may share your contact details',
   E'Dear {{$json.first_name}} {{$json.last_name}},\n\nWe are preparing team contact sheets for Avondale Tennis Club and want to make sure we only share contact details with your permission.\n\nPlease reply to this email to confirm whether you are happy for us to share your phone number and email address with your team captain and team-mates for team administration.\n\nIf you do not consent, we will continue to withhold those details from the team contact sheets.',
-  NULL,
+  '<p>Dear {{$json.first_name}} {{$json.last_name}},</p><p>We are preparing team contact sheets for Avondale Tennis Club and want to make sure we only share contact details with your permission.</p><p>Please reply to this email to confirm whether you are happy for us to share your phone number and email address with your team captain and team-mates for team administration.</p><p>If you do not consent, we will continue to withhold those details from the team contact sheets.</p>',
   'system',
   NULL,
   NULL,
