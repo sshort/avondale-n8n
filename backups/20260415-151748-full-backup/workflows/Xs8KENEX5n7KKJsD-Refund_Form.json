@@ -1,0 +1,188 @@
+{
+  "name": "Refund Form",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "r1000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "refund-form",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "r1000000-0000-0000-0000-000000000002",
+      "name": "Refund Form Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "refund-form"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url FROM public.global_settings WHERE key = 'n8n_base_url';"
+      },
+      "id": "r1000000-0000-0000-0000-000000000003",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        480,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH directory AS (\n  SELECT trim(concat_ws(' ', rm.\"First name\", rm.\"Last name\")) AS name,\n         NULLIF(trim(rm.\"Email address\"), '') AS email\n  FROM public.raw_members rm\n  WHERE COALESCE(rm.is_current, true) = true\n  UNION\n  SELECT trim(concat_ws(' ', rc.\"First name\", rc.\"Last name\")) AS name,\n         NULLIF(trim(rc.\"Email address\"), '') AS email\n  FROM public.raw_contacts rc\n  WHERE COALESCE(rc.is_current, true) = true\n), membership_categories AS (\n  SELECT DISTINCT trim(category) AS membership\n  FROM public.membership_packages\n  WHERE COALESCE(trim(category), '') <> ''\n)\nSELECT 'person' AS row_type, name, email, NULL::text AS membership\nFROM directory\nWHERE COALESCE(name, '') <> ''\nUNION ALL\nSELECT 'membership' AS row_type, NULL::text AS name, NULL::text AS email, membership\nFROM membership_categories\nORDER BY row_type, name NULLS LAST, email NULLS LAST, membership NULLS LAST\nLIMIT 2000;"
+      },
+      "id": "r1000000-0000-0000-0000-000000000006",
+      "name": "Load Directory",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        720,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const source = $('Refund Form Webhook').first()?.json ?? $('When clicking \\'Execute workflow\\'').first()?.json ?? $input.first()?.json ?? {};\nconst query = source.query ?? source;\nconst settings = $('Load Global Settings').first()?.json ?? {};\nconst headers = source.headers ?? {};\nconst rows = $input.all().map((item) => item.json ?? {});\nconst directory = rows.filter((entry) => entry.row_type === 'person' && String(entry.name ?? '').trim());\nconst membershipCategories = rows.filter((entry) => entry.row_type === 'membership' && String(entry.membership ?? '').trim());\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst escapeHtml = (value) => clean(value)\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\\\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst parseBoolean = (value) => ['1', 'true', 'yes', 'on'].includes(clean(value).toLowerCase());\nconst fallbackBaseUrl = clean(settings.n8n_base_url) || 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nconst actionUrl = `${n8nBaseUrl}/webhook/add-refund`;\nconst returnUrl = clean(query.return_url) || `${n8nBaseUrl}/webhook/refunds`;\nconst name = clean(query.name);\nconst refundFor = clean(query.refund_for ?? query.for_name ?? query.for);\nconst reason = clean(query.reason);\nconst membership = clean(query.membership);\nconst amount = clean(query.amount);\nconst fromDate = clean(query.from_date ?? query.fromDate);\nconst toDate = clean(query.to_date ?? query.toDate);\nconst waiveAdminFee = parseBoolean(query.waive_admin_fee ?? query.waiveAdminFee);\nconst errorMessage = clean(query.error);\nconst directoryOptions = directory.map((entry) => {\n  const label = entry.email ? `${entry.name} <${entry.email}>` : entry.name;\n  return `<option value=\"${escapeHtml(label)}\"></option>`;\n}).join('');\nconst membershipOptions = membershipCategories.map((entry) => `<option value=\"${escapeHtml(entry.membership)}\"></option>`).join('');\nconst directoryJson = JSON.stringify(directory).replace(/</g, '\\\\u003c');\nconst html = `<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Create Refund Request</title>\n  <style>\n    :root { color-scheme: light; --bg: #f7f8fc; --panel: #ffffff; --ink: #243447; --muted: #66788a; --line: #d9e2ec; --accent: #2f80d8; --accent-dark: #2567ad; --danger: #b93a3a; --soft: #f8fbff; --success-soft: #edf8f2; }\n    * { box-sizing: border-box; }\n    body { margin: 0; padding: 24px; min-height: 100vh; font-family: Lato, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(180deg, #fbfcfe 0%, var(--bg) 100%); color: var(--ink); }\n    .wrap { max-width: 980px; margin: 0 auto; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 28px; box-shadow: 0 18px 40px rgba(36, 52, 71, 0.08); }\n    h1 { margin: 0 0 10px; font-size: 32px; line-height: 1.1; }\n    p { margin: 0 0 20px; color: var(--muted); }\n    form { display: grid; gap: 18px; }\n    .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }\n    .search-row, .calc-panel { display:grid; gap:16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); padding:16px; border:1px solid var(--line); border-radius:14px; background: var(--soft); }\n    .calc-panel { grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr); align-items: start; }\n    label { display: block; font-weight: 700; margin-bottom: 6px; }\n    input, textarea { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font: inherit; color: var(--ink); background: #fff; }\n    textarea { min-height: 96px; resize: vertical; }\n    .checkbox-row { display:flex; align-items:flex-start; gap:12px; padding:14px 16px; border:1px solid var(--line); border-radius:14px; background:#fff; }\n    .checkbox-row input { width:18px; height:18px; margin-top:2px; accent-color: var(--accent); }\n    .checkbox-row label { margin:0; }\n    .checkbox-row .subtle { margin:4px 0 0; font-size:14px; color: var(--muted); }\n    .calculation-summary { border:1px solid var(--line); border-radius:14px; padding:16px; background:#fff; }\n    .calculation-summary h2 { margin:0 0 12px; font-size:18px; }\n    .calc-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px 16px; }\n    .calc-grid div { border:1px solid var(--line); border-radius:12px; padding:12px; background:#fbfcfe; }\n    .calc-grid span { display:block; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color: var(--muted); font-weight:700; margin-bottom:4px; }\n    .calc-grid strong { display:block; font-size:18px; }\n    .calc-formula, .calc-message { margin-top:14px; font-size:14px; line-height:1.6; color: var(--muted); }\n    .calc-message.error-text { color: var(--danger); font-weight:700; }\n    .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }\n    button, .secondary { appearance: none; border: 0; border-radius: 999px; padding: 12px 18px; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; }\n    button { color: #fff; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); }\n    .secondary { color: var(--ink); background: #eef2f7; border: 1px solid var(--line); }\n    .note { font-size: 14px; color: var(--muted); }\n    .error { margin: 0 0 20px; padding: 14px 16px; border-radius: 14px; background: #fdecec; color: var(--danger); font-weight: 700; }\n    @media (max-width: 720px) { body { padding: 14px; } .wrap { padding: 18px; } .calc-panel { grid-template-columns: 1fr; } .calc-grid { grid-template-columns: 1fr; } }\n  </style>\n</head>\n<body>\n  <div class=\"wrap\">\n    <h1>Create Refund Request</h1>\n    <p>Create a refund case and return to the refunds landing page. Search fields help populate the names, but you can always type directly into the actual requestor and member fields.</p>\n    ${errorMessage ? `<div class=\"error\">${escapeHtml(errorMessage)}</div>` : ''}\n    <form action=\"${actionUrl}\" method=\"post\">\n      <input type=\"hidden\" name=\"created_by\" value=\"refund_form_webhook\">\n      <input type=\"hidden\" name=\"return_url\" value=\"${escapeHtml(returnUrl)}\">\n      <div class=\"search-row\">\n        <div>\n          <label for=\"requestor_search\">Search Requestor By Name Or Email</label>\n          <input id=\"requestor_search\" type=\"search\" list=\"member-directory\" placeholder=\"Start typing a name or email\" onchange=\"applyDirectoryMatch(this.value, 'name')\">\n        </div>\n        <div>\n          <label for=\"member_search\">Search Member By Name Or Email</label>\n          <input id=\"member_search\" type=\"search\" list=\"member-directory\" placeholder=\"Start typing a name or email\" onchange=\"applyDirectoryMatch(this.value, 'refund_for')\">\n        </div>\n        <datalist id=\"member-directory\">${directoryOptions}</datalist>\n      </div>\n      <div class=\"grid\">\n        <div>\n          <label for=\"name\">Requestor Name</label>\n          <input id=\"name\" name=\"name\" type=\"text\" value=\"${escapeHtml(name)}\" required>\n        </div>\n        <div>\n          <label for=\"refund_for\">Member Name</label>\n          <input id=\"refund_for\" name=\"refund_for\" type=\"text\" value=\"${escapeHtml(refundFor)}\" required>\n        </div>\n      </div>\n      <div class=\"grid\">\n        <div>\n          <label for=\"reason\">Reason</label>\n          <input id=\"reason\" name=\"reason\" type=\"text\" list=\"reason-options\" value=\"${escapeHtml(reason)}\" required>\n          <datalist id=\"reason-options\">\n            <option value=\"Injured\"></option>\n            <option value=\"Deceased\"></option>\n            <option value=\"Membership Cancelled\"></option>\n            <option value=\"Other\"></option>\n          </datalist>\n        </div>\n        <div>\n          <label for=\"membership\">Membership</label>\n          <input id=\"membership\" name=\"membership\" type=\"text\" list=\"membership-categories\" value=\"${escapeHtml(membership)}\" placeholder=\"Search or type a membership category\" required>\n          <datalist id=\"membership-categories\">${membershipOptions}</datalist>\n        </div>\n      </div>\n      <div class=\"grid\">\n        <div>\n          <label for=\"amount\">Amount Paid</label>\n          <input id=\"amount\" name=\"amount\" type=\"number\" min=\"0\" step=\"0.01\" value=\"${escapeHtml(amount)}\" required>\n        </div>\n        <div>\n          <label for=\"from_date\">From Date</label>\n          <input id=\"from_date\" name=\"from_date\" type=\"date\" value=\"${escapeHtml(fromDate)}\" required>\n        </div>\n        <div>\n          <label for=\"to_date\">To Date</label>\n          <input id=\"to_date\" name=\"to_date\" type=\"date\" value=\"${escapeHtml(toDate)}\" required>\n        </div>\n      </div>\n      <div class=\"checkbox-row\">\n        <input id=\"waive_admin_fee\" name=\"waive_admin_fee\" type=\"checkbox\" value=\"1\"${waiveAdminFee ? ' checked' : ''}>\n        <div>\n          <label for=\"waive_admin_fee\">Waive admin fee and refund the full pro-rated amount</label>\n          <p class=\"subtle\">Unchecked uses the standard calculation with one month retained as the admin fee. Checked removes that deduction.</p>\n        </div>\n      </div>\n      <section class=\"calc-panel\">\n        <div>\n          <h2>Live Calculation</h2>\n          <p class=\"note\">This preview uses the same month-based logic as the refund workflow that writes to <code>public.refunds</code>.</p>\n          <div id=\"calculation-message\" class=\"calc-message\"></div>\n          <div id=\"calculation-formula\" class=\"calc-formula\"></div>\n        </div>\n        <div class=\"calculation-summary\">\n          <h2>Calculated Refund</h2>\n          <div class=\"calc-grid\">\n            <div><span>Calendar Months</span><strong id=\"calc-months\">-</strong></div>\n            <div><span>Admin Fee</span><strong id=\"calc-admin-fee\">-</strong></div>\n            <div><span>Refundable Months</span><strong id=\"calc-refundable-months\">-</strong></div>\n            <div><span>Refund Amount</span><strong id=\"calc-refund\">-</strong></div>\n          </div>\n        </div>\n      </section>\n      <div class=\"actions\">\n        <button type=\"submit\">Create Refund Request</button>\n        <a class=\"secondary\" href=\"${escapeHtml(returnUrl)}\">Back To Refunds</a>\n        <button type=\"button\" class=\"secondary\" onclick=\"window.close()\">Close</button>\n        <span class=\"note\">New refunds are created with status <strong>New Request</strong>. Request-bank-details and treasury emails are sent later from the refunds landing page.</span>\n      </div>\n    </form>\n  </div>\n  <script>\n    const memberDirectory = ${directoryJson};\n    function applyDirectoryMatch(value, targetId) {\n      const needle = String(value || '').trim().toLowerCase();\n      if (!needle) return;\n      const match = memberDirectory.find((entry) => {\n        const name = String(entry.name || '').trim();\n        const email = String(entry.email || '').trim();\n        const combined = email ? (name + ' <' + email + '>') : name;\n        return combined.toLowerCase() === needle || name.toLowerCase() === needle || email.toLowerCase() === needle;\n      });\n      if (match) document.getElementById(targetId).value = match.name;\n    }\n    function parseIsoDate(value) {\n      const raw = String(value || '').trim();\n      const match = raw.match(/^(\\\\d{4})-(\\\\d{2})-(\\\\d{2})$/);\n      if (!match) return null;\n      const year = Number.parseInt(match[1], 10);\n      const month = Number.parseInt(match[2], 10);\n      const day = Number.parseInt(match[3], 10);\n      if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return null;\n      if (month < 1 || month > 12 || day < 1 || day > 31) return null;\n      return { year, month, day, iso: raw };\n    }\n    function formatMoney(value) {\n      const rounded = Math.round((Number(value) + Number.EPSILON) * 100) / 100;\n      const text = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2).replace(/\\\\.00$/, '').replace(/(\\\\.\\\\d)0$/, '$1');\n      return '£' + text;\n    }\n    function calculateRefund() {\n      const amount = Number.parseFloat(String(document.getElementById('amount').value || '').replace(/,/g, ''));\n      const fromDate = parseIsoDate(document.getElementById('from_date').value);\n      const toDate = parseIsoDate(document.getElementById('to_date').value);\n      const waiveAdminFee = document.getElementById('waive_admin_fee').checked;\n      if (!Number.isFinite(amount) || amount < 0) {\n        return { ok: false, message: 'Enter a valid amount paid to see the refund calculation.' };\n      }\n      if (!fromDate || !toDate) {\n        return { ok: false, message: 'Choose both From Date and To Date to calculate the refund.' };\n      }\n      const fromMonthNumber = (fromDate.year * 12) + fromDate.month;\n      const toMonthNumber = (toDate.year * 12) + toDate.month;\n      const fromDayNumber = Date.UTC(fromDate.year, fromDate.month - 1, fromDate.day);\n      const toDayNumber = Date.UTC(toDate.year, toDate.month - 1, toDate.day);\n      if (toDayNumber < fromDayNumber) {\n        return { ok: false, message: 'To Date must be on or after From Date.' };\n      }\n      const months = (toMonthNumber - fromMonthNumber) + 1;\n      const adminFeeMonths = waiveAdminFee ? 0 : 1;\n      const refundableMonths = Math.max(months - adminFeeMonths, 0);\n      const refund = Math.round((amount * refundableMonths) / 12);\n      const formula = waiveAdminFee\n        ? formatMoney(amount) + ' * ' + months + '/12 months = ' + formatMoney(refund)\n        : formatMoney(amount) + ' * (' + months + '-1)/12 months = ' + formatMoney(refund);\n      return { ok: true, months, adminFeeMonths, refundableMonths, refund, formula, waiveAdminFee };\n    }\n    function updateCalculationPreview() {\n      const result = calculateRefund();\n      const monthsEl = document.getElementById('calc-months');\n      const adminFeeEl = document.getElementById('calc-admin-fee');\n      const refundableEl = document.getElementById('calc-refundable-months');\n      const refundEl = document.getElementById('calc-refund');\n      const messageEl = document.getElementById('calculation-message');\n      const formulaEl = document.getElementById('calculation-formula');\n      if (!result.ok) {\n        monthsEl.textContent = '-';\n        adminFeeEl.textContent = '-';\n        refundableEl.textContent = '-';\n        refundEl.textContent = '-';\n        messageEl.textContent = result.message;\n        messageEl.className = 'calc-message error-text';\n        formulaEl.textContent = '';\n        return;\n      }\n      monthsEl.textContent = String(result.months);\n      adminFeeEl.textContent = result.waiveAdminFee ? 'Waived' : '1 month';\n      refundableEl.textContent = String(result.refundableMonths);\n      refundEl.textContent = formatMoney(result.refund);\n      messageEl.textContent = result.waiveAdminFee\n        ? 'Admin fee waived. The full pro-rated amount will be used when the refund record is created.'\n        : 'Standard admin fee applies. One month is retained before the refund is calculated.';\n      messageEl.className = 'calc-message';\n      formulaEl.textContent = 'Formula used: ' + result.formula;\n    }\n    ['amount', 'from_date', 'to_date', 'waive_admin_fee'].forEach((id) => {\n      document.getElementById(id).addEventListener('input', updateCalculationPreview);\n      document.getElementById(id).addEventListener('change', updateCalculationPreview);\n    });\n    updateCalculationPreview();\n  </script>\n</body>\n</html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "r1000000-0000-0000-0000-000000000004",
+      "name": "Build Form HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "r1000000-0000-0000-0000-000000000005",
+      "name": "Respond Form",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1240,
+        220
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Refund Form Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Load Directory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Directory": {
+      "main": [
+        [
+          {
+            "node": "Build Form HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Form HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-03T07:53:07.748+00:00",
+  "updatedAt": "2026-04-13T16:11:16.938+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": {},
+  "pinData": {},
+  "versionId": "0c839781-fdd0-4809-b87b-92d7b98349b4",
+  "triggerCount": 1,
+  "id": "Xs8KENEX5n7KKJsD",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 75,
+  "description": "",
+  "activeVersionId": "88d75f21-7e59-4484-a386-9cd3785ca71a"
+}

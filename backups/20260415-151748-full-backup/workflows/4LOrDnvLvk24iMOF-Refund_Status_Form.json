@@ -1,0 +1,189 @@
+{
+  "name": "Refund Status Form",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "r6000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "refund-status-form",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "r6000000-0000-0000-0000-000000000002",
+      "name": "Refund Status Form Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "refund-status-form"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url FROM public.global_settings WHERE key = 'n8n_base_url';"
+      },
+      "id": "r6000000-0000-0000-0000-000000000003",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        520,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, name, refund_for, membership, reason, amount, refund, status, \n       request_email_message_id, bank_details_message_id, treasury_email_message_id,\n       paid_at, rejected_at, cancelled_at, notes, created_at\nFROM public.refunds\nORDER BY id DESC\nLIMIT 50;"
+      },
+      "id": "r6000000-0000-0000-0000-000000000004",
+      "name": "List Refunds",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        520,
+        420
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const source = $('Refund Status Form Webhook').first()?.json ?? $('When clicking \\'Execute workflow\\'').first()?.json ?? $input.first()?.json ?? {};\nconst query = source.query ?? source;\nconst headers = source.headers ?? {};\nconst settings = $('Load Global Settings').first()?.json ?? {};\nconst allItems = $input.all();\nconst refunds = allItems.length > 0 ? allItems[0].json.rows || allItems.map(i => i.json) : [];\nconst selectedId = parseInt(($('Refund Status Form Webhook').first()?.json?.query?.id || 0), 10);\nconst selectedRefund = refunds.find(r => r && (r.id === selectedId || String(r.id) === String(selectedId)));\nconst html = selectedRefund ? '<h1>Found: ' + (selectedRefund.refund_for || 'N/A') + '</h1>' : '<h1>No selection</h1><p>refunds: ' + refunds.length + '</p>';\nreturn [{ json: { html } }];;"
+      },
+      "id": "r6000000-0000-0000-0000-000000000005",
+      "name": "Build Form HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "r6000000-0000-0000-0000-000000000006",
+      "name": "Respond Form",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1060,
+        320
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Refund Status Form Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "List Refunds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Refunds": {
+      "main": [
+        [
+          {
+            "node": "Build Form HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Form HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-03T08:05:44.013+00:00",
+  "updatedAt": "2026-04-03T08:05:44.013+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "723e9797-c0ff-4c55-a49d-ee7de4bf817b",
+  "triggerCount": 1,
+  "id": "4LOrDnvLvk24iMOF",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 4,
+  "description": null,
+  "activeVersionId": null
+}

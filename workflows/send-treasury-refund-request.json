@@ -7,7 +7,10 @@
       "name": "When clicking 'Execute workflow'",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [220, 320]
+      "position": [
+        220,
+        320
+      ]
     },
     {
       "parameters": {
@@ -20,19 +23,25 @@
       "name": "Send Treasury Refund Request Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [220, 140],
+      "position": [
+        220,
+        140
+      ],
       "webhookId": "send-treasury-refund-request"
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "WITH settings AS (\n  SELECT\n    MAX(CASE WHEN key = 'email_test_recipient' THEN value END) AS default_test_recipient,\n    MAX(CASE WHEN key = 'email_sender_name' THEN value END) AS email_sender_name,\n    MAX(CASE WHEN key = 'email_reply_to' THEN value END) AS email_reply_to,\n    MAX(CASE WHEN key = 'email_signature_template_key' THEN value END) AS email_signature_template_key\n  FROM public.global_settings\n  WHERE key IN ('email_test_recipient', 'email_sender_name', 'email_reply_to', 'email_signature_template_key')\n), signature_template AS (\n  SELECT text_template, html_template\n  FROM public.email_templates\n  WHERE template_key = COALESCE(NULLIF((SELECT email_signature_template_key FROM settings), ''), 'signature')\n    AND is_active = true\n  ORDER BY id DESC\n  LIMIT 1\n)\nSELECT settings.*, (SELECT text_template FROM signature_template) AS signature_text_template, (SELECT html_template FROM signature_template) AS signature_html_template\nFROM settings;"
+        "query": "SELECT MAX(CASE WHEN key = 'email_test_recipient' THEN value END) AS default_test_recipient,\n  MAX(CASE WHEN key = 'email_sender_name' THEN value END) AS email_sender_name,\n  MAX(CASE WHEN key = 'email_reply_to' THEN value END) AS email_reply_to\nFROM public.global_settings\nWHERE key IN ('email_test_recipient', 'email_sender_name', 'email_reply_to');"
       },
       "id": "r8000000-0000-0000-0000-000000000003",
       "name": "Load Global Settings",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [480, 220],
+      "position": [
+        480,
+        220
+      ],
       "credentials": {
         "postgres": {
           "id": "PjTUDAMk0dZ7g1iO",
@@ -43,13 +52,16 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT r.id, r.name, r.refund_for, r.reason, r.membership, r.amount, r.refund,\n       r.from_date, r.to_date, r.months, r.status, r.explanation,\n       r.request_email_message_id, r.bank_details_message_id,\n       m.email as member_email\nFROM public.refunds r\nLEFT JOIN public.members m ON r.refund_for = m.name OR r.refund_for = m.full_name\nWHERE r.id = {{ $json.refund_id }}\nLIMIT 1;"
+        "query": "SELECT r.id, r.name, r.refund_for, r.reason, r.membership, r.amount, r.refund,\n       r.from_date, r.to_date, r.status, r.explanation,\n       r.request_email_message_id, r.bank_details_message_id,\n       m.email as member_email\nFROM public.refunds r\nLEFT JOIN public.members m ON r.refund_for = m.name OR r.refund_for = m.full_name\nWHERE r.id = {{ $json.refund_id }}\nLIMIT 1;"
       },
       "id": "r8000000-0000-0000-0000-000000000004",
       "name": "Load Refund Details",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [480, 420],
+      "position": [
+        480,
+        420
+      ],
       "credentials": {
         "postgres": {
           "id": "PjTUDAMk0dZ7g1iO",
@@ -66,7 +78,10 @@
       "name": "Load Treasury Template",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [480, 620],
+      "position": [
+        480,
+        620
+      ],
       "credentials": {
         "postgres": {
           "id": "PjTUDAMk0dZ7g1iO",
@@ -78,24 +93,35 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const settings = $('Load Global Settings').first()?.json ?? {};\nconst request = $('Send Treasury Refund Request Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst body = request.body ?? {};\nconst headers = request.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst truthy = (value) => ['1', 'true', 'yes', 'y', 'on'].includes(clean(value).toLowerCase());\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst refundId = parseInt(clean(body.refund_id), 10);\nconst returnUrl = clean(body.return_url) || `${deriveBaseUrl(headers, 'http://n8n:5678')}/webhook/refund-status-form?id=${refundId}`;\nconst testMode = truthy(body.test_mode);\nconst refund = $('Load Refund Details').first()?.json ?? {};\nconst template = $('Load Treasury Template').first()?.json ?? {};\nconst validStatuses = ['Ready For Treasury', 'Sent To Treasury'];\nconst errorMessage = !refundId || isNaN(refundId) ? 'refund_id is required'\n  : !refund.id ? 'Refund not found'\n  : !validStatuses.includes(refund.status) ? `Refund must be in status '${validStatuses.join(\"' or '\")}' to send to treasury`\n  : !template.template_key ? 'Treasury email template not found'\n  : '';\nreturn [{ json: {\n  refund_id: refundId,\n  name: refund.name ?? '',\n  refund_for: refund.refund_for ?? '',\n  membership: refund.membership ?? '',\n  amount: refund.amount ?? 0,\n  refund: refund.refund ?? 0,\n  from_date: refund.from_date ?? '',\n  to_date: refund.to_date ?? '',\n  months: refund.months ?? '',\n  reason: refund.reason ?? '',\n  explanation: refund.explanation ?? '',\n  status: refund.status ?? '',\n  current_status: refund.status ?? '',\n  treasury_email: clean(body.treasury_email) || 'treasury.avondaleltc@gmail.com',\n  intended_recipient: clean(body.treasury_email) || 'treasury.avondaleltc@gmail.com',\n  actual_recipient: testMode ? (clean(settings.default_test_recipient) || 'steve.short@gmail.com') : (clean(body.treasury_email) || 'treasury.avondaleltc@gmail.com'),\n  delivery_mode: testMode ? 'test' : 'production',\n  template_key: template.template_key || 'refund_request_treasury',\n  template_name: template.template_name || 'Refund Request Treasury',\n  subject_template: template.subject_template || 'Refund request: {{$json.refund_for}} ({{$json.membership}})',\n  text_template: template.text_template || '',\n  html_template: template.html_template || '',\n  sender_name: clean(settings.email_sender_name) || 'Steve Short',\n  reply_to: clean(settings.email_reply_to) || 'members.avondaleltc@gmail.com',\n  return_url: returnUrl,\n  error_message: errorMessage\n} }];"
+        "jsCode": "const settings = $('Load Global Settings').first()?.json ?? {};\nconst request = $('Send Treasury Refund Request Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst body = request.body ?? {};\nconst headers = request.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst truthy = (value) => ['1', 'true', 'yes', 'y', 'on'].includes(clean(value).toLowerCase());\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst refundId = parseInt(clean(body.refund_id), 10);\nconst returnUrl = clean(body.return_url) || `${deriveBaseUrl(headers, 'http://n8n:5678')}/webhook/refund-status-form?id=${refundId}`;\nconst testMode = truthy(body.test_mode);\nconst refund = $('Load Refund Details').first()?.json ?? {};\nconst template = $('Load Treasury Template').first()?.json ?? {};\nconst validStatuses = ['Ready For Treasury', 'Sent To Treasury'];\nconst errorMessage = !refundId || isNaN(refundId) ? 'refund_id is required'\n  : !refund.id ? 'Refund not found'\n  : !validStatuses.includes(refund.status) ? `Refund must be in status '${validStatuses.join(\"' or '\")}' to send to treasury`\n  : !template.template_key ? 'Treasury email template not found'\n  : '';\nreturn [{ json: {\n  refund_id: refundId,\n  name: refund.name ?? '',\n  refund_for: refund.refund_for ?? '',\n  membership: refund.membership ?? '',\n  amount: refund.amount ?? 0,\n  refund: refund.refund ?? 0,\n  from_date: refund.from_date ?? '',\n  to_date: refund.to_date ?? '',\n  reason: refund.reason ?? '',\n  explanation: refund.explanation ?? '',\n  status: refund.status ?? '',\n  current_status: refund.status ?? '',\n  treasury_email: clean(body.treasury_email) || 'treasury.avondaleltc@gmail.com',\n  intended_recipient: clean(body.treasury_email) || 'treasury.avondaleltc@gmail.com',\n  actual_recipient: testMode ? (clean(settings.default_test_recipient) || 'steve.short@gmail.com') : (clean(body.treasury_email) || 'treasury.avondaleltc@gmail.com'),\n  delivery_mode: testMode ? 'test' : 'production',\n  template_key: template.template_key || 'refund_request_treasury',\n  template_name: template.template_name || 'Refund Request Treasury',\n  subject_template: template.subject_template || 'Refund request: {{refund_for}} ({{membership}})',\n  text_template: template.text_template || '',\n  html_template: template.html_template || '',\n  sender_name: clean(settings.email_sender_name) || 'Steve Short',\n  reply_to: clean(settings.email_reply_to) || 'members.avondaleltc@gmail.com',\n  return_url: returnUrl,\n  error_message: errorMessage\n} }];"
       },
       "id": "r8000000-0000-0000-0000-000000000006",
       "name": "Resolve Send Request",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [760, 420]
+      "position": [
+        760,
+        420
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
           "conditions": [
             {
               "id": "request-error-check",
               "leftValue": "={{ $json.error_message || \"\" }}",
               "rightValue": "",
-              "operation": { "type": "string", "operation": "notEmpty" }
+              "operation": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
             }
           ],
           "combinator": "and"
@@ -105,7 +131,10 @@
       "name": "Check Request Error",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [1020, 420]
+      "position": [
+        1020,
+        420
+      ]
     },
     {
       "parameters": {
@@ -117,7 +146,10 @@
       "name": "Build Error HTML",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1280, 320]
+      "position": [
+        1280,
+        320
+      ]
     },
     {
       "parameters": {
@@ -127,7 +159,10 @@
           "responseCode": 400,
           "responseHeaders": {
             "entries": [
-              { "name": "Content-Type", "value": "text/html; charset=utf-8" }
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
             ]
           }
         }
@@ -136,19 +171,25 @@
       "name": "Respond Error",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
-      "position": [1540, 320]
+      "position": [
+        1540,
+        320
+      ]
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const input = $('Resolve Send Request').first().json ?? {};\nconst settings = $('Load Global Settings').first()?.json ?? {};\nconst formatDate = (value) => {\n  if (!value) return '';\n  const d = new Date(value);\n  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;\n};\nconst formatMoney = (value) => {\n  const rounded = Math.round((Number(value) + Number.EPSILON) * 100) / 100;\n  return `£${Number.isInteger(rounded) ? rounded : rounded.toFixed(2)}`;\n};\nconst tokenMap = {\n  '{{name}}': input.name ?? '',\n  '{{requested_by}}': input.name ?? '',\n  '{{refund_for}}': input.refund_for ?? '',\n  '{{reason}}': input.reason ?? '',\n  '{{membership}}': input.membership ?? '',\n  '{{amount}}': formatMoney(input.amount),\n  '{{from_date}}': formatDate(input.from_date),\n  '{{to_date}}': formatDate(input.to_date),\n  '{{months}}': String(input.months ?? ''),\n  '{{refund}}': formatMoney(input.refund),\n  '{{status}}': input.status ?? '',\n  '{{explanation}}': input.explanation ?? '',\n  '{{$json.name}}': input.name ?? '',\n  '{{$json.requested_by}}': input.name ?? '',\n  '{{$json.refund_for}}': input.refund_for ?? '',\n  '{{$json.reason}}': input.reason ?? '',\n  '{{$json.membership}}': input.membership ?? '',\n  '{{$json.amount}}': formatMoney(input.amount),\n  '{{$json.from_date}}': formatDate(input.from_date),\n  '{{$json.to_date}}': formatDate(input.to_date),\n  '{{$json.months}}': String(input.months ?? ''),\n  '{{$json.refund}}': formatMoney(input.refund),\n  '{{$json.status}}': input.status ?? '',\n  '{{$json.explanation}}': input.explanation ?? ''\n};\nconst applyTokens = (value) => {\n  let rendered = String(value ?? '');\n  for (const [token, replacement] of Object.entries(tokenMap)) {\n    rendered = rendered.split(token).join(String(replacement));\n  }\n  return rendered.trim();\n};\nconst emailType = input.html_template && !input.text_template ? 'html' : 'text';\nconst bodySource = emailType === 'html' ? (input.html_template ?? input.text_template ?? '') : (input.text_template ?? input.html_template ?? '');\nconst signatureSource = emailType === 'html' ? (settings.signature_html_template ?? settings.signature_text_template ?? '') : (settings.signature_text_template ?? settings.signature_html_template ?? '');\nconst joinSeparator = emailType === 'html' ? '<br><br>' : '\\n\\n';\nconst subject = applyTokens(input.subject_template || 'Refund request');\nconst message = [applyTokens(bodySource), applyTokens(signatureSource)].filter(Boolean).join(joinSeparator).trim();\nreturn [{ json: {\n  sender_name: input.sender_name,\n  reply_to: input.reply_to,\n  recipient: input.actual_recipient,\n  subject,\n  message,\n  email_type: emailType,\n  refund_id: input.refund_id,\n  refund_for: input.refund_for,\n  intended_recipient: input.intended_recipient,\n  delivery_mode: input.delivery_mode,\n  return_url: input.return_url\n} }];"
+        "jsCode": "const input = $('Resolve Send Request').first().json ?? {};\nconst formatDate = (value) => {\n  if (!value) return '';\n  const d = new Date(value);\n  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;\n};\nconst formatMoney = (value) => {\n  const rounded = Math.round((Number(value) + Number.EPSILON) * 100) / 100;\n  return `£${Number.isInteger(rounded) ? rounded : rounded.toFixed(2)}`;\n};\nconst applyTokens = (value) => {\n  if (!value) return '';\n  return value\n    .replace(/\\{\\{name\\}\\}/g, input.name ?? '')\n    .replace(/\\{\\{refund_for\\}\\}/g, input.refund_for ?? '')\n    .replace(/\\{\\{reason\\}\\}/g, input.reason ?? '')\n    .replace(/\\{\\{membership\\}\\}/g, input.membership ?? '')\n    .replace(/\\{\\{amount\\}\\}/g, formatMoney(input.amount))\n    .replace(/\\{\\{refund\\}\\}/g, formatMoney(input.refund))\n    .replace(/\\{\\{from_date\\}\\}/g, formatDate(input.from_date))\n    .replace(/\\{\\{to_date\\}\\}/g, formatDate(input.to_date))\n    .replace(/\\{\\{explanation\\}\\}/g, input.explanation ?? '');\n};\nconst subject = applyTokens(input.subject_template);\nconst message = applyTokens(input.text_template);\nreturn [{ json: {\n  sender_name: input.sender_name,\n  reply_to: input.reply_to,\n  recipient: input.actual_recipient,\n  subject,\n  message,\n  refund_id: input.refund_id,\n  refund_for: input.refund_for,\n  intended_recipient: input.intended_recipient,\n  delivery_mode: input.delivery_mode,\n  return_url: input.return_url\n} }];"
       },
       "id": "r8000000-0000-0000-0000-000000000010",
       "name": "Render Email Content",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1280, 620]
+      "position": [
+        1280,
+        620
+      ]
     },
     {
       "parameters": {
@@ -157,7 +198,7 @@
         "operation": "send",
         "sendTo": "={{ $json.recipient }}",
         "subject": "={{ $json.subject }}",
-        "emailType": "={{ $json.email_type }}",
+        "emailType": "text",
         "message": "={{ $json.message }}",
         "options": {
           "appendAttribution": false,
@@ -169,7 +210,10 @@
       "name": "Send Gmail Message",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
-      "position": [1540, 620],
+      "position": [
+        1540,
+        620
+      ],
       "credentials": {
         "gmailOAuth2": {
           "id": "JHuPZBB6pULmuxKm",
@@ -187,7 +231,10 @@
       "name": "Capture Message ID",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1800, 620]
+      "position": [
+        1800,
+        620
+      ]
     },
     {
       "parameters": {
@@ -199,7 +246,10 @@
       "name": "Build Update SQL",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1800, 820]
+      "position": [
+        1800,
+        820
+      ]
     },
     {
       "parameters": {
@@ -210,7 +260,10 @@
       "name": "Update Refund Status",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [2060, 820],
+      "position": [
+        2060,
+        820
+      ],
       "credentials": {
         "postgres": {
           "id": "PjTUDAMk0dZ7g1iO",
@@ -228,7 +281,10 @@
       "name": "Build Success HTML",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2320, 820]
+      "position": [
+        2320,
+        820
+      ]
     },
     {
       "parameters": {
@@ -238,7 +294,10 @@
           "responseCode": 200,
           "responseHeaders": {
             "entries": [
-              { "name": "Content-Type", "value": "text/html; charset=utf-8" }
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
             ]
           }
         }
@@ -247,67 +306,195 @@
       "name": "Respond Success",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
-      "position": [2580, 820]
+      "position": [
+        2580,
+        820
+      ]
     }
   ],
   "connections": {
     "When clicking 'Execute workflow'": {
-      "main": [[{ "node": "Load Global Settings", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Send Treasury Refund Request Webhook": {
       "main": [
-        [{ "node": "Load Global Settings", "type": "main", "index": 0 }],
-        [{ "node": "Load Refund Details", "type": "main", "index": 0 }],
-        [{ "node": "Load Treasury Template", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load Refund Details",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load Treasury Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Load Global Settings": {
-      "main": [[{ "node": "Resolve Send Request", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Resolve Send Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Load Refund Details": {
-      "main": [[{ "node": "Resolve Send Request", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Resolve Send Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Load Treasury Template": {
-      "main": [[{ "node": "Resolve Send Request", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Resolve Send Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Resolve Send Request": {
-      "main": [[{ "node": "Check Request Error", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Check Request Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Check Request Error": {
       "main": [
-        [{ "node": "Build Error HTML", "type": "main", "index": 0 }],
-        [{ "node": "Render Email Content", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render Email Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Build Error HTML": {
-      "main": [[{ "node": "Respond Error", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Render Email Content": {
-      "main": [[{ "node": "Send Gmail Message", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Send Gmail Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Send Gmail Message": {
-      "main": [[{ "node": "Capture Message ID", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Capture Message ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Capture Message ID": {
       "main": [
-        [{ "node": "Build Update SQL", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Build Update SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Build Update SQL": {
-      "main": [[{ "node": "Update Refund Status", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Update Refund Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Update Refund Status": {
-      "main": [[{ "node": "Build Success HTML", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Build Success HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Build Success HTML": {
-      "main": [[{ "node": "Respond Success", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
     "executionOrder": "v1",
-    "availableInMCP": false
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
   },
-  "pinData": {},
-  "versionId": "send-treasury-refund-request-v1",
+  "pinData": null,
+  "versionId": "b6b73585-e0b6-4b56-8f34-d336dc193fff",
   "active": true
 }

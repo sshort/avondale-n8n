@@ -33,6 +33,9 @@ pg_port="${PGPORT:-5432}"
 pg_database="${PGDATABASE:-postgres}"
 pg_user="${PGUSER:-postgres}"
 pg_password="${PGPASSWORD:-6523Tike}"
+pg_connect_timeout="${PGCONNECT_TIMEOUT:-5}"
+pg_connect_retries="${PGCONNECT_RETRIES:-5}"
+pg_connect_retry_delay="${PGCONNECT_RETRY_DELAY:-2}"
 public_backup_mode="${PUBLIC_BACKUP_MODE:-lean}"
 n8n_backup_mode="${N8N_BACKUP_MODE:-config}"
 
@@ -52,12 +55,14 @@ require_cmd tar
 mkdir -p "$cards_dir" "$dashboards_dir" "$collections_dir" "$workflows_dir" "$planka_projects_dir" "$planka_boards_dir"
 
 export PGPASSWORD="$pg_password"
+export PGCONNECT_TIMEOUT="$pg_connect_timeout"
 
 db_url="postgresql://${pg_user}:${pg_password}@${pg_host}:${pg_port}/${pg_database}"
 
 log "Starting full backup into $backup_dir"
 log "public backup mode: $public_backup_mode"
 log "n8n backup mode: $n8n_backup_mode"
+log "PostgreSQL target: ${pg_host}:${pg_port}/${pg_database} (timeout ${pg_connect_timeout}s, retries ${pg_connect_retries})"
 
 api_get() {
   local path="$1"
@@ -79,6 +84,28 @@ planka_api_get() {
   curl --fail --silent --show-error --max-time 120 \
     -H "Authorization: Bearer $token" \
     "${planka_url%/}${path}"
+}
+
+wait_for_postgres() {
+  local attempt=1
+
+  while (( attempt <= pg_connect_retries )); do
+    if psql "$db_url" -Atc 'select 1' >/dev/null 2>&1; then
+      return 0
+    fi
+
+    if (( attempt == pg_connect_retries )); then
+      break
+    fi
+
+    log "PostgreSQL not reachable at ${pg_host}:${pg_port} (attempt ${attempt}/${pg_connect_retries}); retrying in ${pg_connect_retry_delay}s"
+    sleep "$pg_connect_retry_delay"
+    ((attempt++))
+  done
+
+  echo "Unable to connect to PostgreSQL at ${pg_host}:${pg_port}/${pg_database} after ${pg_connect_retries} attempts." >&2
+  echo "Override PGHOST/PGPORT/PGDATABASE/PGUSER/PGPASSWORD if needed." >&2
+  return 1
 }
 
 public_dump_args=(-h "$pg_host" -p "$pg_port" -U "$pg_user" -d "$pg_database" -n public -Fc -f "$backup_dir/local-public.dump")
@@ -134,6 +161,8 @@ case "$n8n_backup_mode" in
     exit 1
     ;;
 esac
+
+wait_for_postgres
 
 log "Dumping PostgreSQL public schema ($public_backup_mode mode)"
 pg_dump "${public_dump_args[@]}"

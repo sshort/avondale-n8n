@@ -1,0 +1,183 @@
+{
+  "name": "Signup Batch Actions",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f4000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "signup-batch-actions",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f4000000-0000-0000-0000-000000000002",
+      "name": "Signup Batch Actions Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "signup-batch-actions"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const source = $input.first()?.json ?? {};\nconst query = source.query ?? source;\nconst headers = source.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst sqlLiteral = (value) => `'${String(value).replace(/'/g, \"''\")}'`;\nconst rawBatchId = clean(query.batch_id ?? query.batchId);\nconst parsedBatchId = Number.parseInt(rawBatchId, 10);\nconst rawStartRow = clean(query.start_row ?? query.startRow);\nconst rawStartCol = clean(query.start_col ?? query.startCol);\nconst rawDeliveryMode = clean(query.delivery_mode ?? query.deliveryMode ?? query.mode).toLowerCase();\nconst parsedStartRow = Number.parseInt(rawStartRow, 10);\nconst parsedStartCol = Number.parseInt(rawStartCol, 10);\nconst startRow = Number.isInteger(parsedStartRow) && parsedStartRow >= 1 && parsedStartRow <= 7 ? parsedStartRow : 1;\nconst startCol = Number.isInteger(parsedStartCol) && parsedStartCol >= 1 && parsedStartCol <= 3 ? parsedStartCol : 1;\nconst emailTestMode = rawDeliveryMode === 'test';\nconst fallbackBaseUrl = 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nif (!Number.isInteger(parsedBatchId) || parsedBatchId <= 0) {\n  return [{\n    json: {\n      batch_id: rawBatchId,\n      start_row: startRow,\n      start_col: startCol,\n      email_test_mode: emailTestMode,\n      response_code: 400,\n      n8n_base_url: n8nBaseUrl,\n      sql: \"SELECT NULL::bigint AS batch_id, NULL::text AS status, NULL::timestamptz AS created_at, NULL::timestamptz AS completed_at, NULL::boolean AS no_address_email_sent, 0::bigint AS signup_row_count, 0::bigint AS manual_row_count, 0::bigint AS member_row_count, 0::bigint AS regular_tags, 0::bigint AS parent_tags, 0::bigint AS keys, 0::bigint AS total_items, 0::bigint AS no_address_email_count;\"\n    }\n  }];\n}\nconst sql = `\nWITH batch_base AS (\n  SELECT b.id, b.status, b.created_at, b.completed_at, b.no_address_email_sent\n  FROM public.signup_batches b\n  WHERE b.id = ${sqlLiteral(parsedBatchId)}::bigint\n),\nsummary AS (\n  SELECT *\n  FROM public.vw_signup_batches_summary\n  WHERE batch_id = ${sqlLiteral(parsedBatchId)}::bigint\n),\npayer_items AS (\n  SELECT\n    i.batch_id,\n    i.payer,\n    MAX(NULLIF(TRIM(i.email_address), '')) AS email_address,\n    MAX(NULLIF(TRIM(i.address_1), '')) AS address_1,\n    MAX(NULLIF(TRIM(i.address_2), '')) AS address_2,\n    MAX(NULLIF(TRIM(i.address_3), '')) AS address_3,\n    MAX(NULLIF(TRIM(i.town), '')) AS town,\n    MAX(NULLIF(TRIM(i.postcode), '')) AS postcode,\n    COALESCE(SUM(i.parent_tags), 0)::int AS parent_tags,\n    COALESCE(SUM(i.regular_tags), 0)::int AS regular_tags,\n    COALESCE(SUM(i.key_tags), 0)::int AS keys,\n    COALESCE(SUM(i.regular_tags + i.parent_tags + i.key_tags), 0)::int AS total_items\n  FROM public.vw_signup_batch_items i\n  WHERE i.batch_id = ${sqlLiteral(parsedBatchId)}::bigint\n    AND COALESCE(i.product, '') <> 'a. Social 2026'\n  GROUP BY i.batch_id, i.payer\n),\nbest_member AS (\n  SELECT DISTINCT ON (CONCAT(rm.\"First name\", ' ', rm.\"Last name\"))\n    CONCAT(rm.\"First name\", ' ', rm.\"Last name\") AS payer_name,\n    rm.\"First name\" AS first_name,\n    rm.\"Last name\" AS last_name,\n    NULLIF(TRIM(rm.\"Email address\"), '') AS email_address\n  FROM public.raw_members rm\n  WHERE COALESCE(rm.is_current, true) = true\n  ORDER BY CONCAT(rm.\"First name\", ' ', rm.\"Last name\"),\n           CASE WHEN NULLIF(TRIM(rm.\"Email address\"), '') IS NOT NULL THEN 0 ELSE 1 END,\n           CASE WHEN COALESCE(NULLIF(TRIM(rm.\"Status\"), ''), '') = 'Active' THEN 0 ELSE 1 END\n),\nno_address_recipients AS (\n  SELECT p.payer\n  FROM payer_items p\n  LEFT JOIN LATERAL public.resolve_best_contact_row(\n    p.payer,\n    p.email_address,\n    NULLIF(regexp_replace(p.payer, '^\\\\S+\\\\s*', ''), ''),\n    false\n  ) bc ON TRUE\n  LEFT JOIN best_member bm\n    ON p.payer = bm.payer_name\n  WHERE COALESCE(NULLIF(TRIM(bc.email_address), ''), p.email_address, bm.email_address) IS NOT NULL\n    AND (\n      NULLIF(TRIM(COALESCE(NULLIF(TRIM(bc.address_1), ''), p.address_1)), '') IS NULL\n      OR NULLIF(TRIM(COALESCE(NULLIF(TRIM(bc.postcode), ''), p.postcode)), '') IS NULL\n    )\n)\nSELECT\n  b.id AS batch_id,\n  b.status,\n  b.created_at,\n  b.completed_at,\n  b.no_address_email_sent,\n  COALESCE(s.signup_rows, 0) AS signup_row_count,\n  COALESCE(s.manual_rows, 0) AS manual_row_count,\n  COALESCE(s.signup_rows, 0) + COALESCE(s.manual_rows, 0) AS member_row_count,\n  COALESCE(s.regular_tags, 0) AS regular_tags,\n  COALESCE(s.parent_tags, 0) AS parent_tags,\n  COALESCE(s.key_tags, 0) AS keys,\n  COALESCE(s.total_items, 0) AS total_items,\n  COALESCE((\n    SELECT COUNT(*)\n    FROM public.vw_signup_batch_items i\n    WHERE i.batch_id = b.id\n      AND COALESCE(i.product, '') = 'a. Social 2026'\n  ), 0) AS social_member_count,\n  COALESCE((SELECT COUNT(*) FROM no_address_recipients), 0) AS no_address_email_count\nFROM batch_base b\nLEFT JOIN summary s\n  ON s.batch_id = b.id\nLIMIT 1;`;\nreturn [{ json: { batch_id: parsedBatchId, start_row: startRow, start_col: startCol, email_test_mode: emailTestMode, response_code: 200, n8n_base_url: n8nBaseUrl, sql } }];\n"
+      },
+      "id": "f4000000-0000-0000-0000-000000000003",
+      "name": "Build Batch Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "f4000000-0000-0000-0000-000000000004",
+      "name": "Load Batch Summary",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        820,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const source = $('Build Batch Query').first()?.json ?? {};\nconst row = $input.first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst escapeHtml = (value) => clean(value)\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\\\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst batchId = clean(row.batch_id || source.batch_id);\nconst hasBatch = clean(row.batch_id) !== '';\nconst status = clean(row.status);\nconst createdAt = clean(row.created_at);\nconst completedAt = clean(row.completed_at);\nconst n8nBaseUrl = clean(source.n8n_base_url) || 'http://n8n:5678';\nconst startRow = Number.parseInt(clean(source.start_row), 10);\nconst startCol = Number.parseInt(clean(source.start_col), 10);\nconst emailTestMode = source.email_test_mode === true || clean(source.email_test_mode).toLowerCase() === 'true';\nconst labelStartRow = Number.isInteger(startRow) && startRow >= 1 && startRow <= 7 ? startRow : 1;\nconst labelStartCol = Number.isInteger(startCol) && startCol >= 1 && startCol <= 3 ? startCol : 1;\nconst noAddressEmailSent = row.no_address_email_sent === true || clean(row.no_address_email_sent).toLowerCase() === 'true';\nconst noAddressEmailCount = Number.parseInt(clean(row.no_address_email_count), 10) || 0;\nconst recipientLabel = `${noAddressEmailCount} ${noAddressEmailCount === 1 ? 'recipient' : 'recipients'}`;\nconst productionAllowed = status === 'Complete';\nconst emailActionAvailable = hasBatch && !noAddressEmailSent;\nconst noAddressEmailStatus = noAddressEmailSent\n  ? `Sent (${recipientLabel})`\n  : productionAllowed\n    ? `Ready to send (${recipientLabel})`\n    : status\n      ? `Test available while ${status} (${recipientLabel})`\n      : `Unavailable (${recipientLabel})`;\nconst completeBatchUrl = `${n8nBaseUrl}/webhook/complete-signup-batch?batch_id=${encodeURIComponent(batchId)}`;\nconst completionActionHtml = hasBatch && status === 'Processing'\n  ? `<a class=\"summary-action\" href=\"${completeBatchUrl}\">Complete Batch</a>`\n  : hasBatch && status === 'Complete'\n    ? `<span class=\"summary-note\">Already complete</span>`\n    : hasBatch\n      ? `<span class=\"summary-note\">Available while Processing</span>`\n      : '';\nconst summaryCards = [\n  { label: 'Status', value: status || 'Unknown', actionHtml: completionActionHtml },\n  { label: 'Created', value: createdAt || 'Not available' },\n  { label: 'Completed', value: completedAt || 'Not available' },\n  { label: 'No Address Emails', value: noAddressEmailStatus },\n  { label: 'Rows', value: String(row.member_row_count ?? 0) },\n  { label: 'Shoe Tags', value: String(row.regular_tags ?? 0) },\n  { label: 'Parents', value: String(row.parent_tags ?? 0) },\n  { label: 'Keys', value: String(row.keys ?? 0) },\n  { label: 'Social Members', value: String(row.social_member_count ?? 0) },\n  { label: 'Total Items', value: String(row.total_items ?? 0) },\n];\nconst labelsBaseUrl = `${n8nBaseUrl}/webhook/download-j8160-labels`;\nconst reviewBaseUrl = `${n8nBaseUrl}/webhook/signup-batch-review`;\nconst envelopesBaseUrl = `${n8nBaseUrl}/webhook/download-dl-envelopes`;\nconst envelopesUrl = `${envelopesBaseUrl}?batch_id=${encodeURIComponent(batchId)}`;\nconst emailsBaseUrl = `${n8nBaseUrl}/webhook/send-no-address-batch-emails`;\nconst rowOptions = Array.from({ length: 7 }, (_, index) => {\n  const value = index + 1;\n  return `<option value=\"${value}\"${value === labelStartRow ? ' selected' : ''}>Row ${value}</option>`;\n}).join('');\nconst colOptions = Array.from({ length: 3 }, (_, index) => {\n  const value = index + 1;\n  return `<option value=\"${value}\"${value === labelStartCol ? ' selected' : ''}>Col ${value}</option>`;\n}).join('');\nconst reviewSummaryCard = hasBatch ? `\n  <a class=\"summary-card summary-link review-summary-card\" href=\"${reviewBaseUrl}?batch_id=${encodeURIComponent(batchId)}\">\n    <h2>Review Items</h2>\n    <p>Inspect every captured and manual row in this batch before printing labels, envelopes, or no-address emails.</p>\n    <span class=\"summary-cta\">Open Review</span>\n  </a>` : '';\nconst labelsCard = hasBatch ? `\n  <form class=\"action-card action-labels action-form\" action=\"${labelsBaseUrl}\" method=\"get\">\n    <input type=\"hidden\" name=\"batch_id\" value=\"${escapeHtml(batchId)}\">\n    <strong>🏷️ Labels</strong>\n    <span>Generate the current J8160 labels PDF for this batch. Start position applies to page 1 only.</span>\n    <div class=\"form-grid\">\n      <label class=\"select-label\">Start row<select name=\"start_row\">${rowOptions}</select></label>\n      <label class=\"select-label\">Start col<select name=\"start_col\">${colOptions}</select></label>\n    </div>\n    <button type=\"submit\" class=\"inline-action\">Generate Labels</button>\n  </form>` : '';\nconst envelopesCard = hasBatch ? `\n  <form class=\"action-card action-envelopes action-form\" action=\"${envelopesBaseUrl}\" method=\"get\">\n    <input type=\"hidden\" name=\"batch_id\" value=\"${escapeHtml(batchId)}\">\n    <strong>✉️ Envelopes</strong>\n    <span>Generate the current DL envelopes PDF for this batch.</span>\n    <button type=\"submit\" class=\"inline-action\">Generate Envelopes</button>\n  </form>` : '';\nlet emailButton = `<div class=\"disabled-card\"><strong>No Address Emails</strong><span>Available only when the batch exists and has eligible recipients. Production sends require Complete status. ${escapeHtml(recipientLabel)} currently match the no-address rule.</span></div>`;\nif (emailActionAvailable) {\n  emailButton = `\n    <form class=\"action-card action-email action-form\" action=\"${emailsBaseUrl}\" method=\"get\">\n      <input type=\"hidden\" name=\"batch_id\" value=\"${escapeHtml(batchId)}\">\n      <strong>📨 No Address Emails</strong>\n      <span>${productionAllowed ? `Send personalized no-address emails to ${escapeHtml(recipientLabel)} for this batch.` : `This batch is ${escapeHtml(status || 'Unknown')}. Test mode is available now for ${escapeHtml(recipientLabel)}; production remains blocked until Complete.`}</span>\n      <label class=\"checkbox-label\"><input type=\"checkbox\" name=\"delivery_mode\" value=\"test\"${emailTestMode || !productionAllowed ? ' checked' : ''}${productionAllowed ? '' : ' required'}> Test mode: send to the global test recipient instead of members</label>\n      <button type=\"submit\" class=\"inline-action\">Send Emails</button>\n    </form>`;\n} else if (hasBatch && productionAllowed && noAddressEmailSent) {\n  emailButton = `<div class=\"disabled-card\"><strong>No Address Emails</strong><span>Already sent for this batch. ${escapeHtml(recipientLabel)} currently match the no-address rule.</span></div>`;\n} else if (hasBatch && status) {\n  emailButton = `<div class=\"disabled-card\"><strong>No Address Emails</strong><span>Batch status is ${escapeHtml(status)}. ${escapeHtml(recipientLabel)} currently match the no-address rule.</span></div>`;\n}\nconst body = hasBatch ? `\n  <section class=\"hero\">\n    <h1>Batch ${escapeHtml(batchId)} Actions</h1>\n    <p class=\"lede\">Run label, envelope, and email actions for this batch from one page.</p>\n    <div class=\"summary\">${summaryCards.map((card) => `<div class=\"summary-card\"><h2>${escapeHtml(card.label)}</h2><p>${escapeHtml(card.value)}</p>${card.actionHtml ?? ''}</div>`).join('')}${reviewSummaryCard}</div>\n    <div class=\"actions\">\n      ${labelsCard}\n      ${envelopesCard}\n      ${emailButton}\n    </div>\n    <div class=\"footer-actions\">\n      <button type=\"button\" class=\"close-button\" onclick=\"window.close()\">Close</button>\n    </div>\n  </section>` : `\n  <section class=\"hero\">\n    <h1>Batch Actions</h1>\n    <p class=\"lede\">The batch could not be resolved from the request.</p>\n    <div class=\"disabled-card\"><strong>Missing or invalid batch ID</strong><span>Use the action link from the Signup Batches card so the batch ID is provided automatically.</span></div>\n    <div class=\"footer-actions\">\n      <button type=\"button\" class=\"close-button\" onclick=\"window.close()\">Close</button>\n    </div>\n  </section>`;\nconst html = `<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>${hasBatch ? `Batch ${escapeHtml(batchId)} Actions` : 'Batch Actions'}</title>\n  <style>\n    :root {\n      color-scheme: light;\n      --bg: #f7f8fc;\n      --panel: #ffffff;\n      --ink: #2e3d4e;\n      --muted: #6b7785;\n      --line: #e2e8f0;\n      --accent: #509ee3;\n      --accent-dark: #2f80d8;\n      --soft: #f2f7fd;\n      --labels: #edf5ff;\n      --envelopes: #f4f2ff;\n      --email: #f2f7fd;\n      --button-soft: #eef2f7;\n    }\n    * { box-sizing: border-box; }\n    body {\n      margin: 0;\n      font-family: Lato, 'Helvetica Neue', Arial, sans-serif;\n      color: var(--ink);\n      background: linear-gradient(180deg, #fbfcfe 0%, var(--bg) 100%);\n      padding: 24px;\n    }\n    .wrap {\n      max-width: 960px;\n      margin: 0 auto;\n      display: grid;\n      gap: 20px;\n    }\n    .hero {\n      background: var(--panel);\n      border: 1px solid var(--line);\n      border-radius: 18px;\n      padding: 28px;\n      box-shadow: 0 18px 40px rgba(53, 72, 91, 0.08);\n    }\n    h1 {\n      margin: 0 0 6px;\n      font-size: 34px;\n      line-height: 1.05;\n      letter-spacing: -0.02em;\n    }\n    .lede {\n      margin: 0;\n      color: var(--muted);\n      font-size: 16px;\n    }\n    .summary {\n      display: grid;\n      gap: 14px;\n      grid-template-columns: repeat(5, minmax(0, 1fr));\n      margin-top: 22px;\n      margin-bottom: 22px;\n    }\n    .summary-card {\n      border: 1px solid var(--line);\n      border-radius: 14px;\n      padding: 16px;\n      background: var(--soft);\n      min-height: 148px;\n      display: flex;\n      flex-direction: column;\n      justify-content: flex-start;\n    }\n    .summary-card h2 {\n      margin: 0 0 8px;\n      font-size: 14px;\n      text-transform: uppercase;\n      letter-spacing: 0.08em;\n      color: var(--muted);\n    }\n    .summary-card p {\n      margin: 0;\n      font-size: 18px;\n      line-height: 1.4;\n    }\n    .summary-link {\n      text-decoration: none;\n      color: var(--ink);\n      background: #fff7ed;\n      box-shadow: 0 10px 24px rgba(53, 72, 91, 0.06);\n    }\n    .review-summary-card {\n      grid-column: span 2;\n      min-height: 116px;\n    }\n    .summary-link p {\n      margin-top: 4px;\n      font-size: 15px;\n      color: var(--muted);\n    }\n    .summary-cta {\n      display: inline-flex;\n      align-items: center;\n      justify-content: center;\n      margin-top: auto;\n      padding: 10px 14px;\n      border-radius: 999px;\n      font-size: 14px;\n      font-weight: 700;\n      color: #fff;\n      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);\n      box-shadow: 0 10px 24px rgba(80, 158, 227, 0.22);\n    }\n    .summary-action {\n      display: inline-flex;\n      align-items: center;\n      justify-content: center;\n      margin-top: 12px;\n      padding: 10px 14px;\n      border-radius: 999px;\n      text-decoration: none;\n      font-size: 14px;\n      font-weight: 700;\n      color: #fff;\n      background: linear-gradient(135deg, #37b26c 0%, #2f9e5f 100%);\n      box-shadow: 0 10px 24px rgba(55, 178, 108, 0.22);\n    }\n    .summary-note {\n      display: inline-block;\n      margin-top: 12px;\n      color: var(--muted);\n      font-size: 14px;\n      font-weight: 700;\n    }\n    .actions {\n      display: grid;\n      gap: 14px;\n      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n    }\n    .action-card,\n    .disabled-card {\n      border-radius: 16px;\n      border: 1px solid var(--line);\n      padding: 18px;\n      min-height: 170px;\n      display: flex;\n      flex-direction: column;\n      justify-content: space-between;\n      text-decoration: none;\n      color: var(--ink);\n      box-shadow: 0 10px 24px rgba(53, 72, 91, 0.06);\n    }\n    .action-card strong,\n    .disabled-card strong {\n      display: block;\n      font-size: 22px;\n      margin-bottom: 8px;\n    }\n    .action-card span,\n    .disabled-card span {\n      color: var(--muted);\n      line-height: 1.5;\n      font-size: 15px;\n    }\n    .action-card.action-review { background: #fff7ed; }\n    .action-card.action-labels { background: var(--labels); }\n    .action-card.action-envelopes { background: var(--envelopes); }\n    .action-card.action-email { background: var(--email); }\n    .action-card:hover { transform: translateY(-1px); }\n    .disabled-card {\n      background: #f5f7fa;\n      color: var(--muted);\n    }\n    .action-form { gap: 14px; }\n    .form-grid {\n      display: grid;\n      gap: 12px;\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n    }\n    .select-label,\n    .checkbox-label {\n      display: grid;\n      gap: 6px;\n      font-size: 13px;\n      font-weight: 700;\n      color: var(--ink);\n    }\n    .select-label select {\n      width: 100%;\n      border: 1px solid var(--line);\n      border-radius: 10px;\n      padding: 10px 12px;\n      font: inherit;\n      color: var(--ink);\n      background: #fff;\n    }\n    .checkbox-label {\n      grid-template-columns: auto 1fr;\n      align-items: start;\n      gap: 10px;\n      font-weight: 600;\n      color: var(--ink);\n      line-height: 1.5;\n    }\n    .checkbox-label input {\n      margin-top: 3px;\n      width: 16px;\n      height: 16px;\n      accent-color: var(--accent);\n    }\n    .inline-action {\n      align-self: flex-start;\n      appearance: none;\n      border: 0;\n      border-radius: 999px;\n      padding: 12px 18px;\n      font: inherit;\n      font-weight: 700;\n      cursor: pointer;\n      color: #fff;\n      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);\n      box-shadow: 0 10px 24px rgba(80, 158, 227, 0.22);\n    }\n    .footer-actions {\n      margin-top: 22px;\n      display: flex;\n      gap: 12px;\n      flex-wrap: wrap;\n    }\n    .close-button {\n      display: inline-flex;\n      align-items: center;\n      justify-content: center;\n      padding: 12px 18px;\n      border-radius: 999px;\n      border: 1px solid var(--line);\n      background: var(--button-soft);\n      color: var(--ink);\n      font: inherit;\n      font-weight: 700;\n      cursor: pointer;\n    }\n    @media (max-width: 720px) {\n      body { padding: 14px; }\n      .hero { padding: 18px; }\n      h1 { font-size: 28px; }\n      .summary { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }\n      .review-summary-card { grid-column: auto; }\n      .form-grid { grid-template-columns: 1fr; }\n    }\n  </style>\n</head>\n<body>\n  <div class=\"wrap\">${body}</div>\n</body>\n</html>`;\nreturn [{ json: { html, response_code: hasBatch ? 200 : Number(source.response_code || 400) } }];\n"
+      },
+      "id": "f4000000-0000-0000-0000-000000000005",
+      "name": "Build Actions HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "f4000000-0000-0000-0000-000000000006",
+      "name": "Respond Actions",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1420,
+        220
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Build Batch Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Signup Batch Actions Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build Batch Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Batch Query": {
+      "main": [
+        [
+          {
+            "node": "Load Batch Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Batch Summary": {
+      "main": [
+        [
+          {
+            "node": "Build Actions HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Actions HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Actions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-26T17:14:51.143+00:00",
+  "updatedAt": "2026-04-10T15:11:39.193+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "ca130c40-82e2-4dc1-aa9d-476cf3c1e162",
+  "triggerCount": 1,
+  "id": "hGHWoDAENug2mnaT",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 103,
+  "description": "",
+  "activeVersionId": "ca130c40-82e2-4dc1-aa9d-476cf3c1e162"
+}

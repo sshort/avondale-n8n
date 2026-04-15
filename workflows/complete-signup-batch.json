@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-03-11T15:05:18.789Z",
-  "createdAt": "2026-03-11T12:24:55.344Z",
-  "id": "66PR9SQ7DdnddYDp",
+  "updatedAt": "2026-04-09T10:12:28.13+00:00",
+  "createdAt": "2026-03-13T10:25:08.651+00:00",
+  "id": "cyuhb-8azn6RvobqL4wWg",
   "name": "Complete Signup Batch",
-  "description": null,
-  "active": false,
+  "description": "",
+  "active": true,
   "isArchived": false,
   "nodes": [
     {
@@ -195,14 +195,12 @@
     "availableInMCP": false
   },
   "staticData": null,
-  "meta": {
-    "templateCredsSetupCompleted": true
-  },
+  "meta": null,
   "pinData": {},
-  "versionId": "452f02dc-d432-436b-b0cd-8960572db376",
-  "activeVersionId": null,
-  "versionCounter": 3,
-  "triggerCount": 0,
+  "versionId": "773b4317-d13a-46e5-b1a6-ce89889e5603",
+  "activeVersionId": "773b4317-d13a-46e5-b1a6-ce89889e5603",
+  "versionCounter": 53,
+  "triggerCount": 1,
   "shared": [
     {
       "updatedAt": "2026-03-11T12:24:55.344Z",

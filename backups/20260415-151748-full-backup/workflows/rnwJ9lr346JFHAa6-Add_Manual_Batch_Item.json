@@ -1,0 +1,233 @@
+{
+  "name": "Add Manual Batch Item",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a1b2c3d4-1000-1000-1000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "a1b2c3d4-1000-1000-1000-000000000002",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "path": "add-manual-batch-item",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a1b2c3d4-1000-1000-1000-000000000003",
+      "name": "Add Manual Batch Item Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "add-manual-batch-item"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $input.first()?.json ?? {};\nconst source = input.query ?? input;\nconst intValue = (value) => {\n  if (value === null || value === undefined || value === '') return null;\n  const parsed = Number.parseInt(String(value), 10);\n  return Number.isInteger(parsed) ? parsed : null;\n};\nreturn [{\n  json: {\n    batch_id: intValue(source.batch_id ?? source.batchId),\n    member: source.member ?? '',\n    venue_id: source.venue_id ?? source.venueId ?? '',\n    btn: source.btn ?? source.british_tennis_number ?? source.britishTennisNumber ?? '',\n    payer: source.payer ?? '',\n    email_address: source.email_address ?? source.email ?? '',\n    address_1: source.address_1 ?? '',\n    address_2: source.address_2 ?? '',\n    address_3: source.address_3 ?? '',\n    town: source.town ?? '',\n    postcode: source.postcode ?? '',\n    regular_tags: intValue(source.regular_tags ?? source.regularTags) ?? 0,\n    parent_tags: intValue(source.parent_tags ?? source.parentTags) ?? 0,\n    key_tags: intValue(source.key_tags ?? source.keyTags) ?? 0,\n    notes: source.notes ?? '',\n    created_by: source.created_by ?? source.request_source ?? 'manual_workflow',\n  },\n}];"
+      },
+      "id": "a1b2c3d4-1000-1000-1000-000000000004",
+      "name": "Resolve Inputs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sqlInteger = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const parsed = Number.parseInt(String(value), 10);\n  return Number.isInteger(parsed) ? String(parsed) : 'NULL';\n};\nconst item = $input.first()?.json ?? {};\nconst hasIdentifier = Boolean(item.member_id || item.member || item.venue_id || item.btn);\nconst itemCount = (item.regular_tags ?? 0) + (item.parent_tags ?? 0) + (item.key_tags ?? 0);\nif (!hasIdentifier) {\n  return [{ json: { sql: \"select false as ok, 400 as response_code, 'Provide member_id, member, venue_id, or btn.'::text as message;\" } }];\n}\nif (itemCount <= 0) {\n  return [{ json: { sql: \"select false as ok, 400 as response_code, 'At least one of regular_tags, parent_tags, or key_tags must be greater than zero.'::text as message;\" } }];\n}\nreturn [{\n  json: {\n    sql: `WITH params AS (\n  SELECT\n    ${sqlInteger(item.member_id)}::bigint AS member_id,\n    ${sqlLiteral(item.member)}::text AS member_name,\n    ${sqlLiteral(item.membership)}::text AS membership_name,\n    ${sqlLiteral(item.email_address)}::text AS member_email,\n    ${sqlLiteral(item.venue_id)}::text AS venue_id,\n    ${sqlLiteral(item.btn)}::text AS btn,\n    ${sqlInteger(item.batch_id)}::bigint AS requested_batch_id,\n    ${sqlLiteral(item.payer)}::text AS payer_override,\n    ${sqlLiteral(item.address_1)}::text AS address_1_override,\n    ${sqlLiteral(item.address_2)}::text AS address_2_override,\n    ${sqlLiteral(item.address_3)}::text AS address_3_override,\n    ${sqlLiteral(item.town)}::text AS town_override,\n    ${sqlLiteral(item.postcode)}::text AS postcode_override,\n    ${sqlInteger(item.regular_tags)}::integer AS regular_tags,\n    ${sqlInteger(item.parent_tags)}::integer AS parent_tags,\n    ${sqlInteger(item.key_tags)}::integer AS key_tags,\n    ${sqlLiteral(item.notes)}::text AS notes,\n    ${sqlLiteral(item.created_by)}::text AS created_by\n), resolved_batch AS (\n  SELECT\n    COALESCE(\n      p.requested_batch_id,\n      (SELECT b.id FROM public.signup_batches b WHERE b.status = 'Processing' ORDER BY b.id DESC LIMIT 1)\n    ) AS batch_id,\n    p.requested_batch_id\n  FROM params p\n), candidate_member AS (\n  SELECT\n    m.id AS raw_member_id,\n    trim(concat_ws(' ', m.\"First name\", m.\"Last name\")) AS member_name,\n    m.\"Venue ID\" AS venue_id,\n    m.\"British Tennis Number\"::text AS btn,\n    m.\"Email address\" AS member_email,\n    m.\"Membership\" AS membership\n  FROM public.raw_members m\n  CROSS JOIN params p\n  WHERE coalesce(m.is_current, true) = true\n    AND (\n      (p.member_id IS NOT NULL AND m.id = p.member_id)\n      OR (\n        p.member_id IS NULL\n        AND p.member_name IS NOT NULL\n        AND lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) = lower(trim(p.member_name))\n        AND (p.membership_name IS NULL OR p.membership_name = '' OR m.\"Membership\" = p.membership_name)\n        AND (p.member_email IS NULL OR p.member_email = '' OR public.normalize_match_email(m.\"Email address\") = public.normalize_match_email(p.member_email))\n      )\n      OR (p.venue_id IS NOT NULL AND trim(COALESCE(m.\"Venue ID\", '')) = trim(p.venue_id))\n      OR (p.btn IS NOT NULL AND trim(COALESCE(m.\"British Tennis Number\"::text, '')) = trim(p.btn))\n    )\n  ORDER BY\n    CASE WHEN p.member_id IS NOT NULL AND m.id = p.member_id THEN 0 ELSE 1 END,\n    CASE WHEN p.member_name IS NOT NULL AND lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) = lower(trim(p.member_name)) THEN 0 ELSE 1 END,\n    CASE WHEN p.membership_name IS NOT NULL AND p.membership_name <> '' AND m.\"Membership\" = p.membership_name THEN 0 ELSE 1 END,\n    CASE WHEN p.member_email IS NOT NULL AND p.member_email <> '' AND public.normalize_match_email(m.\"Email address\") = public.normalize_match_email(p.member_email) THEN 0 ELSE 1 END,\n    CASE WHEN p.venue_id IS NOT NULL AND trim(COALESCE(m.\"Venue ID\", '')) = trim(p.venue_id) THEN 0 ELSE 1 END,\n    CASE WHEN p.btn IS NOT NULL AND trim(COALESCE(m.\"British Tennis Number\"::text, '')) = trim(p.btn) THEN 0 ELSE 1 END,\n    m.id\n  LIMIT 1\n), best_contact AS (\n  SELECT bc.*\n  FROM candidate_member cm\n  LEFT JOIN LATERAL public.resolve_best_contact_row(\n    cm.member_name,\n    cm.member_email,\n    NULLIF(regexp_replace(cm.member_name, '^\\\\S+\\\\s*', ''), ''),\n    cm.membership ILIKE '%Family%'\n  ) bc ON TRUE\n  LIMIT 1\n), chosen AS (\n  SELECT\n    COALESCE(NULLIF(trim(p.member_name), ''), cm.member_name) AS member_name,\n    COALESCE(NULLIF(trim(p.payer_override), ''), bc.payer_name, cm.member_name) AS payer_name,\n    COALESCE(NULLIF(trim(p.member_email), ''), NULLIF(trim(bc.email_address), ''), NULLIF(trim(cm.member_email), '')) AS email_address,\n    COALESCE(NULLIF(trim(p.address_1_override), ''), NULLIF(trim(bc.address_1), '')) AS address_1,\n    COALESCE(NULLIF(trim(p.address_2_override), ''), NULLIF(trim(bc.address_2), '')) AS address_2,\n    COALESCE(NULLIF(trim(p.address_3_override), ''), NULLIF(trim(bc.address_3), '')) AS address_3,\n    COALESCE(NULLIF(trim(p.town_override), ''), NULLIF(trim(bc.town), '')) AS town,\n    COALESCE(NULLIF(trim(p.postcode_override), ''), NULLIF(trim(bc.postcode), '')) AS postcode,\n    p.regular_tags,\n    p.parent_tags,\n    p.key_tags,\n    p.notes,\n    p.created_by\n  FROM params p\n  LEFT JOIN candidate_member cm ON true\n  LEFT JOIN best_contact bc ON true\n), validation AS (\n  SELECT\n    CASE\n      WHEN rb.batch_id IS NULL THEN 'No processing batch available and no batch_id was provided.'\n      WHEN rb.requested_batch_id IS NOT NULL\n       AND NOT EXISTS (SELECT 1 FROM public.signup_batches b WHERE b.id = rb.requested_batch_id)\n      THEN format('Batch %s does not exist', rb.requested_batch_id)\n      WHEN ch.member_name IS NULL OR trim(ch.member_name) = '' THEN 'Member could not be resolved.'\n      WHEN COALESCE(ch.regular_tags, 0) + COALESCE(ch.parent_tags, 0) + COALESCE(ch.key_tags, 0) <= 0\n      THEN 'At least one item count must be greater than zero.'\n      ELSE NULL\n    END AS error_message,\n    rb.batch_id\n  FROM resolved_batch rb\n  CROSS JOIN chosen ch\n), inserted AS (\n  INSERT INTO public.signup_batch_manual_items (\n    batch_id,\n    member,\n    payer,\n    email_address,\n    address_1,\n    address_2,\n    address_3,\n    town,\n    postcode,\n    regular_tags,\n    parent_tags,\n    key_tags,\n    notes,\n    created_by,\n    source\n  )\n  SELECT\n    v.batch_id,\n    ch.member_name,\n    ch.payer_name,\n    ch.email_address,\n    ch.address_1,\n    ch.address_2,\n    ch.address_3,\n    ch.town,\n    ch.postcode,\n    ch.regular_tags,\n    ch.parent_tags,\n    ch.key_tags,\n    ch.notes,\n    ch.created_by,\n    'manual'\n  FROM validation v\n  CROSS JOIN chosen ch\n  WHERE v.error_message IS NULL\n  RETURNING id, batch_id, member, payer, regular_tags, parent_tags, key_tags, source\n)\nSELECT\n  true AS ok,\n  200 AS response_code,\n  format('Added manual batch item %s to batch %s', id, batch_id) AS message,\n  id,\n  batch_id,\n  member,\n  payer,\n  regular_tags,\n  parent_tags,\n  key_tags,\n  source\nFROM inserted\nUNION ALL\nSELECT\n  false AS ok,\n  400 AS response_code,\n  error_message AS message,\n  NULL::bigint AS id,\n  batch_id,\n  NULL::text AS member,\n  NULL::text AS payer,\n  NULL::integer AS regular_tags,\n  NULL::integer AS parent_tags,\n  NULL::integer AS key_tags,\n  'manual'::text AS source\nFROM validation\nWHERE error_message IS NOT NULL;`,\n  },\n}];"
+      },
+      "id": "a1b2c3d4-1000-1000-1000-000000000005",
+      "name": "Build Insert SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        790,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "a1b2c3d4-1000-1000-1000-000000000006",
+      "name": "Insert Manual Batch Item",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1040,
+        320
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const result = $input.first()?.json ?? {};\nconst escapeHtml = (value) => String(value ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\\\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst responseCode = Number(result.response_code ?? (result.ok === false ? 400 : 200));\nconst isSuccess = responseCode >= 200 && responseCode < 300;\nconst details = [\n  ['Batch', result.batch_id],\n  ['Member', result.member],\n  ['Payer', result.payer],\n  ['Shoe Tags', result.regular_tags],\n  ['Parents', result.parent_tags],\n  ['Keys', result.key_tags],\n  ['Source', result.source],\n].filter(([, value]) => value !== null && value !== undefined && String(value).trim() !== '');\nconst detailHtml = details.map(([label, value]) => `<div class=\"detail\"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join('');\nconst html = `<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Manual Batch Item Result</title>\n  <style>\n    :root {\n      color-scheme: light;\n      --bg: #f4f7fb;\n      --panel: #ffffff;\n      --ink: #1f2937;\n      --muted: #667085;\n      --line: #d7e0ea;\n      --success: #166534;\n      --success-soft: #ecfdf3;\n      --error: #b42318;\n      --error-soft: #fef3f2;\n      --button: #e9eef5;\n    }\n    * { box-sizing: border-box; }\n    body {\n      margin: 0;\n      padding: 24px;\n      background: linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);\n      color: var(--ink);\n      font-family: Lato, Arial, sans-serif;\n    }\n    .panel {\n      max-width: 760px;\n      margin: 0 auto;\n      background: var(--panel);\n      border: 1px solid var(--line);\n      border-radius: 18px;\n      padding: 28px;\n      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);\n    }\n    .badge {\n      display: inline-flex;\n      padding: 6px 12px;\n      border-radius: 999px;\n      font-size: 13px;\n      font-weight: 700;\n      letter-spacing: 0.04em;\n      text-transform: uppercase;\n      color: ${isSuccess ? 'var(--success)' : 'var(--error)'};\n      background: ${isSuccess ? 'var(--success-soft)' : 'var(--error-soft)'};\n    }\n    h1 {\n      margin: 16px 0 8px;\n      font-size: 32px;\n      line-height: 1.1;\n    }\n    p {\n      margin: 0;\n      color: var(--muted);\n      line-height: 1.6;\n      font-size: 16px;\n    }\n    .details {\n      display: grid;\n      gap: 12px;\n      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));\n      margin-top: 24px;\n    }\n    .detail {\n      border: 1px solid var(--line);\n      border-radius: 14px;\n      padding: 14px 16px;\n      background: #f8fafc;\n    }\n    .detail span {\n      display: block;\n      margin-bottom: 6px;\n      color: var(--muted);\n      font-size: 13px;\n      font-weight: 700;\n      text-transform: uppercase;\n      letter-spacing: 0.04em;\n    }\n    .detail strong {\n      font-size: 17px;\n      line-height: 1.4;\n      word-break: break-word;\n    }\n    .actions {\n      display: flex;\n      gap: 12px;\n      flex-wrap: wrap;\n      margin-top: 24px;\n    }\n    button {\n      appearance: none;\n      border: 1px solid var(--line);\n      border-radius: 999px;\n      background: var(--button);\n      color: var(--ink);\n      font: inherit;\n      font-weight: 700;\n      padding: 12px 18px;\n      cursor: pointer;\n    }\n  </style>\n</head>\n<body>\n  <main class=\"panel\">\n    <span class=\"badge\">${isSuccess ? 'Success' : 'Action needed'}</span>\n    <h1>Manual batch item</h1>\n    <p>${escapeHtml(result.message ?? (isSuccess ? 'Manual batch item added.' : 'The request could not be completed.'))}</p>\n    ${detailHtml ? `<section class=\"details\">${detailHtml}</section>` : ''}\n    <div class=\"actions\">\n      <button type=\"button\" onclick=\"window.close()\">Close</button>\n    </div>\n  </main>\n</body>\n</html>`;\nreturn [{ json: { ...result, response_code: responseCode, html } }];"
+      },
+      "id": "a1b2c3d4-1000-1000-1000-000000000007",
+      "name": "Build Result Page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": "={{ Number($json.response_code || 200) }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "a1b2c3d4-1000-1000-1000-000000000008",
+      "name": "Respond Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1560,
+        140
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Resolve Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Resolve Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Manual Batch Item Webhook": {
+      "main": [
+        [
+          {
+            "node": "Resolve Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Inputs": {
+      "main": [
+        [
+          {
+            "node": "Build Insert SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Insert SQL": {
+      "main": [
+        [
+          {
+            "node": "Insert Manual Batch Item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Manual Batch Item": {
+      "main": [
+        [
+          {
+            "node": "Build Result Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Result Page": {
+      "main": [
+        [
+          {
+            "node": "Respond Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-23T19:04:15.905+00:00",
+  "updatedAt": "2026-04-09T10:12:28.13+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "d820fa3b-eae7-4868-9e97-7b83235b99e2",
+  "triggerCount": 1,
+  "id": "rnwJ9lr346JFHAa6",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 60,
+  "description": "",
+  "activeVersionId": "d820fa3b-eae7-4868-9e97-7b83235b99e2"
+}

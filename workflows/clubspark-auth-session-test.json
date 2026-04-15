@@ -7,7 +7,10 @@
       "name": "When clicking 'Execute workflow'",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [200, 300]
+      "position": [
+        200,
+        300
+      ]
     },
     {
       "parameters": {
@@ -18,7 +21,10 @@
       "name": "Load Global Settings",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [480, 460],
+      "position": [
+        480,
+        460
+      ],
       "credentials": {
         "postgres": {
           "id": "PjTUDAMk0dZ7g1iO",
@@ -42,7 +48,10 @@
       "name": "Execute ClubSpark Auth Session",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.1,
-      "position": [480, 300]
+      "position": [
+        480,
+        300
+      ]
     },
     {
       "parameters": {
@@ -73,7 +82,10 @@
       "name": "Fetch Members Page With Session",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [800, 300]
+      "position": [
+        800,
+        300
+      ]
     },
     {
       "parameters": {
@@ -83,32 +95,66 @@
       "name": "Validate Reused Session",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1080, 300]
+      "position": [
+        1080,
+        300
+      ]
     }
   ],
   "connections": {
     "When clicking 'Execute workflow'": {
-      "main": [[{ "node": "Load Global Settings", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Load Global Settings": {
-      "main": [[{ "node": "Execute ClubSpark Auth Session", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Execute ClubSpark Auth Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Execute ClubSpark Auth Session": {
-      "main": [[{ "node": "Fetch Members Page With Session", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Fetch Members Page With Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Fetch Members Page With Session": {
-      "main": [[{ "node": "Validate Reused Session", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Validate Reused Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
     "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": true
   },
   "staticData": null,
-  "meta": {
-    "templateCredsSetupCompleted": false
-  },
-  "pinData": {},
+  "meta": null,
+  "pinData": null,
   "tags": [],
   "active": false,
   "isArchived": false

@@ -1,0 +1,36 @@
+{
+  "item": {
+    "id": "1748502044374729729",
+    "createdAt": "2026-04-08T06:21:26.483Z",
+    "updatedAt": "2026-04-08T06:32:19.699Z",
+    "email": "steve.short@gmail.com",
+    "role": "admin",
+    "name": "Steve Short",
+    "username": "steve",
+    "phone": null,
+    "organization": null,
+    "language": "en-US",
+    "apiKeyPrefix": null,
+    "subscribeToOwnCards": false,
+    "subscribeToCardWhenCommenting": true,
+    "turnOffRecentCardHighlighting": false,
+    "enableFavoritesByDefault": true,
+    "defaultEditorMode": "wysiwyg",
+    "defaultHomeView": "groupedProjects",
+    "defaultProjectsOrder": "byDefault",
+    "isSsoUser": false,
+    "isDeactivated": false,
+    "avatar": null,
+    "isDefaultAdmin": true,
+    "lockedFieldNames": [
+      "email",
+      "password",
+      "name",
+      "role",
+      "username"
+    ]
+  },
+  "included": {
+    "notificationServices": []
+  }
+}
