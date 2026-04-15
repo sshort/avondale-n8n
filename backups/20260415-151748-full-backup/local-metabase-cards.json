@@ -3,7 +3,7 @@
     "cache_invalidated_at": "2026-04-15T14:12:04.06122Z",
     "description": null,
     "archived": false,
-    "view_count": 436,
+    "view_count": 437,
     "collection_position": null,
     "source_card_id": null,
     "table_id": 14,
@@ -142,7 +142,7 @@
     "query_type": "native",
     "name": "Age Ranges",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:38.534115Z",
+    "last_used_at": "2026-04-15T14:18:11.058521Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-15T14:12:04.05987Z",
@@ -1297,7 +1297,7 @@
     "cache_invalidated_at": "2026-04-13T08:15:28.236438Z",
     "description": null,
     "archived": false,
-    "view_count": 582,
+    "view_count": 588,
     "collection_position": null,
     "source_card_id": null,
     "table_id": 14,
@@ -1323,17 +1323,17 @@
         "display_name": "raw_member_id",
         "fingerprint": {
           "global": {
-            "distinct-count": 2,
+            "distinct-count": 1,
             "nil%": 0.0
           },
           "type": {
             "type/Number": {
-              "min": 4990.0,
-              "q1": 4990.0,
-              "q3": 5103.0,
-              "max": 5103.0,
-              "sd": 79.90306627407988,
-              "avg": 5046.5
+              "min": 5048.0,
+              "q1": 5048.0,
+              "q3": 5048.0,
+              "max": 5048.0,
+              "sd": null,
+              "avg": 5048.0
             }
           }
         },
@@ -1432,7 +1432,7 @@
         "display_name": "Name",
         "fingerprint": {
           "global": {
-            "distinct-count": 2,
+            "distinct-count": 1,
             "nil%": 0.0
           },
           "type": {
@@ -1441,7 +1441,7 @@
               "percent-url": 0.0,
               "percent-email": 0.0,
               "percent-state": 0.0,
-              "average-length": 13.5
+              "average-length": 10.0
             }
           }
         },
@@ -1468,7 +1468,7 @@
         "display_name": "First name",
         "fingerprint": {
           "global": {
-            "distinct-count": 2,
+            "distinct-count": 1,
             "nil%": 0.0
           },
           "type": {
@@ -1477,7 +1477,7 @@
               "percent-url": 0.0,
               "percent-email": 0.0,
               "percent-state": 0.0,
-              "average-length": 7.5
+              "average-length": 4.0
             }
           }
         },
@@ -1540,7 +1540,7 @@
         "display_name": "Membership",
         "fingerprint": {
           "global": {
-            "distinct-count": 2,
+            "distinct-count": 1,
             "nil%": 0.0
           },
           "type": {
@@ -1549,7 +1549,7 @@
               "percent-url": 0.0,
               "percent-email": 0.0,
               "percent-state": 0.0,
-              "average-length": 17.5
+              "average-length": 14.0
             }
           }
         },
@@ -1585,7 +1585,7 @@
               "percent-url": 0.0,
               "percent-email": 0.0,
               "percent-state": 0.0,
-              "average-length": 5.0
+              "average-length": 6.0
             }
           }
         },
@@ -1612,7 +1612,7 @@
         "display_name": "Email address",
         "fingerprint": {
           "global": {
-            "distinct-count": 2,
+            "distinct-count": 1,
             "nil%": 0.0
           },
           "type": {
@@ -1621,7 +1621,7 @@
               "percent-url": 0.0,
               "percent-email": 1.0,
               "percent-state": 0.0,
-              "average-length": 26.0
+              "average-length": 19.0
             }
           }
         },
@@ -1684,8 +1684,8 @@
         "display_name": "Mobile number",
         "fingerprint": {
           "global": {
-            "distinct-count": 2,
-            "nil%": 0.5
+            "distinct-count": 1,
+            "nil%": 0.0
           },
           "type": {
             "type/Text": {
@@ -1693,7 +1693,7 @@
               "percent-url": 0.0,
               "percent-email": 0.0,
               "percent-state": 0.0,
-              "average-length": 6.0
+              "average-length": 11.0
             }
           }
         },
@@ -1723,7 +1723,7 @@
     "query_type": "native",
     "name": "Contacts - Selected Year",
     "document_id": null,
-    "last_used_at": "2026-04-15T13:44:07.545677Z",
+    "last_used_at": "2026-04-15T14:27:48.334103Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-13T08:15:28.235264Z",
@@ -1953,7 +1953,7 @@
     "cache_invalidated_at": "2026-04-01T08:20:02.926162Z",
     "description": null,
     "archived": false,
-    "view_count": 440,
+    "view_count": 441,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -2019,7 +2019,7 @@
     "query_type": "native",
     "name": "Count of Members - Current Year",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:38.534115Z",
+    "last_used_at": "2026-04-15T14:18:11.058521Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-01T08:20:02.924974Z",
@@ -2096,7 +2096,7 @@
     "cache_invalidated_at": "2026-04-15T13:58:30.766533Z",
     "description": null,
     "archived": false,
-    "view_count": 436,
+    "view_count": 437,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -2162,7 +2162,7 @@
     "query_type": "native",
     "name": "Count of Members - Previous Year",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:38.534115Z",
+    "last_used_at": "2026-04-15T14:18:11.058521Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-15T13:58:30.762083Z",
@@ -2250,10 +2250,10 @@
     "public_uuid": null
   },
   {
-    "cache_invalidated_at": "2026-03-30T16:32:51.722138Z",
+    "cache_invalidated_at": "2026-04-15T14:41:09.904895Z",
     "description": null,
     "archived": false,
-    "view_count": 382,
+    "view_count": 394,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -2284,12 +2284,12 @@
           },
           "type": {
             "type/Number": {
-              "min": 14.0,
-              "q1": 14.0,
-              "q3": 14.0,
-              "max": 14.0,
+              "min": 1.0,
+              "q1": 1.0,
+              "q3": 1.0,
+              "max": 1.0,
               "sd": null,
-              "avg": 14.0
+              "avg": 1.0
             }
           }
         },
@@ -2319,10 +2319,10 @@
     "query_type": "native",
     "name": "Count of Members Missing Signup Email",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:49.378079Z",
+    "last_used_at": "2026-04-15T14:59:13.491233Z",
     "type": "question",
     "creator_id": 13371339,
-    "updated_at": "2026-03-30T16:32:51.720817Z",
+    "updated_at": "2026-04-15T14:41:09.90376Z",
     "made_public_by_id": null,
     "embedding_params": null,
     "cache_ttl": null,
@@ -2331,17 +2331,17 @@
       "database": 2,
       "stages": [
         {
-          "lib/type": "mbql.stage/native",
           "template-tags": {
             "year": {
+              "name": "year",
               "display-name": "Year",
               "type": "text",
               "id": "year",
-              "name": "year",
               "required": true
             }
           },
-          "native": "WITH current_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS full_name,\n    src.\"Membership\",\n    COALESCE(\n      to_date(NULLIF(src.\"Date joined venue\", ''), 'DD/MM/YYYY'),\n      to_date(NULLIF(src.\"Start Date\", ''), 'DD/MM/YYYY')\n    ) AS effective_date\n  FROM (\n    SELECT\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = {{year}}\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n      AND COALESCE(m.is_current, true) = true\n  ) src\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n), signups AS (\n  SELECT DISTINCT\n    lower(trim(member)) AS member_name,\n    lower(trim(product)) AS product_name\n  FROM public.member_signups\n  WHERE product LIKE '%' || {{year}} || '%'\n), missing AS (\n  SELECT c.*\n  FROM current_members c\n  LEFT JOIN signups s\n    ON lower(trim(c.full_name)) = s.member_name\n   AND lower(trim(c.\"Membership\")) = s.product_name\n  WHERE s.member_name IS NULL\n    AND c.effective_date IS NOT NULL\n    AND (\n      c.effective_date > current_date\n      OR c.effective_date::timestamp <= now() - interval '1 hour'\n    )\n)\nSELECT COUNT(*)\nFROM missing;"
+          "lib/type": "mbql.stage/native",
+          "native": "WITH current_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS full_name,\n    src.\"Membership\",\n    src.signup_match_group,\n    COALESCE(\n      to_date(NULLIF(src.\"Date joined venue\", ''), 'DD/MM/YYYY'),\n      to_date(NULLIF(src.\"Start Date\", ''), 'DD/MM/YYYY')\n    ) AS effective_date\n  FROM (\n    SELECT\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*,\n      p.category,\n      p.display_order,\n      COALESCE(msg.signup_match_group, lower(trim(p.name))) AS signup_match_group\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = {{year}}\n    LEFT JOIN public.membership_signup_match_groups msg\n      ON msg.season = p.season\n     AND msg.package_name = p.name\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n      AND COALESCE(m.is_current, true) = true\n  ) src\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n), signups AS (\n  SELECT DISTINCT\n    lower(trim(s.member)) AS member_name,\n    COALESCE(msg.signup_match_group, lower(trim(s.product))) AS signup_match_group\n  FROM public.member_signups s\n  LEFT JOIN public.membership_packages p\n    ON s.product = p.name\n  LEFT JOIN public.membership_signup_match_groups msg\n    ON msg.season = COALESCE(p.season, {{year}})\n   AND msg.package_name = s.product\n  WHERE s.product LIKE '%' || {{year}} || '%'\n), missing AS (\n  SELECT c.*\n  FROM current_members c\n  LEFT JOIN signups s\n    ON lower(trim(c.full_name)) = s.member_name\n   AND c.signup_match_group = s.signup_match_group\n  WHERE s.member_name IS NULL\n    AND c.effective_date IS NOT NULL\n    AND (\n      c.effective_date > current_date\n      OR c.effective_date::timestamp <= now() - interval '1 hour'\n    )\n)\nSELECT COUNT(*)\nFROM missing;\n"
         }
       ]
     },
@@ -2353,11 +2353,11 @@
     "entity_id": "QRbQ8ux6sgxOAuYm6DLxO",
     "collection_preview": true,
     "last-edit-info": {
-      "id": 1,
-      "email": "steve@shortcentral.com",
-      "first_name": "Steve",
-      "last_name": "Short",
-      "timestamp": "2026-03-30T16:32:51.749622Z"
+      "id": 13371339,
+      "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+      "first_name": "codex",
+      "last_name": "",
+      "timestamp": "2026-04-15T14:41:09.935154Z"
     },
     "visualization_settings": {
       "scalar.segments": []
@@ -2391,7 +2391,7 @@
     "cache_invalidated_at": "2026-03-30T16:35:59.13354Z",
     "description": null,
     "archived": false,
-    "view_count": 419,
+    "view_count": 431,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -2457,7 +2457,7 @@
     "query_type": "native",
     "name": "Count of Members Not Renewed - Current Year",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:49.378079Z",
+    "last_used_at": "2026-04-15T14:59:13.491233Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-03-30T16:35:59.131695Z",
@@ -2548,10 +2548,10 @@
     "public_uuid": null
   },
   {
-    "cache_invalidated_at": "2026-03-30T16:35:43.869288Z",
+    "cache_invalidated_at": "2026-04-15T14:51:07.600345Z",
     "description": null,
     "archived": false,
-    "view_count": 418,
+    "view_count": 430,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -2582,12 +2582,12 @@
           },
           "type": {
             "type/Number": {
-              "min": 48.0,
-              "q1": 48.0,
-              "q3": 48.0,
-              "max": 48.0,
+              "min": 34.0,
+              "q1": 34.0,
+              "q3": 34.0,
+              "max": 34.0,
               "sd": null,
-              "avg": 48.0
+              "avg": 34.0
             }
           }
         },
@@ -2617,10 +2617,10 @@
     "query_type": "native",
     "name": "Count of New Members - Current Year",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:49.378079Z",
+    "last_used_at": "2026-04-15T14:59:13.491233Z",
     "type": "question",
     "creator_id": 13371339,
-    "updated_at": "2026-03-30T16:35:43.866859Z",
+    "updated_at": "2026-04-15T14:51:07.59679Z",
     "made_public_by_id": null,
     "embedding_params": null,
     "cache_ttl": null,
@@ -2629,14 +2629,14 @@
       "database": 2,
       "stages": [
         {
-          "native": "WITH season_members AS (\n    SELECT DISTINCT ON (person_key)\n      person_key,\n      trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS full_name,\n      src.\"Venue ID\",\n      src.\"British Tennis Number\",\n      src.\"First name\",\n      src.\"Last name\",\n      src.\"Membership\",\n      src.category,\n      src.\"Email address\",\n      src.\"Postcode\",\n      src.\"Payment\",\n      src.\"Status\",\n      src.\"Start Date\",\n      src.\"Expiry Date\"\n    FROM (\n      SELECT\n        COALESCE(\n          NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n          NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n          'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n        ) AS person_key,\n        m.*, p.category, p.display_order\n      FROM public.raw_members m\n      JOIN public.membership_packages p\n        ON m.\"Membership\" = p.name\n       AND p.season = {{year}}\n      WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n        AND m.\"Payment\" IN ('Paid', 'Part Paid')\n    ) src\n    ORDER BY person_key, src.display_order, src.\"Membership\"\n  ), prev_members AS (\n    SELECT DISTINCT ON (person_key)\n      person_key,\n      trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS full_name,\n      src.\"Venue ID\",\n      src.\"British Tennis Number\",\n      src.\"First name\",\n      src.\"Last name\",\n      src.\"Membership\",\n      src.category,\n      src.\"Email address\",\n      src.\"Postcode\",\n      src.\"Payment\",\n      src.\"Status\",\n      src.\"Start Date\",\n      src.\"Expiry Date\"\n    FROM (\n      SELECT\n        COALESCE(\n          NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n          NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n          'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n        ) AS person_key,\n        m.*, p.category, p.display_order\n      FROM public.raw_members m\n      JOIN public.membership_packages p\n        ON m.\"Membership\" = p.name\n       AND p.season = (({{year}})::int - 1)::text\n      WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n        AND m.\"Payment\" IN ('Paid', 'Part Paid')\n    ) src\n    ORDER BY person_key, src.display_order, src.\"Membership\"\n  )\nSELECT COUNT(*)\nFROM season_members c\nWHERE NOT EXISTS (\n  SELECT 1 FROM prev_members p WHERE p.person_key = c.person_key\n);",
           "lib/type": "mbql.stage/native",
+          "native": "WITH season_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key\n  FROM (\n    SELECT\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      m.id AS raw_member_id,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = ({{year}})::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.display_order, src.\"Membership\"\n), prev_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key\n  FROM (\n    SELECT\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      m.id AS raw_member_id,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = (({{year}})::int - 1)::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.display_order, src.\"Membership\"\n)\nSELECT COUNT(*)\nFROM season_members c\nWHERE NOT EXISTS (\n  SELECT 1 FROM prev_members p WHERE p.member_identity_key = c.member_identity_key\n);\n",
           "template-tags": {
             "year": {
+              "id": "year",
               "name": "year",
               "display-name": "Year",
               "type": "text",
-              "id": "year",
               "required": true
             }
           }
@@ -2651,11 +2651,11 @@
     "entity_id": "tpx4XSEqrrif_nupObG7p",
     "collection_preview": true,
     "last-edit-info": {
-      "id": 1,
-      "email": "steve@shortcentral.com",
-      "first_name": "Steve",
-      "last_name": "Short",
-      "timestamp": "2026-03-30T16:35:43.896137Z"
+      "id": 13371339,
+      "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+      "first_name": "codex",
+      "last_name": "",
+      "timestamp": "2026-04-15T14:51:07.624868Z"
     },
     "visualization_settings": {
       "table.pivot_column": "name",
@@ -2711,7 +2711,7 @@
     "cache_invalidated_at": "2026-04-02T08:25:00.244867Z",
     "description": null,
     "archived": false,
-    "view_count": 440,
+    "view_count": 441,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -2813,7 +2813,7 @@
     "query_type": "native",
     "name": "Count of Non-Active Members",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:38.534115Z",
+    "last_used_at": "2026-04-15T14:18:11.058521Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-02T08:25:00.241705Z",
@@ -2904,7 +2904,7 @@
     "cache_invalidated_at": "2026-04-15T14:12:04.32213Z",
     "description": null,
     "archived": false,
-    "view_count": 436,
+    "view_count": 437,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -3006,7 +3006,7 @@
     "query_type": "native",
     "name": "Count of Non-Active Members - Previous Year",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:38.534115Z",
+    "last_used_at": "2026-04-15T14:18:11.058521Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-15T14:12:04.319691Z",
@@ -3230,7 +3230,7 @@
     "cache_invalidated_at": "2026-03-26T15:34:47.81352Z",
     "description": null,
     "archived": false,
-    "view_count": 427,
+    "view_count": 439,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -3932,7 +3932,7 @@
     "query_type": "native",
     "name": "Current Members - Selected Year (Map)",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:49.378079Z",
+    "last_used_at": "2026-04-15T14:59:13.491233Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-03-26T15:34:47.81182Z",
@@ -6291,10 +6291,10 @@
     "public_uuid": null
   },
   {
-    "cache_invalidated_at": "2026-03-30T16:33:08.603186Z",
+    "cache_invalidated_at": "2026-04-15T14:41:10.085902Z",
     "description": null,
     "archived": false,
-    "view_count": 387,
+    "view_count": 399,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -6320,7 +6320,7 @@
         "display_name": "Member",
         "fingerprint": {
           "global": {
-            "distinct-count": 14,
+            "distinct-count": 1,
             "nil%": 0.0
           },
           "type": {
@@ -6329,7 +6329,7 @@
               "percent-url": 0.0,
               "percent-email": 0.0,
               "percent-state": 0.0,
-              "average-length": 14.5
+              "average-length": 17.0
             }
           }
         },
@@ -6356,7 +6356,7 @@
         "display_name": "Membership",
         "fingerprint": {
           "global": {
-            "distinct-count": 2,
+            "distinct-count": 1,
             "nil%": 0.0
           },
           "type": {
@@ -6365,7 +6365,7 @@
               "percent-url": 0.0,
               "percent-email": 0.0,
               "percent-state": 0.0,
-              "average-length": 19.0
+              "average-length": 14.0
             }
           }
         },
@@ -6392,7 +6392,7 @@
         "display_name": "Membership Category",
         "fingerprint": {
           "global": {
-            "distinct-count": 2,
+            "distinct-count": 1,
             "nil%": 0.0
           },
           "type": {
@@ -6401,7 +6401,7 @@
               "percent-url": 0.0,
               "percent-email": 0.0,
               "percent-state": 0.0,
-              "average-length": 11.0
+              "average-length": 6.0
             }
           }
         },
@@ -6428,16 +6428,16 @@
         "display_name": "Email address",
         "fingerprint": {
           "global": {
-            "distinct-count": 12,
-            "nil%": 0.2142857142857143
+            "distinct-count": 1,
+            "nil%": 0.0
           },
           "type": {
             "type/Text": {
               "percent-json": 0.0,
               "percent-url": 0.0,
-              "percent-email": 0.7857142857142857,
+              "percent-email": 1.0,
               "percent-state": 0.0,
-              "average-length": 17.928571428571427
+              "average-length": 26.0
             }
           }
         },
@@ -6464,7 +6464,7 @@
         "display_name": "Venue ID",
         "fingerprint": {
           "global": {
-            "distinct-count": 14,
+            "distinct-count": 1,
             "nil%": 0.0
           },
           "type": {
@@ -6473,7 +6473,7 @@
               "percent-url": 0.0,
               "percent-email": 0.0,
               "percent-state": 0.0,
-              "average-length": 10.857142857142858
+              "average-length": 18.0
             }
           }
         },
@@ -6500,8 +6500,8 @@
         "display_name": "British Tennis Number",
         "fingerprint": {
           "global": {
-            "distinct-count": 2,
-            "nil%": 0.9285714285714286
+            "distinct-count": 1,
+            "nil%": 1.0
           },
           "type": {
             "type/Text": {
@@ -6509,7 +6509,7 @@
               "percent-url": 0.0,
               "percent-email": 0.0,
               "percent-state": 0.0,
-              "average-length": 0.6428571428571429
+              "average-length": 0.0
             }
           }
         },
@@ -6536,12 +6536,12 @@
         "display_name": "Effective Date",
         "fingerprint": {
           "global": {
-            "distinct-count": 14,
+            "distinct-count": 1,
             "nil%": 0.0
           },
           "type": {
             "type/DateTime": {
-              "earliest": "2019-04-01",
+              "earliest": "2026-03-19",
               "latest": "2026-03-19"
             }
           }
@@ -6569,17 +6569,17 @@
         "display_name": "Days Since Effective",
         "fingerprint": {
           "global": {
-            "distinct-count": 14,
+            "distinct-count": 1,
             "nil%": 0.0
           },
           "type": {
             "type/Number": {
               "min": 27.0,
-              "q1": 727.0,
-              "q3": 1110.0,
-              "max": 2571.0,
-              "sd": 664.5139552359278,
-              "avg": 972.2142857142857
+              "q1": 27.0,
+              "q3": 27.0,
+              "max": 27.0,
+              "sd": null,
+              "avg": 27.0
             }
           }
         },
@@ -6606,17 +6606,17 @@
         "display_name": "raw_member_id",
         "fingerprint": {
           "global": {
-            "distinct-count": 14,
+            "distinct-count": 1,
             "nil%": 0.0
           },
           "type": {
             "type/Number": {
-              "min": 2618.0,
-              "q1": 5048.0,
-              "q3": 5109.0,
-              "max": 5112.0,
-              "sd": 927.9116692520176,
-              "avg": 4644.285714285715
+              "min": 2786.0,
+              "q1": 2786.0,
+              "q3": 2786.0,
+              "max": 2786.0,
+              "sd": null,
+              "avg": 2786.0
             }
           }
         },
@@ -6682,10 +6682,10 @@
     "query_type": "native",
     "name": "List of Members Missing Signup Email",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:49.378079Z",
+    "last_used_at": "2026-04-15T14:59:13.491233Z",
     "type": "question",
     "creator_id": 13371339,
-    "updated_at": "2026-03-30T16:33:08.601627Z",
+    "updated_at": "2026-04-15T14:41:10.083269Z",
     "made_public_by_id": null,
     "embedding_params": null,
     "cache_ttl": null,
@@ -6694,17 +6694,17 @@
       "database": 2,
       "stages": [
         {
+          "lib/type": "mbql.stage/native",
           "template-tags": {
             "year": {
+              "type": "text",
               "id": "year",
               "name": "year",
               "display-name": "Year",
-              "type": "text",
               "required": true
             }
           },
-          "lib/type": "mbql.stage/native",
-          "native": "WITH current_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key,\n    src.id AS raw_member_id,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS full_name,\n    src.\"First name\",\n    src.\"Last name\",\n    src.\"Membership\",\n    src.category,\n    src.\"Email address\",\n    src.\"Venue ID\",\n    src.\"British Tennis Number\",\n    COALESCE(\n      to_date(NULLIF(src.\"Date joined venue\", ''), 'DD/MM/YYYY'),\n      to_date(NULLIF(src.\"Start Date\", ''), 'DD/MM/YYYY')\n    ) AS effective_date\n  FROM (\n    SELECT\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = {{year}}\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n      AND COALESCE(m.is_current, true) = true\n  ) src\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n), signups AS (\n  SELECT DISTINCT\n    lower(trim(member)) AS member_name,\n    lower(trim(product)) AS product_name\n  FROM public.member_signups\n  WHERE product LIKE '%' || {{year}} || '%'\n), missing AS (\n  SELECT\n    c.*,\n    (current_date - c.effective_date) AS days_since_effective\n  FROM current_members c\n  LEFT JOIN signups s\n    ON lower(trim(c.full_name)) = s.member_name\n   AND lower(trim(c.\"Membership\")) = s.product_name\n  WHERE s.member_name IS NULL\n    AND c.effective_date IS NOT NULL\n    AND (\n      c.effective_date > current_date\n      OR c.effective_date::timestamp <= now() - interval '1 hour'\n    )\n), settings AS (\n  SELECT COALESCE(MAX(CASE WHEN key = 'n8n_base_url' THEN value END), 'http://n8n:5678') AS n8n_base_url\n  FROM public.global_settings\n)\nSELECT\n  full_name AS \"Member\",\n  \"Membership\",\n  category AS \"Membership Category\",\n  \"Email address\",\n  \"Venue ID\",\n  \"British Tennis Number\",\n  effective_date AS \"Effective Date\",\n  days_since_effective AS \"Days Since Effective\",\n  raw_member_id,\n  settings.n8n_base_url\nFROM missing\nCROSS JOIN settings\nORDER BY effective_date, full_name;"
+          "native": "WITH current_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key,\n    src.id AS raw_member_id,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS full_name,\n    src.\"First name\",\n    src.\"Last name\",\n    src.\"Membership\",\n    src.category,\n    src.\"Email address\",\n    src.\"Venue ID\",\n    src.\"British Tennis Number\",\n    src.signup_match_group,\n    COALESCE(\n      to_date(NULLIF(src.\"Date joined venue\", ''), 'DD/MM/YYYY'),\n      to_date(NULLIF(src.\"Start Date\", ''), 'DD/MM/YYYY')\n    ) AS effective_date\n  FROM (\n    SELECT\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*,\n      p.category,\n      p.display_order,\n      COALESCE(msg.signup_match_group, lower(trim(p.name))) AS signup_match_group\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = {{year}}\n    LEFT JOIN public.membership_signup_match_groups msg\n      ON msg.season = p.season\n     AND msg.package_name = p.name\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n      AND COALESCE(m.is_current, true) = true\n  ) src\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n), signups AS (\n  SELECT DISTINCT\n    lower(trim(s.member)) AS member_name,\n    COALESCE(msg.signup_match_group, lower(trim(s.product))) AS signup_match_group\n  FROM public.member_signups s\n  LEFT JOIN public.membership_packages p\n    ON s.product = p.name\n  LEFT JOIN public.membership_signup_match_groups msg\n    ON msg.season = COALESCE(p.season, {{year}})\n   AND msg.package_name = s.product\n  WHERE s.product LIKE '%' || {{year}} || '%'\n), missing AS (\n  SELECT\n    c.*,\n    (current_date - c.effective_date) AS days_since_effective\n  FROM current_members c\n  LEFT JOIN signups s\n    ON lower(trim(c.full_name)) = s.member_name\n   AND c.signup_match_group = s.signup_match_group\n  WHERE s.member_name IS NULL\n    AND c.effective_date IS NOT NULL\n    AND (\n      c.effective_date > current_date\n      OR c.effective_date::timestamp <= now() - interval '1 hour'\n    )\n), settings AS (\n  SELECT COALESCE(MAX(CASE WHEN key = 'n8n_base_url' THEN value END), 'http://n8n:5678') AS n8n_base_url\n  FROM public.global_settings\n)\nSELECT\n  full_name AS \"Member\",\n  \"Membership\",\n  category AS \"Membership Category\",\n  \"Email address\",\n  \"Venue ID\",\n  \"British Tennis Number\",\n  effective_date AS \"Effective Date\",\n  days_since_effective AS \"Days Since Effective\",\n  raw_member_id,\n  settings.n8n_base_url\nFROM missing\nCROSS JOIN settings\nORDER BY effective_date, full_name;\n"
         }
       ]
     },
@@ -6716,11 +6716,11 @@
     "entity_id": "xvODkSS3nwMxXLDYQDOQL",
     "collection_preview": true,
     "last-edit-info": {
-      "id": 1,
-      "email": "steve@shortcentral.com",
-      "first_name": "Steve",
-      "last_name": "Short",
-      "timestamp": "2026-03-30T16:33:08.639203Z"
+      "id": 13371339,
+      "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+      "first_name": "codex",
+      "last_name": "",
+      "timestamp": "2026-04-15T14:41:10.122064Z"
     },
     "visualization_settings": {
       "table": {
@@ -6805,7 +6805,7 @@
     "cache_invalidated_at": "2026-04-07T16:17:07.160057Z",
     "description": null,
     "archived": false,
-    "view_count": 426,
+    "view_count": 438,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -7051,7 +7051,7 @@
     "query_type": "native",
     "name": "List of Members Not Renewed - Current Year",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:49.378079Z",
+    "last_used_at": "2026-04-15T14:59:13.491233Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-07T16:17:07.156077Z",
@@ -7194,232 +7194,14 @@
     "public_uuid": null
   },
   {
-    "cache_invalidated_at": "2026-04-07T16:21:22.231094Z",
-    "description": null,
+    "cache_invalidated_at": "2026-04-15T14:59:14.498397Z",
+    "description": "Summary of members whose category changed from previous season to current season. Click Count to drill into members for that category pair.",
     "archived": false,
-    "view_count": 387,
+    "view_count": 399,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
-    "result_metadata": [
-      {
-        "database_type": "bigserial",
-        "semantic_type": null,
-        "lib/deduplicated-name": "raw_member_id",
-        "lib/original-name": "raw_member_id",
-        "name": "raw_member_id",
-        "lib/source": "source/native",
-        "lib/source-column-alias": "raw_member_id",
-        "source": "native",
-        "field_ref": [
-          "field",
-          "raw_member_id",
-          {
-            "base-type": "type/BigInteger"
-          }
-        ],
-        "effective_type": "type/BigInteger",
-        "lib/desired-column-alias": "raw_member_id",
-        "display_name": "raw_member_id",
-        "fingerprint": {
-          "global": {
-            "distinct-count": 24,
-            "nil%": 0.0
-          },
-          "type": {
-            "type/Number": {
-              "min": 2691.0,
-              "q1": 3240.5,
-              "q3": 5046.0,
-              "max": 5087.0,
-              "sd": 991.2083096117981,
-              "avg": 4232.0
-            }
-          }
-        },
-        "base_type": "type/BigInteger"
-      },
-      {
-        "database_type": "text",
-        "semantic_type": "type/URL",
-        "lib/deduplicated-name": "n8n_base_url",
-        "lib/original-name": "n8n_base_url",
-        "name": "n8n_base_url",
-        "lib/source": "source/native",
-        "lib/source-column-alias": "n8n_base_url",
-        "source": "native",
-        "field_ref": [
-          "field",
-          "n8n_base_url",
-          {
-            "base-type": "type/Text"
-          }
-        ],
-        "effective_type": "type/Text",
-        "lib/desired-column-alias": "n8n_base_url",
-        "display_name": "n8n_base_url",
-        "fingerprint": {
-          "global": {
-            "distinct-count": 1,
-            "nil%": 0.0
-          },
-          "type": {
-            "type/Text": {
-              "percent-json": 0.0,
-              "percent-url": 1.0,
-              "percent-email": 0.0,
-              "percent-state": 0.0,
-              "average-length": 34.0
-            }
-          }
-        },
-        "base_type": "type/Text"
-      },
-      {
-        "database_type": "text",
-        "semantic_type": "type/Name",
-        "lib/deduplicated-name": "Name",
-        "lib/original-name": "Name",
-        "name": "Name",
-        "lib/source": "source/native",
-        "lib/source-column-alias": "Name",
-        "source": "native",
-        "field_ref": [
-          "field",
-          "Name",
-          {
-            "base-type": "type/Text"
-          }
-        ],
-        "effective_type": "type/Text",
-        "lib/desired-column-alias": "Name",
-        "display_name": "Name",
-        "fingerprint": {
-          "global": {
-            "distinct-count": 24,
-            "nil%": 0.0
-          },
-          "type": {
-            "type/Text": {
-              "percent-json": 0.0,
-              "percent-url": 0.0,
-              "percent-email": 0.0,
-              "percent-state": 0.0,
-              "average-length": 13.625
-            }
-          }
-        },
-        "base_type": "type/Text"
-      },
-      {
-        "database_type": "text",
-        "semantic_type": null,
-        "lib/deduplicated-name": "Previous Membership",
-        "lib/original-name": "Previous Membership",
-        "name": "Previous Membership",
-        "lib/source": "source/native",
-        "lib/source-column-alias": "Previous Membership",
-        "source": "native",
-        "field_ref": [
-          "field",
-          "Previous Membership",
-          {
-            "base-type": "type/Text"
-          }
-        ],
-        "effective_type": "type/Text",
-        "lib/desired-column-alias": "Previous Membership",
-        "display_name": "Previous Membership",
-        "fingerprint": {
-          "global": {
-            "distinct-count": 8,
-            "nil%": 0.0
-          },
-          "type": {
-            "type/Text": {
-              "percent-json": 0.0,
-              "percent-url": 0.0,
-              "percent-email": 0.0,
-              "percent-state": 0.0,
-              "average-length": 19.333333333333332
-            }
-          }
-        },
-        "base_type": "type/Text"
-      },
-      {
-        "database_type": "text",
-        "semantic_type": null,
-        "lib/deduplicated-name": "Current Membership",
-        "lib/original-name": "Current Membership",
-        "name": "Current Membership",
-        "lib/source": "source/native",
-        "lib/source-column-alias": "Current Membership",
-        "source": "native",
-        "field_ref": [
-          "field",
-          "Current Membership",
-          {
-            "base-type": "type/Text"
-          }
-        ],
-        "effective_type": "type/Text",
-        "lib/desired-column-alias": "Current Membership",
-        "display_name": "Current Membership",
-        "fingerprint": {
-          "global": {
-            "distinct-count": 6,
-            "nil%": 0.0
-          },
-          "type": {
-            "type/Text": {
-              "percent-json": 0.0,
-              "percent-url": 0.0,
-              "percent-email": 0.0,
-              "percent-state": 0.0,
-              "average-length": 15.583333333333334
-            }
-          }
-        },
-        "base_type": "type/Text"
-      },
-      {
-        "database_type": "text",
-        "semantic_type": null,
-        "lib/deduplicated-name": "Email address",
-        "lib/original-name": "Email address",
-        "name": "Email address",
-        "lib/source": "source/native",
-        "lib/source-column-alias": "Email address",
-        "source": "native",
-        "field_ref": [
-          "field",
-          "Email address",
-          {
-            "base-type": "type/Text"
-          }
-        ],
-        "effective_type": "type/Text",
-        "lib/desired-column-alias": "Email address",
-        "display_name": "Email address",
-        "fingerprint": {
-          "global": {
-            "distinct-count": 18,
-            "nil%": 0.2916666666666667
-          },
-          "type": {
-            "type/Text": {
-              "percent-json": 0.0,
-              "percent-url": 0.0,
-              "percent-email": 0.7083333333333333,
-              "percent-state": 0.0,
-              "average-length": 15.333333333333334
-            }
-          }
-        },
-        "base_type": "type/Text"
-      }
-    ],
+    "result_metadata": null,
     "embedding_type": null,
     "dependency_analysis_version": 0,
     "creator": {
@@ -7443,10 +7225,10 @@
     "query_type": "native",
     "name": "List of Members Who Changed Package - Current Year",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:49.378079Z",
+    "last_used_at": "2026-04-15T14:59:13.491233Z",
     "type": "question",
     "creator_id": 13371339,
-    "updated_at": "2026-04-07T16:21:22.229908Z",
+    "updated_at": "2026-04-15T14:59:14.496606Z",
     "made_public_by_id": null,
     "embedding_params": null,
     "cache_ttl": null,
@@ -7455,14 +7237,14 @@
       "database": 2,
       "stages": [
         {
-          "native": "WITH settings AS (\n  SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url\n  FROM public.global_settings\n  WHERE key = 'n8n_base_url'\n), season_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key,\n    src.raw_member_id,\n    (SELECT n8n_base_url FROM settings) AS n8n_base_url,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS \"Name\",\n    src.\"Membership\" AS \"Current Membership\",\n    src.\"Email address\",\n    src.category AS current_category\n  FROM (\n    SELECT\n      m.id AS raw_member_id,\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = {{year}}\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n), prev_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key,\n    src.\"Membership\" AS \"Previous Membership\",\n    src.category AS previous_category\n  FROM (\n    SELECT\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = (({{year}})::int - 1)::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n)\nSELECT\n  c.raw_member_id,\n  c.n8n_base_url,\n  c.\"Name\",\n  p.\"Previous Membership\",\n  c.\"Current Membership\",\n  c.\"Email address\"\nFROM season_members c\nJOIN prev_members p\n  ON p.person_key = c.person_key\nWHERE c.current_category IS DISTINCT FROM p.previous_category\nORDER BY c.\"Name\";",
+          "native": "WITH season_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key,\n    src.current_category,\n    src.current_membership_group\n  FROM (\n    SELECT\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      p.category AS current_category,\n      COALESCE(g.signup_match_group, lower(trim(p.category))) AS current_membership_group,\n      m.id AS raw_member_id,\n      p.display_order,\n      m.\"Membership\"\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = ({{year}})::text\n    LEFT JOIN public.membership_signup_match_groups g\n      ON g.season = ({{year}})::text\n     AND g.package_name = p.name\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.display_order, src.\"Membership\"\n), prev_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key,\n    src.previous_category,\n    src.previous_membership_group\n  FROM (\n    SELECT\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      p.category AS previous_category,\n      COALESCE(g.signup_match_group, lower(trim(p.category))) AS previous_membership_group,\n      m.id AS raw_member_id,\n      p.display_order,\n      m.\"Membership\"\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = (({{year}})::int - 1)::text\n    LEFT JOIN public.membership_signup_match_groups g\n      ON g.season = (({{year}})::int - 1)::text\n     AND g.package_name = p.name\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.display_order, src.\"Membership\"\n)\nSELECT\n  ({{year}})::text AS filter_year,\n  p.previous_category AS \"Previous Category\",\n  c.current_category AS \"Current Category\",\n  COUNT(*)::int AS \"Count\"\nFROM season_members c\nJOIN prev_members p\n  ON p.member_identity_key = c.member_identity_key\nWHERE c.current_membership_group IS DISTINCT FROM p.previous_membership_group\nGROUP BY 1, 2, 3\nORDER BY 2, 3;\n",
           "lib/type": "mbql.stage/native",
           "template-tags": {
             "year": {
-              "name": "year",
-              "display-name": "Year",
               "type": "text",
               "id": "year",
+              "name": "year",
+              "display-name": "Year",
               "required": true
             }
           }
@@ -7481,68 +7263,52 @@
       "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
       "first_name": "codex",
       "last_name": "",
-      "timestamp": "2026-04-07T16:21:22.267249Z"
+      "timestamp": "2026-04-15T14:59:14.529547Z"
     },
     "visualization_settings": {
       "table.columns": [
         {
-          "name": "raw_member_id",
+          "name": "filter_year",
           "enabled": false
         },
         {
-          "name": "n8n_base_url",
-          "enabled": false
-        },
-        {
-          "name": "Email address",
-          "enabled": false
-        },
-        {
-          "name": "Name",
+          "name": "Previous Category",
           "enabled": true
         },
         {
-          "name": "Previous Membership",
+          "name": "Current Category",
           "enabled": true
         },
         {
-          "name": "Current Membership",
+          "name": "Count",
           "enabled": true
         }
       ],
       "table": {
         "columns": [
           {
-            "name": "raw_member_id",
+            "name": "filter_year",
             "enabled": false
           },
           {
-            "name": "n8n_base_url",
-            "enabled": false
-          },
-          {
-            "name": "Email address",
-            "enabled": false
-          },
-          {
-            "name": "Name",
+            "name": "Previous Category",
             "enabled": true
           },
           {
-            "name": "Previous Membership",
+            "name": "Current Category",
             "enabled": true
           },
           {
-            "name": "Current Membership",
+            "name": "Count",
             "enabled": true
           }
         ]
       },
       "column_settings": {
-        "[\"name\",\"Name\"]": {
+        "[\"name\",\"Count\"]": {
           "view_as": "link",
-          "link_url": "{{n8n_base_url}}/webhook/member-search-detail?member_id={{raw_member_id}}&member={{Name}}&membership={{Current Membership}}&email={{Email address}}",
-          "column_title": "Name"
+          "link_url": "/question/1636?year={{filter_year}}&previous_category={{Previous Category}}&current_category={{Current Category}}",
+          "column_title": "Count"
         }
       }
     },
@@ -7572,10 +7338,10 @@
     "public_uuid": null
   },
   {
-    "cache_invalidated_at": "2026-04-07T16:17:08.312616Z",
+    "cache_invalidated_at": "2026-04-15T14:51:07.311004Z",
     "description": null,
     "archived": false,
-    "view_count": 424,
+    "view_count": 437,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -7601,17 +7367,17 @@
         "display_name": "raw_member_id",
         "fingerprint": {
           "global": {
-            "distinct-count": 48,
+            "distinct-count": 34,
             "nil%": 0.0
           },
           "type": {
             "type/Number": {
-              "min": 2632.0,
-              "q1": 3133.5,
-              "q3": 5036.0,
+              "min": 2679.0,
+              "q1": 3033.0,
+              "q3": 5010.0,
               "max": 5118.0,
-              "sd": 983.8919236257032,
-              "avg": 4286.291666666667
+              "sd": 1001.0360123588039,
+              "avg": 4155.411764705882
             }
           }
         },
@@ -7674,7 +7440,7 @@
         "display_name": "Name",
         "fingerprint": {
           "global": {
-            "distinct-count": 48,
+            "distinct-count": 34,
             "nil%": 0.0
           },
           "type": {
@@ -7683,7 +7449,7 @@
               "percent-url": 0.0,
               "percent-email": 0.0,
               "percent-state": 0.0,
-              "average-length": 13.291666666666666
+              "average-length": 12.647058823529411
             }
           }
         },
@@ -7710,7 +7476,7 @@
         "display_name": "Membership",
         "fingerprint": {
           "global": {
-            "distinct-count": 7,
+            "distinct-count": 6,
             "nil%": 0.0
           },
           "type": {
@@ -7719,7 +7485,7 @@
               "percent-url": 0.0,
               "percent-email": 0.0,
               "percent-state": 0.0,
-              "average-length": 14.229166666666666
+              "average-length": 14.117647058823529
             }
           }
         },
@@ -7746,16 +7512,16 @@
         "display_name": "Email address",
         "fingerprint": {
           "global": {
-            "distinct-count": 29,
-            "nil%": 0.375
+            "distinct-count": 19,
+            "nil%": 0.4705882352941176
           },
           "type": {
             "type/Text": {
               "percent-json": 0.0,
               "percent-url": 0.0,
-              "percent-email": 0.625,
+              "percent-email": 0.5294117647058824,
               "percent-state": 0.0,
-              "average-length": 15.291666666666666
+              "average-length": 12.852941176470589
             }
           }
         },
@@ -7785,10 +7551,10 @@
     "query_type": "native",
     "name": "List of New Members - Selected Year",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:49.378079Z",
+    "last_used_at": "2026-04-15T14:59:13.491233Z",
     "type": "question",
     "creator_id": 13371339,
-    "updated_at": "2026-04-07T16:17:08.310787Z",
+    "updated_at": "2026-04-15T14:51:07.307876Z",
     "made_public_by_id": null,
     "embedding_params": null,
     "cache_ttl": null,
@@ -7798,13 +7564,13 @@
       "stages": [
         {
           "lib/type": "mbql.stage/native",
-          "native": "WITH settings AS (\n  SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url\n  FROM public.global_settings\n  WHERE key = 'n8n_base_url'\n), season_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key,\n    src.raw_member_id,\n    (SELECT n8n_base_url FROM settings) AS n8n_base_url,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS \"Name\",\n    src.\"Membership\",\n    src.\"Email address\"\n  FROM (\n    SELECT\n      m.id AS raw_member_id,\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = {{year}}\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n), prev_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key\n  FROM (\n    SELECT\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = (({{year}})::int - 1)::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n)\nSELECT\n  c.raw_member_id,\n  c.n8n_base_url,\n  c.\"Name\",\n  c.\"Membership\",\n  c.\"Email address\"\nFROM season_members c\nWHERE NOT EXISTS (\n  SELECT 1 FROM prev_members p WHERE p.person_key = c.person_key\n)\nORDER BY c.\"Name\";",
+          "native": "WITH settings AS (\n  SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url\n  FROM public.global_settings\n  WHERE key = 'n8n_base_url'\n), season_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key,\n    src.raw_member_id,\n    (SELECT n8n_base_url FROM settings) AS n8n_base_url,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS \"Name\",\n    src.\"Membership\",\n    src.\"Email address\"\n  FROM (\n    SELECT\n      m.id AS raw_member_id,\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = ({{year}})::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.display_order, src.\"Membership\"\n), prev_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key\n  FROM (\n    SELECT\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      m.id AS raw_member_id,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = (({{year}})::int - 1)::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.display_order, src.\"Membership\"\n)\nSELECT\n  c.raw_member_id,\n  c.n8n_base_url,\n  c.\"Name\",\n  c.\"Membership\",\n  c.\"Email address\"\nFROM season_members c\nWHERE NOT EXISTS (\n  SELECT 1 FROM prev_members p WHERE p.member_identity_key = c.member_identity_key\n)\nORDER BY c.\"Name\";\n",
           "template-tags": {
             "year": {
-              "display-name": "Year",
-              "type": "text",
               "id": "year",
               "name": "year",
+              "display-name": "Year",
+              "type": "text",
               "required": true
             }
           }
@@ -7823,7 +7589,7 @@
       "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
       "first_name": "codex",
       "last_name": "",
-      "timestamp": "2026-04-07T16:17:08.343202Z"
+      "timestamp": "2026-04-15T14:51:07.341482Z"
     },
     "visualization_settings": {
       "table.columns": [
@@ -8532,7 +8298,7 @@
     "cache_invalidated_at": "2026-04-07T09:03:51.961689Z",
     "description": "Year-over-year member signups by week: Mar 2025–Feb 2026 vs Mar 2026–Feb 2027, with cumulative totals",
     "archived": false,
-    "view_count": 180,
+    "view_count": 181,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -8782,7 +8548,7 @@
     "query_type": "native",
     "name": "Member Signups by date - YoY Comparison (Weekly)",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:38.534115Z",
+    "last_used_at": "2026-04-15T14:18:11.058521Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-07T09:03:51.960452Z",
@@ -8879,7 +8645,7 @@
     "cache_invalidated_at": "2026-03-30T16:34:50.754596Z",
     "description": null,
     "archived": false,
-    "view_count": 442,
+    "view_count": 443,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -8981,7 +8747,7 @@
     "query_type": "native",
     "name": "Members - Current Year",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:38.534115Z",
+    "last_used_at": "2026-04-15T14:18:11.058521Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-03-30T16:34:50.753397Z",
@@ -9075,7 +8841,7 @@
     "cache_invalidated_at": "2026-04-15T13:58:31.518665Z",
     "description": null,
     "archived": false,
-    "view_count": 436,
+    "view_count": 437,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -9214,7 +8980,7 @@
     "query_type": "native",
     "name": "Members - Previous Year",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:38.534115Z",
+    "last_used_at": "2026-04-15T14:18:11.058521Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-15T13:58:31.517591Z",
@@ -9306,7 +9072,7 @@
     "cache_invalidated_at": "2026-04-15T13:58:31.164439Z",
     "description": null,
     "archived": false,
-    "view_count": 439,
+    "view_count": 440,
     "collection_position": null,
     "source_card_id": null,
     "table_id": 14,
@@ -9445,7 +9211,7 @@
     "query_type": "native",
     "name": "Members by category",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:38.534115Z",
+    "last_used_at": "2026-04-15T14:18:11.058521Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-15T13:58:31.163393Z",
@@ -9945,10 +9711,208 @@
     "public_uuid": null
   },
   {
+    "cache_invalidated_at": "2026-04-15T14:59:14.788999Z",
+    "description": "Detail rows for changed membership categories. Intended as drill-through target from the summary card.",
+    "archived": false,
+    "view_count": 2,
+    "collection_position": null,
+    "source_card_id": null,
+    "table_id": null,
+    "result_metadata": null,
+    "embedding_type": null,
+    "dependency_analysis_version": 0,
+    "creator": {
+      "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+      "first_name": "codex",
+      "is_data_analyst": false,
+      "last_login": null,
+      "is_qbnewb": true,
+      "is_superuser": true,
+      "id": 13371339,
+      "last_name": "",
+      "tenant_id": null,
+      "date_joined": "2026-03-13T13:48:56.540625Z",
+      "common_name": "codex"
+    },
+    "initially_published_at": null,
+    "card_schema": 23,
+    "database_id": 2,
+    "enable_embedding": false,
+    "collection_id": 9,
+    "query_type": "native",
+    "name": "Members Who Changed Package - Current Year (Detail)",
+    "document_id": null,
+    "last_used_at": "2026-04-15T14:57:14.325133Z",
+    "type": "question",
+    "creator_id": 13371339,
+    "updated_at": "2026-04-15T14:59:14.783929Z",
+    "made_public_by_id": null,
+    "embedding_params": null,
+    "cache_ttl": null,
+    "dataset_query": {
+      "lib/type": "mbql/query",
+      "database": 2,
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "template-tags": {
+            "year": {
+              "type": "text",
+              "id": "year",
+              "name": "year",
+              "display-name": "Year",
+              "required": true
+            },
+            "previous_category": {
+              "type": "text",
+              "id": "previous_category",
+              "name": "previous_category",
+              "display-name": "Previous Category",
+              "required": false
+            },
+            "current_category": {
+              "type": "text",
+              "id": "current_category",
+              "name": "current_category",
+              "display-name": "Current Category",
+              "required": false
+            }
+          },
+          "native": "WITH settings AS (\n  SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url\n  FROM public.global_settings\n  WHERE key = 'n8n_base_url'\n), season_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key,\n    src.raw_member_id,\n    (SELECT n8n_base_url FROM settings) AS n8n_base_url,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS \"Name\",\n    src.\"Membership\" AS \"Current Membership\",\n    src.current_category,\n    src.\"Email address\",\n    src.current_membership_group\n  FROM (\n    SELECT\n      m.id AS raw_member_id,\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      m.*, p.category AS current_category, p.display_order,\n      COALESCE(g.signup_match_group, lower(trim(p.category))) AS current_membership_group\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = ({{year}})::text\n    LEFT JOIN public.membership_signup_match_groups g\n      ON g.season = ({{year}})::text\n     AND g.package_name = p.name\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.display_order, src.\"Membership\"\n), prev_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key,\n    src.\"Membership\" AS \"Previous Membership\",\n    src.previous_category,\n    src.previous_membership_group\n  FROM (\n    SELECT\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      m.id AS raw_member_id,\n      m.*, p.category AS previous_category, p.display_order,\n      COALESCE(g.signup_match_group, lower(trim(p.category))) AS previous_membership_group\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = (({{year}})::int - 1)::text\n    LEFT JOIN public.membership_signup_match_groups g\n      ON g.season = (({{year}})::int - 1)::text\n     AND g.package_name = p.name\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.display_order, src.\"Membership\"\n)\nSELECT\n  c.raw_member_id,\n  c.n8n_base_url,\n  ({{year}})::text AS filter_year,\n  c.\"Name\",\n  p.previous_category AS \"Previous Category\",\n  p.\"Previous Membership\",\n  c.current_category AS \"Current Category\",\n  c.\"Current Membership\",\n  c.\"Email address\"\nFROM season_members c\nJOIN prev_members p\n  ON p.member_identity_key = c.member_identity_key\nWHERE c.current_membership_group IS DISTINCT FROM p.previous_membership_group\n[[AND p.previous_category = {{previous_category}}]]\n[[AND c.current_category = {{current_category}}]]\nORDER BY c.\"Name\";\n"
+        }
+      ]
+    },
+    "id": 1636,
+    "legacy_query": null,
+    "parameter_mappings": [],
+    "display": "table",
+    "archived_directly": false,
+    "entity_id": "3IprXs6tBgy1fqsTvBlTR",
+    "collection_preview": true,
+    "last-edit-info": {
+      "id": 13371339,
+      "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+      "first_name": "codex",
+      "last_name": "",
+      "timestamp": "2026-04-15T14:59:14.816451Z"
+    },
+    "visualization_settings": {
+      "table.columns": [
+        {
+          "name": "raw_member_id",
+          "enabled": false
+        },
+        {
+          "name": "n8n_base_url",
+          "enabled": false
+        },
+        {
+          "name": "filter_year",
+          "enabled": false
+        },
+        {
+          "name": "Email address",
+          "enabled": false
+        },
+        {
+          "name": "Name",
+          "enabled": true
+        },
+        {
+          "name": "Previous Category",
+          "enabled": true
+        },
+        {
+          "name": "Previous Membership",
+          "enabled": true
+        },
+        {
+          "name": "Current Category",
+          "enabled": true
+        },
+        {
+          "name": "Current Membership",
+          "enabled": true
+        }
+      ],
+      "table": {
+        "columns": [
+          {
+            "name": "raw_member_id",
+            "enabled": false
+          },
+          {
+            "name": "n8n_base_url",
+            "enabled": false
+          },
+          {
+            "name": "filter_year",
+            "enabled": false
+          },
+          {
+            "name": "Email address",
+            "enabled": false
+          },
+          {
+            "name": "Name",
+            "enabled": true
+          },
+          {
+            "name": "Previous Category",
+            "enabled": true
+          },
+          {
+            "name": "Previous Membership",
+            "enabled": true
+          },
+          {
+            "name": "Current Category",
+            "enabled": true
+          },
+          {
+            "name": "Current Membership",
+            "enabled": true
+          }
+        ]
+      },
+      "column_settings": {
+        "[\"name\",\"Name\"]": {
+          "view_as": "link",
+          "link_url": "{{n8n_base_url}}/webhook/member-search-detail?member_id={{raw_member_id}}&member={{Name}}&membership={{Current Membership}}&email={{Email address}}",
+          "column_title": "Name"
+        }
+      }
+    },
+    "collection": {
+      "authority_level": null,
+      "description": null,
+      "archived": false,
+      "workspace_id": null,
+      "slug": "avondale",
+      "archive_operation_id": null,
+      "name": "Avondale",
+      "is_remote_synced": false,
+      "personal_owner_id": null,
+      "type": null,
+      "is_sample": false,
+      "id": 9,
+      "archived_directly": null,
+      "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+      "location": "/",
+      "namespace": null,
+      "created_at": "2025-03-31T12:14:21.977075Z"
+    },
+    "metabase_version": "v0.59.2.5 (0d6bac3)",
+    "parameters": [],
+    "dashboard_id": null,
+    "created_at": "2026-04-15T14:56:24.636393Z",
+    "public_uuid": null
+  },
+  {
     "cache_invalidated_at": "2026-03-22T11:07:55.12163Z",
     "description": null,
     "archived": false,
-    "view_count": 438,
+    "view_count": 439,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -10494,7 +10458,7 @@
     "query_type": "native",
     "name": "Membership History Last 10 Years",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:38.534115Z",
+    "last_used_at": "2026-04-15T14:18:11.058521Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-03-22T11:07:55.120563Z",
@@ -10574,7 +10538,7 @@
     "cache_invalidated_at": "2026-03-30T14:06:44.651277Z",
     "description": null,
     "archived": false,
-    "view_count": 435,
+    "view_count": 436,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -11120,7 +11084,7 @@
     "query_type": "native",
     "name": "Membership History Last 10 Years - Table",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:38.534115Z",
+    "last_used_at": "2026-04-15T14:18:11.058521Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-03-30T14:06:44.650052Z",
@@ -11414,7 +11378,7 @@
     "cache_invalidated_at": "2026-04-09T08:29:47.03719Z",
     "description": null,
     "archived": false,
-    "view_count": 427,
+    "view_count": 439,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -11825,7 +11789,7 @@
     "query_type": "native",
     "name": "Most Recent Signups",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:49.378079Z",
+    "last_used_at": "2026-04-15T14:59:13.491233Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-09T08:29:47.035974Z",
@@ -11958,7 +11922,7 @@
     "cache_invalidated_at": "2026-03-16T15:29:46.56273Z",
     "description": null,
     "archived": false,
-    "view_count": 138,
+    "view_count": 139,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -11984,7 +11948,7 @@
         "display_name": "workflow_name",
         "fingerprint": {
           "global": {
-            "distinct-count": 39,
+            "distinct-count": 40,
             "nil%": 0.0
           },
           "type": {
@@ -11993,7 +11957,7 @@
               "percent-url": 0.0,
               "percent-email": 0.0,
               "percent-state": 0.0,
-              "average-length": 24.428571428571427
+              "average-length": 24.526315789473685
             }
           }
         },
@@ -12029,7 +11993,7 @@
               "percent-url": 0.0,
               "percent-email": 0.0,
               "percent-state": 0.0,
-              "average-length": 6.464285714285714
+              "average-length": 6.473684210526316
             }
           }
         },
@@ -12056,17 +12020,17 @@
         "display_name": "execution_count",
         "fingerprint": {
           "global": {
-            "distinct-count": 36,
+            "distinct-count": 35,
             "nil%": 0.0
           },
           "type": {
             "type/Number": {
               "min": 1.0,
-              "q1": 3.4721359549995796,
-              "q3": 51.0,
+              "q1": 3.55,
+              "q3": 49.25,
               "max": 657.0,
-              "sd": 131.59962894196298,
-              "avg": 69.21428571428571
+              "sd": 130.7256017671882,
+              "avg": 68.50877192982456
             }
           }
         },
@@ -12093,13 +12057,13 @@
         "display_name": "latest_execution_at",
         "fingerprint": {
           "global": {
-            "distinct-count": 56,
+            "distinct-count": 57,
             "nil%": 0.0
           },
           "type": {
             "type/DateTime": {
-              "earliest": "2026-04-01T14:46:30.598Z",
-              "latest": "2026-04-15T14:03:07.99Z"
+              "earliest": "2026-04-03T08:00:21.9Z",
+              "latest": "2026-04-15T14:50:40.15Z"
             }
           }
         },
@@ -12129,7 +12093,7 @@
     "query_type": "native",
     "name": "n8n Executions by Workflow and Status",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:14:31.16842Z",
+    "last_used_at": "2026-04-15T14:51:07.057991Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-03-16T15:29:46.561658Z",
@@ -12190,7 +12154,7 @@
     "cache_invalidated_at": null,
     "description": "Active n8n GET webhooks that return HTML forms, including inferred form parameter names.",
     "archived": false,
-    "view_count": 1,
+    "view_count": 2,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -12399,7 +12363,7 @@
     "query_type": "native",
     "name": "n8n HTML Form Webhooks",
     "document_id": null,
-    "last_used_at": "2026-04-14T18:14:29.355879Z",
+    "last_used_at": "2026-04-15T14:51:03.862538Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-14T18:12:24.046248Z",
@@ -12495,7 +12459,7 @@
     "cache_invalidated_at": "2026-03-30T14:06:43.104691Z",
     "description": null,
     "archived": false,
-    "view_count": 139,
+    "view_count": 140,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -12526,12 +12490,12 @@
           },
           "type": {
             "type/Number": {
-              "min": 7300.0,
-              "q1": 7324.5,
-              "q3": 7374.5,
-              "max": 7399.0,
+              "min": 7329.0,
+              "q1": 7353.5,
+              "q3": 7403.5,
+              "max": 7428.0,
               "sd": 29.008358252146028,
-              "avg": 7349.5
+              "avg": 7378.5
             }
           }
         },
@@ -12558,7 +12522,7 @@
         "display_name": "workflow_name",
         "fingerprint": {
           "global": {
-            "distinct-count": 11,
+            "distinct-count": 17,
             "nil%": 0.0
           },
           "type": {
@@ -12567,7 +12531,7 @@
               "percent-url": 0.0,
               "percent-email": 0.0,
               "percent-state": 0.0,
-              "average-length": 24.89
+              "average-length": 24.12
             }
           }
         },
@@ -12603,7 +12567,7 @@
               "percent-url": 0.0,
               "percent-email": 0.0,
               "percent-state": 0.0,
-              "average-length": 6.7
+              "average-length": 6.78
             }
           }
         },
@@ -12639,7 +12603,7 @@
               "percent-url": 0.0,
               "percent-email": 0.0,
               "percent-state": 0.0,
-              "average-length": 8.88
+              "average-length": 8.4
             }
           }
         },
@@ -12671,8 +12635,8 @@
           },
           "type": {
             "type/DateTime": {
-              "earliest": "2026-04-15T03:15:00.021Z",
-              "latest": "2026-04-15T14:03:07.99Z"
+              "earliest": "2026-04-15T07:15:02.352Z",
+              "latest": "2026-04-15T14:50:40.15Z"
             }
           }
         },
@@ -12704,8 +12668,8 @@
           },
           "type": {
             "type/DateTime": {
-              "earliest": "2026-04-15T03:15:01.54Z",
-              "latest": "2026-04-15T14:03:08.088Z"
+              "earliest": "2026-04-15T07:15:02.491Z",
+              "latest": "2026-04-15T14:50:40.534Z"
             }
           }
         },
@@ -12732,17 +12696,17 @@
         "display_name": "duration_seconds",
         "fingerprint": {
           "global": {
-            "distinct-count": 73,
+            "distinct-count": 58,
             "nil%": 0.0
           },
           "type": {
             "type/Number": {
               "min": 0.0,
-              "q1": 0.7,
-              "q3": 104.77096320981282,
-              "max": 293.0,
-              "sd": 77.25338559519449,
-              "avg": 61.001000000000005
+              "q1": 0.22426406871192847,
+              "q3": 47.65,
+              "max": 278.9,
+              "sd": 70.02038412440547,
+              "avg": 41.30699999999999
             }
           }
         },
@@ -12772,7 +12736,7 @@
     "query_type": "native",
     "name": "n8n Recent Executions",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:14:31.16842Z",
+    "last_used_at": "2026-04-15T14:51:07.057991Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-03-30T14:06:43.103478Z",
@@ -16592,7 +16556,7 @@
     "cache_invalidated_at": "2026-04-10T11:14:02.032056Z",
     "description": null,
     "archived": false,
-    "view_count": 381,
+    "view_count": 382,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -16862,11 +16826,11 @@
           "type": {
             "type/Number": {
               "min": 2.0,
-              "q1": 24.0,
+              "q1": 25.0,
               "q3": 84.0,
               "max": 97.0,
-              "sd": 35.95552808679077,
-              "avg": 53.0
+              "sd": 35.796182291784504,
+              "avg": 53.166666666666664
             }
           }
         },
@@ -16936,11 +16900,11 @@
           "type": {
             "type/Number": {
               "min": 2.0,
-              "q1": 24.0,
+              "q1": 25.0,
               "q3": 84.0,
               "max": 97.0,
-              "sd": 36.11463230695651,
-              "avg": 53.666666666666664
+              "sd": 35.952283191289354,
+              "avg": 53.833333333333336
             }
           }
         },
@@ -16973,11 +16937,11 @@
           "type": {
             "type/Number": {
               "min": 2.0,
-              "q1": 22.0,
+              "q1": 23.0,
               "q3": 78.0,
               "max": 86.0,
-              "sd": 32.98282381280698,
-              "avg": 49.333333333333336
+              "sd": 32.819201696567816,
+              "avg": 49.5
             }
           }
         },
@@ -17084,11 +17048,11 @@
           "type": {
             "type/Number": {
               "min": 2.0,
-              "q1": 24.0,
+              "q1": 25.0,
               "q3": 83.0,
               "max": 96.0,
-              "sd": 35.7659055526349,
-              "avg": 53.0
+              "sd": 35.605711152379286,
+              "avg": 53.166666666666664
             }
           }
         },
@@ -17118,7 +17082,7 @@
     "query_type": "native",
     "name": "Signup Batches",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:15:08.458323Z",
+    "last_used_at": "2026-04-15T14:20:11.170632Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-10T11:14:02.030533Z",
@@ -17344,7 +17308,7 @@
     "cache_invalidated_at": null,
     "description": null,
     "archived": false,
-    "view_count": 417,
+    "view_count": 429,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -17412,11 +17376,11 @@
           "type": {
             "type/Number": {
               "min": 90.0,
-              "q1": 96.75,
-              "q3": 118.25,
-              "max": 140.0,
-              "sd": 17.125586538443414,
-              "avg": 108.57142857142857
+              "q1": 97.0,
+              "q3": 119.0,
+              "max": 141.0,
+              "sd": 17.46424919657298,
+              "avg": 109.0
             }
           }
         },
@@ -17446,7 +17410,7 @@
     "query_type": "native",
     "name": "Signups - by day of week",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:49.378079Z",
+    "last_used_at": "2026-04-15T14:59:13.491233Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-03-16T15:09:13.617844Z",
@@ -17499,7 +17463,7 @@
     "cache_invalidated_at": null,
     "description": null,
     "archived": false,
-    "view_count": 417,
+    "view_count": 429,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -17562,17 +17526,17 @@
         "display_name": "count",
         "fingerprint": {
           "global": {
-            "distinct-count": 17,
+            "distinct-count": 18,
             "nil%": 0.0
           },
           "type": {
             "type/Number": {
               "min": 3.0,
-              "q1": 22.75,
+              "q1": 23.0,
               "q3": 52.25,
               "max": 77.0,
-              "sd": 21.905750495290153,
-              "avg": 36.19047619047619
+              "sd": 21.721724916160166,
+              "avg": 36.333333333333336
             }
           }
         },
@@ -17602,7 +17566,7 @@
     "query_type": "native",
     "name": "Signups - by hour of day",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:12:49.378079Z",
+    "last_used_at": "2026-04-15T14:59:13.491233Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-03-16T15:09:13.716885Z",

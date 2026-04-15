@@ -2,7 +2,7 @@
   "cache_invalidated_at": "2026-03-30T14:06:43.104691Z",
   "description": null,
   "archived": false,
-  "view_count": 139,
+  "view_count": 140,
   "collection_position": null,
   "source_card_id": null,
   "table_id": null,
@@ -34,12 +34,12 @@
         },
         "type": {
           "type/Number": {
-            "min": 7300.0,
-            "q1": 7324.5,
-            "q3": 7374.5,
-            "max": 7399.0,
+            "min": 7329.0,
+            "q1": 7353.5,
+            "q3": 7403.5,
+            "max": 7428.0,
             "sd": 29.008358252146028,
-            "avg": 7349.5
+            "avg": 7378.5
           }
         }
       },
@@ -66,7 +66,7 @@
       "display_name": "workflow_name",
       "fingerprint": {
         "global": {
-          "distinct-count": 11,
+          "distinct-count": 17,
           "nil%": 0.0
         },
         "type": {
@@ -75,7 +75,7 @@
             "percent-url": 0.0,
             "percent-email": 0.0,
             "percent-state": 0.0,
-            "average-length": 24.89
+            "average-length": 24.12
           }
         }
       },
@@ -111,7 +111,7 @@
             "percent-url": 0.0,
             "percent-email": 0.0,
             "percent-state": 0.0,
-            "average-length": 6.7
+            "average-length": 6.78
           }
         }
       },
@@ -147,7 +147,7 @@
             "percent-url": 0.0,
             "percent-email": 0.0,
             "percent-state": 0.0,
-            "average-length": 8.88
+            "average-length": 8.4
           }
         }
       },
@@ -179,8 +179,8 @@
         },
         "type": {
           "type/DateTime": {
-            "earliest": "2026-04-15T03:15:00.021Z",
-            "latest": "2026-04-15T14:03:07.99Z"
+            "earliest": "2026-04-15T07:15:02.352Z",
+            "latest": "2026-04-15T14:50:40.15Z"
           }
         }
       },
@@ -212,8 +212,8 @@
         },
         "type": {
           "type/DateTime": {
-            "earliest": "2026-04-15T03:15:01.54Z",
-            "latest": "2026-04-15T14:03:08.088Z"
+            "earliest": "2026-04-15T07:15:02.491Z",
+            "latest": "2026-04-15T14:50:40.534Z"
           }
         }
       },
@@ -240,17 +240,17 @@
       "display_name": "duration_seconds",
       "fingerprint": {
         "global": {
-          "distinct-count": 73,
+          "distinct-count": 58,
           "nil%": 0.0
         },
         "type": {
           "type/Number": {
             "min": 0.0,
-            "q1": 0.7,
-            "q3": 104.77096320981282,
-            "max": 293.0,
-            "sd": 77.25338559519449,
-            "avg": 61.001000000000005
+            "q1": 0.22426406871192847,
+            "q3": 47.65,
+            "max": 278.9,
+            "sd": 70.02038412440547,
+            "avg": 41.30699999999999
           }
         }
       },
@@ -280,14 +280,14 @@
   "collection_id": 9,
   "query_type": "native",
   "name": "n8n Recent Executions",
-  "last_query_start": "2026-04-15T14:14:31.145693Z",
+  "last_query_start": "2026-04-15T14:51:07.051033Z",
   "is_remote_synced": false,
   "dashboard_count": 1,
   "document_id": null,
-  "last_used_at": "2026-04-15T14:14:31.16842Z",
+  "last_used_at": "2026-04-15T14:51:07.057991Z",
   "dashboard": null,
   "type": "question",
-  "average_query_time": 40.4852941176470588,
+  "average_query_time": 40.4233576642335766,
   "creator_id": 13371339,
   "can_restore": false,
   "moderation_reviews": [],

@@ -1,0 +1,211 @@
+{
+  "cache_invalidated_at": "2026-04-15T14:59:14.788999Z",
+  "description": "Detail rows for changed membership categories. Intended as drill-through target from the summary card.",
+  "archived": false,
+  "view_count": 2,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": null,
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Members Who Changed Package - Current Year (Detail)",
+  "last_query_start": "2026-04-15T14:57:14.320898Z",
+  "is_remote_synced": false,
+  "dashboard_count": 0,
+  "document_id": null,
+  "last_used_at": "2026-04-15T14:57:14.325133Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 20.0000000000000000,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-15T14:59:14.783929Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "template-tags": {
+          "year": {
+            "type": "text",
+            "id": "year",
+            "name": "year",
+            "display-name": "Year",
+            "required": true
+          },
+          "previous_category": {
+            "type": "text",
+            "id": "previous_category",
+            "name": "previous_category",
+            "display-name": "Previous Category",
+            "required": false
+          },
+          "current_category": {
+            "type": "text",
+            "id": "current_category",
+            "name": "current_category",
+            "display-name": "Current Category",
+            "required": false
+          }
+        },
+        "native": "WITH settings AS (\n  SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url\n  FROM public.global_settings\n  WHERE key = 'n8n_base_url'\n), season_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key,\n    src.raw_member_id,\n    (SELECT n8n_base_url FROM settings) AS n8n_base_url,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS \"Name\",\n    src.\"Membership\" AS \"Current Membership\",\n    src.current_category,\n    src.\"Email address\",\n    src.current_membership_group\n  FROM (\n    SELECT\n      m.id AS raw_member_id,\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      m.*, p.category AS current_category, p.display_order,\n      COALESCE(g.signup_match_group, lower(trim(p.category))) AS current_membership_group\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = ({{year}})::text\n    LEFT JOIN public.membership_signup_match_groups g\n      ON g.season = ({{year}})::text\n     AND g.package_name = p.name\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.display_order, src.\"Membership\"\n), prev_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key,\n    src.\"Membership\" AS \"Previous Membership\",\n    src.previous_category,\n    src.previous_membership_group\n  FROM (\n    SELECT\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      m.id AS raw_member_id,\n      m.*, p.category AS previous_category, p.display_order,\n      COALESCE(g.signup_match_group, lower(trim(p.category))) AS previous_membership_group\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = (({{year}})::int - 1)::text\n    LEFT JOIN public.membership_signup_match_groups g\n      ON g.season = (({{year}})::int - 1)::text\n     AND g.package_name = p.name\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.display_order, src.\"Membership\"\n)\nSELECT\n  c.raw_member_id,\n  c.n8n_base_url,\n  ({{year}})::text AS filter_year,\n  c.\"Name\",\n  p.previous_category AS \"Previous Category\",\n  p.\"Previous Membership\",\n  c.current_category AS \"Current Category\",\n  c.\"Current Membership\",\n  c.\"Email address\"\nFROM season_members c\nJOIN prev_members p\n  ON p.member_identity_key = c.member_identity_key\nWHERE c.current_membership_group IS DISTINCT FROM p.previous_membership_group\n[[AND p.previous_category = {{previous_category}}]]\n[[AND c.current_category = {{current_category}}]]\nORDER BY c.\"Name\";\n"
+      }
+    ]
+  },
+  "id": 1636,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "3IprXs6tBgy1fqsTvBlTR",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-15T14:59:14.816451Z"
+  },
+  "visualization_settings": {
+    "table.columns": [
+      {
+        "name": "raw_member_id",
+        "enabled": false
+      },
+      {
+        "name": "n8n_base_url",
+        "enabled": false
+      },
+      {
+        "name": "filter_year",
+        "enabled": false
+      },
+      {
+        "name": "Email address",
+        "enabled": false
+      },
+      {
+        "name": "Name",
+        "enabled": true
+      },
+      {
+        "name": "Previous Category",
+        "enabled": true
+      },
+      {
+        "name": "Previous Membership",
+        "enabled": true
+      },
+      {
+        "name": "Current Category",
+        "enabled": true
+      },
+      {
+        "name": "Current Membership",
+        "enabled": true
+      }
+    ],
+    "table": {
+      "columns": [
+        {
+          "name": "raw_member_id",
+          "enabled": false
+        },
+        {
+          "name": "n8n_base_url",
+          "enabled": false
+        },
+        {
+          "name": "filter_year",
+          "enabled": false
+        },
+        {
+          "name": "Email address",
+          "enabled": false
+        },
+        {
+          "name": "Name",
+          "enabled": true
+        },
+        {
+          "name": "Previous Category",
+          "enabled": true
+        },
+        {
+          "name": "Previous Membership",
+          "enabled": true
+        },
+        {
+          "name": "Current Category",
+          "enabled": true
+        },
+        {
+          "name": "Current Membership",
+          "enabled": true
+        }
+      ]
+    },
+    "column_settings": {
+      "[\"name\",\"Name\"]": {
+        "view_as": "link",
+        "link_url": "{{n8n_base_url}}/webhook/member-search-detail?member_id={{raw_member_id}}&member={{Name}}&membership={{Current Membership}}&email={{Email address}}",
+        "column_title": "Name"
+      }
+    }
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-04-15T14:56:24.636393Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

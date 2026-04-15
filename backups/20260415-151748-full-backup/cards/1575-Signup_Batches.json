@@ -2,7 +2,7 @@
   "cache_invalidated_at": "2026-04-10T11:14:02.032056Z",
   "description": null,
   "archived": false,
-  "view_count": 381,
+  "view_count": 382,
   "collection_position": null,
   "source_card_id": null,
   "table_id": null,
@@ -273,11 +273,11 @@
         "type": {
           "type/Number": {
             "min": 2.0,
-            "q1": 24.0,
+            "q1": 25.0,
             "q3": 84.0,
             "max": 97.0,
-            "sd": 35.95552808679077,
-            "avg": 53.0
+            "sd": 35.796182291784504,
+            "avg": 53.166666666666664
           }
         }
       },
@@ -347,11 +347,11 @@
         "type": {
           "type/Number": {
             "min": 2.0,
-            "q1": 24.0,
+            "q1": 25.0,
             "q3": 84.0,
             "max": 97.0,
-            "sd": 36.11463230695651,
-            "avg": 53.666666666666664
+            "sd": 35.952283191289354,
+            "avg": 53.833333333333336
           }
         }
       },
@@ -384,11 +384,11 @@
         "type": {
           "type/Number": {
             "min": 2.0,
-            "q1": 22.0,
+            "q1": 23.0,
             "q3": 78.0,
             "max": 86.0,
-            "sd": 32.98282381280698,
-            "avg": 49.333333333333336
+            "sd": 32.819201696567816,
+            "avg": 49.5
           }
         }
       },
@@ -495,11 +495,11 @@
         "type": {
           "type/Number": {
             "min": 2.0,
-            "q1": 24.0,
+            "q1": 25.0,
             "q3": 83.0,
             "max": 96.0,
-            "sd": 35.7659055526349,
-            "avg": 53.0
+            "sd": 35.605711152379286,
+            "avg": 53.166666666666664
           }
         }
       },
@@ -529,14 +529,14 @@
   "collection_id": 9,
   "query_type": "native",
   "name": "Signup Batches",
-  "last_query_start": "2026-04-15T14:15:08.4538Z",
+  "last_query_start": "2026-04-15T14:20:11.165819Z",
   "is_remote_synced": false,
   "dashboard_count": 1,
   "document_id": null,
-  "last_used_at": "2026-04-15T14:15:08.458323Z",
+  "last_used_at": "2026-04-15T14:20:11.170632Z",
   "dashboard": null,
   "type": "question",
-  "average_query_time": 3278.6460176991150442,
+  "average_query_time": 3280.9294117647058824,
   "creator_id": 13371339,
   "can_restore": false,
   "moderation_reviews": [],

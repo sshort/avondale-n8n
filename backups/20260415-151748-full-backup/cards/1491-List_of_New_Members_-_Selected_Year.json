@@ -1,8 +1,8 @@
 {
-  "cache_invalidated_at": "2026-04-07T16:17:08.312616Z",
+  "cache_invalidated_at": "2026-04-15T14:51:07.311004Z",
   "description": null,
   "archived": false,
-  "view_count": 424,
+  "view_count": 437,
   "collection_position": null,
   "source_card_id": null,
   "table_id": null,
@@ -29,17 +29,17 @@
       "display_name": "raw_member_id",
       "fingerprint": {
         "global": {
-          "distinct-count": 48,
+          "distinct-count": 34,
           "nil%": 0.0
         },
         "type": {
           "type/Number": {
-            "min": 2632.0,
-            "q1": 3133.5,
-            "q3": 5036.0,
+            "min": 2679.0,
+            "q1": 3033.0,
+            "q3": 5010.0,
             "max": 5118.0,
-            "sd": 983.8919236257032,
-            "avg": 4286.291666666667
+            "sd": 1001.0360123588039,
+            "avg": 4155.411764705882
           }
         }
       },
@@ -102,7 +102,7 @@
       "display_name": "Name",
       "fingerprint": {
         "global": {
-          "distinct-count": 48,
+          "distinct-count": 34,
           "nil%": 0.0
         },
         "type": {
@@ -111,7 +111,7 @@
             "percent-url": 0.0,
             "percent-email": 0.0,
             "percent-state": 0.0,
-            "average-length": 13.291666666666666
+            "average-length": 12.647058823529411
           }
         }
       },
@@ -138,7 +138,7 @@
       "display_name": "Membership",
       "fingerprint": {
         "global": {
-          "distinct-count": 7,
+          "distinct-count": 6,
           "nil%": 0.0
         },
         "type": {
@@ -147,7 +147,7 @@
             "percent-url": 0.0,
             "percent-email": 0.0,
             "percent-state": 0.0,
-            "average-length": 14.229166666666666
+            "average-length": 14.117647058823529
           }
         }
       },
@@ -174,16 +174,16 @@
       "display_name": "Email address",
       "fingerprint": {
         "global": {
-          "distinct-count": 29,
-          "nil%": 0.375
+          "distinct-count": 19,
+          "nil%": 0.4705882352941176
         },
         "type": {
           "type/Text": {
             "percent-json": 0.0,
             "percent-url": 0.0,
-            "percent-email": 0.625,
+            "percent-email": 0.5294117647058824,
             "percent-state": 0.0,
-            "average-length": 15.291666666666666
+            "average-length": 12.852941176470589
           }
         }
       },
@@ -213,18 +213,18 @@
   "collection_id": 9,
   "query_type": "native",
   "name": "List of New Members - Selected Year",
-  "last_query_start": "2026-04-15T14:12:49.29111Z",
+  "last_query_start": "2026-04-15T14:59:13.358579Z",
   "is_remote_synced": false,
   "dashboard_count": 1,
   "document_id": null,
-  "last_used_at": "2026-04-15T14:12:49.378079Z",
+  "last_used_at": "2026-04-15T14:59:13.491233Z",
   "dashboard": null,
   "type": "question",
-  "average_query_time": 89.3944020356234097,
+  "average_query_time": 88.0415647921760391,
   "creator_id": 13371339,
   "can_restore": false,
   "moderation_reviews": [],
-  "updated_at": "2026-04-07T16:17:08.310787Z",
+  "updated_at": "2026-04-15T14:51:07.307876Z",
   "made_public_by_id": null,
   "embedding_params": null,
   "cache_ttl": null,
@@ -234,13 +234,13 @@
     "stages": [
       {
         "lib/type": "mbql.stage/native",
-        "native": "WITH settings AS (\n  SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url\n  FROM public.global_settings\n  WHERE key = 'n8n_base_url'\n), season_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key,\n    src.raw_member_id,\n    (SELECT n8n_base_url FROM settings) AS n8n_base_url,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS \"Name\",\n    src.\"Membership\",\n    src.\"Email address\"\n  FROM (\n    SELECT\n      m.id AS raw_member_id,\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = {{year}}\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n), prev_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key\n  FROM (\n    SELECT\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = (({{year}})::int - 1)::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n)\nSELECT\n  c.raw_member_id,\n  c.n8n_base_url,\n  c.\"Name\",\n  c.\"Membership\",\n  c.\"Email address\"\nFROM season_members c\nWHERE NOT EXISTS (\n  SELECT 1 FROM prev_members p WHERE p.person_key = c.person_key\n)\nORDER BY c.\"Name\";",
+        "native": "WITH settings AS (\n  SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url\n  FROM public.global_settings\n  WHERE key = 'n8n_base_url'\n), season_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key,\n    src.raw_member_id,\n    (SELECT n8n_base_url FROM settings) AS n8n_base_url,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS \"Name\",\n    src.\"Membership\",\n    src.\"Email address\"\n  FROM (\n    SELECT\n      m.id AS raw_member_id,\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = ({{year}})::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.display_order, src.\"Membership\"\n), prev_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key\n  FROM (\n    SELECT\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      m.id AS raw_member_id,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = (({{year}})::int - 1)::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.display_order, src.\"Membership\"\n)\nSELECT\n  c.raw_member_id,\n  c.n8n_base_url,\n  c.\"Name\",\n  c.\"Membership\",\n  c.\"Email address\"\nFROM season_members c\nWHERE NOT EXISTS (\n  SELECT 1 FROM prev_members p WHERE p.member_identity_key = c.member_identity_key\n)\nORDER BY c.\"Name\";\n",
         "template-tags": {
           "year": {
-            "display-name": "Year",
-            "type": "text",
             "id": "year",
             "name": "year",
+            "display-name": "Year",
+            "type": "text",
             "required": true
           }
         }
@@ -260,7 +260,7 @@
     "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
     "first_name": "codex",
     "last_name": "",
-    "timestamp": "2026-04-07T16:17:08.343202Z"
+    "timestamp": "2026-04-15T14:51:07.341482Z"
   },
   "visualization_settings": {
     "table.columns": [

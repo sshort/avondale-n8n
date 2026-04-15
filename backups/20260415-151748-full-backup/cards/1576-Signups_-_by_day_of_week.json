@@ -2,7 +2,7 @@
   "cache_invalidated_at": null,
   "description": null,
   "archived": false,
-  "view_count": 417,
+  "view_count": 429,
   "collection_position": null,
   "source_card_id": null,
   "table_id": null,
@@ -71,11 +71,11 @@
         "type": {
           "type/Number": {
             "min": 90.0,
-            "q1": 96.75,
-            "q3": 118.25,
-            "max": 140.0,
-            "sd": 17.125586538443414,
-            "avg": 108.57142857142857
+            "q1": 97.0,
+            "q3": 119.0,
+            "max": 141.0,
+            "sd": 17.46424919657298,
+            "avg": 109.0
           }
         }
       },
@@ -105,14 +105,14 @@
   "collection_id": null,
   "query_type": "native",
   "name": "Signups - by day of week",
-  "last_query_start": "2026-04-15T14:12:48.822187Z",
+  "last_query_start": "2026-04-15T14:59:12.946295Z",
   "is_remote_synced": false,
   "dashboard_count": 1,
   "document_id": null,
-  "last_used_at": "2026-04-15T14:12:49.378079Z",
+  "last_used_at": "2026-04-15T14:59:13.491233Z",
   "dashboard": null,
   "type": "question",
-  "average_query_time": 84.3573141486810552,
+  "average_query_time": 83.5524475524475524,
   "creator_id": 13371339,
   "can_restore": false,
   "moderation_reviews": [],

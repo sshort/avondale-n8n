@@ -2,7 +2,7 @@
   "cache_invalidated_at": null,
   "description": null,
   "archived": false,
-  "view_count": 417,
+  "view_count": 429,
   "collection_position": null,
   "source_card_id": null,
   "table_id": null,
@@ -66,17 +66,17 @@
       "display_name": "count",
       "fingerprint": {
         "global": {
-          "distinct-count": 17,
+          "distinct-count": 18,
           "nil%": 0.0
         },
         "type": {
           "type/Number": {
             "min": 3.0,
-            "q1": 22.75,
+            "q1": 23.0,
             "q3": 52.25,
             "max": 77.0,
-            "sd": 21.905750495290153,
-            "avg": 36.19047619047619
+            "sd": 21.721724916160166,
+            "avg": 36.333333333333336
           }
         }
       },
@@ -106,14 +106,14 @@
   "collection_id": null,
   "query_type": "native",
   "name": "Signups - by hour of day",
-  "last_query_start": "2026-04-15T14:12:48.930949Z",
+  "last_query_start": "2026-04-15T14:59:13.054927Z",
   "is_remote_synced": false,
   "dashboard_count": 1,
   "document_id": null,
-  "last_used_at": "2026-04-15T14:12:49.378079Z",
+  "last_used_at": "2026-04-15T14:59:13.491233Z",
   "dashboard": null,
   "type": "question",
-  "average_query_time": 82.7865707434052758,
+  "average_query_time": 81.7972027972027972,
   "creator_id": 13371339,
   "can_restore": false,
   "moderation_reviews": [],

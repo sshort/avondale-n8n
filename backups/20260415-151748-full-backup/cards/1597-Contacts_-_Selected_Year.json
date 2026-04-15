@@ -2,7 +2,7 @@
   "cache_invalidated_at": "2026-04-13T08:15:28.236438Z",
   "description": null,
   "archived": false,
-  "view_count": 582,
+  "view_count": 588,
   "collection_position": null,
   "source_card_id": null,
   "table_id": 14,
@@ -29,17 +29,17 @@
       "display_name": "raw_member_id",
       "fingerprint": {
         "global": {
-          "distinct-count": 2,
+          "distinct-count": 1,
           "nil%": 0.0
         },
         "type": {
           "type/Number": {
-            "min": 4990.0,
-            "q1": 4990.0,
-            "q3": 5103.0,
-            "max": 5103.0,
-            "sd": 79.90306627407988,
-            "avg": 5046.5
+            "min": 5048.0,
+            "q1": 5048.0,
+            "q3": 5048.0,
+            "max": 5048.0,
+            "sd": null,
+            "avg": 5048.0
           }
         }
       },
@@ -138,7 +138,7 @@
       "display_name": "Name",
       "fingerprint": {
         "global": {
-          "distinct-count": 2,
+          "distinct-count": 1,
           "nil%": 0.0
         },
         "type": {
@@ -147,7 +147,7 @@
             "percent-url": 0.0,
             "percent-email": 0.0,
             "percent-state": 0.0,
-            "average-length": 13.5
+            "average-length": 10.0
           }
         }
       },
@@ -174,7 +174,7 @@
       "display_name": "First name",
       "fingerprint": {
         "global": {
-          "distinct-count": 2,
+          "distinct-count": 1,
           "nil%": 0.0
         },
         "type": {
@@ -183,7 +183,7 @@
             "percent-url": 0.0,
             "percent-email": 0.0,
             "percent-state": 0.0,
-            "average-length": 7.5
+            "average-length": 4.0
           }
         }
       },
@@ -246,7 +246,7 @@
       "display_name": "Membership",
       "fingerprint": {
         "global": {
-          "distinct-count": 2,
+          "distinct-count": 1,
           "nil%": 0.0
         },
         "type": {
@@ -255,7 +255,7 @@
             "percent-url": 0.0,
             "percent-email": 0.0,
             "percent-state": 0.0,
-            "average-length": 17.5
+            "average-length": 14.0
           }
         }
       },
@@ -291,7 +291,7 @@
             "percent-url": 0.0,
             "percent-email": 0.0,
             "percent-state": 0.0,
-            "average-length": 5.0
+            "average-length": 6.0
           }
         }
       },
@@ -318,7 +318,7 @@
       "display_name": "Email address",
       "fingerprint": {
         "global": {
-          "distinct-count": 2,
+          "distinct-count": 1,
           "nil%": 0.0
         },
         "type": {
@@ -327,7 +327,7 @@
             "percent-url": 0.0,
             "percent-email": 1.0,
             "percent-state": 0.0,
-            "average-length": 26.0
+            "average-length": 19.0
           }
         }
       },
@@ -390,8 +390,8 @@
       "display_name": "Mobile number",
       "fingerprint": {
         "global": {
-          "distinct-count": 2,
-          "nil%": 0.5
+          "distinct-count": 1,
+          "nil%": 0.0
         },
         "type": {
           "type/Text": {
@@ -399,7 +399,7 @@
             "percent-url": 0.0,
             "percent-email": 0.0,
             "percent-state": 0.0,
-            "average-length": 6.0
+            "average-length": 11.0
           }
         }
       },
@@ -429,14 +429,14 @@
   "collection_id": null,
   "query_type": "native",
   "name": "Contacts - Selected Year",
-  "last_query_start": "2026-04-15T13:44:07.536115Z",
+  "last_query_start": "2026-04-15T14:27:48.324987Z",
   "is_remote_synced": false,
   "dashboard_count": 1,
   "document_id": null,
-  "last_used_at": "2026-04-15T13:44:07.545677Z",
+  "last_used_at": "2026-04-15T14:27:48.334103Z",
   "dashboard": null,
   "type": "question",
-  "average_query_time": 94.2908163265306122,
+  "average_query_time": 93.7003367003367003,
   "creator_id": 13371339,
   "can_restore": false,
   "moderation_reviews": [],

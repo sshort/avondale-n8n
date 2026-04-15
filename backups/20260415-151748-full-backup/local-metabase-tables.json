@@ -3297,7 +3297,7 @@
     "caveats": null,
     "owner_email": null,
     "transform_id": null,
-    "updated_at": "2026-04-15T13:33:00.097705Z",
+    "updated_at": "2026-04-15T14:33:00.111992Z",
     "is_published": false,
     "owner_user_id": null,
     "active": true,
@@ -3314,7 +3314,7 @@
     "display_name": "Execution Data",
     "data_layer": "internal",
     "created_at": "2026-03-16T15:33:00.877066Z",
-    "estimated_row_count": 3874,
+    "estimated_row_count": 3903,
     "points_of_interest": null
   },
   {
@@ -3455,7 +3455,7 @@
     "caveats": null,
     "owner_email": null,
     "transform_id": null,
-    "updated_at": "2026-04-15T13:33:00.079941Z",
+    "updated_at": "2026-04-15T14:33:00.09267Z",
     "is_published": false,
     "owner_user_id": null,
     "active": true,
@@ -3472,7 +3472,7 @@
     "display_name": "Execution Entity",
     "data_layer": "internal",
     "created_at": "2026-03-16T15:33:00.777052Z",
-    "estimated_row_count": 3874,
+    "estimated_row_count": 3903,
     "points_of_interest": null
   },
   {
@@ -4403,7 +4403,7 @@
     "caveats": null,
     "owner_email": null,
     "transform_id": null,
-    "updated_at": "2026-04-15T13:33:00.092887Z",
+    "updated_at": "2026-04-15T14:33:00.10262Z",
     "is_published": false,
     "owner_user_id": null,
     "active": true,
@@ -4420,7 +4420,7 @@
     "display_name": "Insights By Period",
     "data_layer": "internal",
     "created_at": "2026-03-16T15:33:00.102029Z",
-    "estimated_row_count": 6661,
+    "estimated_row_count": 6673,
     "points_of_interest": null
   },
   {
@@ -4719,7 +4719,7 @@
     "caveats": null,
     "owner_email": null,
     "transform_id": null,
-    "updated_at": "2026-04-15T12:33:00.091083Z",
+    "updated_at": "2026-04-15T14:33:00.097547Z",
     "is_published": false,
     "owner_user_id": null,
     "active": true,
@@ -4736,7 +4736,7 @@
     "display_name": "Insights Raw",
     "data_layer": "internal",
     "created_at": "2026-03-16T15:33:00.531689Z",
-    "estimated_row_count": 9,
+    "estimated_row_count": 72,
     "points_of_interest": null
   },
   {
@@ -5667,7 +5667,7 @@
     "caveats": null,
     "owner_email": null,
     "transform_id": null,
-    "updated_at": "2026-04-15T12:33:00.101021Z",
+    "updated_at": "2026-04-15T14:33:00.121643Z",
     "is_published": false,
     "owner_user_id": null,
     "active": true,
@@ -5684,7 +5684,7 @@
     "display_name": "Member Signups",
     "data_layer": "final",
     "created_at": "2025-03-27T09:48:24.138738Z",
-    "estimated_row_count": 760,
+    "estimated_row_count": 763,
     "points_of_interest": null
   },
   {
@@ -6457,7 +6457,7 @@
     "caveats": null,
     "owner_email": null,
     "transform_id": null,
-    "updated_at": "2026-04-12T09:33:02.272997Z",
+    "updated_at": "2026-04-15T14:33:00.086773Z",
     "is_published": false,
     "owner_user_id": null,
     "active": true,
@@ -6474,7 +6474,7 @@
     "display_name": "Membership History Snapshots",
     "data_layer": "internal",
     "created_at": "2026-03-22T11:33:00.063967Z",
-    "estimated_row_count": 10,
+    "estimated_row_count": 11,
     "points_of_interest": null
   },
   {
@@ -8827,7 +8827,7 @@
     "caveats": null,
     "owner_email": null,
     "transform_id": null,
-    "updated_at": "2026-04-15T06:33:00.094413Z",
+    "updated_at": "2026-04-15T14:33:00.107262Z",
     "is_published": false,
     "owner_user_id": null,
     "active": true,
@@ -8844,7 +8844,7 @@
     "display_name": "Raw Contacts Historical",
     "data_layer": "internal",
     "created_at": "2026-03-13T15:33:00.16272Z",
-    "estimated_row_count": 1247,
+    "estimated_row_count": 1249,
     "points_of_interest": null
   },
   {
@@ -10091,7 +10091,7 @@
     "caveats": null,
     "owner_email": null,
     "transform_id": null,
-    "updated_at": "2026-04-12T09:33:02.272997Z",
+    "updated_at": "2026-04-15T14:33:00.081284Z",
     "is_published": false,
     "owner_user_id": null,
     "active": true,
@@ -10108,7 +10108,7 @@
     "display_name": "Raw Members Main Contacts",
     "data_layer": "internal",
     "created_at": "2026-03-30T13:33:00.129836Z",
-    "estimated_row_count": 913,
+    "estimated_row_count": 931,
     "points_of_interest": null
   },
   {
@@ -10249,7 +10249,7 @@
     "caveats": null,
     "owner_email": null,
     "transform_id": null,
-    "updated_at": "2026-04-12T09:33:02.272997Z",
+    "updated_at": "2026-04-15T14:33:00.135714Z",
     "is_published": false,
     "owner_user_id": null,
     "active": true,
@@ -10266,7 +10266,7 @@
     "display_name": "Raw Members Main Contacts Import Staging",
     "data_layer": "internal",
     "created_at": "2026-03-30T13:33:00.383904Z",
-    "estimated_row_count": 913,
+    "estimated_row_count": 586,
     "points_of_interest": null
   },
   {
@@ -10565,7 +10565,7 @@
     "caveats": null,
     "owner_email": null,
     "transform_id": null,
-    "updated_at": "2026-04-15T13:33:00.11204Z",
+    "updated_at": "2026-04-15T14:33:00.130681Z",
     "is_published": false,
     "owner_user_id": null,
     "active": true,
@@ -10582,7 +10582,7 @@
     "display_name": "Raw Reconcile Match Audit",
     "data_layer": "internal",
     "created_at": "2026-03-27T12:33:00.118367Z",
-    "estimated_row_count": 915225,
+    "estimated_row_count": 918921,
     "points_of_interest": null
   },
   {
@@ -18149,7 +18149,7 @@
     "caveats": null,
     "owner_email": null,
     "transform_id": null,
-    "updated_at": "2026-04-15T13:33:00.102729Z",
+    "updated_at": "2026-04-15T14:33:00.11693Z",
     "is_published": false,
     "owner_user_id": null,
     "active": true,
@@ -18166,7 +18166,7 @@
     "display_name": "Workflow History",
     "data_layer": "internal",
     "created_at": "2026-03-16T15:33:00.460551Z",
-    "estimated_row_count": 72,
+    "estimated_row_count": 70,
     "points_of_interest": null
   },
   {
@@ -18465,7 +18465,7 @@
     "caveats": null,
     "owner_email": null,
     "transform_id": null,
-    "updated_at": "2026-04-15T13:33:00.107335Z",
+    "updated_at": "2026-04-15T14:33:00.126086Z",
     "is_published": false,
     "owner_user_id": null,
     "active": true,
@@ -18482,7 +18482,7 @@
     "display_name": "Workflow Statistics",
     "data_layer": "internal",
     "created_at": "2026-03-16T15:33:00.475086Z",
-    "estimated_row_count": 131,
+    "estimated_row_count": 134,
     "points_of_interest": null
   },
   {

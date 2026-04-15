@@ -1,8 +1,8 @@
 {
-  "cache_invalidated_at": "2026-03-30T16:35:43.869288Z",
+  "cache_invalidated_at": "2026-04-15T14:51:07.600345Z",
   "description": null,
   "archived": false,
-  "view_count": 418,
+  "view_count": 430,
   "collection_position": null,
   "source_card_id": null,
   "table_id": null,
@@ -34,12 +34,12 @@
         },
         "type": {
           "type/Number": {
-            "min": 48.0,
-            "q1": 48.0,
-            "q3": 48.0,
-            "max": 48.0,
+            "min": 34.0,
+            "q1": 34.0,
+            "q3": 34.0,
+            "max": 34.0,
             "sd": null,
-            "avg": 48.0
+            "avg": 34.0
           }
         }
       },
@@ -69,18 +69,18 @@
   "collection_id": 9,
   "query_type": "native",
   "name": "Count of New Members - Current Year",
-  "last_query_start": "2026-04-15T14:12:49.171162Z",
+  "last_query_start": "2026-04-15T14:59:13.163909Z",
   "is_remote_synced": false,
   "dashboard_count": 1,
   "document_id": null,
-  "last_used_at": "2026-04-15T14:12:49.378079Z",
+  "last_used_at": "2026-04-15T14:59:13.491233Z",
   "dashboard": null,
   "type": "question",
-  "average_query_time": 68.4639175257731959,
+  "average_query_time": 67.6907730673316708,
   "creator_id": 13371339,
   "can_restore": false,
   "moderation_reviews": [],
-  "updated_at": "2026-03-30T16:35:43.866859Z",
+  "updated_at": "2026-04-15T14:51:07.59679Z",
   "made_public_by_id": null,
   "embedding_params": null,
   "cache_ttl": null,
@@ -89,14 +89,14 @@
     "database": 2,
     "stages": [
       {
-        "native": "WITH season_members AS (\n    SELECT DISTINCT ON (person_key)\n      person_key,\n      trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS full_name,\n      src.\"Venue ID\",\n      src.\"British Tennis Number\",\n      src.\"First name\",\n      src.\"Last name\",\n      src.\"Membership\",\n      src.category,\n      src.\"Email address\",\n      src.\"Postcode\",\n      src.\"Payment\",\n      src.\"Status\",\n      src.\"Start Date\",\n      src.\"Expiry Date\"\n    FROM (\n      SELECT\n        COALESCE(\n          NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n          NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n          'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n        ) AS person_key,\n        m.*, p.category, p.display_order\n      FROM public.raw_members m\n      JOIN public.membership_packages p\n        ON m.\"Membership\" = p.name\n       AND p.season = {{year}}\n      WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n        AND m.\"Payment\" IN ('Paid', 'Part Paid')\n    ) src\n    ORDER BY person_key, src.display_order, src.\"Membership\"\n  ), prev_members AS (\n    SELECT DISTINCT ON (person_key)\n      person_key,\n      trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS full_name,\n      src.\"Venue ID\",\n      src.\"British Tennis Number\",\n      src.\"First name\",\n      src.\"Last name\",\n      src.\"Membership\",\n      src.category,\n      src.\"Email address\",\n      src.\"Postcode\",\n      src.\"Payment\",\n      src.\"Status\",\n      src.\"Start Date\",\n      src.\"Expiry Date\"\n    FROM (\n      SELECT\n        COALESCE(\n          NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n          NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n          'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n        ) AS person_key,\n        m.*, p.category, p.display_order\n      FROM public.raw_members m\n      JOIN public.membership_packages p\n        ON m.\"Membership\" = p.name\n       AND p.season = (({{year}})::int - 1)::text\n      WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n        AND m.\"Payment\" IN ('Paid', 'Part Paid')\n    ) src\n    ORDER BY person_key, src.display_order, src.\"Membership\"\n  )\nSELECT COUNT(*)\nFROM season_members c\nWHERE NOT EXISTS (\n  SELECT 1 FROM prev_members p WHERE p.person_key = c.person_key\n);",
         "lib/type": "mbql.stage/native",
+        "native": "WITH season_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key\n  FROM (\n    SELECT\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      m.id AS raw_member_id,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = ({{year}})::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.display_order, src.\"Membership\"\n), prev_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key\n  FROM (\n    SELECT\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      m.id AS raw_member_id,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = (({{year}})::int - 1)::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.display_order, src.\"Membership\"\n)\nSELECT COUNT(*)\nFROM season_members c\nWHERE NOT EXISTS (\n  SELECT 1 FROM prev_members p WHERE p.member_identity_key = c.member_identity_key\n);\n",
         "template-tags": {
           "year": {
+            "id": "year",
             "name": "year",
             "display-name": "Year",
             "type": "text",
-            "id": "year",
             "required": true
           }
         }
@@ -112,11 +112,11 @@
   "entity_id": "tpx4XSEqrrif_nupObG7p",
   "collection_preview": true,
   "last-edit-info": {
-    "id": 1,
-    "email": "steve@shortcentral.com",
-    "first_name": "Steve",
-    "last_name": "Short",
-    "timestamp": "2026-03-30T16:35:43.896137Z"
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-15T14:51:07.624868Z"
   },
   "visualization_settings": {
     "table.pivot_column": "name",
