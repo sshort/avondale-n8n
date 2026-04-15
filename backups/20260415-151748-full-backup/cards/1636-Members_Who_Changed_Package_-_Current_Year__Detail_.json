@@ -2,12 +2,338 @@
   "cache_invalidated_at": "2026-04-15T14:59:14.788999Z",
   "description": "Detail rows for changed membership categories. Intended as drill-through target from the summary card.",
   "archived": false,
-  "view_count": 2,
+  "view_count": 4,
   "collection_position": null,
   "source_card_id": null,
   "table_id": null,
   "can_run_adhoc_query": true,
-  "result_metadata": null,
+  "result_metadata": [
+    {
+      "database_type": "bigserial",
+      "semantic_type": null,
+      "lib/deduplicated-name": "raw_member_id",
+      "lib/original-name": "raw_member_id",
+      "name": "raw_member_id",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "raw_member_id",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "raw_member_id",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "raw_member_id",
+      "display_name": "raw_member_id",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 3260.0,
+            "q1": 3709.5,
+            "q3": 5058.75,
+            "max": 5059.0,
+            "sd": 1038.364579519159,
+            "avg": 4459.0
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": "type/URL",
+      "lib/deduplicated-name": "n8n_base_url",
+      "lib/original-name": "n8n_base_url",
+      "name": "n8n_base_url",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "n8n_base_url",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "n8n_base_url",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "n8n_base_url",
+      "display_name": "n8n_base_url",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 1.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 34.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "filter_year",
+      "lib/original-name": "filter_year",
+      "name": "filter_year",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "filter_year",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "filter_year",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "filter_year",
+      "display_name": "filter_year",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 4.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": "type/Name",
+      "lib/deduplicated-name": "Name",
+      "lib/original-name": "Name",
+      "name": "Name",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Name",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Name",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Name",
+      "display_name": "Name",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 15.333333333333334
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Previous Category",
+      "lib/original-name": "Previous Category",
+      "name": "Previous Category",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Previous Category",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Previous Category",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Previous Category",
+      "display_name": "Previous Category",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 8.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Previous Membership",
+      "lib/original-name": "Previous Membership",
+      "name": "Previous Membership",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Previous Membership",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Previous Membership",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Previous Membership",
+      "display_name": "Previous Membership",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 16.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Current Category",
+      "lib/original-name": "Current Category",
+      "name": "Current Category",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Current Category",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Current Category",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Current Category",
+      "display_name": "Current Category",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 6.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Current Membership",
+      "lib/original-name": "Current Membership",
+      "name": "Current Membership",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Current Membership",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Current Membership",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Current Membership",
+      "display_name": "Current Membership",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 14.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Email address",
+      "lib/original-name": "Email address",
+      "name": "Email address",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Email address",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Email address",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Email address",
+      "display_name": "Email address",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 1.0,
+            "percent-state": 0.0,
+            "average-length": 20.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    }
+  ],
   "embedding_type": null,
   "dependency_analysis_version": 0,
   "creator": {
@@ -31,14 +357,14 @@
   "collection_id": 9,
   "query_type": "native",
   "name": "Members Who Changed Package - Current Year (Detail)",
-  "last_query_start": "2026-04-15T14:57:14.320898Z",
+  "last_query_start": "2026-04-15T15:02:16.865287Z",
   "is_remote_synced": false,
   "dashboard_count": 0,
   "document_id": null,
-  "last_used_at": "2026-04-15T14:57:14.325133Z",
+  "last_used_at": "2026-04-15T15:02:16.870627Z",
   "dashboard": null,
   "type": "question",
-  "average_query_time": 20.0000000000000000,
+  "average_query_time": 28.6666666666666667,
   "creator_id": 13371339,
   "can_restore": false,
   "moderation_reviews": [],

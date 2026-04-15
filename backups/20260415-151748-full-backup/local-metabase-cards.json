@@ -2253,7 +2253,7 @@
     "cache_invalidated_at": "2026-04-15T14:41:09.904895Z",
     "description": null,
     "archived": false,
-    "view_count": 394,
+    "view_count": 397,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -2319,7 +2319,7 @@
     "query_type": "native",
     "name": "Count of Members Missing Signup Email",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:59:13.491233Z",
+    "last_used_at": "2026-04-15T15:02:20.181532Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-15T14:41:09.90376Z",
@@ -2391,7 +2391,7 @@
     "cache_invalidated_at": "2026-03-30T16:35:59.13354Z",
     "description": null,
     "archived": false,
-    "view_count": 431,
+    "view_count": 434,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -2457,7 +2457,7 @@
     "query_type": "native",
     "name": "Count of Members Not Renewed - Current Year",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:59:13.491233Z",
+    "last_used_at": "2026-04-15T15:02:20.181532Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-03-30T16:35:59.131695Z",
@@ -2551,7 +2551,7 @@
     "cache_invalidated_at": "2026-04-15T14:51:07.600345Z",
     "description": null,
     "archived": false,
-    "view_count": 430,
+    "view_count": 433,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -2617,7 +2617,7 @@
     "query_type": "native",
     "name": "Count of New Members - Current Year",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:59:13.491233Z",
+    "last_used_at": "2026-04-15T15:02:20.181532Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-15T14:51:07.59679Z",
@@ -3230,7 +3230,7 @@
     "cache_invalidated_at": "2026-03-26T15:34:47.81352Z",
     "description": null,
     "archived": false,
-    "view_count": 439,
+    "view_count": 442,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -3932,7 +3932,7 @@
     "query_type": "native",
     "name": "Current Members - Selected Year (Map)",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:59:13.491233Z",
+    "last_used_at": "2026-04-15T15:02:20.181532Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-03-26T15:34:47.81182Z",
@@ -6294,7 +6294,7 @@
     "cache_invalidated_at": "2026-04-15T14:41:10.085902Z",
     "description": null,
     "archived": false,
-    "view_count": 399,
+    "view_count": 402,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -6682,7 +6682,7 @@
     "query_type": "native",
     "name": "List of Members Missing Signup Email",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:59:13.491233Z",
+    "last_used_at": "2026-04-15T15:02:20.181532Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-15T14:41:10.083269Z",
@@ -6805,7 +6805,7 @@
     "cache_invalidated_at": "2026-04-07T16:17:07.160057Z",
     "description": null,
     "archived": false,
-    "view_count": 438,
+    "view_count": 441,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -7051,7 +7051,7 @@
     "query_type": "native",
     "name": "List of Members Not Renewed - Current Year",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:59:13.491233Z",
+    "last_used_at": "2026-04-15T15:02:20.181532Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-07T16:17:07.156077Z",
@@ -7194,154 +7194,10 @@
     "public_uuid": null
   },
   {
-    "cache_invalidated_at": "2026-04-15T14:59:14.498397Z",
-    "description": "Summary of members whose category changed from previous season to current season. Click Count to drill into members for that category pair.",
-    "archived": false,
-    "view_count": 399,
-    "collection_position": null,
-    "source_card_id": null,
-    "table_id": null,
-    "result_metadata": null,
-    "embedding_type": null,
-    "dependency_analysis_version": 0,
-    "creator": {
-      "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
-      "first_name": "codex",
-      "is_data_analyst": false,
-      "last_login": null,
-      "is_qbnewb": true,
-      "is_superuser": true,
-      "id": 13371339,
-      "last_name": "",
-      "tenant_id": null,
-      "date_joined": "2026-03-13T13:48:56.540625Z",
-      "common_name": "codex"
-    },
-    "initially_published_at": null,
-    "card_schema": 23,
-    "database_id": 2,
-    "enable_embedding": false,
-    "collection_id": 9,
-    "query_type": "native",
-    "name": "List of Members Who Changed Package - Current Year",
-    "document_id": null,
-    "last_used_at": "2026-04-15T14:59:13.491233Z",
-    "type": "question",
-    "creator_id": 13371339,
-    "updated_at": "2026-04-15T14:59:14.496606Z",
-    "made_public_by_id": null,
-    "embedding_params": null,
-    "cache_ttl": null,
-    "dataset_query": {
-      "lib/type": "mbql/query",
-      "database": 2,
-      "stages": [
-        {
-          "native": "WITH season_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key,\n    src.current_category,\n    src.current_membership_group\n  FROM (\n    SELECT\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      p.category AS current_category,\n      COALESCE(g.signup_match_group, lower(trim(p.category))) AS current_membership_group,\n      m.id AS raw_member_id,\n      p.display_order,\n      m.\"Membership\"\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = ({{year}})::text\n    LEFT JOIN public.membership_signup_match_groups g\n      ON g.season = ({{year}})::text\n     AND g.package_name = p.name\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.display_order, src.\"Membership\"\n), prev_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key,\n    src.previous_category,\n    src.previous_membership_group\n  FROM (\n    SELECT\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      p.category AS previous_category,\n      COALESCE(g.signup_match_group, lower(trim(p.category))) AS previous_membership_group,\n      m.id AS raw_member_id,\n      p.display_order,\n      m.\"Membership\"\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = (({{year}})::int - 1)::text\n    LEFT JOIN public.membership_signup_match_groups g\n      ON g.season = (({{year}})::int - 1)::text\n     AND g.package_name = p.name\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.display_order, src.\"Membership\"\n)\nSELECT\n  ({{year}})::text AS filter_year,\n  p.previous_category AS \"Previous Category\",\n  c.current_category AS \"Current Category\",\n  COUNT(*)::int AS \"Count\"\nFROM season_members c\nJOIN prev_members p\n  ON p.member_identity_key = c.member_identity_key\nWHERE c.current_membership_group IS DISTINCT FROM p.previous_membership_group\nGROUP BY 1, 2, 3\nORDER BY 2, 3;\n",
-          "lib/type": "mbql.stage/native",
-          "template-tags": {
-            "year": {
-              "type": "text",
-              "id": "year",
-              "name": "year",
-              "display-name": "Year",
-              "required": true
-            }
-          }
-        }
-      ]
-    },
-    "id": 1607,
-    "legacy_query": null,
-    "parameter_mappings": [],
-    "display": "table",
-    "archived_directly": false,
-    "entity_id": "Uo5GKUSmIViMhAfkTRxnI",
-    "collection_preview": true,
-    "last-edit-info": {
-      "id": 13371339,
-      "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
-      "first_name": "codex",
-      "last_name": "",
-      "timestamp": "2026-04-15T14:59:14.529547Z"
-    },
-    "visualization_settings": {
-      "table.columns": [
-        {
-          "name": "filter_year",
-          "enabled": false
-        },
-        {
-          "name": "Previous Category",
-          "enabled": true
-        },
-        {
-          "name": "Current Category",
-          "enabled": true
-        },
-        {
-          "name": "Count",
-          "enabled": true
-        }
-      ],
-      "table": {
-        "columns": [
-          {
-            "name": "filter_year",
-            "enabled": false
-          },
-          {
-            "name": "Previous Category",
-            "enabled": true
-          },
-          {
-            "name": "Current Category",
-            "enabled": true
-          },
-          {
-            "name": "Count",
-            "enabled": true
-          }
-        ]
-      },
-      "column_settings": {
-        "[\"name\",\"Count\"]": {
-          "view_as": "link",
-          "link_url": "/question/1636?year={{filter_year}}&previous_category={{Previous Category}}&current_category={{Current Category}}",
-          "column_title": "Count"
-        }
-      }
-    },
-    "collection": {
-      "authority_level": null,
-      "description": null,
-      "archived": false,
-      "workspace_id": null,
-      "slug": "avondale",
-      "archive_operation_id": null,
-      "name": "Avondale",
-      "is_remote_synced": false,
-      "personal_owner_id": null,
-      "type": null,
-      "is_sample": false,
-      "id": 9,
-      "archived_directly": null,
-      "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
-      "location": "/",
-      "namespace": null,
-      "created_at": "2025-03-31T12:14:21.977075Z"
-    },
-    "metabase_version": "v0.59.2.5 (0d6bac3)",
-    "parameters": [],
-    "dashboard_id": null,
-    "created_at": "2026-03-22T11:45:19.964272Z",
-    "public_uuid": null
-  },
-  {
     "cache_invalidated_at": "2026-04-15T14:51:07.311004Z",
     "description": null,
     "archived": false,
-    "view_count": 437,
+    "view_count": 440,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -7551,7 +7407,7 @@
     "query_type": "native",
     "name": "List of New Members - Selected Year",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:59:13.491233Z",
+    "last_used_at": "2026-04-15T15:02:20.181532Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-15T14:51:07.307876Z",
@@ -9711,10 +9567,10 @@
     "public_uuid": null
   },
   {
-    "cache_invalidated_at": "2026-04-15T14:59:14.788999Z",
-    "description": "Detail rows for changed membership categories. Intended as drill-through target from the summary card.",
+    "cache_invalidated_at": "2026-04-15T15:05:51.064181Z",
+    "description": "Summary of members whose category changed from previous season to current season. Click Count to drill into members for that category pair.",
     "archived": false,
-    "view_count": 2,
+    "view_count": 402,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -9740,9 +9596,479 @@
     "enable_embedding": false,
     "collection_id": 9,
     "query_type": "native",
+    "name": "Members Who Changed Package - Current Year",
+    "document_id": null,
+    "last_used_at": "2026-04-15T15:02:20.181532Z",
+    "type": "question",
+    "creator_id": 13371339,
+    "updated_at": "2026-04-15T15:05:51.062905Z",
+    "made_public_by_id": null,
+    "embedding_params": null,
+    "cache_ttl": null,
+    "dataset_query": {
+      "lib/type": "mbql/query",
+      "database": 2,
+      "stages": [
+        {
+          "native": "WITH season_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key,\n    src.current_category,\n    src.current_membership_group\n  FROM (\n    SELECT\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      p.category AS current_category,\n      COALESCE(g.signup_match_group, lower(trim(p.category))) AS current_membership_group,\n      m.id AS raw_member_id,\n      p.display_order,\n      m.\"Membership\"\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = ({{year}})::text\n    LEFT JOIN public.membership_signup_match_groups g\n      ON g.season = ({{year}})::text\n     AND g.package_name = p.name\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.display_order, src.\"Membership\"\n), prev_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key,\n    src.previous_category,\n    src.previous_membership_group\n  FROM (\n    SELECT\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      p.category AS previous_category,\n      COALESCE(g.signup_match_group, lower(trim(p.category))) AS previous_membership_group,\n      m.id AS raw_member_id,\n      p.display_order,\n      m.\"Membership\"\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = (({{year}})::int - 1)::text\n    LEFT JOIN public.membership_signup_match_groups g\n      ON g.season = (({{year}})::int - 1)::text\n     AND g.package_name = p.name\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.display_order, src.\"Membership\"\n)\nSELECT\n  ({{year}})::text AS filter_year,\n  p.previous_category AS \"Previous Category\",\n  c.current_category AS \"Current Category\",\n  COUNT(*)::int AS \"Count\"\nFROM season_members c\nJOIN prev_members p\n  ON p.member_identity_key = c.member_identity_key\nWHERE c.current_membership_group IS DISTINCT FROM p.previous_membership_group\nGROUP BY 1, 2, 3\nORDER BY 2, 3;\n",
+          "lib/type": "mbql.stage/native",
+          "template-tags": {
+            "year": {
+              "type": "text",
+              "id": "year",
+              "name": "year",
+              "display-name": "Year",
+              "required": true
+            }
+          }
+        }
+      ]
+    },
+    "id": 1607,
+    "legacy_query": null,
+    "parameter_mappings": [],
+    "display": "table",
+    "archived_directly": false,
+    "entity_id": "Uo5GKUSmIViMhAfkTRxnI",
+    "collection_preview": true,
+    "last-edit-info": {
+      "id": 13371339,
+      "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+      "first_name": "codex",
+      "last_name": "",
+      "timestamp": "2026-04-15T15:05:51.091501Z"
+    },
+    "visualization_settings": {
+      "table.columns": [
+        {
+          "name": "filter_year",
+          "enabled": false
+        },
+        {
+          "name": "Previous Category",
+          "enabled": true
+        },
+        {
+          "name": "Current Category",
+          "enabled": true
+        },
+        {
+          "name": "Count",
+          "enabled": true
+        }
+      ],
+      "table": {
+        "columns": [
+          {
+            "name": "filter_year",
+            "enabled": false
+          },
+          {
+            "name": "Previous Category",
+            "enabled": true
+          },
+          {
+            "name": "Current Category",
+            "enabled": true
+          },
+          {
+            "name": "Count",
+            "enabled": true
+          }
+        ]
+      },
+      "column_settings": {
+        "[\"name\",\"Count\"]": {
+          "view_as": "link",
+          "link_url": "/question/1636?year={{filter_year}}&previous_category={{Previous Category}}&current_category={{Current Category}}",
+          "column_title": "Count"
+        }
+      }
+    },
+    "collection": {
+      "authority_level": null,
+      "description": null,
+      "archived": false,
+      "workspace_id": null,
+      "slug": "avondale",
+      "archive_operation_id": null,
+      "name": "Avondale",
+      "is_remote_synced": false,
+      "personal_owner_id": null,
+      "type": null,
+      "is_sample": false,
+      "id": 9,
+      "archived_directly": null,
+      "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+      "location": "/",
+      "namespace": null,
+      "created_at": "2025-03-31T12:14:21.977075Z"
+    },
+    "metabase_version": "v0.59.2.5 (0d6bac3)",
+    "parameters": [],
+    "dashboard_id": null,
+    "created_at": "2026-03-22T11:45:19.964272Z",
+    "public_uuid": null
+  },
+  {
+    "cache_invalidated_at": "2026-04-15T14:59:14.788999Z",
+    "description": "Detail rows for changed membership categories. Intended as drill-through target from the summary card.",
+    "archived": false,
+    "view_count": 4,
+    "collection_position": null,
+    "source_card_id": null,
+    "table_id": null,
+    "result_metadata": [
+      {
+        "database_type": "bigserial",
+        "semantic_type": null,
+        "lib/deduplicated-name": "raw_member_id",
+        "lib/original-name": "raw_member_id",
+        "name": "raw_member_id",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "raw_member_id",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "raw_member_id",
+          {
+            "base-type": "type/BigInteger"
+          }
+        ],
+        "effective_type": "type/BigInteger",
+        "lib/desired-column-alias": "raw_member_id",
+        "display_name": "raw_member_id",
+        "fingerprint": {
+          "global": {
+            "distinct-count": 3,
+            "nil%": 0.0
+          },
+          "type": {
+            "type/Number": {
+              "min": 3260.0,
+              "q1": 3709.5,
+              "q3": 5058.75,
+              "max": 5059.0,
+              "sd": 1038.364579519159,
+              "avg": 4459.0
+            }
+          }
+        },
+        "base_type": "type/BigInteger"
+      },
+      {
+        "database_type": "text",
+        "semantic_type": "type/URL",
+        "lib/deduplicated-name": "n8n_base_url",
+        "lib/original-name": "n8n_base_url",
+        "name": "n8n_base_url",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "n8n_base_url",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "n8n_base_url",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "n8n_base_url",
+        "display_name": "n8n_base_url",
+        "fingerprint": {
+          "global": {
+            "distinct-count": 1,
+            "nil%": 0.0
+          },
+          "type": {
+            "type/Text": {
+              "percent-json": 0.0,
+              "percent-url": 1.0,
+              "percent-email": 0.0,
+              "percent-state": 0.0,
+              "average-length": 34.0
+            }
+          }
+        },
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "semantic_type": null,
+        "lib/deduplicated-name": "filter_year",
+        "lib/original-name": "filter_year",
+        "name": "filter_year",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "filter_year",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "filter_year",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "filter_year",
+        "display_name": "filter_year",
+        "fingerprint": {
+          "global": {
+            "distinct-count": 1,
+            "nil%": 0.0
+          },
+          "type": {
+            "type/Text": {
+              "percent-json": 0.0,
+              "percent-url": 0.0,
+              "percent-email": 0.0,
+              "percent-state": 0.0,
+              "average-length": 4.0
+            }
+          }
+        },
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "semantic_type": "type/Name",
+        "lib/deduplicated-name": "Name",
+        "lib/original-name": "Name",
+        "name": "Name",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Name",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Name",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Name",
+        "display_name": "Name",
+        "fingerprint": {
+          "global": {
+            "distinct-count": 3,
+            "nil%": 0.0
+          },
+          "type": {
+            "type/Text": {
+              "percent-json": 0.0,
+              "percent-url": 0.0,
+              "percent-email": 0.0,
+              "percent-state": 0.0,
+              "average-length": 15.333333333333334
+            }
+          }
+        },
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "varchar",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Previous Category",
+        "lib/original-name": "Previous Category",
+        "name": "Previous Category",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Previous Category",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Previous Category",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Previous Category",
+        "display_name": "Previous Category",
+        "fingerprint": {
+          "global": {
+            "distinct-count": 1,
+            "nil%": 0.0
+          },
+          "type": {
+            "type/Text": {
+              "percent-json": 0.0,
+              "percent-url": 0.0,
+              "percent-email": 0.0,
+              "percent-state": 0.0,
+              "average-length": 8.0
+            }
+          }
+        },
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Previous Membership",
+        "lib/original-name": "Previous Membership",
+        "name": "Previous Membership",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Previous Membership",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Previous Membership",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Previous Membership",
+        "display_name": "Previous Membership",
+        "fingerprint": {
+          "global": {
+            "distinct-count": 1,
+            "nil%": 0.0
+          },
+          "type": {
+            "type/Text": {
+              "percent-json": 0.0,
+              "percent-url": 0.0,
+              "percent-email": 0.0,
+              "percent-state": 0.0,
+              "average-length": 16.0
+            }
+          }
+        },
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "varchar",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Current Category",
+        "lib/original-name": "Current Category",
+        "name": "Current Category",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Current Category",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Current Category",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Current Category",
+        "display_name": "Current Category",
+        "fingerprint": {
+          "global": {
+            "distinct-count": 1,
+            "nil%": 0.0
+          },
+          "type": {
+            "type/Text": {
+              "percent-json": 0.0,
+              "percent-url": 0.0,
+              "percent-email": 0.0,
+              "percent-state": 0.0,
+              "average-length": 6.0
+            }
+          }
+        },
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Current Membership",
+        "lib/original-name": "Current Membership",
+        "name": "Current Membership",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Current Membership",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Current Membership",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Current Membership",
+        "display_name": "Current Membership",
+        "fingerprint": {
+          "global": {
+            "distinct-count": 1,
+            "nil%": 0.0
+          },
+          "type": {
+            "type/Text": {
+              "percent-json": 0.0,
+              "percent-url": 0.0,
+              "percent-email": 0.0,
+              "percent-state": 0.0,
+              "average-length": 14.0
+            }
+          }
+        },
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Email address",
+        "lib/original-name": "Email address",
+        "name": "Email address",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Email address",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Email address",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Email address",
+        "display_name": "Email address",
+        "fingerprint": {
+          "global": {
+            "distinct-count": 3,
+            "nil%": 0.0
+          },
+          "type": {
+            "type/Text": {
+              "percent-json": 0.0,
+              "percent-url": 0.0,
+              "percent-email": 1.0,
+              "percent-state": 0.0,
+              "average-length": 20.0
+            }
+          }
+        },
+        "base_type": "type/Text"
+      }
+    ],
+    "embedding_type": null,
+    "dependency_analysis_version": 0,
+    "creator": {
+      "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+      "first_name": "codex",
+      "is_data_analyst": false,
+      "last_login": null,
+      "is_qbnewb": true,
+      "is_superuser": true,
+      "id": 13371339,
+      "last_name": "",
+      "tenant_id": null,
+      "date_joined": "2026-03-13T13:48:56.540625Z",
+      "common_name": "codex"
+    },
+    "initially_published_at": null,
+    "card_schema": 23,
+    "database_id": 2,
+    "enable_embedding": false,
+    "collection_id": 9,
+    "query_type": "native",
     "name": "Members Who Changed Package - Current Year (Detail)",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:57:14.325133Z",
+    "last_used_at": "2026-04-15T15:02:16.870627Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-15T14:59:14.783929Z",
@@ -11378,7 +11704,7 @@
     "cache_invalidated_at": "2026-04-09T08:29:47.03719Z",
     "description": null,
     "archived": false,
-    "view_count": 439,
+    "view_count": 442,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -11789,7 +12115,7 @@
     "query_type": "native",
     "name": "Most Recent Signups",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:59:13.491233Z",
+    "last_used_at": "2026-04-15T15:02:20.181532Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-04-09T08:29:47.035974Z",
@@ -17308,7 +17634,7 @@
     "cache_invalidated_at": null,
     "description": null,
     "archived": false,
-    "view_count": 429,
+    "view_count": 432,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -17410,7 +17736,7 @@
     "query_type": "native",
     "name": "Signups - by day of week",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:59:13.491233Z",
+    "last_used_at": "2026-04-15T15:02:20.181532Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-03-16T15:09:13.617844Z",
@@ -17463,7 +17789,7 @@
     "cache_invalidated_at": null,
     "description": null,
     "archived": false,
-    "view_count": 429,
+    "view_count": 432,
     "collection_position": null,
     "source_card_id": null,
     "table_id": null,
@@ -17566,7 +17892,7 @@
     "query_type": "native",
     "name": "Signups - by hour of day",
     "document_id": null,
-    "last_used_at": "2026-04-15T14:59:13.491233Z",
+    "last_used_at": "2026-04-15T15:02:20.181532Z",
     "type": "question",
     "creator_id": 13371339,
     "updated_at": "2026-03-16T15:09:13.716885Z",
