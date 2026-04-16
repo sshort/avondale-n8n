@@ -1,0 +1,108 @@
+{
+  "name": "Team Captain Mailout Generate",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "team-captain-mailout-generate",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "tmg-webhook-001",
+      "name": "Generate Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        260,
+        260
+      ],
+      "webhookId": "team-captain-mailout-generate"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.1.237:3010/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body || {} }}",
+        "options": {}
+      },
+      "id": "tmg-http-001",
+      "name": "Generate Bundle",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.success === false ? 500 : 200 }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "tmg-respond-001",
+      "name": "Respond Generate",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        860,
+        260
+      ]
+    }
+  ],
+  "connections": {
+    "Generate Webhook": {
+      "main": [
+        [
+          {
+            "node": "Generate Bundle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Bundle": {
+      "main": [
+        [
+          {
+            "node": "Respond Generate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-10T15:12:04.564+00:00",
+  "updatedAt": "2026-04-10T15:12:04.564+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "346235b3-e477-4a3c-93ce-d2b3ebfb414f",
+  "triggerCount": 1,
+  "id": "9Im5C61a2Funx3zF",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 7,
+  "description": null,
+  "activeVersionId": "346235b3-e477-4a3c-93ce-d2b3ebfb414f"
+}

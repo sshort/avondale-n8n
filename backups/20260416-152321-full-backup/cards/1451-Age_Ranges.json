@@ -1,0 +1,222 @@
+{
+  "cache_invalidated_at": "2026-04-15T14:12:04.06122Z",
+  "description": null,
+  "archived": false,
+  "view_count": 459,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": 14,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Age Range",
+      "lib/original-name": "Age Range",
+      "name": "Age Range",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Age Range",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Age Range",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Age Range",
+      "display_name": "Age Range",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 10,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 5.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Previous Year",
+      "lib/original-name": "Previous Year",
+      "name": "Previous Year",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Previous Year",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Previous Year",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "Previous Year",
+      "display_name": "Previous Year",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 9,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 16.0,
+            "q3": 71.0,
+            "max": 109.0,
+            "sd": 38.78559297241983,
+            "avg": 44.9
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Current Year",
+      "lib/original-name": "Current Year",
+      "name": "Current Year",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Current Year",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Current Year",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "Current Year",
+      "display_name": "Current Year",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 10,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 2.0,
+            "q1": 8.0,
+            "q3": 52.0,
+            "max": 84.0,
+            "sd": 27.789086586883947,
+            "avg": 31.7
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Age Ranges",
+  "last_query_start": "2026-04-16T13:52:53.776487Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-16T13:52:53.890087Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 61.2445414847161572,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-15T14:12:04.05987Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "native": "with latest as (\n  select max(season::int) as latest_season\n  from public.membership_packages\n), source_rows as (\n  select\n    case\n      when m.\"Age\" is null then null\n      when m.\"Age\" >= 90 then '90-99'\n      else lpad((floor(m.\"Age\" / 10) * 10)::text, 2, '0') || '-' || lpad((floor(m.\"Age\" / 10) * 10 + 9)::text, 2, '0')\n    end as age_range,\n    case\n      when m.\"Age\" is null then null\n      when m.\"Age\" >= 90 then 90\n      else (floor(m.\"Age\" / 10) * 10)::int\n    end as age_sort,\n    p.season\n  from public.raw_members m\n  join public.membership_packages p\n    on m.\"Membership\" = p.name\n  join latest l\n    on p.season in ((l.latest_season - 1)::text, l.latest_season::text)\n  where p.category <> 'Pavilion Key'\n    and p.category is not null\n    and m.\"Payment\" in ('Paid', 'Part Paid')\n    and m.\"Age\" is not null\n    and (\n      (p.season = (select latest_season::text from latest) and coalesce(m.is_current, true) = true)\n      or\n      (p.season = (select (latest_season - 1)::text from latest) and coalesce(m.is_current, false) = false)\n    )\n), counts as (\n  select age_range, age_sort, season, count(*)::int as count\n  from source_rows\n  group by age_range, age_sort, season\n)\nselect\n  age_range as \"Age Range\",\n  coalesce(max(case when season = ((select latest_season from latest) - 1)::text then count end), 0)::int as \"Previous Year\",\n  coalesce(max(case when season = (select latest_season from latest)::text then count end), 0)::int as \"Current Year\"\nfrom counts\ngroup by age_range, age_sort\norder by age_sort;"
+      }
+    ]
+  },
+  "id": 1451,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "bar",
+  "archived_directly": false,
+  "entity_id": "htHVhTjujf9oC-bRj0dXW",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-15T14:12:04.085493Z"
+  },
+  "visualization_settings": {
+    "graph.dimensions": [
+      "Age Range"
+    ],
+    "graph.x_axis.scale": "ordinal",
+    "graph.metrics": [
+      "Previous Year",
+      "Current Year"
+    ]
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-03-16T15:08:54.018051Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

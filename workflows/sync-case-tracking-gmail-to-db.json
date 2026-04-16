@@ -1,0 +1,296 @@
+{
+  "name": "Sync Case Tracking Gmail To DB",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "cte000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 */10 * * * *"
+            }
+          ]
+        }
+      },
+      "id": "cte000000-0000-0000-0000-000000000002",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        220,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'email_reply_to' THEN value END) AS email_reply_to\nFROM public.global_settings\nWHERE key IN ('email_reply_to');"
+      },
+      "id": "cte000000-0000-0000-0000-000000000003",
+      "name": "Load Sync Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        460,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "label",
+        "operation": "getAll",
+        "simple": false,
+        "filters": {}
+      },
+      "id": "cte000000-0000-0000-0000-000000000004",
+      "name": "Get Gmail Labels",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        700,
+        220
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const wanted = ['!New Case', '!In Progress', '!Waiting', '!Completed', 'To Do', 'To Do/Done'];\nconst labels = items.map((item) => item.json ?? {});\nconst out = [];\nfor (const name of wanted) {\n  const label = labels.find((entry) => entry.name === name);\n  if (label?.id) out.push({ json: { label_name: name, label_id: label.id } });\n}\nreturn out;\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      },
+      "id": "cte000000-0000-0000-0000-000000000005",
+      "name": "Build Case Label Map",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        940,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "getAll",
+        "filters": {
+          "labelIds": "={{ [$json.label_id] }}",
+          "readStatus": "both"
+        },
+        "simple": true,
+        "returnAll": true
+      },
+      "id": "cte000000-0000-0000-0000-000000000006",
+      "name": "Get Threads For Label",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1180,
+        220
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const labelPriority = ['!Completed', 'To Do/Done', '!Waiting', '!In Progress', 'To Do', '!New Case'];\nconst labelRows = $items('Build Case Label Map', 0, 0).map((item) => item.json ?? {});\nconst threadMap = new Map();\nlet currentSource = null;\nfor (const item of items) {\n  const threadId = String(item.json?.id ?? item.json?.thread_id ?? '').trim();\n  if (!threadId) continue;\n  const pairedIndex = Number.isInteger(item.pairedItem?.item) ? item.pairedItem.item : null;\n  const explicitSource = pairedIndex !== null ? (labelRows[pairedIndex] ?? null) : null;\n  const explicitLabelName = String(explicitSource?.label_name ?? '').trim();\n  const explicitLabelId = String(explicitSource?.label_id ?? '').trim();\n  if (explicitLabelName) {\n    currentSource = {\n      label_name: explicitLabelName,\n      label_id: explicitLabelId,\n    };\n  }\n  const source = currentSource ?? { label_name: '', label_id: '' };\n  const sourceLabelName = String(source.label_name ?? '').trim();\n  const sourceLabelId = String(source.label_id ?? '').trim();\n  const existing = threadMap.get(threadId) ?? {\n    thread_id: threadId,\n    label_names: [],\n    label_ids: [],\n  };\n  if (sourceLabelName && !existing.label_names.includes(sourceLabelName)) existing.label_names.push(sourceLabelName);\n  if (sourceLabelId && !existing.label_ids.includes(sourceLabelId)) existing.label_ids.push(sourceLabelId);\n  threadMap.set(threadId, existing);\n}\nreturn [...threadMap.values()].map((entry) => {\n  const labelName = labelPriority.find((name) => entry.label_names.includes(name)) || entry.label_names[0] || '';\n  const labelIndex = entry.label_names.indexOf(labelName);\n  const labelId = labelIndex >= 0 ? (entry.label_ids[labelIndex] || entry.label_ids[0] || '') : (entry.label_ids[0] || '');\n  return {\n    json: {\n      thread_id: entry.thread_id,\n      label_name: labelName,\n      label_id: labelId,\n      label_names: entry.label_names,\n      label_ids: entry.label_ids,\n    },\n  };\n});",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      },
+      "id": "cte000000-0000-0000-0000-000000000007",
+      "name": "Unique Threads",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1420,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "get",
+        "threadId": "={{ $json.thread_id }}",
+        "simple": false,
+        "options": {
+          "returnOnlyMessages": false
+        }
+      },
+      "id": "cte000000-0000-0000-0000-000000000008",
+      "name": "Fetch Thread Detail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1660,
+        220
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const source = $items('Unique Threads', 0, 0)[$itemIndex]?.json ?? {};\nconst settings = $('Load Sync Settings').first()?.json ?? {};\nconst thread = $json ?? {};\nconst labelRows = $items('Build Case Label Map', 0, 0).map((item) => item.json ?? {});\nconst labelIdToName = Object.fromEntries(\n  labelRows\n    .map((row) => [String(row.label_id ?? '').trim(), String(row.label_name ?? '').trim()])\n    .filter(([id, name]) => id && name),\n);\nconst knownLabelNames = new Set(\n  labelRows\n    .map((row) => String(row.label_name ?? '').trim())\n    .filter(Boolean),\n);\nconst labelStatusMap = {\n  '!New Case': 'In Progress',\n  '!In Progress': 'In Progress',\n  '!Waiting': 'Waiting',\n  '!Completed': 'Completed',\n  'To Do': 'In Progress',\n  'To Do/Done': 'Completed',\n};\nconst labelPriority = ['!Completed', 'To Do/Done', '!Waiting', '!In Progress', 'To Do', '!New Case'];\nconst threadLabelNames = new Set();\nconst registerLabelName = (value) => {\n  const raw = typeof value === 'string'\n    ? value\n    : (value?.name ?? value?.id ?? '');\n  const normalized = String(raw ?? '').trim();\n  if (!normalized) return;\n  const resolved = labelIdToName[normalized] || normalized;\n  if (knownLabelNames.has(resolved)) threadLabelNames.add(resolved);\n};\nregisterLabelName(source.label_name);\nregisterLabelName(source.label_id);\nfor (const label of Array.isArray(source.label_names) ? source.label_names : []) registerLabelName(label);\nfor (const labelId of Array.isArray(source.label_ids) ? source.label_ids : []) registerLabelName(labelId);\nfor (const label of thread.labels ?? []) registerLabelName(label);\nfor (const message of thread.messages ?? []) {\n  for (const label of message?.labels ?? []) registerLabelName(label);\n  for (const labelId of message?.labelIds ?? []) registerLabelName(labelId);\n}\nconst labelName = labelPriority.find((name) => threadLabelNames.has(name)) || String(source.label_name ?? '').trim();\nconst status = labelStatusMap[labelName] || 'In Progress';\nconst internalEmailCandidates = [\n  settings.email_reply_to,\n  'members.avondaleltc@gmail.com',\n];\nconst normalizeEmail = (value) => {\n  const raw = String(value ?? '').trim();\n  if (!raw) return '';\n  const angle = raw.match(/<([^>]+)>/);\n  if (angle?.[1]) return angle[1].trim().toLowerCase();\n  const plain = raw.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/i);\n  return plain?.[0]?.trim().toLowerCase() || raw.toLowerCase();\n};\nconst internalEmails = new Set(internalEmailCandidates.map(normalizeEmail).filter(Boolean));\nconst sqlLiteral = (value) => {\n  if (value === null || value === undefined) return 'NULL';\n  const parts = String(value)\n    .split('$')\n    .map((part) => `'${part.replace(/'/g, \"''\")}'`);\n  if (parts.length === 1) return parts[0];\n  return `CONCAT(${parts.flatMap((part, index) => (index === 0 ? [part] : ['chr(36)', part])).join(', ')})`;\n};\nconst jsonLiteral = (value) => sqlLiteral(JSON.stringify(value));\nconst decodeBase64Url = (value) => {\n  if (!value) return '';\n  const normalized = String(value).replace(/-/g, '+').replace(/_/g, '/');\n  const padded = normalized + '='.repeat((4 - (normalized.length % 4 || 4)) % 4);\n  const buffer = Buffer.from(padded, 'base64');\n  const utf8 = buffer.toString('utf8');\n  if (!utf8.includes('\\uFFFD')) return utf8;\n  return buffer.toString('latin1');\n};\nconst cleanText = (value) => String(value ?? '').replace(/\\r\\n/g, '\\n').replace(/\\u00a0/g, ' ').trim();\nconst stripHtml = (value) => cleanText(String(value ?? '')\n  .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n  .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n  .replace(/<br\\s*\\/?>/gi, '\\n')\n  .replace(/<\\/p>/gi, '\\n\\n')\n  .replace(/<\\/div>/gi, '\\n')\n  .replace(/<[^>]+>/g, ' ')\n  .replace(/&nbsp;/gi, ' ')\n  .replace(/&amp;/gi, '&')\n  .replace(/&lt;/gi, '<')\n  .replace(/&gt;/gi, '>')\n  .replace(/&quot;/gi, '\"')\n  .replace(/&#39;/gi, \"'\"));\nconst parseName = (value) => {\n  const raw = String(value ?? '').trim();\n  if (!raw) return '';\n  if (/^<[^>]+>$/.test(raw)) return '';\n  const angle = raw.match(/^(.*?)\\s*<[^>]+>$/);\n  if (angle?.[1]) return angle[1].replace(/^\"|\"$/g, '').trim();\n  const email = normalizeEmail(raw);\n  if (!email) return raw;\n  return raw === email ? email.replace(/@.*$/, '').replace(/[._-]+/g, ' ').replace(/\\b\\w/g, (c) => c.toUpperCase()) : raw;\n};\nconst parseAddressList = (value) => String(value ?? '')\n  .split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/)\n  .map((entry) => entry.trim())\n  .filter(Boolean)\n  .map((entry) => ({\n    raw: entry,\n    email: normalizeEmail(entry),\n    name: parseName(entry),\n  }))\n  .filter((entry) => entry.email);\nconst getHeader = (message, name) => {\n  const direct = message?.[name];\n  if (direct !== undefined && direct !== null && String(direct).trim()) {\n    return String(direct).trim();\n  }\n  const directKey = Object.keys(message ?? {}).find((key) => key.toLowerCase() === String(name ?? '').toLowerCase());\n  if (directKey && String(message?.[directKey] ?? '').trim()) {\n    return String(message[directKey]).trim();\n  }\n  const headers = message?.payload?.headers ?? [];\n  const found = headers.find((header) => String(header?.name ?? '').toLowerCase() === name.toLowerCase());\n  return String(found?.value ?? '').trim();\n};\nconst extractBodies = (payload) => {\n  const parts = [];\n  const walk = (node) => {\n    if (!node) return;\n    if (node.body?.data) parts.push(node);\n    for (const child of node.parts ?? []) walk(child);\n  };\n  walk(payload);\n  const plainPart = parts.find((part) => String(part?.mimeType ?? '').toLowerCase() === 'text/plain');\n  const htmlPart = parts.find((part) => String(part?.mimeType ?? '').toLowerCase() === 'text/html');\n  const plain = plainPart ? cleanText(decodeBase64Url(plainPart.body.data)) : '';\n  const html = htmlPart ? decodeBase64Url(htmlPart.body.data) : '';\n  return { plain, html };\n};\nconst parseSentAt = (message) => {\n  const internalDate = Number.parseInt(String(message?.internalDate ?? ''), 10);\n  if (Number.isFinite(internalDate) && internalDate > 0) return new Date(internalDate).toISOString();\n  const dateHeader = getHeader(message, 'Date');\n  if (dateHeader) {\n    const parsed = Date.parse(dateHeader);\n    if (!Number.isNaN(parsed)) return new Date(parsed).toISOString();\n  }\n  return null;\n};\nconst stripSubjectPrefixes = (value) => String(value ?? '')\n  .replace(/^(\\s*(re|fw|fwd)\\s*:\\s*)+/i, '')\n  .trim();\nconst extractForwardedCandidate = (value) => {\n  const text = String(value ?? '');\n  if (!text.trim()) return null;\n  const fromMatch = text.match(/(?:^|\\n)From:\\s*(.+?)(?:\\n|$)/i);\n  const wroteMatch = text.match(/(?:^|\\n)On .+?([A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}|[^<\\n]+<[^>\\n]+>) wrote:/i);\n  const raw = String(fromMatch?.[1] ?? wroteMatch?.[1] ?? '').trim();\n  if (!raw) return null;\n  const email = normalizeEmail(raw);\n  if (!email || internalEmails.has(email)) return null;\n  return {\n    raw,\n    email,\n    name: parseName(raw),\n  };\n};\nconst messages = Array.isArray(thread.messages) ? thread.messages.slice() : [];\nmessages.sort((left, right) => {\n  const leftAt = Date.parse(parseSentAt(left) || '') || 0;\n  const rightAt = Date.parse(parseSentAt(right) || '') || 0;\n  return leftAt - rightAt;\n});\nconst parsedMessages = messages.map((message) => {\n  const fromRaw = getHeader(message, 'From');\n  const toRaw = getHeader(message, 'To');\n  const ccRaw = getHeader(message, 'Cc');\n  const replyToRaw = getHeader(message, 'Reply-To');\n  const subjectRaw = getHeader(message, 'Subject') || thread.snippet || 'Email case';\n  const messageIdHeader = getHeader(message, 'Message-ID');\n  const sentAt = parseSentAt(message);\n  const body = extractBodies(message.payload);\n  const bodyText = body.plain || stripHtml(body.html) || cleanText(message.snippet);\n  const bodyHtml = body.html || null;\n  return {\n    gmail_message_id: String(message?.id ?? '').trim() || null,\n    gmail_thread_id: String(thread?.id ?? '').trim() || null,\n    from_raw: fromRaw,\n    from_email: normalizeEmail(fromRaw),\n    from_name: parseName(fromRaw),\n    to_raw: toRaw,\n    to_list: parseAddressList(toRaw),\n    cc_raw: ccRaw,\n    cc_list: parseAddressList(ccRaw),\n    reply_to_raw: replyToRaw,\n    reply_to_list: parseAddressList(replyToRaw),\n    subject: subjectRaw,\n    title_subject: stripSubjectPrefixes(subjectRaw) || 'Email case',\n    body_text: bodyText || null,\n    body_html: bodyHtml,\n    sent_at: sentAt,\n    message_id_header: messageIdHeader || null,\n    snippet: cleanText(message?.snippet ?? ''),\n  };\n});\nconst externalCandidates = [];\nconst seenCandidateEmails = new Set();\nconst pushCandidate = (candidate) => {\n  const email = normalizeEmail(candidate?.email ?? candidate?.raw ?? '');\n  if (!email || internalEmails.has(email) || seenCandidateEmails.has(email)) return;\n  seenCandidateEmails.add(email);\n  externalCandidates.push({\n    ...candidate,\n    email,\n  });\n};\nparsedMessages.forEach((message) => {\n  pushCandidate(extractForwardedCandidate(message.body_text));\n  pushCandidate(extractForwardedCandidate(message.body_html));\n  pushCandidate({\n    email: message.from_email,\n    name: message.from_name || parseName(message.from_raw),\n    raw: message.from_raw,\n  });\n  [...message.reply_to_list, ...message.to_list, ...message.cc_list]\n    .forEach((entry) => pushCandidate(entry));\n});\nlet contactEmail = '';\nlet contactName = '';\nfor (const candidate of externalCandidates) {\n  if (!candidate.email) continue;\n  contactEmail = candidate.email;\n  contactName = candidate.name || parseName(candidate.raw) || contactEmail;\n  break;\n}\nif (!contactEmail && parsedMessages[0]?.from_email) contactEmail = parsedMessages[0].from_email;\nif (!contactName) contactName = parsedMessages[0]?.from_name || contactEmail || 'Unknown contact';\nconst title = parsedMessages.find((message) => message.title_subject)?.title_subject || 'Email case';\nconst messageRows = parsedMessages.map((message) => {\n  const outboundTargetEmails = [...message.to_list, ...message.cc_list].map((entry) => entry.email);\n  const direction = message.from_email && contactEmail && message.from_email === contactEmail\n    ? 'incoming'\n    : internalEmails.has(message.from_email)\n      ? 'outgoing'\n      : (outboundTargetEmails.includes(contactEmail) ? 'outgoing' : 'incoming');\n  return {\n    direction,\n    subject: message.subject || title,\n    body_html: message.body_html,\n    body_text: message.body_text,\n    recipients: {\n      from: message.from_raw || null,\n      to: message.to_raw || null,\n      cc: message.cc_raw || null,\n      reply_to: message.reply_to_raw || null,\n    },\n    gmail_message_id: message.gmail_message_id,\n    gmail_thread_id: message.gmail_thread_id,\n    sent_at: message.sent_at,\n    metadata: {\n      source_label: labelName,\n      from_email: message.from_email || null,\n      from_name: message.from_name || null,\n      message_id_header: message.message_id_header,\n      snippet: message.snippet || null,\n      imported_via: 'gmail-case-sync',\n    },\n  };\n});\nconst inboundTimes = messageRows.filter((row) => row.direction === 'incoming' && row.sent_at).map((row) => row.sent_at).sort();\nconst outboundTimes = messageRows.filter((row) => row.direction === 'outgoing' && row.sent_at).map((row) => row.sent_at).sort();\nconst firstSentAt = messageRows.find((row) => row.sent_at)?.sent_at || null;\nconst lastInboundAt = inboundTimes.length ? inboundTimes[inboundTimes.length - 1] : null;\nconst lastOutboundAt = outboundTimes.length ? outboundTimes[outboundTimes.length - 1] : null;\nconst caseMetadata = {\n  gmail_thread_id: String(thread?.id ?? '').trim() || null,\n  gmail_history_id: String(thread?.historyId ?? '').trim() || null,\n  gmail_status_label: labelName || null,\n  imported_via: 'gmail-case-sync',\n  last_gmail_sync_at: new Date().toISOString(),\n};\nconst timestampExpr = (column, value) => value\n  ? `COALESCE(GREATEST(${column}, ${sqlLiteral(value)}::timestamptz), ${column}, ${sqlLiteral(value)}::timestamptz)`\n  : column;\nconst threadIdSql = sqlLiteral(String(thread?.id ?? ''));\nconst firstSentAtSql = firstSentAt ? `${sqlLiteral(firstSentAt)}::timestamptz` : 'now()';\nconst lastInboundSql = lastInboundAt ? `${sqlLiteral(lastInboundAt)}::timestamptz` : 'NULL';\nconst lastOutboundSql = lastOutboundAt ? `${sqlLiteral(lastOutboundAt)}::timestamptz` : 'NULL';\nconst hasContactEmail = Boolean(contactEmail);\nconst hasContactName = Boolean(contactName && contactName !== 'Unknown contact');\nconst contactLookupConditions = [];\nif (hasContactEmail) contactLookupConditions.push(`lower(COALESCE(c.email_address, '')) = lower(${sqlLiteral(contactEmail)})`);\nif (hasContactName) contactLookupConditions.push(`lower(COALESCE(c.payer_name, '')) = lower(${sqlLiteral(contactName)})`);\nconst contactLookupWhere = contactLookupConditions.length ? contactLookupConditions.join(' OR ') : 'FALSE';\nconst resolvedNameExpr = `COALESCE((SELECT resolved_contact_name FROM matched_contact), ${sqlLiteral(contactName || 'Unknown contact')})`;\nconst resolvedEmailExpr = `COALESCE((SELECT resolved_contact_email FROM matched_contact), ${sqlLiteral(contactEmail || null)})`;\nconst resolvedPhoneExpr = `COALESCE((SELECT resolved_contact_phone FROM matched_contact), NULL)`;\nconst missingNameExpr = \"COALESCE(NULLIF(trim(c.contact_name), ''), '') = '' OR lower(trim(c.contact_name)) IN ('unknown contact', 'unknown')\";\nconst missingEmailExpr = \"COALESCE(NULLIF(trim(c.contact_email), ''), '') = ''\";\nconst missingPhoneExpr = \"COALESCE(NULLIF(trim(c.contact_phone), ''), '') = ''\";\nconst sql = [\n  'WITH existing_case AS (',\n  '  SELECT c.id',\n  '  FROM public.cases c',\n  `  WHERE COALESCE(c.metadata ->> 'gmail_thread_id', '') = ${threadIdSql}`,\n  '  UNION ALL',\n  '  SELECT ce.case_id',\n  '  FROM public.case_emails ce',\n  `  WHERE ce.gmail_thread_id = ${threadIdSql}`,\n  '  LIMIT 1',\n  '), matched_contact AS (',\n  '  SELECT',\n  '    NULLIF(trim(c.payer_name), \\'\\') AS resolved_contact_name,',\n  '    NULLIF(trim(c.email_address), \\'\\') AS resolved_contact_email,',\n  '    NULLIF(trim(COALESCE(c.mobile_number, c.phone_number)), \\'\\') AS resolved_contact_phone',\n  '  FROM public.vw_best_current_contacts c',\n  `  WHERE ${contactLookupWhere}`,\n  '  ORDER BY',\n  (hasContactEmail ? `    CASE WHEN lower(COALESCE(c.email_address, '')) = lower(${sqlLiteral(contactEmail)}) THEN 0 ELSE 1 END,` : ''),\n  (hasContactName ? `    CASE WHEN lower(COALESCE(c.payer_name, '')) = lower(${sqlLiteral(contactName)}) THEN 0 ELSE 1 END,` : ''),\n  '    c.quality_score DESC NULLS LAST,',\n  '    c.payer_name',\n  '  LIMIT 1',\n  '), inserted_case AS (',\n  '  INSERT INTO public.cases (title, contact_name, contact_email, contact_phone, source, status, priority, created_by, metadata, created_at, updated_at, last_inbound_at, last_outbound_at, closed_at)',\n  '  SELECT ' + [\n    sqlLiteral(title),\n    resolvedNameExpr,\n    resolvedEmailExpr,\n    resolvedPhoneExpr,\n    sqlLiteral('gmail-label-sync'),\n    sqlLiteral(status),\n    sqlLiteral('Medium'),\n    sqlLiteral('gmail-case-sync'),\n    `${jsonLiteral(caseMetadata)}::jsonb`,\n    firstSentAtSql,\n    'now()',\n    lastInboundSql,\n    lastOutboundSql,\n    (status === 'Completed' ? 'now()' : 'NULL'),\n  ].join(', '),\n  '  WHERE NOT EXISTS (SELECT 1 FROM existing_case)',\n  '  RETURNING id',\n  '), target_case AS (',\n  '  SELECT id FROM inserted_case',\n  '  UNION ALL',\n  '  SELECT id FROM existing_case',\n  '  LIMIT 1',\n  '), updated_case AS (',\n  '  UPDATE public.cases c',\n  `  SET status = ${sqlLiteral(status)},`,\n  '      updated_at = now(),',\n  `      title = CASE WHEN COALESCE(NULLIF(trim(c.title), ''), '') IN ('', 'Email case') THEN ${sqlLiteral(title)} ELSE c.title END,`,\n  `      contact_name = CASE WHEN ${missingNameExpr} THEN ${resolvedNameExpr} ELSE c.contact_name END,`,\n  `      contact_email = CASE WHEN ${missingEmailExpr} THEN ${resolvedEmailExpr} ELSE c.contact_email END,`,\n  `      contact_phone = CASE WHEN ${missingPhoneExpr} THEN ${resolvedPhoneExpr} ELSE c.contact_phone END,`,\n  `      last_inbound_at = ${timestampExpr('c.last_inbound_at', lastInboundAt)},`,\n  `      last_outbound_at = ${timestampExpr('c.last_outbound_at', lastOutboundAt)},`,\n  `      closed_at = CASE WHEN ${sqlLiteral(status)} = 'Completed' THEN COALESCE(c.closed_at, now()) ELSE NULL END,`,\n  `      metadata = COALESCE(c.metadata, '{}'::jsonb) || ${jsonLiteral(caseMetadata)}::jsonb`,\n  '  FROM target_case',\n  '  WHERE c.id = target_case.id',\n  '  RETURNING c.id',\n  '), message_rows AS (',\n  `  SELECT * FROM jsonb_to_recordset(${jsonLiteral(messageRows)}::jsonb) AS x(`,\n  '    direction text,',\n  '    subject text,',\n  '    body_html text,',\n  '    body_text text,',\n  '    recipients jsonb,',\n  '    gmail_message_id text,',\n  '    gmail_thread_id text,',\n  '    sent_at timestamptz,',\n  '    metadata jsonb',\n  '  )',\n  '), inserted_messages AS (',\n  '  INSERT INTO public.case_emails (case_id, direction, subject, body_html, body_text, recipients, gmail_message_id, gmail_thread_id, created_by, sent_at, metadata)',\n  `  SELECT (SELECT id FROM target_case), direction, subject, NULLIF(body_html, ''), NULLIF(body_text, ''), COALESCE(recipients, '{}'::jsonb), gmail_message_id, gmail_thread_id, ${sqlLiteral('gmail-case-sync')}, COALESCE(sent_at, now()), COALESCE(metadata, '{}'::jsonb)`,\n  '  FROM message_rows',\n  '  WHERE gmail_message_id IS NULL',\n  '     OR NOT EXISTS (SELECT 1 FROM public.case_emails existing WHERE existing.gmail_message_id = message_rows.gmail_message_id)',\n  '  RETURNING id',\n  ')',\n  'SELECT (SELECT id::text FROM target_case) AS case_id,',\n  `       ${sqlLiteral(labelName)} AS source_label,`,\n  '       (SELECT COUNT(*)::int FROM inserted_messages) AS inserted_messages;',\n]\n  .filter(Boolean)\n  .join('\\n');\nreturn {\n  json: {\n    thread_id: String(thread?.id ?? ''),\n    label_name: labelName,\n    status,\n    sql,\n  },\n};\n",
+        "language": "javaScript",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "cte000000-0000-0000-0000-000000000009",
+      "name": "Build Thread Upsert SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1900,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "cte000000-0000-0000-0000-000000000010",
+      "name": "Upsert Thread Into Cases",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2140,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Sync Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Load Sync Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Sync Settings": {
+      "main": [
+        [
+          {
+            "node": "Get Gmail Labels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Gmail Labels": {
+      "main": [
+        [
+          {
+            "node": "Build Case Label Map",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Case Label Map": {
+      "main": [
+        [
+          {
+            "node": "Get Threads For Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Threads For Label": {
+      "main": [
+        [
+          {
+            "node": "Unique Threads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unique Threads": {
+      "main": [
+        [
+          {
+            "node": "Fetch Thread Detail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Thread Detail": {
+      "main": [
+        [
+          {
+            "node": "Build Thread Upsert SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Thread Upsert SQL": {
+      "main": [
+        [
+          {
+            "node": "Upsert Thread Into Cases",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {}
+}

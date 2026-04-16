@@ -16,12 +16,15 @@ The implementation is intended as a pragmatic MVP:
 - internal notes and outbound emails are stored against each case
 - contacts can seed new cases
 - signatures and selected email settings can be edited from the case-tracking UI
-
-Inbound Gmail-to-case sync is intentionally deferred.
+- Gmail-labeled threads can now be imported into the case-tracking database
+- the dashboard supports free-text search plus explicit status and priority filters
 
 ## Database
 
-Migration: `sql/041_case_tracking_schema.sql`
+Migrations:
+
+- `sql/041_case_tracking_schema.sql`
+- `sql/042_case_tracking_gmail_sync.sql`
 
 Tables:
 
@@ -30,7 +33,7 @@ Tables:
   - contact details, status, priority, timestamps, freeform metadata
 - `public.case_emails`
   - case activity log
-  - stores internal notes plus outbound email records
+  - stores imported inbound/outbound thread messages, internal notes, and outbound email records
 
 Current activity types:
 
@@ -63,6 +66,52 @@ Current activity types:
   - sends the email via Gmail
   - logs the outbound message in `case_emails`
   - updates the case to `Waiting`
+
+## Background sync workflows
+
+### `Sync Case Tracking Gmail To DB`
+
+Scheduled every 10 minutes and runnable manually from n8n.
+
+Responsibilities:
+
+- reads Gmail threads with any of the case labels:
+  - `!New Case`
+  - `!In Progress`
+  - `!Waiting`
+  - `!Completed`
+- also treats legacy Gmail labels as import aliases:
+  - `To Do`
+  - `To Do/Done`
+- creates a new case if the thread has not been imported before
+- imports thread messages into `case_emails`
+- updates case status from the Gmail label
+- stores Gmail thread metadata in `cases.metadata`
+
+Label mapping:
+
+- `!New Case` -> `In Progress`
+- `!In Progress` -> `In Progress`
+- `!Waiting` -> `Waiting`
+- `!Completed` -> `Completed`
+- `To Do` -> `In Progress`
+- `To Do/Done` -> `Completed`
+
+### `Sync Case Tracking DB To Gmail Labels`
+
+Scheduled every 10 minutes and runnable manually from n8n.
+
+Responsibilities:
+
+- reads cases that already have a Gmail thread id in metadata
+- applies the Gmail label that matches the current case status
+- removes the other case labels from the thread, including legacy `To Do` / `To Do/Done`
+- records the last label sync time in `cases.metadata`
+
+This gives the MVP a practical two-way sync loop:
+
+- Gmail labels can seed/import cases into the database
+- database status changes can be pushed back to Gmail labels
 
 ## Reused data
 
@@ -124,7 +173,7 @@ The composer currently supports a single `to` recipient and stores it in `case_e
 
 ## Current limitations
 
-- No inbound Gmail parsing or auto-threading yet.
-- `gmail_thread_id` is stored when available, but the initial implementation focuses on
-  outbound messages and manual notes.
+- Gmail import currently relies on the case labels already being present on the thread.
+- Imported message direction is inferred from the sender and the configured reply-to address,
+  so edge cases with shared/personal club mailboxes may need refinement later.
 - The UI is served from n8n webhooks, so it is intentionally simple and self-contained.

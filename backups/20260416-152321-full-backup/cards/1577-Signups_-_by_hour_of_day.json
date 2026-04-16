@@ -1,0 +1,176 @@
+{
+  "cache_invalidated_at": null,
+  "description": null,
+  "archived": false,
+  "view_count": 454,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "signup_hour",
+      "lib/original-name": "signup_hour",
+      "name": "signup_hour",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "signup_hour",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "signup_hour",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "signup_hour",
+      "display_name": "signup_hour",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 21,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 7.75,
+            "q3": 18.25,
+            "max": 23.0,
+            "sd": 6.709268642280298,
+            "avg": 12.714285714285714
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int8",
+      "semantic_type": "type/Quantity",
+      "lib/deduplicated-name": "count",
+      "lib/original-name": "count",
+      "name": "count",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "count",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "count",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "count",
+      "display_name": "count",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 17,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 3.0,
+            "q1": 23.0,
+            "q3": 52.25,
+            "max": 77.0,
+            "sd": 21.715366514455674,
+            "avg": 36.42857142857143
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": null,
+  "query_type": "native",
+  "name": "Signups - by hour of day",
+  "last_query_start": "2026-04-16T13:28:17.775923Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-16T13:28:18.141923Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 79.5991189427312775,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-03-16T15:09:13.716885Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "native": "SELECT EXTRACT(HOUR FROM signup_date AT TIME ZONE 'Europe/London')::int AS signup_hour, count(*) AS count\nFROM public.member_signups\nWHERE signup_date IS NOT NULL\nGROUP BY signup_hour\nORDER BY signup_hour"
+      }
+    ]
+  },
+  "id": 1577,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "bar",
+  "archived_directly": false,
+  "entity_id": "H2rYVdIeEwBhmVYzfNcPA",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-03-16T15:09:13.723857Z"
+  },
+  "visualization_settings": {
+    "graph.label_value_formatting": "auto",
+    "graph.show_goal": false,
+    "graph.show_trendline": true,
+    "graph.dimensions": [
+      "signup_hour"
+    ],
+    "graph.metrics": [
+      "count"
+    ]
+  },
+  "collection": {
+    "metabase.collections.models.collection.root/is-root?": true,
+    "authority_level": null,
+    "name": "Our analytics",
+    "is_personal": false,
+    "id": "root",
+    "is_remote_synced": false,
+    "can_write": true
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-03-16T15:09:13.716885Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

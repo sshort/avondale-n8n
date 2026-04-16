@@ -1,0 +1,184 @@
+{
+  "name": "Confirm Missing Signup Capture",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "d1000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "confirm-missing-signup-capture",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "d1000000-0000-0000-0000-000000000002",
+      "name": "Confirm Missing Signup Capture Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "confirm-missing-signup-capture"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const source = $input.first()?.json ?? {};\nconst query = source.query ?? source;\nconst headers = source.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst sqlLiteral = (value) => `'${String(value).replace(/'/g, \"''\")}'`;\nconst sqlInteger = (value) => {\n  const parsed = Number.parseInt(clean(value), 10);\n  return Number.isInteger(parsed) ? String(parsed) : 'NULL';\n};\nconst member = clean(query.member);\nconst memberId = sqlInteger(query.member_id ?? query.raw_member_id);\nconst membership = clean(query.membership);\nconst email = clean(query.email);\nconst fallbackBaseUrl = 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nif (!member && memberId === 'NULL') {\n  return [{\n    json: {\n      member: '',\n      query: { member: '', membership: '', email: '' },\n      n8n_base_url: n8nBaseUrl,\n      sql: `SELECT ''::text AS member, NULL::bigint AS raw_member_id, '[]'::json AS member_rows, '[]'::json AS eligible_memberships, '[]'::json AS signup_rows, '{}'::jsonb AS best_contact;`\n    }\n  }];\n}\nconst memberSql = sqlLiteral(member);\nconst membershipSql = sqlLiteral(membership);\nconst emailSql = sqlLiteral(email);\nconst sql = `\nWITH base_member AS (\n  SELECT\n    rm.id AS raw_member_id,\n    trim(concat_ws(' ', rm.\"First name\", rm.\"Last name\")) AS member_name,\n    NULLIF(trim(rm.\"Email address\"), '') AS email_address,\n    NULLIF(trim(rm.\"Venue ID\"), '') AS venue_id,\n    NULLIF(trim(COALESCE(rm.\"British Tennis Number\"::text, '')), '') AS british_tennis_number,\n    rm.\"Membership\" AS membership\n  FROM public.raw_members rm\n  WHERE COALESCE(rm.is_current, true) = true\n    AND (\n      (${memberId} IS NOT NULL AND rm.id = ${memberId})\n      OR (\n        ${memberId} IS NULL\n        AND trim(concat_ws(' ', rm.\"First name\", rm.\"Last name\")) = ${memberSql}\n        AND (${membershipSql} = '' OR rm.\"Membership\" = ${membershipSql})\n        AND (${emailSql} = '' OR public.normalize_match_email(rm.\"Email address\") = public.normalize_match_email(${emailSql}))\n      )\n    )\n  ORDER BY CASE WHEN (${membershipSql} <> '' AND rm.\"Membership\" = ${membershipSql}) THEN 0 ELSE 1 END, rm.id\n  LIMIT 1\n), member_rows AS (\n  SELECT\n    rm.id AS raw_member_id,\n    rm.\"Membership\" AS membership,\n    rm.\"Status\" AS status,\n    rm.\"Payment\" AS payment,\n    rm.\"Venue ID\" AS venue_id,\n    rm.\"British Tennis Number\" AS british_tennis_number,\n    rm.\"Email address\" AS email_address,\n    rm.\"Phone number\" AS phone_number,\n    rm.\"Mobile number\" AS mobile_number,\n    rm.\"Address 1\" AS address_1,\n    rm.\"Address 2\" AS address_2,\n    rm.\"Address 3\" AS address_3,\n    rm.\"Town\" AS town,\n    rm.\"County\" AS county,\n    rm.\"Postcode\" AS postcode,\n    mp.category,\n    mp.season,\n    mp.display_order\n  FROM public.raw_members rm\n  JOIN public.membership_packages mp\n    ON mp.name = rm.\"Membership\"\n  CROSS JOIN base_member bm\n  WHERE COALESCE(rm.is_current, true) = true\n    AND (\n      (bm.venue_id IS NOT NULL AND NULLIF(trim(rm.\"Venue ID\"), '') = bm.venue_id)\n      OR (bm.british_tennis_number IS NOT NULL AND NULLIF(trim(COALESCE(rm.\"British Tennis Number\"::text, '')), '') = bm.british_tennis_number)\n      OR (\n        bm.email_address IS NOT NULL\n        AND trim(concat_ws(' ', rm.\"First name\", rm.\"Last name\")) = bm.member_name\n        AND public.normalize_match_email(rm.\"Email address\") = public.normalize_match_email(bm.email_address)\n      )\n      OR (\n        bm.venue_id IS NULL AND bm.british_tennis_number IS NULL AND bm.email_address IS NULL\n        AND trim(concat_ws(' ', rm.\"First name\", rm.\"Last name\")) = bm.member_name\n      )\n    )\n), best_contact AS (\n  SELECT to_jsonb(bc) AS best_contact\n  FROM base_member bm\n  LEFT JOIN LATERAL public.resolve_best_contact_row(\n    bm.member_name,\n    bm.email_address,\n    NULLIF(regexp_replace(bm.member_name, '^\\\\S+\\\\s*', ''), ''),\n    EXISTS (SELECT 1 FROM member_rows WHERE membership ILIKE '%Family%')\n  ) bc ON TRUE\n), signup_rows AS (\n  SELECT\n    ms.id,\n    ms.signup_date,\n    ms.product,\n    ms.email_address,\n    ms.method,\n    ms.source,\n    ms.batch_id\n  FROM public.member_signups ms\n  CROSS JOIN base_member bm\n  WHERE trim(COALESCE(ms.member, '')) = bm.member_name\n    AND EXISTS (SELECT 1 FROM member_rows mr WHERE mr.membership = ms.product)\n    AND (\n      (bm.email_address IS NOT NULL AND public.normalize_match_email(ms.email_address) = public.normalize_match_email(bm.email_address))\n      OR (\n        bm.email_address IS NULL\n        AND 1 = (\n          SELECT count(*)\n          FROM public.raw_members rm2\n          WHERE COALESCE(rm2.is_current, true) = true\n            AND trim(concat_ws(' ', rm2.\"First name\", rm2.\"Last name\")) = bm.member_name\n            AND rm2.\"Membership\" = ms.product\n        )\n      )\n    )\n), latest_eligible_season AS (\n  SELECT max(mr.season::int)::text AS latest_season\n  FROM member_rows mr\n  WHERE mr.status = 'Active'\n    AND mr.payment IN ('Paid', 'Part Paid')\n    AND COALESCE(NULLIF(trim(mr.category), ''), '') <> 'Pavilion Key'\n), eligible_memberships AS (\n  SELECT\n    mr.raw_member_id,\n    mr.membership,\n    mr.category,\n    mr.season,\n    mr.status,\n    mr.payment,\n    mr.venue_id,\n    mr.british_tennis_number,\n    mr.email_address,\n    EXISTS (\n      SELECT 1 FROM signup_rows sr\n      WHERE sr.product = mr.membership\n    ) AS has_signup\n  FROM member_rows mr\n  JOIN latest_eligible_season les\n    ON mr.season = les.latest_season\n  WHERE mr.status = 'Active'\n    AND mr.payment IN ('Paid', 'Part Paid')\n    AND COALESCE(NULLIF(trim(mr.category), ''), '') <> 'Pavilion Key'\n  ORDER BY mr.display_order, mr.membership, mr.raw_member_id\n)\nSELECT\n  COALESCE((SELECT member_name FROM base_member), ${memberSql})::text AS member,\n  (SELECT raw_member_id FROM base_member) AS raw_member_id,\n  COALESCE((SELECT json_agg(to_jsonb(mr)) FROM member_rows mr), '[]'::json) AS member_rows,\n  COALESCE((SELECT json_agg(to_jsonb(em)) FROM eligible_memberships em), '[]'::json) AS eligible_memberships,\n  COALESCE((SELECT json_agg(to_jsonb(sr)) FROM signup_rows sr), '[]'::json) AS signup_rows,\n  COALESCE((SELECT best_contact FROM best_contact), '{}'::jsonb) AS best_contact;\n`;\nreturn [{ json: { member, query: { member, membership, email }, raw_member_id: memberId === 'NULL' ? null : Number.parseInt(memberId, 10), n8n_base_url: n8nBaseUrl, sql } }];"
+      },
+      "id": "d1000000-0000-0000-0000-000000000003",
+      "name": "Build Confirm Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "d1000000-0000-0000-0000-000000000004",
+      "name": "Load Confirm Detail",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        820,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const source = $('Build Confirm Query').first()?.json ?? {};\nconst row = $input.first()?.json ?? {};\nconst sourceQuery = source.query ?? {};\nconst parseMaybe = (value, fallback) => {\n  if (value === null || value === undefined || value === '') return fallback;\n  if (typeof value === 'string') {\n    try { return JSON.parse(value); } catch { return fallback; }\n  }\n  return value;\n};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst escapeHtml = (value) => clean(value)\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\\\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst member = clean(row.member);\nconst rawMemberId = clean(row.raw_member_id);\nconst selectedMembership = clean(sourceQuery.membership);\nconst selectedEmail = clean(sourceQuery.email ?? sourceQuery.email_address);\nconst memberRows = parseMaybe(row.member_rows, []);\nconst eligibleMemberships = parseMaybe(row.eligible_memberships, []);\nconst bestContact = parseMaybe(row.best_contact, {}) || {};\nconst pick = (...values) => values.map(clean).find(Boolean) ?? '';\nconst summaryAddress = [bestContact.address_1, bestContact.address_2, bestContact.address_3, bestContact.town, bestContact.county, bestContact.postcode].map(clean).filter(Boolean);\nconst summaryEmail = pick(selectedEmail, bestContact.email_address, ...memberRows.map((item) => item.email_address));\nconst bestVenueId = pick(bestContact.venue_id, ...eligibleMemberships.map((item) => item.venue_id), ...memberRows.map((item) => item.venue_id));\nconst bestBtn = pick(...eligibleMemberships.map((item) => item.british_tennis_number), ...memberRows.map((item) => item.british_tennis_number));\nconst n8nBaseUrl = clean(source.n8n_base_url) || 'http://n8n:5678';\nconst uncapturedOptions = eligibleMemberships.filter((item) => !item.has_signup);\nconst preselectedMembership = (() => {\n  if (selectedMembership && uncapturedOptions.some((item) => clean(item.membership) === selectedMembership)) return selectedMembership;\n  if (uncapturedOptions.length === 1) return clean(uncapturedOptions[0].membership);\n  if (uncapturedOptions.length > 0) return clean(uncapturedOptions[0].membership);\n  return '';\n})();\nconst renderOption = (item) => {\n  const membership = clean(item.membership);\n  const checked = membership === preselectedMembership ? ' checked' : '';\n  const disabled = item.has_signup ? ' disabled' : '';\n  const statusText = item.has_signup ? 'Signup already captured' : 'Available for backfill';\n  return `<label class=\"option${item.has_signup ? ' option-disabled' : ''}\"><input type=\"radio\" name=\"product\" value=\"${escapeHtml(membership)}\"${checked}${disabled}><span class=\"option-body\"><strong>${escapeHtml(membership)}</strong><small>Season ${escapeHtml(item.season)} | ${escapeHtml(item.payment)} | ${escapeHtml(statusText)}</small></span></label>`;\n};\nconst optionsHtml = eligibleMemberships.length\n  ? eligibleMemberships.map(renderOption).join('')\n  : '<div class=\"empty-state\">No eligible current paid memberships were found for backfill.</div>';\nconst canSubmit = uncapturedOptions.length > 0;\nconst actionButtons = canSubmit\n  ? `<button class=\"button\" type=\"submit\" name=\"add_to_batch\" value=\"false\">Create Signup Only</button><button class=\"button button-secondary\" type=\"submit\" name=\"add_to_batch\" value=\"true\">Create Signup + Add to Current Batch</button>`\n  : '<span class=\"pill success\">Nothing to create. All eligible memberships already have signup capture.</span>';\nconst guidance = eligibleMemberships.length > 1\n  ? 'Multiple current memberships were found. Select the correct category before creating the backfill.'\n  : 'Review the details below, then confirm the backfill.';\nconst batchingNote = canSubmit\n  ? '<p class=\"meta note\">Use <strong>Create Signup Only</strong> if the member was already handled manually in a previous batch. Use the second button only when you want the new backfill added to the current processing batch.</p>'\n  : '';\nconst html = `<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>${escapeHtml(member || 'Confirm backfill')}</title>\n  <style>\n    :root {\n      color-scheme: light;\n      --bg: #f7f8fc;\n      --panel: #ffffff;\n      --ink: #2e3d4e;\n      --muted: #6b7785;\n      --line: #e2e8f0;\n      --accent: #509ee3;\n      --accent-dark: #2f80d8;\n      --soft: #f2f7fd;\n      --button-soft: #eef2f7;\n      --success-bg: #edf8f2;\n      --success-ink: #1f7a4d;\n      --warning-bg: #fff6e6;\n      --warning-ink: #9a6700;\n    }\n    * { box-sizing: border-box; }\n    body {\n      margin: 0;\n      font-family: Lato, 'Helvetica Neue', Arial, sans-serif;\n      color: var(--ink);\n      background: linear-gradient(180deg, #fbfcfe 0%, var(--bg) 100%);\n      padding: 24px;\n    }\n    .wrap { max-width: 960px; margin: 0 auto; display: grid; gap: 20px; }\n    .hero, .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 18px 40px rgba(53, 72, 91, 0.08); }\n    .hero, .panel { padding: 24px; }\n    h1 { margin: 0 0 6px; font-size: 32px; line-height: 1.05; letter-spacing: -0.02em; }\n    .lede, .meta { margin: 0; color: var(--muted); font-size: 16px; }\n    .note { margin-top: 14px; }\n    .summary { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 20px; }\n    .summary-card { border: 1px solid var(--line); border-radius: 14px; padding: 16px; background: var(--soft); }\n    .summary-card h2 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }\n    .summary-card p { margin: 0; font-size: 18px; line-height: 1.4; }\n    .option-list { display: grid; gap: 12px; margin-top: 18px; }\n    .option { display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; background: #fff; }\n    .option input { margin-top: 5px; }\n    .option-body { display: grid; gap: 4px; }\n    .option-body small { color: var(--muted); }\n    .option-disabled { background: #fafbfc; color: var(--muted); }\n    .actions { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }\n    .button, .close-button { display: inline-flex; align-items: center; justify-content: center; padding: 12px 18px; border-radius: 999px; text-decoration: none; font-weight: 700; border: 0; cursor: pointer; font: inherit; }\n    .button { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); color: #fff; box-shadow: 0 10px 24px rgba(80, 158, 227, 0.22); }\n    .button-secondary { background: var(--button-soft); color: var(--ink); border: 1px solid var(--line); box-shadow: none; }\n    .close-button { background: var(--button-soft); color: var(--ink); border: 1px solid var(--line); }\n    .pill { display: inline-flex; align-items: center; padding: 10px 14px; border-radius: 999px; font-weight: 700; background: var(--success-bg); color: var(--success-ink); }\n    .empty-state { padding: 16px; border-radius: 14px; background: var(--warning-bg); color: var(--warning-ink); border: 1px solid #f2d08a; }\n    @media (max-width: 720px) { body { padding: 14px; } .hero, .panel { padding: 18px; } h1 { font-size: 28px; } }\n  </style>\n</head>\n<body>\n  <div class=\"wrap\">\n    <section class=\"hero\">\n      <h1>${escapeHtml(member || 'Confirm backfill')}</h1>\n      <p class=\"lede\">${escapeHtml(guidance)}</p>\n      <div class=\"summary\">\n        <div class=\"summary-card\"><h2>Email</h2><p>${escapeHtml(summaryEmail || 'Not available')}</p></div>\n        <div class=\"summary-card\"><h2>Identifiers</h2><p>Row ID: ${escapeHtml(rawMemberId || 'Not available')}<br>Venue ID: ${escapeHtml(bestVenueId || 'Not available')}<br>Tennis Number: ${escapeHtml(bestBtn || 'Not available')}</p></div>\n        <div class=\"summary-card\" style=\"grid-column: 1 / -1;\"><h2>Best Address</h2><p>${summaryAddress.length ? summaryAddress.map(escapeHtml).join('<br>') : 'Not available'}</p></div>\n      </div>\n    </section>\n    <section class=\"panel\">\n      <h2>Eligible Memberships</h2>\n      <p class=\"meta\">Only current, active, paid memberships from the latest season are offered here. Pavilion Key is excluded.</p>\n      ${batchingNote}\n      <form method=\"get\" action=\"${n8nBaseUrl}/webhook/create-missing-signup-capture\">\n        <input type=\"hidden\" name=\"member\" value=\"${escapeHtml(member)}\">\n        <input type=\"hidden\" name=\"venue_id\" value=\"${escapeHtml(bestVenueId)}\">\n        <input type=\"hidden\" name=\"btn\" value=\"${escapeHtml(bestBtn)}\">\n        <input type=\"hidden\" name=\"request_source\" value=\"confirm_missing_signup_capture\">\n        <div class=\"option-list\">${optionsHtml}</div>\n        <div class=\"actions\">\n          ${actionButtons}\n          <button type=\"button\" class=\"close-button\" onclick=\"window.close()\">Close</button>\n        </div>\n      </form>\n    </section>\n  </div>\n</body>\n</html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "d1000000-0000-0000-0000-000000000005",
+      "name": "Build Confirm HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "d1000000-0000-0000-0000-000000000006",
+      "name": "Respond Confirm",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1420,
+        220
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Build Confirm Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirm Missing Signup Capture Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build Confirm Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Confirm Query": {
+      "main": [
+        [
+          {
+            "node": "Load Confirm Detail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Confirm Detail": {
+      "main": [
+        [
+          {
+            "node": "Build Confirm HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Confirm HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Confirm",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-30T09:47:54.896+00:00",
+  "updatedAt": "2026-03-30T10:57:12.764+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "1143c3eb-5f97-4410-84bb-ad3b13b1f0ac",
+  "triggerCount": 1,
+  "id": "lY64vAbOqCHjtNM9",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 58,
+  "description": null,
+  "activeVersionId": "1143c3eb-5f97-4410-84bb-ad3b13b1f0ac"
+}

@@ -1,0 +1,606 @@
+{
+  "description": "Overview of sample data and hypothetical sales",
+  "archived": false,
+  "view_count": 38,
+  "collection_position": 22,
+  "dashcards": [
+    {
+      "size_x": 24,
+      "dashboard_tab_id": 60,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-03-16T15:09:19.629465Z",
+      "col": 0,
+      "id": 949,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "6EtKNk0gtY-RCG3aWWv3D",
+      "visualization_settings": {
+        "dashcard.background": false,
+        "text": "Appendix",
+        "virtual_card": {
+          "archived": false,
+          "dataset_query": {},
+          "display": "heading",
+          "name": null,
+          "visualization_settings": {}
+        }
+      },
+      "size_y": 1,
+      "dashboard_id": 1,
+      "created_at": "2026-03-16T15:09:19.629465Z",
+      "row": 23
+    },
+    {
+      "size_x": 24,
+      "dashboard_tab_id": 60,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-03-16T15:09:19.629465Z",
+      "col": 0,
+      "id": 950,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "GNtyOHSOx6L5NvuCpSOoX",
+      "visualization_settings": {
+        "dashcard.background": false,
+        "text": "Find more guides and tutorials on Metabase, analytics, data modeling, and more at [Metabase Learn](https://www.metabase.com/learn/)\n\n",
+        "virtual_card": {
+          "archived": false,
+          "dataset_query": {},
+          "display": "text",
+          "name": null,
+          "visualization_settings": {}
+        }
+      },
+      "size_y": 1,
+      "dashboard_id": 1,
+      "created_at": "2026-03-16T15:09:19.629465Z",
+      "row": 24
+    },
+    {
+      "size_x": 24,
+      "dashboard_tab_id": 60,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-03-16T15:09:19.629465Z",
+      "col": 0,
+      "id": 951,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "8ZS-ztiZQKZe2aiFemyCx",
+      "visualization_settings": {
+        "iframe": "https://www.youtube.com/watch?v=dnT2Xj52mnk",
+        "virtual_card": {
+          "archived": false,
+          "dataset_query": {},
+          "display": "iframe",
+          "name": null,
+          "visualization_settings": {}
+        }
+      },
+      "size_y": 10,
+      "dashboard_id": 1,
+      "created_at": "2026-03-16T15:09:19.629465Z",
+      "row": 25
+    },
+    {
+      "size_x": 10,
+      "dashboard_tab_id": 60,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-03-16T15:09:19.629465Z",
+      "col": 14,
+      "id": 952,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "qf9D-lvxhFqJSnj1MweRp",
+      "visualization_settings": {
+        "link": {
+          "entity": {
+            "model": "card",
+            "id": 25,
+            "name": "All subscriptions in table view",
+            "description": "More complete look at all recent subscriptions",
+            "collection_id": 2,
+            "display": "table",
+            "db_id": null
+          }
+        },
+        "virtual_card": {
+          "archived": false,
+          "dataset_query": {},
+          "display": "link",
+          "name": null,
+          "visualization_settings": {}
+        }
+      },
+      "size_y": 1,
+      "dashboard_id": 1,
+      "created_at": "2026-03-16T15:09:19.629465Z",
+      "row": 22
+    },
+    {
+      "size_x": 24,
+      "dashboard_tab_id": 60,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-03-16T15:09:19.629465Z",
+      "col": 0,
+      "id": 953,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "4eDygsrKtevRDgeVgSeC0",
+      "visualization_settings": {
+        "dashcard.background": false,
+        "text": "Take a look into our customer funnel and website performance",
+        "virtual_card": {
+          "archived": false,
+          "dataset_query": {},
+          "display": "text",
+          "name": null,
+          "visualization_settings": {}
+        }
+      },
+      "size_y": 1,
+      "dashboard_id": 1,
+      "created_at": "2026-03-16T15:09:19.629465Z",
+      "row": 1
+    },
+    {
+      "size_x": 24,
+      "dashboard_tab_id": 60,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-03-16T15:09:19.629465Z",
+      "col": 0,
+      "id": 954,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "lyN1qnIG3PgaWsE3VCpzn",
+      "visualization_settings": {
+        "dashcard.background": false,
+        "text": "Website Analysis",
+        "virtual_card": {
+          "archived": false,
+          "dataset_query": {},
+          "display": "heading",
+          "name": null,
+          "visualization_settings": {}
+        }
+      },
+      "size_y": 1,
+      "dashboard_id": 1,
+      "created_at": "2026-03-16T15:09:19.629465Z",
+      "row": 0
+    },
+    {
+      "size_x": 24,
+      "dashboard_tab_id": 59,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-03-16T15:09:19.629465Z",
+      "col": 0,
+      "id": 955,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "ESLWRDsTXaq9etVD21xB0",
+      "visualization_settings": {
+        "dashcard.background": false,
+        "text": "Super important customer ratings for our products",
+        "virtual_card": {
+          "archived": false,
+          "dataset_query": {},
+          "display": "text",
+          "name": null,
+          "visualization_settings": {}
+        }
+      },
+      "size_y": 1,
+      "dashboard_id": 1,
+      "created_at": "2026-03-16T15:09:19.629465Z",
+      "row": 33
+    },
+    {
+      "size_x": 24,
+      "dashboard_tab_id": 59,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-03-16T15:09:19.629465Z",
+      "col": 0,
+      "id": 956,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "6yJWTB1e9-wU2jlNBOlPy",
+      "visualization_settings": {
+        "dashcard.background": false,
+        "text": "Customer Satisfaction",
+        "virtual_card": {
+          "archived": false,
+          "dataset_query": {},
+          "display": "heading",
+          "name": null,
+          "visualization_settings": {}
+        }
+      },
+      "size_y": 1,
+      "dashboard_id": 1,
+      "created_at": "2026-03-16T15:09:19.629465Z",
+      "row": 32
+    },
+    {
+      "size_x": 24,
+      "dashboard_tab_id": 58,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-03-16T15:09:19.629465Z",
+      "col": 0,
+      "id": 957,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "QIFsF-s7ZYJg9oNLnqBK1",
+      "visualization_settings": {
+        "dashcard.background": false,
+        "text": "Widget and Gizmo are our leading products, generating the most revenue and orders",
+        "virtual_card": {
+          "archived": false,
+          "dataset_query": {},
+          "display": "text",
+          "name": null,
+          "visualization_settings": {}
+        }
+      },
+      "size_y": 1,
+      "dashboard_id": 1,
+      "created_at": "2026-03-16T15:09:19.629465Z",
+      "row": 15
+    },
+    {
+      "size_x": 24,
+      "dashboard_tab_id": 59,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-03-16T15:09:19.629465Z",
+      "col": 0,
+      "id": 958,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "AaoNEKA4dBGdpv5bJ4OMt",
+      "visualization_settings": {
+        "dashcard.background": false,
+        "text": "Find below a breakdown of products and their performance, filtered now for {{product_category}}",
+        "virtual_card": {
+          "archived": false,
+          "dataset_query": {},
+          "display": "text",
+          "name": null,
+          "visualization_settings": {}
+        }
+      },
+      "size_y": 1,
+      "dashboard_id": 1,
+      "created_at": "2026-03-16T15:09:19.629465Z",
+      "row": 1
+    },
+    {
+      "size_x": 24,
+      "dashboard_tab_id": 58,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-03-16T15:09:19.629465Z",
+      "col": 0,
+      "id": 959,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "9NHZGFN7KuWwMyHck1pf6",
+      "visualization_settings": {
+        "dashcard.background": false,
+        "text": "Business KPIs _look strong_ based on the consistent MoM revenue growth following the growth in the number of orders",
+        "virtual_card": {
+          "archived": false,
+          "dataset_query": {},
+          "display": "text",
+          "name": null,
+          "visualization_settings": {}
+        }
+      },
+      "size_y": 1,
+      "dashboard_id": 1,
+      "created_at": "2026-03-16T15:09:19.629465Z",
+      "row": 1
+    },
+    {
+      "size_x": 24,
+      "dashboard_tab_id": 59,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-03-16T15:09:19.629465Z",
+      "col": 0,
+      "id": 960,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "zKbzxrbBCklBF2AtCgIhm",
+      "visualization_settings": {
+        "dashcard.background": false,
+        "text": "Top Performing Products",
+        "virtual_card": {
+          "archived": false,
+          "dataset_query": {},
+          "display": "heading",
+          "name": null,
+          "visualization_settings": {}
+        }
+      },
+      "size_y": 1,
+      "dashboard_id": 1,
+      "created_at": "2026-03-16T15:09:19.629465Z",
+      "row": 0
+    },
+    {
+      "size_x": 24,
+      "dashboard_tab_id": 58,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-03-16T15:09:19.629465Z",
+      "col": 0,
+      "id": 961,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "u82BdqIW241ss8wvuzNy7",
+      "visualization_settings": {
+        "dashcard.background": false,
+        "text": "Deeper Dive",
+        "virtual_card": {
+          "archived": false,
+          "dataset_query": {},
+          "display": "heading",
+          "name": null,
+          "visualization_settings": {}
+        }
+      },
+      "size_y": 1,
+      "dashboard_id": 1,
+      "created_at": "2026-03-16T15:09:19.629465Z",
+      "row": 14
+    },
+    {
+      "size_x": 24,
+      "dashboard_tab_id": 58,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-03-16T15:09:19.629465Z",
+      "col": 0,
+      "id": 962,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "sBw_aZfFNUbADBW7Bpj7k",
+      "visualization_settings": {
+        "dashcard.background": false,
+        "text": "Overall Business Health",
+        "virtual_card": {
+          "archived": false,
+          "dataset_query": {},
+          "display": "heading",
+          "name": null,
+          "visualization_settings": {}
+        }
+      },
+      "size_y": 1,
+      "dashboard_id": 1,
+      "created_at": "2026-03-16T15:09:19.629465Z",
+      "row": 0
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "initially_published_at": null,
+  "can_write": true,
+  "can_set_cache_policy": true,
+  "tabs": [
+    {
+      "id": 58,
+      "dashboard_id": 1,
+      "name": "Overview",
+      "position": 0,
+      "entity_id": "vf2whZhQNgrvqadE1QqDv",
+      "created_at": "2026-03-16T15:09:19.629465Z",
+      "updated_at": "2026-03-16T15:09:19.629465Z"
+    },
+    {
+      "id": 59,
+      "dashboard_id": 1,
+      "name": "Portfolio Performance",
+      "position": 1,
+      "entity_id": "vpYoCGiK1pYmI0x0Chmbl",
+      "created_at": "2026-03-16T15:09:19.629465Z",
+      "updated_at": "2026-03-16T15:09:19.629465Z"
+    },
+    {
+      "id": 60,
+      "dashboard_id": 1,
+      "name": "Website Analysis",
+      "position": 2,
+      "entity_id": "Yv0IbggNShrQTMiq8r9P3",
+      "created_at": "2026-03-16T15:09:19.629465Z",
+      "updated_at": "2026-03-16T15:09:19.629465Z"
+    }
+  ],
+  "enable_embedding": false,
+  "collection_id": 2,
+  "show_in_getting_started": false,
+  "name": "E-commerce Insights",
+  "is_remote_synced": false,
+  "width": "fixed",
+  "caveats": null,
+  "collection_authority_level": null,
+  "creator_id": 13371338,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-03-16T15:09:05.054619Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "last_used_param_values": {},
+  "id": 1,
+  "last_viewed_at": "2025-03-27T09:23:06.022054Z",
+  "position": null,
+  "archived_directly": false,
+  "entity_id": "xBLdW9FsgRuB2HGhWiBa_",
+  "param_fields": {},
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-03-16T15:09:19.858148Z"
+  },
+  "collection": {
+    "authority_level": null,
+    "description": "Some examples to get started with",
+    "archived": false,
+    "workspace_id": null,
+    "slug": "examples",
+    "archive_operation_id": null,
+    "name": "Examples",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": true,
+    "effective_location": "/",
+    "id": 2,
+    "archived_directly": null,
+    "entity_id": "HyB3nRtqb7pBPhFG26evI",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-27T09:23:06.022054Z"
+  },
+  "parameters": [
+    {
+      "id": "81cd957",
+      "name": "Date Range",
+      "required": false,
+      "sectionId": "date",
+      "slug": "date_range",
+      "type": "date/all-options"
+    },
+    {
+      "id": "efd919c7",
+      "name": "Date Grouping",
+      "sectionId": "temporal-unit",
+      "slug": "date_grouping",
+      "type": "temporal-unit"
+    },
+    {
+      "default": [
+        "Doohickey",
+        "Gizmo",
+        "Gadget",
+        "Widget"
+      ],
+      "id": "9d9cddd4",
+      "name": "Product Category",
+      "required": true,
+      "sectionId": "string",
+      "slug": "product_category",
+      "type": "string/="
+    },
+    {
+      "id": "1ebab259",
+      "isMultiSelect": false,
+      "name": "Vendor",
+      "sectionId": "string",
+      "slug": "vendor",
+      "type": "string/="
+    }
+  ],
+  "auto_apply_filters": true,
+  "created_at": "2025-03-27T09:23:06.022054Z",
+  "public_uuid": null,
+  "points_of_interest": null,
+  "can_delete": false
+}
