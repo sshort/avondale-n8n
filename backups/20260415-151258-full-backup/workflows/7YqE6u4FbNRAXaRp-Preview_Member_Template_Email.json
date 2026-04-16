@@ -1,0 +1,442 @@
+{
+  "name": "Preview Member Template Email",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "c2000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "preview-member-template-email",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "c2000000-0000-0000-0000-000000000002",
+      "name": "Preview Member Template Email Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "preview-member-template-email"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'email_delivery_mode' THEN value END) AS default_delivery_mode,\n  MAX(CASE WHEN key = 'email_test_recipient' THEN value END) AS default_test_recipient,\n  MAX(CASE WHEN key = 'email_sender_name' THEN value END) AS email_sender_name,\n  MAX(CASE WHEN key = 'email_reply_to' THEN value END) AS email_reply_to,\n  MAX(CASE WHEN key = 'email_signature_template_key' THEN value END) AS email_signature_template_key\nFROM public.global_settings\nWHERE key IN ('email_delivery_mode', 'email_test_recipient', 'email_sender_name', 'email_reply_to', 'email_signature_template_key');"
+      },
+      "id": "c2000000-0000-0000-0000-000000000003",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        480,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const settings = $('Load Global Settings').first()?.json ?? {};\nconst request = $('Preview Member Template Email Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst query = request.query ?? request;\nconst headers = request.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst truthy = (value) => ['1', 'true', 'yes', 'y', 'on'].includes(clean(value).toLowerCase());\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst fallbackBaseUrl = 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nconst member = clean(query.member);\nconst membership = clean(query.membership);\nconst email = clean(query.email);\nconst templateKey = clean(query.template_key);\nconst returnUrl = clean(query.return_url) || `${n8nBaseUrl}/webhook/member-search-detail?member=${encodeURIComponent(member)}&membership=${encodeURIComponent(membership)}&email=${encodeURIComponent(email)}`;\nconst rawMemberId = Number.parseInt(clean(query.member_id), 10);\nconst defaultDeliveryMode = clean(settings.default_delivery_mode).toLowerCase() === 'production' ? 'production' : 'test';\nconst forceTest = truthy(query.test_mode) || clean(query.delivery_mode).toLowerCase() === 'test' || defaultDeliveryMode !== 'production';\nconst deliveryMode = forceTest ? 'test' : 'production';\nconst errorMessage = !templateKey ? 'template_key is required' : (!member && !Number.isInteger(rawMemberId) ? 'member_id or member is required' : '');\nreturn [{ json: { member_id: Number.isInteger(rawMemberId) ? rawMemberId : null, member, membership, email, template_key: templateKey, signature_template_key: settings.email_signature_template_key || 'signature', sender_name: settings.email_sender_name || 'Steve Short', reply_to: settings.email_reply_to || 'members.avondaleltc@gmail.com', delivery_mode: deliveryMode, test_recipient: clean(settings.default_test_recipient) || 'steve.short@gmail.com', return_url: returnUrl, n8n_base_url: n8nBaseUrl, error_message: errorMessage } }];"
+      },
+      "id": "c2000000-0000-0000-0000-000000000004",
+      "name": "Resolve Preview Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "request-error-check",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "c2000000-0000-0000-0000-000000000005",
+      "name": "Check Request Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1020,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $input.first().json ?? {};\nconst sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sqlInteger = (value) => Number.isInteger(value) ? String(value) : 'NULL';\nconst memberSql = sqlLiteral(input.member);\nconst membershipSql = sqlLiteral(input.membership);\nconst emailSql = sqlLiteral(input.email);\nconst templateSql = sqlLiteral(input.template_key);\nconst signatureTemplateSql = sqlLiteral(input.signature_template_key || 'signature');\nconst memberIdSql = sqlInteger(input.member_id);\nconst sql = `\nWITH base_member AS (\n  SELECT rm.id AS raw_member_id, trim(concat_ws(' ', rm.\"First name\", rm.\"Last name\")) AS member_name, rm.\"First name\" AS first_name, rm.\"Last name\" AS last_name, NULLIF(trim(rm.\"Email address\"), '') AS member_email, NULLIF(trim(rm.\"Venue ID\"), '') AS venue_id, rm.\"Membership\" AS membership, NULLIF(trim(rm.\"Status\"), '') AS member_status, NULLIF(trim(rm.\"Payment\"), '') AS payment_status, NULLIF(trim(rm.\"Start Date\"), '') AS start_date, NULLIF(trim(rm.\"Expiry Date\"), '') AS expiry_date, rm.\"Paid\" AS paid_total, NULLIF(trim(rm.\"Address 1\"), '') AS address_1, NULLIF(trim(rm.\"Postcode\"), '') AS postcode\n  FROM public.raw_members rm\n  WHERE COALESCE(rm.is_current, true) = true\n    AND ((${memberIdSql} IS NOT NULL AND rm.id = ${memberIdSql}) OR (${memberIdSql} IS NULL AND trim(concat_ws(' ', rm.\"First name\", rm.\"Last name\")) = ${memberSql} AND (${membershipSql} = '' OR rm.\"Membership\" = ${membershipSql}) AND (${emailSql} = '' OR public.normalize_match_email(rm.\"Email address\") = public.normalize_match_email(${emailSql}))))\n  ORDER BY CASE WHEN (${membershipSql} <> '' AND rm.\"Membership\" = ${membershipSql}) THEN 0 ELSE 1 END, rm.id\n  LIMIT 1\n), member_identity AS (\n  SELECT COALESCE((SELECT raw_member_id FROM base_member), ${memberIdSql}) AS raw_member_id, COALESCE((SELECT member_name FROM base_member), ${memberSql}) AS member_name, COALESCE((SELECT first_name FROM base_member), split_part(${memberSql}, ' ', 1)) AS first_name, COALESCE((SELECT last_name FROM base_member), NULLIF(regexp_replace(${memberSql}, '^\\\\S+\\\\s*', ''), '')) AS last_name, COALESCE((SELECT member_email FROM base_member), NULLIF(${emailSql}, '')) AS member_email, COALESCE((SELECT membership FROM base_member), NULLIF(${membershipSql}, '')) AS membership, COALESCE((SELECT member_status FROM base_member), NULL) AS member_status, COALESCE((SELECT payment_status FROM base_member), NULL) AS payment_status, COALESCE((SELECT start_date FROM base_member), NULL) AS start_date, COALESCE((SELECT expiry_date FROM base_member), NULL) AS expiry_date, COALESCE((SELECT paid_total FROM base_member), NULL::numeric) AS paid_total, COALESCE((SELECT address_1 FROM base_member), NULL) AS address_1, COALESCE((SELECT postcode FROM base_member), NULL) AS postcode\n), best_contact AS (\n  SELECT bc.*\n  FROM member_identity mi\n  LEFT JOIN LATERAL public.resolve_best_contact_row(mi.member_name, COALESCE(NULLIF(${emailSql}, ''), mi.member_email), NULLIF(regexp_replace(mi.member_name, '^\\\\S+\\\\s*', ''), ''), EXISTS (SELECT 1 FROM public.raw_members rmf WHERE COALESCE(rmf.is_current, true) = true AND trim(concat_ws(' ', rmf.\"First name\", rmf.\"Last name\")) = mi.member_name AND rmf.\"Membership\" ILIKE '%Family%')) bc ON TRUE\n), main_contact_candidates AS (\n  SELECT trim(concat_ws(' ', mc.\"First name\", mc.\"Last name\")) AS main_contact_name, NULLIF(trim(mc.\"Email address\"), '') AS main_contact_email, NULLIF(trim(mc.\"Address 1\"), '') AS main_contact_address_1, NULLIF(trim(mc.\"Town\"), '') AS main_contact_town, NULLIF(trim(mc.\"Postcode\"), '') AS main_contact_postcode, row_number() OVER (ORDER BY CASE WHEN NULLIF(trim(mc.\"Email address\"), '') IS NOT NULL THEN 0 ELSE 1 END, CASE WHEN mi.last_name IS NOT NULL AND public.normalize_match_text(mc.\"Last name\") = public.normalize_match_text(mi.last_name) THEN 0 ELSE 1 END, CASE WHEN mi.postcode IS NOT NULL AND public.normalize_match_text(mc.\"Postcode\") = public.normalize_match_text(mi.postcode) THEN 0 ELSE 1 END, mc.id DESC) AS candidate_rank\n  FROM member_identity mi\n  JOIN public.vw_raw_members_main_contacts_current mc\n    ON trim(concat_ws(' ', mc.\"First name\", mc.\"Last name\")) <> mi.member_name\n   AND COALESCE(mc.\"Membership\", '') = COALESCE(mi.membership, '')\n   AND COALESCE(mc.\"Status\", '') = COALESCE(mi.member_status, '')\n   AND COALESCE(mc.\"Payment\", '') = COALESCE(mi.payment_status, '')\n   AND COALESCE(mc.\"Start Date\", '') = COALESCE(mi.start_date, '')\n   AND COALESCE(mc.\"Expiry Date\", '') = COALESCE(mi.expiry_date, '')\n   AND COALESCE(mc.\"Paid\", -1::numeric) = COALESCE(mi.paid_total, -1::numeric)\n   AND ((mi.last_name IS NOT NULL AND public.normalize_match_text(mc.\"Last name\") = public.normalize_match_text(mi.last_name)) OR (mi.postcode IS NOT NULL AND public.normalize_match_text(mc.\"Postcode\") = public.normalize_match_text(mi.postcode)) OR (mi.address_1 IS NOT NULL AND public.normalize_match_text(mc.\"Address 1\") = public.normalize_match_text(mi.address_1)))\n), main_contact AS (\n  SELECT COALESCE(NULLIF(TRIM(bcm.email_address), ''), mcc.main_contact_email) AS email_address, COALESCE(NULLIF(TRIM(bcm.address_1), ''), mcc.main_contact_address_1) AS address_1, COALESCE(NULLIF(TRIM(bcm.town), ''), mcc.main_contact_town) AS town, COALESCE(NULLIF(TRIM(bcm.postcode), ''), mcc.main_contact_postcode) AS postcode, mcc.main_contact_name\n  FROM main_contact_candidates mcc\n  LEFT JOIN LATERAL public.resolve_best_contact_row(mcc.main_contact_name, mcc.main_contact_email, NULLIF(regexp_replace(mcc.main_contact_name, '^\\\\S+\\\\s*', ''), ''), false) bcm ON TRUE\n  WHERE mcc.candidate_rank = 1\n), main_template AS (\n  SELECT template_key, template_name, subject_template, text_template, html_template\n  FROM public.email_templates\n  WHERE template_key = ${templateSql}\n    AND is_active = true\n    AND template_type = 0\n  ORDER BY id DESC\n  LIMIT 1\n), signature_template AS (\n  SELECT template_key, template_name, subject_template, text_template, html_template\n  FROM public.email_templates\n  WHERE template_key = ${signatureTemplateSql}\n    AND is_active = true\n    AND template_type = 2\n  ORDER BY id DESC\n  LIMIT 1\n)\nSELECT mi.member_name, mi.first_name, mi.last_name, mi.membership, COALESCE(NULLIF(${emailSql}, ''), NULLIF(TRIM(mc.email_address), ''), NULLIF(TRIM(bc.email_address), ''), NULLIF(TRIM(mi.member_email), '')) AS to_email, COALESCE(NULLIF(TRIM(mc.address_1), ''), NULLIF(TRIM(bc.address_1), ''), '') AS address_1, COALESCE(NULLIF(TRIM(mc.town), ''), NULLIF(TRIM(bc.town), ''), '') AS town, COALESCE(NULLIF(TRIM(mc.postcode), ''), NULLIF(TRIM(bc.postcode), ''), '') AS postcode, (SELECT template_key FROM main_template) AS template_key, (SELECT template_name FROM main_template) AS template_name, (SELECT subject_template FROM main_template) AS subject_template, (SELECT text_template FROM main_template) AS text_template, (SELECT html_template FROM main_template) AS html_template, (SELECT template_key FROM signature_template) AS signature_template_key, (SELECT text_template FROM signature_template) AS signature_text_template, (SELECT html_template FROM signature_template) AS signature_html_template, CASE WHEN COALESCE(mi.member_name, '') = '' THEN 'Member is required' WHEN COALESCE(COALESCE(NULLIF(${emailSql}, ''), NULLIF(TRIM(mc.email_address), ''), NULLIF(TRIM(bc.email_address), ''), NULLIF(TRIM(mi.member_email), '')), '') = '' THEN 'No email address found for ' || mi.member_name WHEN NOT EXISTS (SELECT 1 FROM main_template) THEN 'Email template ' || ${templateSql} || ' was not found or is not a message template' ELSE NULL END AS error_message FROM member_identity mi LEFT JOIN best_contact bc ON TRUE LEFT JOIN main_contact mc ON TRUE;`;\nreturn [{ json: { ...input, sql } }];"
+      },
+      "id": "c2000000-0000-0000-0000-000000000006",
+      "name": "Build Preview Context SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "c2000000-0000-0000-0000-000000000007",
+      "name": "Load Preview Context",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1540,
+        320
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "context-error-check",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "c2000000-0000-0000-0000-000000000008",
+      "name": "Check Context Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1800,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Resolve Preview Request').first().json ?? {};\nconst errorRow = $('Load Preview Context').first()?.json ?? {};\nconst message = errorRow.error_message || input.error_message || 'Unable to prepare email preview.';\nconst returnUrl = input.return_url || '#';\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Email Preview Unavailable</title><style>body{margin:0;padding:24px;background:#f7f8fc;font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:#2e3d4e}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 18px 40px rgba(53,72,91,.08);padding:28px}h1{margin:0 0 10px;font-size:30px}p{color:#6b7785;line-height:1.5}.message{margin:18px 0;padding:14px 16px;border-radius:14px;background:#fdecec;color:#b93a3a;font-weight:700}.actions{margin-top:22px;display:flex;gap:12px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#509ee3 0%,#2f80d8 100%);color:#fff}</style></head><body><div class=\"panel\"><h1>Email Preview Unavailable</h1><p>The member-detail email panel could not build a preview for this request.</p><div class=\"message\">${escapeHtml(message)}</div><div class=\"actions\"><a class=\"button\" href=\"${escapeHtml(returnUrl)}\">Back to Member Detail</a></div></div></body></html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "c2000000-0000-0000-0000-000000000009",
+      "name": "Build Error HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              },
+              {
+                "name": "Pragma",
+                "value": "no-cache"
+              },
+              {
+                "name": "Expires",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "c2000000-0000-0000-0000-000000000010",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1540,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Resolve Preview Request').first().json ?? {};\nconst context = $('Load Preview Context').first()?.json ?? {};\nconst tokenMap = {\n  '{{$json.first_name}}': context.first_name ?? '',\n  '{{$json.last_name}}': context.last_name ?? '',\n  '{{$json.email_address}}': context.to_email ?? '',\n  '{{$json.address_1}}': context.address_1 ?? '',\n  '{{$json.town}}': context.town ?? '',\n  '{{$json.postcode}}': context.postcode ?? '',\n  '{{$json.membership}}': context.membership ?? '',\n  '{{$json.contact.first_name}}': context.first_name ?? '',\n  '{{$json.contact.last_name}}': context.last_name ?? '',\n  '{{$json.contact.email_address}}': context.to_email ?? '',\n  '{{$json.contact.address_1}}': context.address_1 ?? '',\n  '{{$json.contact.town}}': context.town ?? '',\n  '{{$json.contact.postcode}}': context.postcode ?? '',\n  '{{$json.member.first_name}}': context.first_name ?? '',\n  '{{$json.member.last_name}}': context.last_name ?? '',\n  '{{$json.member.email_address}}': context.to_email ?? '',\n  '{{$json.member.membership}}': context.membership ?? '',\n  '{{first_name}}': context.first_name ?? '',\n  '{{last_name}}': context.last_name ?? '',\n  '{{email_address}}': context.to_email ?? '',\n  '{{address_1}}': context.address_1 ?? '',\n  '{{town}}': context.town ?? '',\n  '{{postcode}}': context.postcode ?? '',\n  '{{membership}}': context.membership ?? '',\n  '<first name>': context.first_name ?? '',\n  '<last name>': context.last_name ?? '',\n  '<email address>': context.to_email ?? '',\n  '{contact.first_name}': context.first_name ?? '',\n  '{contact.last_name}': context.last_name ?? '',\n  '{contact.email_address}': context.to_email ?? '',\n  '{contact.address_1}': context.address_1 ?? '',\n  '{contact.town}': context.town ?? '',\n  '{contact.postcode}': context.postcode ?? '',\n  '{member.first_name}': context.first_name ?? '',\n  '{member.last_name}': context.last_name ?? '',\n  '{member.email_address}': context.to_email ?? '',\n  '{member.membership}': context.membership ?? ''\n};\nconst applyTokens = (value) => {\n  let rendered = String(value ?? '');\n  for (const [token, replacement] of Object.entries(tokenMap)) {\n    rendered = rendered.split(token).join(String(replacement));\n  }\n  return rendered.trim();\n};\nconst emailType = context.html_template && !context.text_template ? 'html' : 'text';\nconst bodySource = emailType === 'html' ? (context.html_template ?? context.text_template ?? '') : (context.text_template ?? context.html_template ?? '');\nconst signatureSource = emailType === 'html' ? (context.signature_html_template ?? context.signature_text_template ?? '') : (context.signature_text_template ?? context.signature_html_template ?? '');\nconst intendedRecipient = context.to_email;\nconst actualRecipient = input.delivery_mode === 'production' ? intendedRecipient : input.test_recipient;\nreturn [{ json: { member_id: input.member_id, member: context.member_name, membership: context.membership, email: input.email || context.to_email, template_key: context.template_key, template_name: context.template_name || context.template_key, delivery_mode: input.delivery_mode, test_recipient: input.test_recipient, intended_recipient: intendedRecipient, actual_recipient: actualRecipient, return_url: input.return_url, sender_name: input.sender_name, reply_to: input.reply_to, rendered_subject: applyTokens(context.subject_template ?? 'Message from Avondale Tennis Club'), rendered_body: applyTokens(bodySource), rendered_signature: applyTokens(signatureSource), email_type: emailType, send_url: `${input.n8n_base_url}/webhook/send-member-template-email` } }];"
+      },
+      "id": "c2000000-0000-0000-0000-000000000011",
+      "name": "Render Preview Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2060,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $('Render Preview Data').first().json ?? {};\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst bodyPreview = escapeHtml(item.rendered_body).replace(/\\r?\\n/g, '&#10;');\nconst signaturePreview = escapeHtml(item.rendered_signature).replace(/\\r?\\n/g, '&#10;');\nconst subjectPreview = escapeHtml(item.rendered_subject);\nconst modeChecked = item.delivery_mode !== 'production' ? ' checked' : '';\nconst modeLabel = item.delivery_mode === 'production' ? 'Production' : 'Test';\nconst recipientSummary = item.delivery_mode === 'production'\n  ? escapeHtml(item.actual_recipient)\n  : `${escapeHtml(item.actual_recipient)} (intended recipient: ${escapeHtml(item.intended_recipient)})`;\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Email Preview</title><style>:root{color-scheme:light;--bg:#f7f8fc;--panel:#ffffff;--ink:#2e3d4e;--muted:#6b7785;--line:#e2e8f0;--accent:#509ee3;--accent-dark:#2f80d8;--soft:#f2f7fd;--button-soft:#eef2f7}*{box-sizing:border-box}body{margin:0;padding:24px;background:linear-gradient(180deg,#fbfcfe 0%,var(--bg) 100%);font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:var(--ink)}.wrap{max-width:960px;margin:0 auto;display:grid;gap:20px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 40px rgba(53,72,91,.08);padding:28px}h1{margin:0 0 10px;font-size:32px;line-height:1.05;letter-spacing:-.02em}.meta{margin:0;color:var(--muted);line-height:1.5}.summary{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:20px}.summary-card{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--soft)}.summary-card h2{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}.summary-card p{margin:0;font-size:17px;line-height:1.4}.email-form{display:grid;gap:16px;margin-top:18px}.email-form label{display:grid;gap:8px;font-weight:700}.email-form input[type=text],.email-form textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit;background:#fff;color:var(--ink)}.email-form textarea{min-height:320px;resize:vertical;line-height:1.5}.signature-preview textarea{min-height:120px;background:#f8fafc}.checkbox-wrap{display:inline-flex;align-items:center;gap:10px;font-weight:600}.checkbox-wrap input{width:18px;height:18px}.actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.button,.secondary{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;border:0;cursor:pointer;font:inherit}.button{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-dark) 100%);color:#fff;box-shadow:0 10px 24px rgba(80,158,227,.22)}.secondary{background:var(--button-soft);color:var(--ink);border:1px solid var(--line)}</style></head><body><div class=\"wrap\"><section class=\"panel\"><h1>Email Preview</h1><p class=\"meta\">Review and edit the rendered message below before sending it. The signature shown below is appended automatically during send.</p><div class=\"summary\"><div class=\"summary-card\"><h2>Member</h2><p>${escapeHtml(item.member)}</p></div><div class=\"summary-card\"><h2>Template</h2><p>${escapeHtml(item.template_name)}</p></div><div class=\"summary-card\"><h2>Mode</h2><p>${escapeHtml(modeLabel)}</p></div><div class=\"summary-card\"><h2>Recipient</h2><p>${recipientSummary}</p></div></div><form class=\"email-form\" method=\"POST\" action=\"${escapeHtml(item.send_url)}\"><input type=\"hidden\" name=\"member_id\" value=\"${escapeHtml(item.member_id)}\"><input type=\"hidden\" name=\"member\" value=\"${escapeHtml(item.member)}\"><input type=\"hidden\" name=\"membership\" value=\"${escapeHtml(item.membership)}\"><input type=\"hidden\" name=\"email\" value=\"${escapeHtml(item.email)}\"><input type=\"hidden\" name=\"template_key\" value=\"${escapeHtml(item.template_key)}\"><input type=\"hidden\" name=\"return_url\" value=\"${escapeHtml(item.return_url)}\"><input type=\"hidden\" name=\"email_type\" value=\"${escapeHtml(item.email_type)}\"><input type=\"hidden\" name=\"rendered_signature\" value=\"${escapeHtml(item.rendered_signature)}\"><label><span>Subject</span><input type=\"text\" name=\"rendered_subject\" value=\"${subjectPreview}\" required></label><label><span>Message</span><textarea name=\"rendered_message\" required>${bodyPreview}</textarea></label><label class=\"signature-preview\"><span>Signature</span><textarea readonly>${signaturePreview}</textarea></label><label><span>Mode</span><span class=\"checkbox-wrap\"><input type=\"checkbox\" name=\"test_mode\" value=\"1\"${modeChecked}> Send in test mode</span></label><div class=\"actions\"><button type=\"submit\" class=\"button\">Send Email</button><a class=\"secondary\" href=\"${escapeHtml(item.return_url)}\">Back to Member Detail</a></div></form></section></div></body></html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "c2000000-0000-0000-0000-000000000012",
+      "name": "Build Preview HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2320,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              },
+              {
+                "name": "Pragma",
+                "value": "no-cache"
+              },
+              {
+                "name": "Expires",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "c2000000-0000-0000-0000-000000000013",
+      "name": "Respond Preview",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2580,
+        420
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preview Member Template Email Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Resolve Preview Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Preview Request": {
+      "main": [
+        [
+          {
+            "node": "Check Request Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Request Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Preview Context SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Preview Context SQL": {
+      "main": [
+        [
+          {
+            "node": "Load Preview Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Preview Context": {
+      "main": [
+        [
+          {
+            "node": "Check Context Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Context Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render Preview Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render Preview Data": {
+      "main": [
+        [
+          {
+            "node": "Build Preview HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Preview HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Preview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-01T14:38:24.237+00:00",
+  "updatedAt": "2026-04-13T17:04:12.647+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "3f72854a-7ced-435f-b2fa-299e29762069",
+  "triggerCount": 1,
+  "id": "7YqE6u4FbNRAXaRp",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 50,
+  "description": null,
+  "activeVersionId": "3f72854a-7ced-435f-b2fa-299e29762069"
+}

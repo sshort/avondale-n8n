@@ -1,0 +1,282 @@
+{
+  "cache_invalidated_at": null,
+  "description": "Archive-run level summary for historical raw import tables.",
+  "archived": false,
+  "view_count": 17,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "text",
+      "semantic_type": "type/Source",
+      "lib/deduplicated-name": "Source",
+      "lib/original-name": "Source",
+      "name": "Source",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Source",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Source",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Source",
+      "display_name": "Source",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 8.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "timestamptz",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Archived Day",
+      "lib/original-name": "Archived Day",
+      "name": "Archived Day",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Archived Day",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Archived Day",
+        {
+          "base-type": "type/DateTimeWithLocalTZ"
+        }
+      ],
+      "effective_type": "type/DateTimeWithLocalTZ",
+      "lib/desired-column-alias": "Archived Day",
+      "display_name": "Archived Day",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": "2026-04-14T00:00:00Z",
+            "latest": "2026-04-14T00:00:00Z"
+          }
+        }
+      },
+      "base_type": "type/DateTimeWithLocalTZ"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Snapshot Year",
+      "lib/original-name": "Snapshot Year",
+      "name": "Snapshot Year",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Snapshot Year",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Snapshot Year",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "Snapshot Year",
+      "display_name": "Snapshot Year",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 2026.0,
+            "q1": 2026.0,
+            "q3": 2026.0,
+            "max": 2026.0,
+            "sd": null,
+            "avg": 2026.0
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": "type/Source",
+      "lib/deduplicated-name": "Snapshot Source",
+      "lib/original-name": "Snapshot Source",
+      "name": "Snapshot Source",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Snapshot Source",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Snapshot Source",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Snapshot Source",
+      "display_name": "Snapshot Source",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 19.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "int8",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Archived Rows",
+      "lib/original-name": "Archived Rows",
+      "name": "Archived Rows",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Archived Rows",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Archived Rows",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "Archived Rows",
+      "display_name": "Archived Rows",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 1246.0,
+            "q1": 1246.0,
+            "q3": 1246.0,
+            "max": 1246.0,
+            "sd": null,
+            "avg": 1246.0
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Historical Archive Runs",
+  "last_query_start": "2026-04-14T17:10:29.325163Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-14T17:10:29.332651Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 184.4117647058823529,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-07T15:36:32.101002Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "native": "with runs as (\n    select\n        'Contacts'::text as source,\n        date_trunc('day', archived_at) as archived_day,\n        snapshot_year,\n        snapshot_source,\n        count(*)::bigint as archived_rows\n    from public.raw_contacts_historical\n    group by 1, 2, 3, 4\n    union all\n    select\n        'Members'::text as source,\n        date_trunc('day', archived_at) as archived_day,\n        snapshot_year,\n        snapshot_source,\n        count(*)::bigint as archived_rows\n    from public.raw_members_historical\n    group by 1, 2, 3, 4\n)\nselect\n    source as \"Source\",\n    archived_day as \"Archived Day\",\n    snapshot_year as \"Snapshot Year\",\n    snapshot_source as \"Snapshot Source\",\n    archived_rows as \"Archived Rows\"\nfrom runs\norder by \"Archived Day\" desc, \"Source\", \"Snapshot Year\" desc;"
+      }
+    ]
+  },
+  "id": 1631,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "u2mQsEvdHqQzy48H81fHR",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-07T15:36:32.112415Z"
+  },
+  "visualization_settings": {},
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-04-07T15:36:32.101002Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

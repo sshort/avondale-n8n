@@ -1,0 +1,105 @@
+{
+  "name": "Team Captain Mailout Jobs",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "team-captain-mailout-jobs",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "tmj-webhook-001",
+      "name": "Jobs Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        260,
+        260
+      ],
+      "webhookId": "team-captain-mailout-jobs"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://192.168.1.237:3010/jobs",
+        "options": {}
+      },
+      "id": "tmj-http-001",
+      "name": "Fetch Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "tmj-respond-001",
+      "name": "Respond Jobs",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        820,
+        260
+      ]
+    }
+  ],
+  "connections": {
+    "Jobs Webhook": {
+      "main": [
+        [
+          {
+            "node": "Fetch Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Jobs": {
+      "main": [
+        [
+          {
+            "node": "Respond Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-10T15:12:04.526+00:00",
+  "updatedAt": "2026-04-10T15:12:04.526+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "69a6863b-b516-4908-8a1a-5c3b8a3acef4",
+  "triggerCount": 1,
+  "id": "Fm5Y8E20OsBSnVU9",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 7,
+  "description": null,
+  "activeVersionId": "69a6863b-b516-4908-8a1a-5c3b8a3acef4"
+}

@@ -7,7 +7,10 @@
       "name": "When clicking 'Execute workflow'",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [200, 300]
+      "position": [
+        200,
+        300
+      ]
     },
     {
       "parameters": {
@@ -17,7 +20,10 @@
       "name": "When Executed by Another Workflow",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
-      "position": [200, 460]
+      "position": [
+        200,
+        460
+      ]
     },
     {
       "parameters": {
@@ -28,7 +34,10 @@
       "name": "Load Global Settings",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [460, 380],
+      "position": [
+        460,
+        380
+      ],
       "credentials": {
         "postgres": {
           "id": "PjTUDAMk0dZ7g1iO",
@@ -44,7 +53,10 @@
       "name": "Resolve Auth Request",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [700, 380]
+      "position": [
+        700,
+        380
+      ]
     },
     {
       "parameters": {
@@ -75,7 +87,10 @@
       "name": "Reuse Cached Session?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [940, 380]
+      "position": [
+        940,
+        380
+      ]
     },
     {
       "parameters": {
@@ -95,7 +110,10 @@
       "name": "Request Auth Session",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1180, 300]
+      "position": [
+        1180,
+        300
+      ]
     },
     {
       "parameters": {
@@ -105,7 +123,10 @@
       "name": "Cache Auth Session",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1420, 300]
+      "position": [
+        1420,
+        300
+      ]
     },
     {
       "parameters": {
@@ -115,33 +136,96 @@
       "name": "Keep Reusable Session",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1660, 380]
+      "position": [
+        1660,
+        380
+      ]
     }
   ],
   "connections": {
     "When clicking 'Execute workflow'": {
-      "main": [[{ "node": "Load Global Settings", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "When Executed by Another Workflow": {
-      "main": [[{ "node": "Load Global Settings", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Load Global Settings": {
-      "main": [[{ "node": "Resolve Auth Request", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Resolve Auth Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Resolve Auth Request": {
-      "main": [[{ "node": "Reuse Cached Session?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Reuse Cached Session?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Reuse Cached Session?": {
       "main": [
-        [{ "node": "Keep Reusable Session", "type": "main", "index": 0 }],
-        [{ "node": "Request Auth Session", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Keep Reusable Session",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Request Auth Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Request Auth Session": {
-      "main": [[{ "node": "Cache Auth Session", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Cache Auth Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Cache Auth Session": {
-      "main": [[{ "node": "Keep Reusable Session", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Keep Reusable Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -149,12 +233,21 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": true
   },
-  "staticData": null,
-  "meta": {
-    "templateCredsSetupCompleted": false
+  "staticData": {
+    "global": {
+      "fetchedAt": "2026-04-15T13:01:34.827Z",
+      "targetUrl": "https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts",
+      "authenticatedUrl": "https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts",
+      "pageTitle": "Clubspark / Admin / Contacts",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/136.0.7103.25 Safari/537.36",
+      "cookieHeader": "lastVenue=AvondaleTennisClub; __cf_bm=aaF6rpuIy3rPHPFPnfpxGgItxIwEaNG38gCR9cd_4Is-1776258000.6461427-1.0.1.1-y8XvO0M4yBwKncfJpl4fHUYk1hmM6qdFiLac4gyofQBJC6L5XDVuyrbWsHhjUUsj88s0kerqXeZEGUD_pxVY25X_oj7PMgTIH6TF8fCqgnifIJLqzAagcH.Ofc_831PY; CsAuth=77u/PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48U2VjdXJpdHlDb250ZXh0VG9rZW4gcDE6SWQ9Il9kODhlY2E3ZC0wNGU0LTRiMTMtYjQ0MC0yOGVhZWFiMWU1YzYtMjk3ODUxMjA5RkE3OTg1REFGQ0JDQkM5RkRFMUY0NEEiIHhtbG5zOnAxPSJodHRwOi8vZG9jcy5vYXNpcy1vcGVuLm9yZy93c3MvMjAwNC8wMS9vYXNpcy0yMDA0MDEtd3NzLXdzc2VjdXJpdHktdXRpbGl0eS0xLjAueHNkIiB4bWxucz0iaHR0cDovL2RvY3Mub2FzaXMtb3Blbi5vcmcvd3Mtc3gvd3Mtc2VjdXJlY29udmVyc2F0aW9uLzIwMDUxMiI+PElkZW50aWZpZXI+dXJuOnV1aWQ6Y2NkMjVmMjgtODE5Ni00MWRhLTkxZjMtNjJjZTJkYTQ0MmU3PC9JZGVudGlmaWVyPjxDb29raWUgeG1sbnM9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwNi8wNS9zZWN1cml0eSI+YzJDWTVGc1Z6ZEVGK2h0cmVHdEtwL3dvYWV3b2lFKzJCa09pNHlSdGF2YTVHVldiZHJuNnhxQVpBaW5JS0x0U0ZPM3MvdG5rc2x0NlkyMjZXV25IbitaRUZDei9lUlBWOXU0L1loNWIwNVVPVEtJWW1HZFNHeDRqcHlacDd4RXBlM1M2akVneUpPa1NKV3hnWlA2KzRKcUpHT3FiU0I1c2YzWjRvNWkyNURGNGtyblBLcUM5YXd5d3kxREhHbXhEYStkaDNVdWhoUnorbnNBY0pkVDlneUI3dGNHeFlsNm1VVDRkUnVVSnk4WHNlZnhxY3pmWjdwQ05HaHhYdEV2YlpkZ1hLSDF1bjg2WXZuQ2R1WXRlSXo1NjBQdGQ5WTd5aTBkZjBtbXJvaUJ2ZnNocktmcnBFYUt3YkFwcHdETWJHQUdkSFdhbVVLdXpMeFpReGEwTkJLY2xLcXpjM0FnMXFwUHpKTWZnVk5uODY1eWxxWU45SWdSc2VoblA0Zm9JUnhNZTJ2eHhzVkpyOEpXa254MGQ0TzlrR0l2Skx6OHV5TjBtYS9DOWFOYlgxT2VLbkwrWUI4SGpLc0cxVVNmRzdsN0xUSXBaK1J2WXZEQklnNFpZcldqbENZTWpSRkhwdHFKWXNBWVFnT1ptbVlFRlljNjZGK3BQOW13enR3Ukk1RUFQTjQ3UkkrMFVZSFFXQXdOTG5HdSs0SmZxbDJPaUE1djdlanBiQS95RFVLVmN5KzVBQUY2aDZ2YTcxUXlLTi9abW1Mckl5b0pRN3ZFd09EekhvUTlVMGFudllGMklDQmhRVGVUcG1ONTF4M1pCNDRDZnZLcTU4QVB2S3BEVlEydDhyTjlhdm9uWlQzTmtCSFlSOWlnTUpvUGVZMk1wSm1VblBqZjg3R0wxZUdyN0FmanY3bDdGK09TRk5rT1YzOXptYWM1bjdKdkFaS3IvV0NIWnBMZmFPblJqUGwzZGVPVHpoY3crWmlxV3Y4Z3hsR2VLRFNOVVlzSHhObXE5eVBNdmVySUM2YXZyTVJzODZYVW1lTmxmWkRhejg1ZHp6K08yQ0dRdlZjQlFaczg2WHg2bFJralZ1RldxMUJlbWlnNFBDMmR1VE9VMkh0Q3diMGlhS3NUakg5dGEraFErdFJOT1plMVpCTFMyYzJrU001UTJuZzRTV2pxWGZLNXZCcXNMQUJ4cDZmQkJuOUUvcjVOUmlGeWZWdkF4RmJBVFFSdkdpSUNQSmY0NVh3N29JQWlNOEk5anZZNU9rc1J0RHFabXUwVEsveUEvQVlvd1BPRmhwN2pEaEZ5SlZSaitFK1dvZkZuSG5NR1VuNC8yazVjSTZwbFBhaWJnOFJURjVTWCt3bWRLVEpQaEU5VVNPRzRvRStFbW9odUN0bW01Nzcw; CsAuth1=bU9mL1JOUnZpb1ZlQUlMZDlLWDhXZXlCcno0ZW5rZ0VYY1VEaFpEb1dOZ0w4WTM3OU5uNnB1c0RkMDRjWDEyZERVY1B1YzR0eTM5YjBmOVA1VWVZWHltcHlkUmd2MmNXS2NwaUQwcjBHMWJjeFBHTHR5UTZxSzRncURPTmRpMzRSelZMbzd3bz08L0Nvb2tpZT48L1NlY3VyaXR5Q29udGV4dFRva2VuPg==; _gcl_au=1.1.1536185798.1776258009; osano_consentmanager_uuid=d21652a3-da3e-4742-97bb-bab1d65cfe80; osano_consentmanager=FgYYOvg8QArDfnm2h3NP5QilawhkLTaHAY-rEXE-zS2biPe9FaW3zP7bPHY3l2BXtjKObdpt6xSpVrdREIPhw5XkEABmOrz8uQe-7Pqn7VscTG_d5LmQoxPtPTgrpVrpffHqATr0XVGukh4dcWS7-pw5Ux6eDQJiSy0PRdvpHHE9DfNcHqyiUWZIpPq9UArwMOFzns574J24qyTi-jCux09D9yZt-i1l0aXt1AY4rOcwJdJb45mc80aAoaRdQ-_F_TZK8o3eVPTWoeYgcB7V4oaWFQEAD33dfjEwWcnT9kwxch0qxKrZEIRosL8QquCK",
+      "cookieCount": 7,
+      "sessionOrigin": "https://clubspark.lta.org.uk"
+    }
   },
-  "pinData": {},
+  "meta": null,
+  "pinData": null,
   "tags": [],
-  "active": false,
+  "active": true,
   "isArchived": false
 }

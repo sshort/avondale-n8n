@@ -1,0 +1,526 @@
+{
+  "name": "Send Case Tracking Email",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "ctd000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "send-case-tracking-email",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "ctd000000-0000-0000-0000-000000000002",
+      "name": "Send Case Tracking Email Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "send-case-tracking-email"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'email_delivery_mode' THEN value END) AS email_delivery_mode,\n  MAX(CASE WHEN key = 'email_test_recipient' THEN value END) AS email_test_recipient,\n  MAX(CASE WHEN key = 'email_sender_name' THEN value END) AS email_sender_name,\n  MAX(CASE WHEN key = 'email_reply_to' THEN value END) AS email_reply_to,\n  MAX(CASE WHEN key = 'email_signature_template_key' THEN value END) AS email_signature_template_key,\n  MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url\nFROM public.global_settings\nWHERE key IN ('email_delivery_mode', 'email_test_recipient', 'email_sender_name', 'email_reply_to', 'email_signature_template_key', 'n8n_base_url');"
+      },
+      "id": "ctd000000-0000-0000-0000-000000000003",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        480,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const settings = $('Load Global Settings').first()?.json ?? {};\nconst request = $('Send Case Tracking Email Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst body = request.body ?? request.query ?? request;\nconst headers = request.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst truthy = (value) => ['1', 'true', 'yes', 'y', 'on'].includes(clean(value).toLowerCase());\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = authority + ':' + forwardedPort;\n  }\n  return proto + '://' + authority;\n};\nconst fallbackBaseUrl = clean(settings.n8n_base_url) || 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nconst caseId = /^[0-9a-fA-F-]{36}$/.test(clean(body.case_id)) ? clean(body.case_id) : '';\nconst returnUrl = clean(body.return_url) || (n8nBaseUrl + '/webhook/case-tracking?view=dashboard');\nconst deliveryMode = truthy(body.test_mode) ? 'test' : 'production';\nconst errorMessage = !caseId ? 'case_id is required.' : (!clean(body.template_key) ? 'template_key is required.' : (!clean(body.to) ? 'A recipient is required.' : (!clean(body.rendered_subject) ? 'Subject is required.' : (!String(body.rendered_message ?? '').trim() ? 'Message is required.' : ''))));\nreturn [{ json: { case_id: caseId, template_key: clean(body.template_key), signature_template_key: clean(body.signature_template_key), to: clean(body.to), return_url: returnUrl, n8n_base_url: n8nBaseUrl, delivery_mode: deliveryMode, test_recipient: clean(settings.email_test_recipient) || 'steve.short@gmail.com', sender_name: clean(settings.email_sender_name) || 'Steve Short', reply_to: clean(settings.email_reply_to) || 'members.avondaleltc@gmail.com', rendered_subject: clean(body.rendered_subject), rendered_message: body.rendered_message ?? '', rendered_signature: body.rendered_signature ?? '', email_type: clean(body.email_type) === 'html' ? 'html' : 'text', error_message: errorMessage } }];"
+      },
+      "id": "ctd000000-0000-0000-0000-000000000004",
+      "name": "Resolve Send Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ctd000000-0000-0000-0000-000000000005-condition",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "ctd000000-0000-0000-0000-000000000005",
+      "name": "Check Request Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1020,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const requestInput = $('Resolve Send Request').first()?.json ?? {};\nconst contextRow = $('Load Send Context').first()?.json ?? {};\nconst message = contextRow.error_message || requestInput.error_message || 'Unable to send the email.';\nconst redirectTo = (requestInput.return_url || '#') + (((requestInput.return_url || '#').includes('?')) ? '&' : '?') + 'error=' + encodeURIComponent(message);\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst html = '<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0; url=' + escapeHtml(redirectTo) + '\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Email not sent</title></head><body><p>' + escapeHtml(message) + '</p><p><a href=\"' + escapeHtml(redirectTo) + '\">Back to case</a></p></body></html>';\nreturn [{ json: { html } }];"
+      },
+      "id": "ctd000000-0000-0000-0000-000000000006",
+      "name": "Build Error HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              },
+              {
+                "name": "Pragma",
+                "value": "no-cache"
+              },
+              {
+                "name": "Expires",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "ctd000000-0000-0000-0000-000000000007",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1540,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Resolve Send Request').first()?.json ?? {};\nconst sqlLiteral = (value) => \"'\" + String(value ?? '').replace(/'/g, \"''\") + \"'\";\nconst sql = [\n  'WITH selected_case AS (',\n  '  SELECT * FROM public.cases WHERE id = ' + sqlLiteral(input.case_id) + '::uuid',\n  ')',\n  'SELECT',\n  \"  COALESCE((SELECT to_jsonb(selected_case) FROM selected_case), '{}'::jsonb) AS case_row,\",\n  \"  CASE WHEN NOT EXISTS (SELECT 1 FROM selected_case) THEN 'Case not found.' ELSE NULL END AS error_message\"\n].join('\\n');\nreturn [{ json: { ...input, sql } }];"
+      },
+      "id": "ctd000000-0000-0000-0000-000000000008",
+      "name": "Build Send Context SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "ctd000000-0000-0000-0000-000000000009",
+      "name": "Load Send Context",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1540,
+        320
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ctd000000-0000-0000-0000-000000000010-condition",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "ctd000000-0000-0000-0000-000000000010",
+      "name": "Check Context Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1800,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Resolve Send Request').first()?.json ?? {};\nconst result = $('Load Send Context').first()?.json ?? {};\nconst parseMaybe = (value, fallback) => {\n  if (value === null || value === undefined || value === '') return fallback;\n  if (typeof value === 'string') { try { return JSON.parse(value); } catch { return fallback; } }\n  return value;\n};\nconst caseRow = parseMaybe(result.case_row, {}) || {};\nconst intendedRecipient = input.to;\nconst actualRecipient = input.delivery_mode === 'production' ? intendedRecipient : input.test_recipient;\nconst combinedMessage = input.email_type === 'html' ? String(input.rendered_message || '') + String(input.rendered_signature || '') : [String(input.rendered_message || '').trim(), String(input.rendered_signature || '').trim()].filter(Boolean).join('\\n\\n');\nreturn [{ json: { case_id: input.case_id, case_title: caseRow.title || '', template_key: input.template_key, signature_template_key: input.signature_template_key, return_url: input.return_url, n8n_base_url: input.n8n_base_url, delivery_mode: input.delivery_mode, intended_recipient: intendedRecipient, actual_recipient: actualRecipient, sender_name: input.sender_name, reply_to: input.reply_to, rendered_subject: input.rendered_subject, rendered_message: input.rendered_message, rendered_signature: input.rendered_signature, email_type: input.email_type, combined_message: combinedMessage } }];"
+      },
+      "id": "ctd000000-0000-0000-0000-000000000011",
+      "name": "Build Send Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2060,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.actual_recipient }}",
+        "subject": "={{ $json.rendered_subject }}",
+        "emailType": "={{ $json.email_type }}",
+        "message": "={{ $json.combined_message }}",
+        "options": {
+          "appendAttribution": false,
+          "replyTo": "={{ $json.reply_to }}",
+          "senderName": "={{ $json.sender_name }}"
+        }
+      },
+      "id": "ctd000000-0000-0000-0000-000000000012",
+      "name": "Send Gmail Message",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2320,
+        420
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const payload = $('Build Send Payload').first()?.json ?? {};\nconst gmail = $('Send Gmail Message').first()?.json ?? {};\nconst sqlLiteral = (value) => value === null || value === undefined ? 'NULL' : \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\nconst messageId = gmail.id || gmail.message?.id || '';\nconst threadId = gmail.threadId || gmail.message?.threadId || '';\nconst recipients = JSON.stringify({ to: payload.intended_recipient, actual_to: payload.actual_recipient, delivery_mode: payload.delivery_mode });\nconst bodyHtmlSql = payload.email_type === 'html' ? sqlLiteral(payload.combined_message) : 'NULL';\nconst bodyTextSql = payload.email_type === 'html' ? 'NULL' : sqlLiteral(payload.combined_message);\nconst sql = [\n  'WITH logged_email AS (',\n  '  INSERT INTO public.case_emails (case_id, direction, subject, body_html, body_text, recipients, template_key, signature_template_key, delivery_mode, gmail_message_id, gmail_thread_id, created_by, sent_at)',\n  '  VALUES (' + [sqlLiteral(payload.case_id) + '::uuid', sqlLiteral('outgoing'), sqlLiteral(payload.rendered_subject), bodyHtmlSql, bodyTextSql, sqlLiteral(recipients) + '::jsonb', sqlLiteral(payload.template_key), sqlLiteral(payload.signature_template_key), sqlLiteral(payload.delivery_mode), sqlLiteral(messageId), sqlLiteral(threadId), sqlLiteral('case-tracking'), 'now()'].join(', ') + ')',\n  '  RETURNING case_id',\n  '), updated_case AS (',\n  '  UPDATE public.cases',\n  \"  SET status = 'Waiting', updated_at = now(), last_outbound_at = now()\",\n  '  WHERE id = (SELECT case_id FROM logged_email)',\n  '  RETURNING id',\n  ')',\n  'SELECT id::text AS case_id FROM updated_case'\n].join('\\n');\nreturn [{ json: { ...payload, sql } }];"
+      },
+      "id": "ctd000000-0000-0000-0000-000000000013",
+      "name": "Build Log SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2580,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "ctd000000-0000-0000-0000-000000000014",
+      "name": "Log Outbound Email",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2840,
+        420
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $('Build Log SQL').first()?.json ?? {};\nconst updated = $('Log Outbound Email').first()?.json ?? {};\nlet redirectTo = item.return_url || (item.n8n_base_url + '/webhook/case-tracking?view=dashboard');\nif (updated.case_id) redirectTo = item.n8n_base_url + '/webhook/case-tracking?view=case&id=' + encodeURIComponent(updated.case_id);\nredirectTo += (redirectTo.includes('?') ? '&' : '?') + 'message=' + encodeURIComponent('Email sent');\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst modeLabel = item.delivery_mode === 'production' ? 'Production' : 'Test';\nconst recipientSummary = item.delivery_mode === 'production' ? item.actual_recipient : item.actual_recipient + ' (intended recipient: ' + item.intended_recipient + ')';\nconst html = '<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0; url=' + escapeHtml(redirectTo) + '\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Email sent</title></head><body><p>Email sent in ' + escapeHtml(modeLabel) + ' mode.</p><p>Recipient: ' + escapeHtml(recipientSummary) + '</p><p><a href=\"' + escapeHtml(redirectTo) + '\">Back to case</a></p></body></html>';\nreturn [{ json: { html } }];"
+      },
+      "id": "ctd000000-0000-0000-0000-000000000015",
+      "name": "Build Success HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3100,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              },
+              {
+                "name": "Pragma",
+                "value": "no-cache"
+              },
+              {
+                "name": "Expires",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "ctd000000-0000-0000-0000-000000000016",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3360,
+        420
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Case Tracking Email Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Resolve Send Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Send Request": {
+      "main": [
+        [
+          {
+            "node": "Check Request Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Request Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Send Context SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Send Context SQL": {
+      "main": [
+        [
+          {
+            "node": "Load Send Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Send Context": {
+      "main": [
+        [
+          {
+            "node": "Check Context Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Context Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Send Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Send Payload": {
+      "main": [
+        [
+          {
+            "node": "Send Gmail Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Gmail Message": {
+      "main": [
+        [
+          {
+            "node": "Build Log SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Log SQL": {
+      "main": [
+        [
+          {
+            "node": "Log Outbound Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Outbound Email": {
+      "main": [
+        [
+          {
+            "node": "Build Success HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Success HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}

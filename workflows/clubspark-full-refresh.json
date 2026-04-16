@@ -254,6 +254,76 @@
         2120,
         720
       ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "mode": "list",
+          "value": "3MIBMbNpV5HxZEop"
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "f7aaf2cc-85b8-4f54-9e4d-64dff6b38741",
+      "name": "Execute Main Contacts Export",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        1600,
+        580
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e4e3d8df-3028-4103-bf79-06140c4e6d9a",
+              "leftValue": "={{ !!$json.error }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "df5c577c-3c76-4730-9b05-c4cabdd8ef6d",
+      "name": "Main Contacts Export Failed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1860,
+        580
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const details = $json.error ?? $json;\nreturn [{\n  json: {\n    stage: 'main_contacts_export',\n    ok: false,\n    error: details.message ?? details.description ?? JSON.stringify(details),\n    details,\n  },\n}];"
+      },
+      "id": "4d89da66-9fcc-4fd0-8967-4f3a90b10d0f",
+      "name": "Main Contacts Export Error Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2120,
+        460
+      ]
     }
   ],
   "connections": {
@@ -330,7 +400,7 @@
         ],
         [
           {
-            "node": "Execute Sync To Cloud",
+            "node": "Execute Main Contacts Export",
             "type": "main",
             "index": 0
           }
@@ -360,6 +430,35 @@
         [
           {
             "node": "Run Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Main Contacts Export": {
+      "main": [
+        [
+          {
+            "node": "Main Contacts Export Failed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Main Contacts Export Failed?": {
+      "main": [
+        [
+          {
+            "node": "Main Contacts Export Error Summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute Sync To Cloud",
             "type": "main",
             "index": 0
           }

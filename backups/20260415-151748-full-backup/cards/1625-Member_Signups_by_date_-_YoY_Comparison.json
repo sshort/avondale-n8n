@@ -1,0 +1,352 @@
+{
+  "cache_invalidated_at": "2026-04-06T19:52:27.405984Z",
+  "description": "Year-over-year member signups: Mar 2025–Feb 2026 vs Mar 2026–Feb 2027, with cumulative totals",
+  "archived": false,
+  "view_count": 19,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "numeric",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Month",
+      "lib/original-name": "Month",
+      "name": "Month",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Month",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Month",
+        {
+          "base-type": "type/Decimal"
+        }
+      ],
+      "effective_type": "type/Decimal",
+      "lib/desired-column-alias": "Month",
+      "display_name": "Month",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 11,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 1.0,
+            "q1": 3.25,
+            "q3": 8.75,
+            "max": 11.0,
+            "sd": 3.3166247903554,
+            "avg": 6.0
+          }
+        }
+      },
+      "base_type": "type/Decimal"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Month Name",
+      "lib/original-name": "Month Name",
+      "name": "Month Name",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Month Name",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Month Name",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Month Name",
+      "display_name": "Month Name",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 11,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 6.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "numeric",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Signups 2025-26",
+      "lib/original-name": "Signups 2025-26",
+      "name": "Signups 2025-26",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Signups 2025-26",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Signups 2025-26",
+        {
+          "base-type": "type/Decimal"
+        }
+      ],
+      "effective_type": "type/Decimal",
+      "lib/desired-column-alias": "Signups 2025-26",
+      "display_name": "Signups 2025-26",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 9,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 2.675444679663241,
+            "q3": 14.876275643042055,
+            "max": 253.0,
+            "sd": 78.76709049758374,
+            "avg": 39.63636363636363
+          }
+        }
+      },
+      "base_type": "type/Decimal"
+    },
+    {
+      "database_type": "numeric",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Signups 2026-27",
+      "lib/original-name": "Signups 2026-27",
+      "name": "Signups 2026-27",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Signups 2026-27",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Signups 2026-27",
+        {
+          "base-type": "type/Decimal"
+        }
+      ],
+      "effective_type": "type/Decimal",
+      "lib/desired-column-alias": "Signups 2026-27",
+      "display_name": "Signups 2026-27",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 4,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.0,
+            "q3": 1.6796227589829595,
+            "max": 202.0,
+            "sd": 61.32906770410378,
+            "avg": 23.363636363636363
+          }
+        }
+      },
+      "base_type": "type/Decimal"
+    },
+    {
+      "database_type": "numeric",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Cumulative 2025-26",
+      "lib/original-name": "Cumulative 2025-26",
+      "name": "Cumulative 2025-26",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Cumulative 2025-26",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Cumulative 2025-26",
+        {
+          "base-type": "type/Decimal"
+        }
+      ],
+      "effective_type": "type/Decimal",
+      "lib/desired-column-alias": "Cumulative 2025-26",
+      "display_name": "Cumulative 2025-26",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 10,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 253.0,
+            "q1": 387.75,
+            "q3": 434.75,
+            "max": 436.0,
+            "sd": 53.232423475649775,
+            "avg": 398.90909090909093
+          }
+        }
+      },
+      "base_type": "type/Decimal"
+    },
+    {
+      "database_type": "numeric",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Cumulative 2026-27",
+      "lib/original-name": "Cumulative 2026-27",
+      "name": "Cumulative 2026-27",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Cumulative 2026-27",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Cumulative 2026-27",
+        {
+          "base-type": "type/Decimal"
+        }
+      ],
+      "effective_type": "type/Decimal",
+      "lib/desired-column-alias": "Cumulative 2026-27",
+      "display_name": "Cumulative 2026-27",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 202.0,
+            "q1": 235.6733017632257,
+            "q3": 255.72930936742546,
+            "max": 257.0,
+            "sd": 16.051621271838723,
+            "avg": 250.36363636363637
+          }
+        }
+      },
+      "base_type": "type/Decimal"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Member Signups by date - YoY Comparison",
+  "last_query_start": "2026-04-07T08:37:45.425043Z",
+  "is_remote_synced": false,
+  "dashboard_count": 0,
+  "document_id": null,
+  "last_used_at": "2026-04-07T08:37:45.472915Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 48.1875000000000000,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-06T19:52:27.404462Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "native": "WITH monthly AS (\n  SELECT\n    EXTRACT(YEAR FROM signup_date) AS yr,\n    EXTRACT(MONTH FROM signup_date) AS cal_mo,\n    COUNT(*) AS cnt\n  FROM member_signups\n  WHERE (signup_date >= '2025-03-01' AND signup_date < '2026-03-01')\n     OR (signup_date >= '2026-03-01' AND signup_date < '2027-03-01')\n  GROUP BY 1, 2\n),\npivoted AS (\n  SELECT\n    CASE WHEN cal_mo >= 3 THEN cal_mo - 2 ELSE cal_mo + 10 END AS mo,\n    TO_CHAR(\n      MAKE_DATE(\n        CASE WHEN cal_mo >= 3 THEN 2000 ELSE 2001 END,\n        cal_mo::integer, 1\n      ), 'Month'\n    ) AS month_name,\n    COALESCE(SUM(CASE WHEN yr = 2025 THEN cnt END), 0) AS \"Signups 2025-26\",\n    COALESCE(SUM(CASE WHEN yr = 2026 THEN cnt END), 0) AS \"Signups 2026-27\"\n  FROM monthly\n  GROUP BY cal_mo\n),\nwith_cumulative AS (\n  SELECT\n    mo,\n    month_name,\n    \"Signups 2025-26\",\n    \"Signups 2026-27\",\n    SUM(\"Signups 2025-26\") OVER (ORDER BY mo) AS \"Cumulative 2025-26\",\n    SUM(\"Signups 2026-27\") OVER (ORDER BY mo) AS \"Cumulative 2026-27\"\n  FROM pivoted\n)\nSELECT\n  mo AS \"Month\",\n  TRIM(month_name) AS \"Month Name\",\n  \"Signups 2025-26\",\n  \"Signups 2026-27\",\n  \"Cumulative 2025-26\",\n  \"Cumulative 2026-27\"\nFROM with_cumulative\nORDER BY mo"
+      }
+    ]
+  },
+  "id": 1625,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "bar",
+  "archived_directly": false,
+  "entity_id": "l92qssNyA-LfFY4yAshEx",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 1,
+    "email": "steve@shortcentral.com",
+    "first_name": "Steve",
+    "last_name": "Short",
+    "timestamp": "2026-04-06T19:52:27.447155Z"
+  },
+  "visualization_settings": {
+    "graph.dimensions": [
+      "Month Name"
+    ],
+    "graph.series_settings": {
+      "Cumulative 2025-26": {
+        "display": "line"
+      },
+      "Cumulative 2026-27": {
+        "display": "line"
+      }
+    },
+    "graph.y_axis.title": "Signups",
+    "series_settings": {
+      "Cumulative 2025-26": {
+        "display": "line"
+      },
+      "Cumulative 2026-27": {
+        "display": "line"
+      }
+    },
+    "graph.x_axis.scale": "ordinal",
+    "graph.metrics": [
+      "Signups 2025-26",
+      "Signups 2026-27",
+      "Cumulative 2025-26",
+      "Cumulative 2026-27"
+    ]
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-04-06T13:00:56.785859Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

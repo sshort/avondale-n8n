@@ -574,10 +574,11 @@
       ]
     }
   },
-  "settings": {},
-  "pinData": {},
-  "versionId": "d4000000-0000-0000-0000-000000009999",
-  "meta": {
-    "templateCredsSetupCompleted": true
-  }
+  "settings": {
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "pinData": null,
+  "versionId": "325191b4-376a-4349-8812-54c8f316a515",
+  "meta": null
 }

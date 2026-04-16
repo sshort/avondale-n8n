@@ -1,5 +1,5 @@
 {
-  "id": null,
+  "id": "mD4sR7xQ9pLc2VnK",
   "name": "Delete Manual Batch Item",
   "active": true,
   "nodes": [
@@ -171,7 +171,7 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "delete-manual-batch-item-v1",
+  "versionId": "aa369c84-7dee-4a13-b6b8-62fdd03632a4",
   "triggerCount": 1,
   "tags": null
 }

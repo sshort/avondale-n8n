@@ -1,0 +1,360 @@
+{
+  "cache_invalidated_at": "2026-04-07T09:03:51.961689Z",
+  "description": "Year-over-year member signups by week: Mar 2025–Feb 2026 vs Mar 2026–Feb 2027, with cumulative totals",
+  "archived": false,
+  "view_count": 181,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Week",
+      "lib/original-name": "Week",
+      "name": "Week",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Week",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Week",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "Week",
+      "display_name": "Week",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 53,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 1.0,
+            "q1": 13.75,
+            "q3": 40.25,
+            "max": 53.0,
+            "sd": 15.443445211480501,
+            "avg": 27.0
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Week Label",
+      "lib/original-name": "Week Label",
+      "name": "Week Label",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Week Label",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Week Label",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Week Label",
+      "display_name": "Week Label",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 53,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 6.830188679245283
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "numeric",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Signups 2025-26",
+      "lib/original-name": "Signups 2025-26",
+      "name": "Signups 2025-26",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Signups 2025-26",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Signups 2025-26",
+        {
+          "base-type": "type/Decimal"
+        }
+      ],
+      "effective_type": "type/Decimal",
+      "lib/desired-column-alias": "Signups 2025-26",
+      "display_name": "Signups 2025-26",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 16,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.17049373087346742,
+            "q3": 3.9379807976820196,
+            "max": 74.0,
+            "sd": 17.478724367505755,
+            "avg": 8.264150943396226
+          }
+        }
+      },
+      "base_type": "type/Decimal"
+    },
+    {
+      "database_type": "numeric",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Signups 2026-27",
+      "lib/original-name": "Signups 2026-27",
+      "name": "Signups 2026-27",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Signups 2026-27",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Signups 2026-27",
+        {
+          "base-type": "type/Decimal"
+        }
+      ],
+      "effective_type": "type/Decimal",
+      "lib/desired-column-alias": "Signups 2026-27",
+      "display_name": "Signups 2026-27",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 8,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.0,
+            "q3": 0.4740490496202662,
+            "max": 74.0,
+            "sd": 17.969434619695857,
+            "avg": 5.943396226415095
+          }
+        }
+      },
+      "base_type": "type/Decimal"
+    },
+    {
+      "database_type": "numeric",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Cumulative 2025-26",
+      "lib/original-name": "Cumulative 2025-26",
+      "name": "Cumulative 2025-26",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Cumulative 2025-26",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Cumulative 2025-26",
+        {
+          "base-type": "type/Decimal"
+        }
+      ],
+      "effective_type": "type/Decimal",
+      "lib/desired-column-alias": "Cumulative 2025-26",
+      "display_name": "Cumulative 2025-26",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 33,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 55.0,
+            "q1": 386.5,
+            "q3": 435.19169540264056,
+            "max": 438.0,
+            "sd": 82.0743317739434,
+            "avg": 389.64150943396226
+          }
+        }
+      },
+      "base_type": "type/Decimal"
+    },
+    {
+      "database_type": "numeric",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Cumulative 2026-27",
+      "lib/original-name": "Cumulative 2026-27",
+      "name": "Cumulative 2026-27",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Cumulative 2026-27",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Cumulative 2026-27",
+        {
+          "base-type": "type/Decimal"
+        }
+      ],
+      "effective_type": "type/Decimal",
+      "lib/desired-column-alias": "Cumulative 2026-27",
+      "display_name": "Cumulative 2026-27",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 8,
+          "nil%": 0.8679245283018868
+        },
+        "type": {
+          "type/Number": {
+            "min": 1.0,
+            "q1": 49.0,
+            "q3": 277.75,
+            "max": 315.0,
+            "sd": 124.46533271404952,
+            "avg": 164.42857142857142
+          }
+        }
+      },
+      "base_type": "type/Decimal"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Member Signups by date - YoY Comparison (Weekly)",
+  "last_query_start": "2026-04-15T14:18:10.969967Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-15T14:18:11.058521Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 60.7679558011049724,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-07T09:03:51.960452Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "native": "WITH params AS (\n  SELECT CASE\n    WHEN CURRENT_DATE < DATE '2026-03-01' THEN 0\n    WHEN CURRENT_DATE >= DATE '2027-03-01' THEN 53\n    ELSE FLOOR((CURRENT_DATE - DATE '2026-03-01') / 7.0)::int + 1\n  END AS current_week_2026_27\n),\nweekly AS (\n  SELECT\n    CASE\n      WHEN signup_date::date >= DATE '2025-03-01' AND signup_date::date < DATE '2026-03-01' THEN '2025-26'\n      WHEN signup_date::date >= DATE '2026-03-01' AND signup_date::date < DATE '2027-03-01' THEN '2026-27'\n    END AS period,\n    CASE\n      WHEN signup_date::date >= DATE '2025-03-01' AND signup_date::date < DATE '2026-03-01'\n        THEN FLOOR((signup_date::date - DATE '2025-03-01') / 7.0)::int + 1\n      WHEN signup_date::date >= DATE '2026-03-01' AND signup_date::date < DATE '2027-03-01'\n        THEN FLOOR((signup_date::date - DATE '2026-03-01') / 7.0)::int + 1\n    END AS week_no,\n    COUNT(*) AS cnt\n  FROM member_signups\n  WHERE (signup_date::date >= DATE '2025-03-01' AND signup_date::date < DATE '2026-03-01')\n     OR (signup_date::date >= DATE '2026-03-01' AND signup_date::date < DATE '2027-03-01')\n  GROUP BY 1, 2\n),\nweeks AS (\n  SELECT generate_series(1, 53) AS week_no\n),\npivoted AS (\n  SELECT\n    weeks.week_no,\n    'Week ' || weeks.week_no AS week_label,\n    COALESCE(SUM(CASE WHEN period = '2025-26' THEN cnt END), 0) AS \"Signups 2025-26\",\n    COALESCE(SUM(CASE WHEN period = '2026-27' THEN cnt END), 0) AS \"Signups 2026-27\"\n  FROM weeks\n  LEFT JOIN weekly USING (week_no)\n  GROUP BY weeks.week_no\n),\nwith_cumulative AS (\n  SELECT\n    week_no,\n    week_label,\n    \"Signups 2025-26\",\n    \"Signups 2026-27\",\n    SUM(\"Signups 2025-26\") OVER (ORDER BY week_no) AS \"Cumulative 2025-26\",\n    CASE\n      WHEN week_no <= current_week_2026_27\n      THEN SUM(\"Signups 2026-27\") OVER (ORDER BY week_no)\n    END AS \"Cumulative 2026-27\"\n  FROM pivoted\n  CROSS JOIN params\n)\nSELECT\n  week_no AS \"Week\",\n  week_label AS \"Week Label\",\n  \"Signups 2025-26\",\n  \"Signups 2026-27\",\n  \"Cumulative 2025-26\",\n  \"Cumulative 2026-27\"\nFROM with_cumulative\nORDER BY week_no\n"
+      }
+    ]
+  },
+  "id": 1626,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "bar",
+  "archived_directly": false,
+  "entity_id": "9IiDPBRXVTZm_FVxvZssz",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-07T09:03:51.982418Z"
+  },
+  "visualization_settings": {
+    "graph.dimensions": [
+      "Week Label"
+    ],
+    "graph.series_settings": {
+      "Cumulative 2025-26": {
+        "display": "line",
+        "color": "#1F4E79",
+        "line.marker_enabled": false
+      },
+      "Cumulative 2026-27": {
+        "display": "line",
+        "color": "#7A1F3D",
+        "line.marker_enabled": false
+      }
+    },
+    "graph.y_axis.title": "Signups",
+    "series_settings": {
+      "Cumulative 2025-26": {
+        "display": "line",
+        "color": "#1F4E79",
+        "line.marker_enabled": false
+      },
+      "Cumulative 2026-27": {
+        "display": "line",
+        "color": "#7A1F3D",
+        "line.marker_enabled": false
+      }
+    },
+    "graph.x_axis.scale": "ordinal",
+    "graph.metrics": [
+      "Signups 2025-26",
+      "Signups 2026-27",
+      "Cumulative 2025-26",
+      "Cumulative 2026-27"
+    ]
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-04-07T08:33:36.302362Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

@@ -1,0 +1,461 @@
+{
+  "name": "Send Member Template Email",
+  "active": true,
+  "nodes": [
+    {
+      "id": "c1000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        220,
+        320
+      ],
+      "parameters": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "c1000000-0000-0000-0000-000000000002",
+      "name": "Send Member Template Email Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "send-member-template-email",
+      "parameters": {
+        "path": "send-member-template-email",
+        "options": {},
+        "httpMethod": "POST",
+        "responseMode": "responseNode"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "c1000000-0000-0000-0000-000000000003",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        480,
+        220
+      ],
+      "parameters": {
+        "query": "SELECT\n  MAX(CASE WHEN key = 'email_test_recipient' THEN value END) AS default_test_recipient,\n  MAX(CASE WHEN key = 'email_sender_name' THEN value END) AS email_sender_name,\n  MAX(CASE WHEN key = 'email_reply_to' THEN value END) AS email_reply_to\nFROM public.global_settings\nWHERE key IN ('email_test_recipient', 'email_sender_name', 'email_reply_to');",
+        "operation": "executeQuery"
+      },
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      },
+      "typeVersion": 2.5
+    },
+    {
+      "id": "c1000000-0000-0000-0000-000000000004",
+      "name": "Resolve Send Request",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        760,
+        220
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const settings = $('Load Global Settings').first()?.json ?? {};\nconst request = $('Send Member Template Email Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst body = request.body ?? {};\nconst headers = request.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst truthy = (value) => ['1', 'true', 'yes', 'y', 'on'].includes(clean(value).toLowerCase());\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst fallbackBaseUrl = 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nconst member = clean(body.member);\nconst membership = clean(body.membership);\nconst email = clean(body.email);\nconst templateKey = clean(body.template_key);\nconst renderedSubject = clean(body.rendered_subject);\nconst renderedMessage = clean(body.rendered_message);\nconst returnUrl = clean(body.return_url) || `${n8nBaseUrl}/webhook/member-search-detail?member=${encodeURIComponent(member)}&membership=${encodeURIComponent(membership)}&email=${encodeURIComponent(email)}`;\nconst rawMemberId = Number.parseInt(clean(body.member_id), 10);\nconst deliveryMode = truthy(body.test_mode) ? 'test' : 'production';\nconst errorMessage = !templateKey\n  ? 'template_key is required'\n  : !renderedSubject\n    ? 'rendered_subject is required'\n    : !renderedMessage\n      ? 'rendered_message is required'\n      : (!member && !Number.isInteger(rawMemberId) ? 'member_id or member is required' : '');\nreturn [{ json: { member_id: Number.isInteger(rawMemberId) ? rawMemberId : null, member, membership, email, template_key: templateKey, sender_name: settings.email_sender_name || 'Steve Short', reply_to: settings.email_reply_to || 'members.avondaleltc@gmail.com', delivery_mode: deliveryMode, test_recipient: clean(settings.default_test_recipient) || 'steve.short@gmail.com', return_url: returnUrl, rendered_subject: renderedSubject, rendered_message: renderedMessage, email_type: clean(body.email_type).toLowerCase() === 'html' ? 'html' : 'text', n8n_base_url: n8nBaseUrl, error_message: errorMessage } }];",
+        "language": "javaScript"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "c1000000-0000-0000-0000-000000000005",
+      "name": "Check Request Error",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        1020,
+        220
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "request-error-check",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              },
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": ""
+            }
+          ]
+        }
+      },
+      "typeVersion": 2.2
+    },
+    {
+      "id": "c1000000-0000-0000-0000-000000000006",
+      "name": "Build Send Context SQL",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1280,
+        320
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const input = $input.first().json ?? {};\nconst sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sqlInteger = (value) => Number.isInteger(value) ? String(value) : 'NULL';\nconst memberSql = sqlLiteral(input.member);\nconst membershipSql = sqlLiteral(input.membership);\nconst emailSql = sqlLiteral(input.email);\nconst memberIdSql = sqlInteger(input.member_id);\nconst sql = `\nWITH base_member AS (\n  SELECT rm.id AS raw_member_id, trim(concat_ws(' ', rm.\"First name\", rm.\"Last name\")) AS member_name, rm.\"First name\" AS first_name, rm.\"Last name\" AS last_name, NULLIF(trim(rm.\"Email address\"), '') AS member_email, NULLIF(trim(rm.\"Venue ID\"), '') AS venue_id, rm.\"Membership\" AS membership, NULLIF(trim(rm.\"Status\"), '') AS member_status, NULLIF(trim(rm.\"Payment\"), '') AS payment_status, NULLIF(trim(rm.\"Start Date\"), '') AS start_date, NULLIF(trim(rm.\"Expiry Date\"), '') AS expiry_date, rm.\"Paid\" AS paid_total, NULLIF(trim(rm.\"Address 1\"), '') AS address_1, NULLIF(trim(rm.\"Postcode\"), '') AS postcode\n  FROM public.raw_members rm\n  WHERE COALESCE(rm.is_current, true) = true\n    AND ((${memberIdSql} IS NOT NULL AND rm.id = ${memberIdSql}) OR (${memberIdSql} IS NULL AND trim(concat_ws(' ', rm.\"First name\", rm.\"Last name\")) = ${memberSql} AND (${membershipSql} = '' OR rm.\"Membership\" = ${membershipSql}) AND (${emailSql} = '' OR public.normalize_match_email(rm.\"Email address\") = public.normalize_match_email(${emailSql}))))\n  ORDER BY CASE WHEN (${membershipSql} <> '' AND rm.\"Membership\" = ${membershipSql}) THEN 0 ELSE 1 END, rm.id\n  LIMIT 1\n), member_identity AS (\n  SELECT COALESCE((SELECT raw_member_id FROM base_member), ${memberIdSql}) AS raw_member_id, COALESCE((SELECT member_name FROM base_member), ${memberSql}) AS member_name, COALESCE((SELECT first_name FROM base_member), split_part(${memberSql}, ' ', 1)) AS first_name, COALESCE((SELECT last_name FROM base_member), NULLIF(regexp_replace(${memberSql}, '^\\\\S+\\\\s*', ''), '')) AS last_name, COALESCE((SELECT member_email FROM base_member), NULLIF(${emailSql}, '')) AS member_email, COALESCE((SELECT membership FROM base_member), NULLIF(${membershipSql}, '')) AS membership, COALESCE((SELECT member_status FROM base_member), NULL) AS member_status, COALESCE((SELECT payment_status FROM base_member), NULL) AS payment_status, COALESCE((SELECT start_date FROM base_member), NULL) AS start_date, COALESCE((SELECT expiry_date FROM base_member), NULL) AS expiry_date, COALESCE((SELECT paid_total FROM base_member), NULL::numeric) AS paid_total, COALESCE((SELECT address_1 FROM base_member), NULL) AS address_1, COALESCE((SELECT postcode FROM base_member), NULL) AS postcode\n), best_contact AS (\n  SELECT bc.*\n  FROM member_identity mi\n  LEFT JOIN LATERAL public.resolve_best_contact_row(mi.member_name, COALESCE(NULLIF(${emailSql}, ''), mi.member_email), NULLIF(regexp_replace(mi.member_name, '^\\\\S+\\\\s*', ''), ''), EXISTS (SELECT 1 FROM public.raw_members rmf WHERE COALESCE(rmf.is_current, true) = true AND trim(concat_ws(' ', rmf.\"First name\", rmf.\"Last name\")) = mi.member_name AND rmf.\"Membership\" ILIKE '%Family%')) bc ON TRUE\n), main_contact_candidates AS (\n  SELECT trim(concat_ws(' ', mc.\"First name\", mc.\"Last name\")) AS main_contact_name, NULLIF(trim(mc.\"Email address\"), '') AS main_contact_email, NULLIF(trim(mc.\"Address 1\"), '') AS main_contact_address_1, NULLIF(trim(mc.\"Town\"), '') AS main_contact_town, NULLIF(trim(mc.\"Postcode\"), '') AS main_contact_postcode, row_number() OVER (ORDER BY CASE WHEN NULLIF(trim(mc.\"Email address\"), '') IS NOT NULL THEN 0 ELSE 1 END, CASE WHEN mi.last_name IS NOT NULL AND public.normalize_match_text(mc.\"Last name\") = public.normalize_match_text(mi.last_name) THEN 0 ELSE 1 END, CASE WHEN mi.postcode IS NOT NULL AND public.normalize_match_text(mc.\"Postcode\") = public.normalize_match_text(mi.postcode) THEN 0 ELSE 1 END, mc.id DESC) AS candidate_rank\n  FROM member_identity mi\n  JOIN public.vw_raw_members_main_contacts_current mc\n    ON trim(concat_ws(' ', mc.\"First name\", mc.\"Last name\")) <> mi.member_name\n   AND COALESCE(mc.\"Membership\", '') = COALESCE(mi.membership, '')\n   AND COALESCE(mc.\"Status\", '') = COALESCE(mi.member_status, '')\n   AND COALESCE(mc.\"Payment\", '') = COALESCE(mi.payment_status, '')\n   AND COALESCE(mc.\"Start Date\", '') = COALESCE(mi.start_date, '')\n   AND COALESCE(mc.\"Expiry Date\", '') = COALESCE(mi.expiry_date, '')\n   AND COALESCE(mc.\"Paid\", -1::numeric) = COALESCE(mi.paid_total, -1::numeric)\n   AND ((mi.last_name IS NOT NULL AND public.normalize_match_text(mc.\"Last name\") = public.normalize_match_text(mi.last_name)) OR (mi.postcode IS NOT NULL AND public.normalize_match_text(mc.\"Postcode\") = public.normalize_match_text(mi.postcode)) OR (mi.address_1 IS NOT NULL AND public.normalize_match_text(mc.\"Address 1\") = public.normalize_match_text(mi.address_1)))\n), main_contact AS (\n  SELECT COALESCE(NULLIF(TRIM(bcm.email_address), ''), mcc.main_contact_email) AS email_address, COALESCE(NULLIF(TRIM(bcm.address_1), ''), mcc.main_contact_address_1) AS address_1, COALESCE(NULLIF(TRIM(bcm.town), ''), mcc.main_contact_town) AS town, COALESCE(NULLIF(TRIM(bcm.postcode), ''), mcc.main_contact_postcode) AS postcode, mcc.main_contact_name\n  FROM main_contact_candidates mcc\n  LEFT JOIN LATERAL public.resolve_best_contact_row(mcc.main_contact_name, mcc.main_contact_email, NULLIF(regexp_replace(mcc.main_contact_name, '^\\\\S+\\\\s*', ''), ''), false) bcm ON TRUE\n  WHERE mcc.candidate_rank = 1\n)\nSELECT mi.member_name, mi.first_name, mi.last_name, mi.membership, COALESCE(NULLIF(${emailSql}, ''), NULLIF(TRIM(mc.email_address), ''), NULLIF(TRIM(bc.email_address), ''), NULLIF(TRIM(mi.member_email), '')) AS to_email, CASE WHEN COALESCE(mi.member_name, '') = '' THEN 'Member is required' WHEN COALESCE(COALESCE(NULLIF(${emailSql}, ''), NULLIF(TRIM(mc.email_address), ''), NULLIF(TRIM(bc.email_address), ''), NULLIF(TRIM(mi.member_email), '')), '') = '' THEN 'No email address found for ' || mi.member_name ELSE NULL END AS error_message FROM member_identity mi LEFT JOIN best_contact bc ON TRUE LEFT JOIN main_contact mc ON TRUE;`;\nreturn [{ json: { ...input, sql } }];",
+        "language": "javaScript"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "c1000000-0000-0000-0000-000000000007",
+      "name": "Load Send Context",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        1540,
+        320
+      ],
+      "parameters": {
+        "query": "={{ $json.sql }}",
+        "operation": "executeQuery"
+      },
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      },
+      "typeVersion": 2.5
+    },
+    {
+      "id": "c1000000-0000-0000-0000-000000000008",
+      "name": "Check Context Error",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        1800,
+        320
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "context-error-check",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              },
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": ""
+            }
+          ]
+        }
+      },
+      "typeVersion": 2.2
+    },
+    {
+      "id": "c1000000-0000-0000-0000-000000000009",
+      "name": "Build Error HTML",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1280,
+        120
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const input = $('Resolve Send Request').first().json ?? {};\nconst errorRow = $('Load Send Context').first()?.json ?? {};\nconst message = errorRow.error_message || input.error_message || 'Unable to send email.';\nconst returnUrl = input.return_url || '#';\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Email Not Sent</title><style>body{margin:0;padding:24px;background:#f7f8fc;font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:#2e3d4e}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 18px 40px rgba(53,72,91,.08);padding:28px}h1{margin:0 0 10px;font-size:30px}p{color:#6b7785;line-height:1.5}.message{margin:18px 0;padding:14px 16px;border-radius:14px;background:#fdecec;color:#b93a3a;font-weight:700}.actions{margin-top:22px;display:flex;gap:12px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#509ee3 0%,#2f80d8 100%);color:#fff}</style></head><body><div class=\"panel\"><h1>Email Not Sent</h1><p>The member-detail email panel could not complete this request.</p><div class=\"message\">${escapeHtml(message)}</div><div class=\"actions\"><a class=\"button\" href=\"${escapeHtml(returnUrl)}\">Back to Member Detail</a></div></div></body></html>`;\nreturn [{ json: { html } }];",
+        "language": "javaScript"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "c1000000-0000-0000-0000-000000000010",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [
+        1540,
+        120
+      ],
+      "parameters": {
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        },
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}"
+      },
+      "typeVersion": 1.5
+    },
+    {
+      "id": "c1000000-0000-0000-0000-000000000011",
+      "name": "Build Send Payload",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        2060,
+        420
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const input = $('Resolve Send Request').first().json ?? {};\nconst context = $('Load Send Context').first()?.json ?? {};\nconst intendedRecipient = context.to_email;\nconst actualRecipient = input.delivery_mode === 'production' ? intendedRecipient : input.test_recipient;\nreturn [{ json: { sender_name: input.sender_name, reply_to: input.reply_to, template_key: input.template_key, intended_recipient: intendedRecipient, actual_recipient: actualRecipient, delivery_mode: input.delivery_mode, member: context.member_name, membership: context.membership, return_url: input.return_url, rendered_subject: input.rendered_subject, rendered_message: input.rendered_message, email_type: input.email_type } }];",
+        "language": "javaScript"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "c1000000-0000-0000-0000-000000000012",
+      "name": "Send Gmail Message",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        2320,
+        420
+      ],
+      "parameters": {
+        "sendTo": "={{ $json.actual_recipient }}",
+        "message": "={{ $json.rendered_message }}",
+        "options": {
+          "replyTo": "={{ $json.reply_to }}",
+          "senderName": "={{ $json.sender_name }}",
+          "appendAttribution": false
+        },
+        "subject": "={{ $json.rendered_subject }}",
+        "resource": "message",
+        "emailType": "={{ $json.email_type }}",
+        "operation": "send",
+        "authentication": "oAuth2"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      },
+      "typeVersion": 2.2
+    },
+    {
+      "id": "c1000000-0000-0000-0000-000000000013",
+      "name": "Build Success HTML",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        2580,
+        420
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const item = $('Build Send Payload').first().json ?? {};\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst modeLabel = item.delivery_mode === 'production' ? 'Production' : 'Test';\nconst recipientSummary = item.delivery_mode === 'production' ? escapeHtml(item.actual_recipient) : `${escapeHtml(item.actual_recipient)} (intended recipient: ${escapeHtml(item.intended_recipient)})`;\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Email Sent</title><style>body{margin:0;padding:24px;background:#f7f8fc;font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:#2e3d4e}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 18px 40px rgba(53,72,91,.08);padding:28px}h1{margin:0 0 10px;font-size:30px}p{color:#6b7785;line-height:1.5}.pill{display:inline-flex;align-items:center;padding:8px 12px;border-radius:999px;background:#edf8f2;color:#1f7a4d;font-weight:700;margin:12px 0 18px}dl{display:grid;grid-template-columns:max-content 1fr;gap:10px 16px;margin:0}dt{font-weight:700}dd{margin:0;color:#2e3d4e}.actions{margin-top:22px;display:flex;gap:12px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#509ee3 0%,#2f80d8 100%);color:#fff}</style></head><body><div class=\"panel\"><h1>Email Sent</h1><p>The edited member-detail email has been sent.</p><div class=\"pill\">${escapeHtml(modeLabel)} mode</div><dl><dt>Member</dt><dd>${escapeHtml(item.member)}</dd><dt>Membership</dt><dd>${escapeHtml(item.membership || 'Not available')}</dd><dt>Template</dt><dd>${escapeHtml(item.template_key)}</dd><dt>Recipient</dt><dd>${recipientSummary}</dd><dt>Subject</dt><dd>${escapeHtml(item.rendered_subject)}</dd></dl><div class=\"actions\"><a class=\"button\" href=\"${escapeHtml(item.return_url || '#')}\">Back to Member Detail</a></div></div></body></html>`;\nreturn [{ json: { html } }];",
+        "language": "javaScript"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "c1000000-0000-0000-0000-000000000014",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [
+        2840,
+        420
+      ],
+      "parameters": {
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        },
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}"
+      },
+      "typeVersion": 1.5
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Member Template Email Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Resolve Send Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Send Request": {
+      "main": [
+        [
+          {
+            "node": "Check Request Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Request Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Send Context SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Send Context SQL": {
+      "main": [
+        [
+          {
+            "node": "Load Send Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Send Context": {
+      "main": [
+        [
+          {
+            "node": "Check Context Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Context Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Send Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Send Payload": {
+      "main": [
+        [
+          {
+            "node": "Send Gmail Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Gmail Message": {
+      "main": [
+        [
+          {
+            "node": "Build Success HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Success HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-01T13:14:38.095+00:00",
+  "updatedAt": "2026-04-13T16:42:55.525+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "ee8e444e-dc09-49f4-99a6-08c8c4f4022b",
+  "triggerCount": 1,
+  "id": "0OhUz6LZzWHupSKn",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 54,
+  "description": null,
+  "activeVersionId": "ee8e444e-dc09-49f4-99a6-08c8c4f4022b"
+}

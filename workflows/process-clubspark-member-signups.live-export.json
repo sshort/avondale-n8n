@@ -1,7 +1,7 @@
 {
-  "updatedAt": "2026-03-11T14:10:24.727Z",
-  "createdAt": "2026-03-11T11:45:06.066Z",
-  "id": "aFpNorZJDCY53KBt",
+  "updatedAt": "2026-03-13T10:23:42.6+00:00",
+  "createdAt": "2026-03-07T15:50:44.297+00:00",
+  "id": "brWEL95y2tXiB9GI",
   "name": "Process ClubSpark Member Signups",
   "description": null,
   "active": false,
@@ -15,13 +15,15 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        192,
-        0
+        300,
+        300
       ],
-      "id": "f47eecc0-56e6-4b2c-91d2-ef6f0f4c3404"
+      "id": "df0d876d-d4c2-46ac-81d5-c58806075e29"
     },
     {
       "parameters": {
+        "operation": "insert",
+        "schema": "public",
         "table": "member_signups_dev",
         "columns": [
           "payer",
@@ -33,34 +35,54 @@
           "Last name",
           "signup_date",
           "status"
-        ],
-        "additionalFields": {}
+        ]
       },
       "name": "Insert into DB",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 1,
       "position": [
-        400,
-        0
+        500,
+        300
       ],
-      "id": "5e3deb93-65ca-42e1-9751-e6d1136b23cf",
+      "id": "6f068aa1-6c1c-475b-89eb-18c9360457d6",
       "credentials": {
         "postgres": {
-          "id": "N4eeJ2CLlevgduir",
-          "name": "avondaledb-n8n-user"
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
         }
       }
     },
     {
-      "parameters": {},
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
+      "id": "a146f8f0-0d7b-4d1d-8877-20c3fb66367a",
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
       "position": [
-        0,
-        0
+        100,
+        300
       ],
-      "id": "d4053131-b32f-4bd5-a9c8-e623eb2c7478",
-      "name": "When clicking ‘Execute workflow’"
+      "parameters": {
+        "authentication": "oAuth2",
+        "event": "messageReceived",
+        "filters": {
+          "q": "label:NewMemberships",
+          "readStatus": "both"
+        },
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
     }
   ],
   "connections": {
@@ -74,22 +96,29 @@
           }
         ]
       ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
-    "binaryMode": "separate",
     "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": false,
-    "executionOrder": "v1"
+    "availableInMCP": false
   },
   "staticData": null,
-  "meta": {
-    "templateCredsSetupCompleted": true
-  },
-  "pinData": {},
-  "versionId": "187de55d-f4b2-43aa-b7c4-995255004ab4",
+  "meta": null,
+  "pinData": null,
+  "versionId": "a5655635-ad29-4c9d-bb37-c1442d1124f2",
   "activeVersionId": null,
-  "versionCounter": 9,
+  "versionCounter": 7,
   "triggerCount": 0,
   "shared": [
     {

@@ -1,0 +1,318 @@
+{
+  "cache_invalidated_at": null,
+  "description": "Active n8n GET webhooks that return HTML forms, including inferred form parameter names.",
+  "archived": false,
+  "view_count": 2,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "varchar",
+      "semantic_type": "type/Name",
+      "lib/deduplicated-name": "Name",
+      "lib/original-name": "Name",
+      "name": "Name",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Name",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Name",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Name",
+      "display_name": "Name",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 11,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 23.545454545454547
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Webhook URL",
+      "lib/original-name": "Webhook URL",
+      "name": "Webhook URL",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Webhook URL",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Webhook URL",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Webhook URL",
+      "display_name": "Webhook URL",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 11,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 1.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 64.72727272727273
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Method",
+      "lib/original-name": "Method",
+      "name": "Method",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Method",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Method",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Method",
+      "display_name": "Method",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 3.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Path",
+      "lib/original-name": "Path",
+      "name": "Path",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Path",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Path",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Path",
+      "display_name": "Path",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 11,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 21.727272727272727
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Parameters",
+      "lib/original-name": "Parameters",
+      "name": "Parameters",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Parameters",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Parameters",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Parameters",
+      "display_name": "Parameters",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 11,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 96.9090909090909
+          }
+        }
+      },
+      "base_type": "type/Text"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "n8n HTML Form Webhooks",
+  "last_query_start": "2026-04-15T14:51:03.859503Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-15T14:51:03.862538Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 52.7500000000000000,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-14T18:12:24.046248Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "native": "with settings as (\n  select max(case when key = 'n8n_base_url' then value end) as n8n_base_url\n  from public.global_settings\n), active_wf as (\n  select id, name, nodes::jsonb as nodes\n  from n8n.workflow_entity\n  where active and not coalesce(\"isArchived\", false)\n), html_form_workflows as (\n  select aw.id, aw.name, aw.nodes\n  from active_wf aw\n  where exists (\n    select 1\n    from jsonb_array_elements(aw.nodes) node\n    where node->>'type' = 'n8n-nodes-base.respondToWebhook'\n      and node::text ilike '%text/html%'\n  )\n    and aw.nodes::text ilike '%<form%'\n), webhook_rows as (\n  select aw.id as workflow_id,\n         aw.name as workflow_name,\n         we.method,\n         we.\"webhookPath\" as webhook_path,\n         aw.nodes\n  from html_form_workflows aw\n  join n8n.webhook_entity we\n    on we.\"workflowId\" = aw.id\n  where we.method = 'GET'\n), fields as (\n  select wr.workflow_id,\n         string_agg(distinct f.field_name, ', ' order by f.field_name) as form_fields\n  from webhook_rows wr\n  left join lateral (\n    select m[1] as field_name\n    from regexp_matches(wr.nodes::text, $$name=\\\\\\\"([^\\\\\\\"]+)\\\\\\\"$$, 'g') m\n    where m[1] not in ('submit')\n  ) f on true\n  group by wr.workflow_id\n)\nselect wr.workflow_name as \"Name\",\n       (select n8n_base_url from settings) || '/webhook/' || wr.webhook_path as \"Webhook URL\",\n       wr.method as \"Method\",\n       wr.webhook_path as \"Path\",\n       coalesce(fields.form_fields, '') as \"Parameters\"\nfrom webhook_rows wr\nleft join fields on fields.workflow_id = wr.workflow_id\norder by wr.workflow_name;"
+      }
+    ]
+  },
+  "id": 1635,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "kSH6_xQwdUmeHabccyt5G",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-14T18:12:24.0584Z"
+  },
+  "visualization_settings": {
+    "table.columns": [
+      {
+        "name": "Name",
+        "enabled": true
+      },
+      {
+        "name": "Webhook URL",
+        "enabled": true
+      },
+      {
+        "name": "Method",
+        "enabled": true
+      },
+      {
+        "name": "Path",
+        "enabled": true
+      },
+      {
+        "name": "Parameters",
+        "enabled": true
+      }
+    ],
+    "column_settings": {
+      "[\"name\",\"Name\"]": {
+        "view_as": "link",
+        "link_url": "{{Webhook URL}}",
+        "column_title": "Name"
+      },
+      "[\"name\",\"Webhook URL\"]": {
+        "view_as": "link",
+        "link_url": "{{Webhook URL}}",
+        "column_title": "Webhook URL"
+      }
+    }
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-04-14T18:12:24.046248Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}
