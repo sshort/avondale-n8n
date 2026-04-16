@@ -1,0 +1,627 @@
+{
+  "name": "ClubSpark Package Members Import XLSX",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a1000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "path": "clubspark-package-members-import-form",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a1000000-0000-0000-0000-000000000002",
+      "name": "ClubSpark Import Form Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        280
+      ],
+      "webhookId": "clubspark-package-members-import-form"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const request = $('ClubSpark Import Form Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst headers = request.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst escapeHtml = (value) => String(value ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\\\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst fallbackBaseUrl = 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nconst actionUrl = `${n8nBaseUrl}/webhook/clubspark-package-members-import-generate`;\nconst exampleNames = ['Aaron Mackintosh', 'Dylan Whybrow', 'Amy Palmer'].join('\\n');\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>ClubSpark Package Members Import</title><style>:root{color-scheme:light;--bg:#f7f8fc;--panel:#ffffff;--ink:#2e3d4e;--muted:#6b7785;--line:#e2e8f0;--accent:#509ee3;--accent-dark:#2f80d8;--soft:#f2f7fd;--button-soft:#eef2f7}*{box-sizing:border-box}body{margin:0;padding:24px;background:linear-gradient(180deg,#fbfcfe 0%,var(--bg) 100%);font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:var(--ink)}.wrap{max-width:920px;margin:0 auto;display:grid;gap:20px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 40px rgba(53,72,91,.08);padding:28px}h1{margin:0 0 8px;font-size:32px;line-height:1.05;letter-spacing:-.02em}.meta{margin:0;color:var(--muted);line-height:1.5}.callout{margin-top:16px;padding:14px 16px;border-radius:14px;background:var(--soft);border:1px solid var(--line)}form{display:grid;gap:16px;margin-top:20px}label{display:grid;gap:8px;font-weight:700}textarea,input[type=text]{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit;background:#fff;color:var(--ink)}textarea{min-height:320px;resize:vertical;line-height:1.45}.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;border:0;cursor:pointer;font:inherit;background:linear-gradient(135deg,var(--accent) 0%,var(--accent-dark) 100%);color:#fff;box-shadow:0 10px 24px rgba(80,158,227,.22)}code{font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace}@media (max-width:720px){body{padding:14px}.panel{padding:18px}h1{font-size:28px}}</style></head><body><div class=\"wrap\"><section class=\"panel\"><h1>ClubSpark Package Members Import</h1><p class=\"meta\">Generate an Excel workbook matching the junior package import template. The workflow looks up each named member in <code>raw_members</code>, resolves the main contact, and sets <code>PrimaryContactID</code> to that contact's ClubSpark identifier while also emitting distinct main contacts as their own workbook rows.</p><div class=\"callout\">Enter member names separated by new lines or commas. The exported workbook uses the exact template columns from <code>PackageMembers-Junior-Template.xlsx</code>. <code>ContactID</code> and <code>PrimaryContactID</code> come from ClubSpark <code>Unique ID</code> values with square brackets removed. The result page shows which main contact was used for each member before download.</div><form method=\"POST\" action=\"${escapeHtml(actionUrl)}\"><label><span>Member names</span><textarea name=\"names\" placeholder=\"One member name per line\" required>${escapeHtml(exampleNames)}</textarea></label><div class=\"grid\"><label><span>Default country</span><input type=\"text\" name=\"default_country\" value=\"United Kingdom\"></label><label><span>File name prefix</span><input type=\"text\" name=\"file_prefix\" value=\"clubspark-package-members-import\"></label></div><button class=\"button\" type=\"submit\">Generate Summary</button></form></section></div></body></html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "a1000000-0000-0000-0000-000000000003",
+      "name": "Build Form HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              },
+              {
+                "name": "Pragma",
+                "value": "no-cache"
+              },
+              {
+                "name": "Expires",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "a1000000-0000-0000-0000-000000000004",
+      "name": "Respond Form",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        780,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "path": "clubspark-package-members-import-generate",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a1000000-0000-0000-0000-000000000005",
+      "name": "Generate Import CSV Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        520
+      ],
+      "webhookId": "clubspark-package-members-import-generate"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const request = $('Generate Import CSV Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst body = request.body ?? request;\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst collapse = (value) => clean(value).replace(/\\s+/g, ' ');\nconst names = [];\nconst seen = new Set();\nfor (const part of String(body.names ?? '').replace(/\\r/g, '').split(/[\\n,;]+/)) {\n  const name = collapse(part);\n  if (!name) continue;\n  const key = name.toLowerCase();\n  if (seen.has(key)) continue;\n  seen.add(key);\n  names.push(name);\n}\nconst filePrefix = clean(body.file_prefix) || 'clubspark-package-members-import';\nconst defaultCountry = clean(body.default_country) || 'United Kingdom';\nconst downloadFormat = clean(body.download_format || '').toLowerCase();\nconst stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');\nconst fileName = `${filePrefix}-${stamp}.xlsx`;\nconst errorMessage = !names.length ? 'Enter at least one member name.' : '';\nreturn [{ json: { names, default_country: defaultCountry, file_name: fileName, file_prefix: filePrefix, download_format: downloadFormat, error_message: errorMessage } }];"
+      },
+      "id": "a1000000-0000-0000-0000-000000000006",
+      "name": "Resolve Generate Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "request-error-check",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ]
+        }
+      },
+      "id": "a1000000-0000-0000-0000-000000000007",
+      "name": "Check Request Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        760,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $input.first().json ?? {};\nconst sqlLiteral = (value) => \"'\" + String(value ?? '').replace(/'/g, \"''\") + \"'\";\nconst values = input.names.map((name, index) => `(${index + 1}, ${sqlLiteral(name)})`).join(',\\n    ');\nconst sql = `\nWITH input_names(input_order, input_name) AS (\n  VALUES\n    ${values}\n), matched_member_candidates AS (\n  SELECT\n    i.input_order,\n    i.input_name,\n    rm.id AS member_raw_id,\n    trim(concat_ws(' ', rm.\"First name\", rm.\"Last name\")) AS member_name,\n    NULLIF(trim(rm.\"First name\"), '') AS member_first_name,\n    NULLIF(trim(rm.\"Last name\"), '') AS member_last_name,\n    NULLIF(trim(rm.\"Email address\"), '') AS member_email,\n    NULLIF(trim(rm.\"Start Date\"), '') AS member_start_date,\n    NULLIF(trim(rm.\"Expiry Date\"), '') AS member_expiry_date,\n    rm.\"Cost\" AS member_cost,\n    rm.\"Paid\" AS member_paid,\n    NULLIF(trim(rm.\"Gift aid\"), '') AS member_gift_aid,\n    NULLIF(trim(rm.\"Gender\"), '') AS member_gender,\n    NULLIF(trim(rm.\"Date of birth\"), '') AS member_birth_date,\n    NULLIF(trim(rm.\"Phone number\"), '') AS member_home_number,\n    NULLIF(trim(rm.\"Work number\"), '') AS member_work_number,\n    NULLIF(trim(rm.\"Mobile number\"), '') AS member_mobile_number,\n    NULLIF(trim(rm.\"Emergency phone number\"), '') AS member_emergency_phone_number,\n    NULLIF(trim(rm.\"Postcode\"), '') AS member_postcode,\n    NULLIF(trim(rm.\"Address 1\"), '') AS member_address_1,\n    NULLIF(trim(rm.\"Address 2\"), '') AS member_address_2,\n    NULLIF(trim(rm.\"Address 3\"), '') AS member_address_3,\n    NULLIF(trim(rm.\"Town\"), '') AS member_town,\n    NULLIF(trim(rm.\"County\"), '') AS member_county,\n    NULLIF(trim(rm.\"Country\"), '') AS member_country,\n    NULLIF(trim(rm.\"Occupation\"), '') AS member_occupation,\n    NULLIF(trim(rm.\"Date joined venue\"), '') AS member_date_joined_venue,\n    NULLIF(trim(rm.\"Medical history\"), '') AS member_medical_history,\n    COALESCE(NULLIF(trim(rm.\"Contact source\"), ''), NULLIF(trim(rm.\"Venue source\"), ''), NULLIF(trim(rm.\" Venue source\"), '')) AS member_source,\n    NULLIF(trim(rm.\"Key pin number\"), '') AS member_key_pin_number,\n    NULLIF(trim(rm.\"Tags provided\"), '') AS member_tags_provided,\n    NULLIF(trim(rm.\"Membership\"), '') AS membership,\n    NULLIF(trim(rm.\"Status\"), '') AS member_status,\n    NULLIF(trim(rm.\"Payment\"), '') AS member_payment_status,\n    row_number() OVER (\n      PARTITION BY i.input_order\n      ORDER BY COALESCE(NULLIF(substring(rm.\"Membership\" from '(20[0-9]{2})'), ''), '0')::int DESC, rm.id DESC\n    ) AS match_rank\n  FROM input_names i\n  JOIN public.raw_members rm\n    ON COALESCE(rm.is_current, true) = true\n   AND lower(trim(concat_ws(' ', rm.\"First name\", rm.\"Last name\"))) = lower(i.input_name)\n), matched_members AS (\n  SELECT *\n  FROM matched_member_candidates\n  WHERE match_rank = 1\n), resolved_members AS (\n  SELECT\n    mm.*,\n    mr.contact_id AS member_contact_row_id,\n    NULLIF(trim(member_contact.\"Unique ID\"), '') AS member_unique_id,\n    mr.resolve_rule AS member_contact_resolve_rule,\n    (pr.id IS NOT NULL) AS has_distinct_primary,\n    pc.contact_id AS primary_contact_row_id,\n    NULLIF(trim(primary_contact.\"Unique ID\"), '') AS primary_unique_id,\n    pc.resolve_rule AS primary_contact_resolve_rule,\n    trim(concat_ws(' ', pr.\"First name\", pr.\"Last name\")) AS primary_name,\n    NULLIF(trim(pr.\"First name\"), '') AS primary_first_name,\n    NULLIF(trim(pr.\"Last name\"), '') AS primary_last_name,\n    NULLIF(trim(pr.\"Email address\"), '') AS primary_email,\n    NULLIF(trim(pr.\"Start Date\"), '') AS primary_start_date,\n    NULLIF(trim(pr.\"Expiry Date\"), '') AS primary_expiry_date,\n    pr.\"Cost\" AS primary_cost,\n    pr.\"Paid\" AS primary_paid,\n    NULLIF(trim(pr.\"Gift aid\"), '') AS primary_gift_aid,\n    NULLIF(trim(pr.\"Gender\"), '') AS primary_gender,\n    NULLIF(trim(pr.\"Date of birth\"), '') AS primary_birth_date,\n    NULLIF(trim(pr.\"Phone number\"), '') AS primary_home_number,\n    NULLIF(trim(pr.\"Work number\"), '') AS primary_work_number,\n    NULLIF(trim(pr.\"Mobile number\"), '') AS primary_mobile_number,\n    NULLIF(trim(pr.\"Emergency phone number\"), '') AS primary_emergency_phone_number,\n    NULLIF(trim(pr.\"Postcode\"), '') AS primary_postcode,\n    NULLIF(trim(pr.\"Address 1\"), '') AS primary_address_1,\n    NULLIF(trim(pr.\"Address 2\"), '') AS primary_address_2,\n    NULLIF(trim(pr.\"Address 3\"), '') AS primary_address_3,\n    NULLIF(trim(pr.\"Town\"), '') AS primary_town,\n    NULLIF(trim(pr.\"County\"), '') AS primary_county,\n    NULLIF(trim(pr.\"Country\"), '') AS primary_country,\n    NULLIF(trim(pr.\"Occupation\"), '') AS primary_occupation,\n    NULLIF(trim(pr.\"Date joined venue\"), '') AS primary_date_joined_venue,\n    NULLIF(trim(pr.\"Medical history\"), '') AS primary_medical_history,\n    COALESCE(NULLIF(trim(pr.\"Contact source\"), ''), NULLIF(trim(pr.\"Venue source\"), ''), NULLIF(trim(pr.\" Venue source\"), '')) AS primary_source,\n    NULLIF(trim(pr.\"Key pin number\"), '') AS primary_key_pin_number,\n    NULLIF(trim(pr.\"Tags provided\"), '') AS primary_tags_provided\n  FROM matched_members mm\n  LEFT JOIN public.vw_junior_main_contacts j\n    ON j.member_raw_id = mm.member_raw_id\n  LEFT JOIN LATERAL (\n    SELECT mc.*\n    FROM (\n      SELECT mc.*, 0 AS match_priority, 0 AS season_gap\n      FROM public.vw_raw_members_main_contacts_current mc\n      WHERE j.main_contact_raw_id IS NOT NULL\n        AND mc.id = j.main_contact_raw_id\n      UNION ALL\n      SELECT mc.*, 1 AS match_priority, 0 AS season_gap\n      FROM public.vw_raw_members_main_contacts_current mc\n      WHERE j.main_contact_raw_id IS NULL\n        AND trim(concat_ws(' ', mc.\"First name\", mc.\"Last name\")) <> mm.member_name\n        AND COALESCE(mc.\"Membership\", '') = COALESCE(mm.membership, '')\n        AND COALESCE(mc.\"Status\", '') = COALESCE(mm.member_status, '')\n        AND COALESCE(mc.\"Start Date\", '') = COALESCE(mm.member_start_date, '')\n        AND COALESCE(mc.\"Expiry Date\", '') = COALESCE(mm.member_expiry_date, '')\n        AND (\n          COALESCE(mc.\"Payment\", '') = COALESCE(mm.member_payment_status, '')\n          OR (\n            COALESCE(mm.member_payment_status, '') IN ('Part Paid', 'Paid')\n            AND COALESCE(mc.\"Payment\", '') IN ('Part Paid', 'Paid')\n          )\n        )\n        AND (\n          COALESCE(mc.\"Paid\", -1::numeric) = COALESCE(mm.member_paid, -1::numeric)\n          OR (\n            COALESCE(mm.member_payment_status, '') IN ('Part Paid', 'Paid')\n            AND COALESCE(mc.\"Payment\", '') IN ('Part Paid', 'Paid')\n          )\n        )\n        AND (\n          (\n            mm.member_last_name IS NOT NULL\n            AND (\n              public.normalize_match_text(mc.\"Last name\") = public.normalize_match_text(mm.member_last_name)\n              OR public.normalize_match_text(mm.member_last_name) LIKE '%' || public.normalize_match_text(mc.\"Last name\") || '%'\n              OR public.normalize_match_text(mc.\"Last name\") LIKE '%' || public.normalize_match_text(mm.member_last_name) || '%'\n            )\n          )\n          OR (mm.member_postcode IS NOT NULL AND public.normalize_match_text(mc.\"Postcode\") = public.normalize_match_text(mm.member_postcode))\n          OR (mm.member_address_1 IS NOT NULL AND public.normalize_match_text(mc.\"Address 1\") = public.normalize_match_text(mm.member_address_1))\n        )\n      UNION ALL\n      SELECT\n        mc.*,\n        2 AS match_priority,\n        ABS(\n          COALESCE(NULLIF(substring(mc.\"Membership\" from '(20[0-9]{2})'), ''), '0')::int\n          - COALESCE(NULLIF(substring(mm.membership from '(20[0-9]{2})'), ''), '0')::int\n        ) AS season_gap\n      FROM public.raw_members_main_contacts mc\n      WHERE j.main_contact_raw_id IS NULL\n        AND COALESCE(mc.is_current, true) = true\n        AND trim(concat_ws(' ', mc.\"First name\", mc.\"Last name\")) <> mm.member_name\n        AND COALESCE(mc.\"Status\", '') = COALESCE(mm.member_status, '')\n        AND (\n          COALESCE(mc.\"Payment\", '') = COALESCE(mm.member_payment_status, '')\n          OR (\n            COALESCE(mm.member_payment_status, '') IN ('Part Paid', 'Paid')\n            AND COALESCE(mc.\"Payment\", '') IN ('Part Paid', 'Paid')\n          )\n        )\n        AND (\n          (\n            mm.member_last_name IS NOT NULL\n            AND (\n              public.normalize_match_text(mc.\"Last name\") = public.normalize_match_text(mm.member_last_name)\n              OR public.normalize_match_text(mm.member_last_name) LIKE '%' || public.normalize_match_text(mc.\"Last name\") || '%'\n              OR public.normalize_match_text(mc.\"Last name\") LIKE '%' || public.normalize_match_text(mm.member_last_name) || '%'\n            )\n          )\n          OR (mm.member_postcode IS NOT NULL AND public.normalize_match_text(mc.\"Postcode\") = public.normalize_match_text(mm.member_postcode))\n          OR (mm.member_address_1 IS NOT NULL AND public.normalize_match_text(mc.\"Address 1\") = public.normalize_match_text(mm.member_address_1))\n        )\n    ) mc\n    ORDER BY\n      mc.match_priority,\n      mc.season_gap,\n      CASE WHEN NULLIF(trim(mc.\"Email address\"), '') IS NOT NULL THEN 0 ELSE 1 END,\n      CASE WHEN COALESCE(NULLIF(trim(mc.\"Mobile number\"), ''), NULLIF(trim(mc.\"Phone number\"), '')) IS NOT NULL THEN 0 ELSE 1 END,\n      mc.id DESC\n    LIMIT 1\n  ) pr ON TRUE\n  LEFT JOIN LATERAL resolve_best_contact_row(\n    mm.member_name,\n    mm.member_email,\n    mm.member_last_name,\n    false\n  ) mr(contact_id, payer_name, first_name, last_name, email_address, phone_number, mobile_number, address_1, address_2, address_3, town, county, postcode, venue_id, member_status, resolve_rule, candidate_count) ON TRUE\n  LEFT JOIN public.raw_contacts member_contact\n    ON member_contact.id = mr.contact_id\n  LEFT JOIN LATERAL resolve_best_contact_row(\n    trim(concat_ws(' ', pr.\"First name\", pr.\"Last name\")),\n    NULLIF(trim(pr.\"Email address\"), ''),\n    NULLIF(trim(pr.\"Last name\"), ''),\n    false\n  ) pc(contact_id, payer_name, first_name, last_name, email_address, phone_number, mobile_number, address_1, address_2, address_3, town, county, postcode, venue_id, member_status, resolve_rule, candidate_count) ON pr.id IS NOT NULL\n  LEFT JOIN public.raw_contacts primary_contact\n    ON primary_contact.id = pc.contact_id\n)\nSELECT *\nFROM resolved_members\nORDER BY input_order;`;\nreturn [{ json: { ...input, sql } }];"
+      },
+      "id": "a1000000-0000-0000-0000-000000000008",
+      "name": "Build Lookup SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1020,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "a1000000-0000-0000-0000-000000000009",
+      "name": "Load Member Data",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1280,
+        620
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const request = $('Resolve Generate Request').first().json ?? {};\nconst rows = $input.all().map((item) => item.json ?? {});\nconst headers = [\n  'ContactID','PrimaryContactID','FirstName','LastName','EmailAddress','StartDate','ExpiryDate','Cost','Paid','GiftAid','Gender','BirthDate','HomeNumber','WorkNumber','MobileNumber','EmergencyPhoneNumber','PostCode','Address1','Address2','Address3','Town','County','Country','Occupation','DateJoinedVenue','MedicalHistory','Source','KeyPinNumber','TagsProvided'\n];\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst escapeHtml = (value) => String(value ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\\\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst unresolved = request.names.filter((name, index) => !rows.some((row) => Number(row.input_order) === index + 1));\nif (!rows.length || unresolved.length) {\n  const missing = unresolved.length ? unresolved.join(', ') : request.names.join(', ');\n  return [{ json: { error_message: `No current raw_members row was found for: ${missing}` } }];\n}\nconst formatGender = (value) => {\n  const raw = clean(value).toLowerCase();\n  if (raw === 'male') return 'M';\n  if (raw === 'female') return 'F';\n  return clean(value);\n};\nconst formatNumeric = (value) => {\n  if (value === null || value === undefined || value === '') return '';\n  const parsed = Number.parseFloat(String(value).replace(/[^0-9.-]+/g, ''));\n  if (Number.isNaN(parsed)) return clean(value);\n  return Number.isInteger(parsed) ? String(parsed) : String(parsed).replace(/\\.0+$/, '').replace(/(\\.\\d*[1-9])0+$/, '$1');\n};\nconst formatKeyPin = (value) => {\n  const raw = clean(value);\n  return raw === '[]' ? '' : raw;\n};\nconst stripBrackets = (value) => clean(value).replace(/[\\[\\]]/g, '');\nconst defaultCountry = clean(request.default_country);\nconst ordered = [...rows].sort((a, b) => Number(a.input_order) - Number(b.input_order));\nconst output = [];\nconst missingIds = [];\nconst emittedPrimaryRows = new Set();\nconst buildExportRow = (row, prefix, contactId, primaryContactId, fallbackCountry) => ({\n  ContactID: contactId,\n  PrimaryContactID: primaryContactId,\n  FirstName: clean(row[`${prefix}_first_name`]),\n  LastName: clean(row[`${prefix}_last_name`]),\n  EmailAddress: clean(row[`${prefix}_email`]),\n  StartDate: clean(row[`${prefix}_start_date`]),\n  ExpiryDate: clean(row[`${prefix}_expiry_date`]),\n  Cost: formatNumeric(row[`${prefix}_cost`]),\n  Paid: formatNumeric(row[`${prefix}_paid`]),\n  GiftAid: clean(row[`${prefix}_gift_aid`]),\n  Gender: formatGender(row[`${prefix}_gender`]),\n  BirthDate: clean(row[`${prefix}_birth_date`]),\n  HomeNumber: clean(row[`${prefix}_home_number`]),\n  WorkNumber: clean(row[`${prefix}_work_number`]),\n  MobileNumber: clean(row[`${prefix}_mobile_number`]),\n  EmergencyPhoneNumber: clean(row[`${prefix}_emergency_phone_number`]),\n  PostCode: clean(row[`${prefix}_postcode`]),\n  Address1: clean(row[`${prefix}_address_1`]),\n  Address2: clean(row[`${prefix}_address_2`]),\n  Address3: clean(row[`${prefix}_address_3`]),\n  Town: clean(row[`${prefix}_town`]),\n  County: clean(row[`${prefix}_county`]),\n  Country: clean(row[`${prefix}_country`]) || fallbackCountry,\n  Occupation: clean(row[`${prefix}_occupation`]),\n  DateJoinedVenue: clean(row[`${prefix}_date_joined_venue`]),\n  MedicalHistory: clean(row[`${prefix}_medical_history`]),\n  Source: clean(row[`${prefix}_source`]),\n  KeyPinNumber: formatKeyPin(row[`${prefix}_key_pin_number`]),\n  TagsProvided: clean(row[`${prefix}_tags_provided`]),\n});\nfor (const row of ordered) {\n  const hasDistinctPrimary = row.has_distinct_primary === true || row.has_distinct_primary === 'true' || row.has_distinct_primary === 't';\n  const requestedName = clean(request.names[Number(row.input_order) - 1] || row.input_name || row.member_name);\n  const matchedMember = clean(row.member_name || `${row.member_first_name || ''} ${row.member_last_name || ''}`);\n  const memberContactId = stripBrackets(row.member_unique_id);\n  const primaryContactId = hasDistinctPrimary ? stripBrackets(row.primary_unique_id) : memberContactId;\n  if (!memberContactId) {\n    missingIds.push(`${matchedMember || requestedName} (member Unique ID)`);\n    continue;\n  }\n  if (hasDistinctPrimary && !primaryContactId) {\n    missingIds.push(`${matchedMember || requestedName} (primary contact Unique ID)`);\n    continue;\n  }\n  const primaryName = clean(row.primary_name || `${row.primary_first_name || ''} ${row.primary_last_name || ''}`) || matchedMember;\n  const primaryEmail = hasDistinctPrimary ? clean(row.primary_email) : clean(row.member_email);\n  if (hasDistinctPrimary && !emittedPrimaryRows.has(primaryContactId)) {\n    const primaryRow = buildExportRow(row, 'primary', primaryContactId, primaryContactId, defaultCountry);\n    output.push({\n      json: {\n        ...primaryRow,\n        _rowType: 'primary',\n        _requestedName: requestedName,\n        _matchedMember: matchedMember,\n        _primaryName: primaryName,\n        _primaryEmail: primaryEmail,\n        _primaryContactId: primaryContactId,\n        _memberContactId: memberContactId,\n        _relationship: 'Main contact row emitted',\n        _fileName: request.file_name,\n      },\n    });\n    emittedPrimaryRows.add(primaryContactId);\n  }\n  const memberRow = buildExportRow(row, 'member', memberContactId, primaryContactId, defaultCountry);\n  output.push({\n    json: {\n      ...memberRow,\n      _rowType: 'member',\n      _requestedName: requestedName,\n      _matchedMember: matchedMember,\n      _primaryName: primaryName,\n      _primaryEmail: primaryEmail,\n      _primaryContactId: primaryContactId,\n      _memberContactId: memberContactId,\n      _relationship: hasDistinctPrimary ? 'Distinct main contact linked and exported' : 'Member used as own primary contact',\n      _fileName: request.file_name,\n    },\n  });\n}\nif (missingIds.length) {\n  return [{ json: { error_message: `Missing ClubSpark Unique ID for: ${missingIds.join(', ')}` } }];\n}\nreturn output;"
+      },
+      "id": "a1000000-0000-0000-0000-000000000010",
+      "name": "Build Export Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "result-error-check",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ]
+        }
+      },
+      "id": "a1000000-0000-0000-0000-000000000011",
+      "name": "Check Result Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1800,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first()?.json ?? {};\nconst message = item.error_message || 'Unable to build the ClubSpark import CSV.';\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>ClubSpark Import Failed</title><style>body{margin:0;padding:24px;background:#f7f8fc;font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:#2e3d4e}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 18px 40px rgba(53,72,91,.08);padding:28px}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#509ee3 0%,#2f80d8 100%);color:#fff}</style></head><body><div class=\"panel\"><h1>ClubSpark Import Failed</h1><p>${escapeHtml(message)}</p><p><a class=\"button\" href=\"javascript:history.back()\">Back</a></p></div></body></html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "a1000000-0000-0000-0000-000000000012",
+      "name": "Build Error HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1020,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              },
+              {
+                "name": "Pragma",
+                "value": "no-cache"
+              },
+              {
+                "name": "Expires",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "a1000000-0000-0000-0000-000000000013",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1280,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "binary",
+        "responseDataSource": "set",
+        "inputFieldName": "data",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              },
+              {
+                "name": "Pragma",
+                "value": "no-cache"
+              },
+              {
+                "name": "Expires",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "a1000000-0000-0000-0000-000000000014",
+      "name": "Respond XLSX",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2580,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "download-format-xlsx",
+              "leftValue": "={{ $(\"Resolve Generate Request\").first().json.download_format || \"\" }}",
+              "rightValue": "xlsx",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "id": "a1000000-0000-0000-0000-000000000015",
+      "name": "Check Download Mode",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2060,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const rows = $input.all().map((item) => item.json ?? {});\nconst memberRows = rows.filter((row) => (row._rowType || 'member') === 'member');\nconst request = $('Resolve Generate Request').first().json ?? {};\nconst rawRequest = $('Generate Import CSV Webhook').first()?.json ?? {};\nconst headers = rawRequest.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst escapeHtml = (value) => String(value ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\\\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst n8nBaseUrl = deriveBaseUrl(headers, 'http://n8n:5678');\nconst actionUrl = `${n8nBaseUrl}/webhook/clubspark-package-members-import-generate`;\nconst summaryRowsHtml = memberRows.map((row) => `<tr><td>${escapeHtml(row._requestedName)}</td><td>${escapeHtml(row._matchedMember)}</td><td>${escapeHtml(row._primaryName)}</td><td>${escapeHtml(row._primaryEmail)}</td><td>${escapeHtml(row._primaryContactId)}</td><td>${escapeHtml(row._memberContactId)}</td><td>${escapeHtml(row._relationship)}</td></tr>`).join('');\nconst distinctMainContacts = new Set(memberRows.map((row) => row._primaryContactId).filter(Boolean)).size;\nconst workbookRows = rows.length;\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>ClubSpark Import Ready</title><style>:root{color-scheme:light;--bg:#f7f8fc;--panel:#ffffff;--ink:#2e3d4e;--muted:#6b7785;--line:#e2e8f0;--accent:#509ee3;--accent-dark:#2f80d8;--soft:#f2f7fd;--good:#eff8f2}*{box-sizing:border-box}body{margin:0;padding:24px;background:linear-gradient(180deg,#fbfcfe 0%,var(--bg) 100%);font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:var(--ink)}.wrap{max-width:1160px;margin:0 auto;display:grid;gap:20px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 40px rgba(53,72,91,.08);padding:28px}.hero{display:flex;gap:18px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}.hero h1{margin:0 0 8px;font-size:32px;line-height:1.05;letter-spacing:-.02em}.meta{margin:0;color:var(--muted);line-height:1.5}.stats{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-top:18px}.stat{padding:16px;border-radius:14px;background:var(--soft);border:1px solid var(--line)}.stat strong{display:block;font-size:28px;line-height:1.1}.actions{display:flex;gap:12px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;border:0;cursor:pointer;font:inherit;background:linear-gradient(135deg,var(--accent) 0%,var(--accent-dark) 100%);color:#fff;box-shadow:0 10px 24px rgba(80,158,227,.22)}.button.secondary{background:#eef2f7;color:var(--ink);box-shadow:none}.download-form{display:inline-flex}.download-form input{display:none}.callout{padding:14px 16px;border-radius:14px;background:var(--good);border:1px solid #dcefe4}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px}.summary-table{width:100%;border-collapse:collapse;min-width:860px}.summary-table th,.summary-table td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.summary-table th{background:#f8fafc;font-size:13px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}.summary-table tr:last-child td{border-bottom:0}.mono{font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace}code{font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace}@media (max-width:720px){body{padding:14px}.panel{padding:18px}.hero h1{font-size:28px}}</style></head><body><div class=\"wrap\"><section class=\"panel\"><div class=\"hero\"><div><h1>ClubSpark Import Ready</h1><p class=\"meta\">Review the resolved main contacts below, then download the real Excel workbook. The workbook emits distinct main contacts as their own rows before the linked member rows, while still using ClubSpark Unique IDs without square brackets for <code>ContactID</code> and <code>PrimaryContactID</code>.</p></div><div class=\"actions\"><form class=\"download-form\" method=\"POST\" action=\"${escapeHtml(actionUrl)}\"><input type=\"hidden\" name=\"names\" value=\"${escapeHtml(request.names.join('\\n'))}\"><input type=\"hidden\" name=\"default_country\" value=\"${escapeHtml(request.default_country)}\"><input type=\"hidden\" name=\"file_prefix\" value=\"${escapeHtml(request.file_prefix)}\"><input type=\"hidden\" name=\"download_format\" value=\"xlsx\"><button class=\"button\" type=\"submit\">Download XLSX</button></form><a class=\"button secondary\" href=\"javascript:history.back()\">Back</a></div></div><div class=\"stats\"><div class=\"stat\"><span>Requested members</span><strong>${escapeHtml(String(memberRows.length))}</strong></div><div class=\"stat\"><span>Distinct main contacts</span><strong>${escapeHtml(String(distinctMainContacts))}</strong></div><div class=\"stat\"><span>Total workbook rows</span><strong>${escapeHtml(String(workbookRows))}</strong></div></div><div class=\"callout\">The download is an actual <span class=\"mono\">.xlsx</span> workbook generated by n8n. It uses the template column order exactly and now includes explicit main-contact rows when a member has a distinct primary contact.</div></section><section class=\"panel\"><h2>Main Contact Summary</h2><div class=\"table-wrap\"><table class=\"summary-table\"><thead><tr><th>Requested name</th><th>Matched member</th><th>Main contact used</th><th>Main contact email</th><th>PrimaryContactID</th><th>Member ContactID</th><th>Resolution</th></tr></thead><tbody>${summaryRowsHtml}</tbody></table></div></section></div></body></html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "a1000000-0000-0000-0000-000000000016",
+      "name": "Build Summary HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2320,
+        760
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              },
+              {
+                "name": "Pragma",
+                "value": "no-cache"
+              },
+              {
+                "name": "Expires",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "a1000000-0000-0000-0000-000000000017",
+      "name": "Respond Summary",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2580,
+        760
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const headers = [\n  'ContactID','PrimaryContactID','FirstName','LastName','EmailAddress','StartDate','ExpiryDate','Cost','Paid','GiftAid','Gender','BirthDate','HomeNumber','WorkNumber','MobileNumber','EmergencyPhoneNumber','PostCode','Address1','Address2','Address3','Town','County','Country','Occupation','DateJoinedVenue','MedicalHistory','Source','KeyPinNumber','TagsProvided'\n];\nreturn $input.all().map((item) => {\n  const row = item.json ?? {};\n  const exportRow = {};\n  for (const header of headers) exportRow[header] = row[header] ?? '';\n  return { json: exportRow };\n});"
+      },
+      "id": "a1000000-0000-0000-0000-000000000018",
+      "name": "Prepare XLSX Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2320,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toFile",
+        "fileFormat": "xlsx",
+        "binaryPropertyName": "data",
+        "options": {
+          "fileName": "={{ $(\"Resolve Generate Request\").first().json.file_name }}",
+          "headerRow": true,
+          "sheetName": "PackageMembers"
+        }
+      },
+      "id": "a1000000-0000-0000-0000-000000000019",
+      "name": "Spreadsheet File",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 2,
+      "position": [
+        2580,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Build Form HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ClubSpark Import Form Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build Form HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Form HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Import CSV Webhook": {
+      "main": [
+        [
+          {
+            "node": "Resolve Generate Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Generate Request": {
+      "main": [
+        [
+          {
+            "node": "Check Request Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Request Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Lookup SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Lookup SQL": {
+      "main": [
+        [
+          {
+            "node": "Load Member Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Member Data": {
+      "main": [
+        [
+          {
+            "node": "Build Export Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Export Rows": {
+      "main": [
+        [
+          {
+            "node": "Check Result Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Result Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Download Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Download Mode": {
+      "main": [
+        [
+          {
+            "node": "Prepare XLSX Rows",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Summary HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare XLSX Rows": {
+      "main": [
+        [
+          {
+            "node": "Spreadsheet File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Spreadsheet File": {
+      "main": [
+        [
+          {
+            "node": "Respond XLSX",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Summary HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "pinData": {},
+  "versionId": "clubspark-package-members-import-xlsx-v1"
+}
