@@ -131,6 +131,8 @@ class ContactDisplay:
     email: str
     consent: str
     no_consent_reason: str
+    cross_family: bool = False
+    cross_family_reason: str = ""
 
 
 @dataclass
@@ -525,6 +527,7 @@ def choose_contact_detail(
     contact_candidates: list[ContactCandidate],
     signup_candidates: list[SignupCandidate],
     junior_main_contact_candidates: list[JuniorMainContactCandidate],
+    all_contact_candidates: list[ContactCandidate] | None = None,
 ) -> ContactDisplay:
     self_contact = contact_candidates[0] if len(contact_candidates) == 1 else None
     main_contact = junior_main_contact_candidates[0] if len(junior_main_contact_candidates) == 1 else None
@@ -546,6 +549,38 @@ def choose_contact_detail(
 
     phone = ""
     email = ""
+    cross_family = False
+    cross_family_reason = ""
+
+    # Collect contacts from all member candidates
+    all_member_phones = []
+    all_member_emails = []
+    if member_candidates:
+        for member in member_candidates:
+            if member.mobile:
+                all_member_phones.append(member.mobile)
+            if member.phone:
+                all_member_phones.append(member.phone)
+            if member.email:
+                all_member_emails.append(member.email)
+
+    # If no direct contact or it has no useful details, check for cross-family contacts
+    if (not self_contact or (self_contact and not self_contact.mobile and not self_contact.phone and not self_contact.email)) and member_candidates:
+        surname = normalize_name(member_candidates[0].last_name)
+        # Use all_contact_candidates if provided, otherwise use disambiguated list
+        family_contacts = all_contact_candidates if all_contact_candidates is not None else contact_candidates
+        # Collect contact details from all contacts with same surname (excluding self_contact)
+        for contact in family_contacts:
+            if normalize_name(contact.last_name) == surname and contact is not self_contact:
+                if contact.mobile or contact.phone:
+                    all_member_phones.append(contact.mobile or contact.phone)
+                    cross_family = True
+                if contact.email:
+                    all_member_emails.append(contact.email)
+                    cross_family = True
+        if cross_family:
+            cross_family_reason = f"contact details from family member with same surname"
+
     if len(member_candidates) == 1:
         member = member_candidates[0]
         if self_contact is None:
@@ -560,6 +595,12 @@ def choose_contact_detail(
         signup = signup_candidates[0]
         if self_contact is None:
             email = email or signup.email
+
+    # Add any cross-family contacts if still no contact info
+    if not phone and all_member_phones:
+        phone = all_member_phones[0]
+    if not email and all_member_emails:
+        email = all_member_emails[0]
 
     self_phone = self_phone or phone
     self_email = self_email or email
@@ -601,6 +642,8 @@ def choose_contact_detail(
             no_consent_reason=" and ".join(no_consent_parts) + " contact details do not permit onward sharing"
             if no_consent_parts
             else "",
+            cross_family=cross_family,
+            cross_family_reason=cross_family_reason,
         )
 
     if self_visible:
@@ -611,6 +654,8 @@ def choose_contact_detail(
             no_consent_reason="self contact details do not permit onward sharing"
             if not has_self_consent
             else "",
+            cross_family=cross_family,
+            cross_family_reason=cross_family_reason,
         )
 
     if parent_visible:
@@ -621,6 +666,8 @@ def choose_contact_detail(
             no_consent_reason="parent contact details do not permit onward sharing"
             if not has_parent_consent
             else "",
+            cross_family=cross_family,
+            cross_family_reason=cross_family_reason,
         )
 
     fallback_has_context = bool(
@@ -634,6 +681,8 @@ def choose_contact_detail(
         email="",
         consent="No" if fallback_has_context else "",
         no_consent_reason="",
+        cross_family=cross_family,
+        cross_family_reason=cross_family_reason,
     )
 
 
@@ -796,20 +845,24 @@ def resolve_row(
         contact_candidates,
         signup_candidates,
         junior_main_contact_candidates,
+        all_contact_candidates=contacts_by_name.get(norm_name, []),
     )
 
     if len(member_candidates) == 1:
-        return {
+        result = {
             "category": member_candidates[0].category,
             "phone": contact_display.phone,
             "email": contact_display.email,
             "consent": contact_display.consent,
-            "match_note": "Override" if override_applied else "",
-            "review_section": "explicit_override" if override_applied else "",
+            "match_note": "Override" if override_applied else ("Family" if contact_display.cross_family else ""),
+            "review_section": "explicit_override" if override_applied else ("cross_family" if contact_display.cross_family else ""),
             "review_target": candidate_full_name(member_candidates[0]) if override_applied else "",
-            "review_reason": "explicit full-name override from name_overrides.csv" if override_applied else "",
+            "review_reason": "explicit full-name override from name_overrides.csv" if override_applied else (contact_display.cross_family_reason if contact_display.cross_family else ""),
             "no_consent_reason": contact_display.no_consent_reason,
         }
+        if not contact_display.phone and not contact_display.email:
+            result["no_contact_info"] = True
+        return result
 
     if len(member_candidates) > 1:
         return {"category": "No Match", "phone": "", "email": "", "consent": "", "match_note": "", "no_consent_reason": ""}
@@ -837,10 +890,11 @@ def resolve_row(
             "email": contact_display.email,
             "consent": contact_display.consent,
             "match_note": "Override" if override_applied else ("Best Fit" if best_fit_applied else ""),
-            "review_section": "explicit_override" if override_applied else "",
+            "review_section": "explicit_override" if override_applied else ("not_signed_up" if not override_applied else ""),
             "review_target": candidate_full_name(contact_candidates[0]) if override_applied else "",
-            "review_reason": "explicit full-name override from name_overrides.csv" if override_applied else "",
+            "review_reason": "explicit full-name override from name_overrides.csv" if override_applied else ("contact-only match - no current membership" if not override_applied else ""),
             "no_consent_reason": contact_display.no_consent_reason,
+            "review_not_signed_up": True,
         }
 
     member_candidates = unique_nickname_candidates(name, members_by_name)
@@ -1013,6 +1067,16 @@ def build_team_rows(
                         team_name=team_name.title(),
                     )
                 )
+            if details.get("no_contact_info"):
+                review_entries.append(
+                    ReviewEntry(
+                        section="no_contact_info",
+                        source_name=str(entry["name"]),
+                        target_name="",
+                        reason="matched but no email or phone in club database",
+                        team_name=team_name.title(),
+                    )
+                )
 
         rows.sort(key=lambda row: (0 if row["captain"] else 1, first_name_key(row["name"]), row["name"].casefold()))
         resolved[team_name] = rows
@@ -1035,7 +1099,7 @@ def group_review_entries(review_entries: list[ReviewEntry]) -> dict[str, list[di
         if entry.target_name:
             grouped[key]["target_name"] = entry.target_name
 
-    ordered_sections = ["no_match", "no_consent", "explicit_override", "nickname", "fuzzy"]
+    ordered_sections = ["no_match", "no_contact_info", "not_signed_up", "no_consent", "explicit_override", "cross_family", "nickname", "fuzzy"]
     result: dict[str, list[dict[str, object]]] = {section: [] for section in ordered_sections}
     for (section, _), value in grouped.items():
         result[section].append(value)
@@ -1057,6 +1121,18 @@ def review_markdown_text(review_groups: dict[str, list[dict[str, object]]]) -> s
         teams = ", ".join(sorted(item["teams"]))
         lines.append(f"- `{item['display_name']}` - {item['reason']}. Teams: {teams}")
 
+    lines.extend(["", "## No Contact Information (Matched but No Contact Details)", ""])
+    for item in review_groups.get("no_contact_info", []):
+        teams = ", ".join(sorted(item["teams"]))
+        lines.append(f"- `{item['display_name']}` - {item['reason']}. Teams: {teams}")
+
+    lines.extend(["", "## Not Signed Up (Contact Only, No Current Membership)", ""])
+    for item in review_groups.get("not_signed_up", []):
+        teams = ", ".join(sorted(item["teams"]))
+        lines.append(
+            f"- `{item['display_name']}` - {item['reason']}. Teams: {teams}"
+        )
+
     lines.extend(["", "## No Consent Contact Details", ""])
     for item in review_groups["no_consent"]:
         teams = ", ".join(sorted(item["teams"]))
@@ -1067,6 +1143,20 @@ def review_markdown_text(review_groups: dict[str, list[dict[str, object]]]) -> s
         teams = ", ".join(sorted(item["teams"]))
         lines.append(
             f"- `{item['display_name']}` -> `{item['target_name']}` - {item['reason']}. Teams: {teams}"
+        )
+
+    lines.extend(["", "## Cross-Family Contact Matches", ""])
+    for item in review_groups.get("cross_family", []):
+        teams = ", ".join(sorted(item["teams"]))
+        lines.append(
+            f"- `{item['display_name']}` -> `{item['target_name']}` - {item['reason']}. Teams: {teams}"
+        )
+
+    lines.extend(["", "## Not Signed Up (Contact Only, No Current Membership)", ""])
+    for item in review_groups.get("not_signed_up", []):
+        teams = ", ".join(sorted(item["teams"]))
+        lines.append(
+            f"- `{item['display_name']}` - {item['reason']}. Teams: {teams}"
         )
 
     lines.extend(["", "## Short-Name / Nickname Matches", ""])
@@ -1151,15 +1241,18 @@ def write_review_pdf(review_groups: dict[str, list[dict[str, object]]], output_p
 
     section_map = [
         ("Remaining No Match Names", "no_match"),
+        ("No Contact Information (Matched but No Contact Details)", "no_contact_info"),
+        ("Not Signed Up (Contact Only, No Current Membership)", "not_signed_up"),
         ("No Consent Contact Details", "no_consent"),
         ("Explicit Full-Name Overrides", "explicit_override"),
+        ("Cross-Family Contact Matches", "cross_family"),
         ("Short-Name / Nickname Matches", "nickname"),
         ("Fuzzy Matches", "fuzzy"),
     ]
     for title, key in section_map:
         story.append(Spacer(1, 2 * mm))
         story.append(Paragraph(title, section_style))
-        for item in review_groups[key]:
+        for item in review_groups.get(key, []):
             teams = ", ".join(sorted(item["teams"]))
             if item["target_name"]:
                 text = f"<b>{item['display_name']}</b> -> <b>{item['target_name']}</b> - {item['reason']}. Teams: {teams}"
