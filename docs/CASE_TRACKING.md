@@ -30,7 +30,7 @@ Tables:
 
 - `public.cases`
   - case header record
-  - contact details, status, priority, timestamps, freeform metadata
+  - contact details, status (`New`, `In Progress`, `Waiting`, `Completed`), priority, timestamps, freeform metadata
 - `public.case_emails`
   - case activity log
   - stores imported inbound/outbound thread messages, internal notes, and outbound email records
@@ -90,11 +90,11 @@ Responsibilities:
 
 Label mapping:
 
-- `!New Case` -> `In Progress`
+- `!New Case` -> `New`
 - `!In Progress` -> `In Progress`
 - `!Waiting` -> `Waiting`
 - `!Completed` -> `Completed`
-- `To Do` -> `In Progress`
+- `To Do` -> `New`
 - `To Do/Done` -> `Completed`
 
 ### `Sync Case Tracking DB To Gmail Labels`

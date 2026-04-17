@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS public.cases (
     contact_email text,
     contact_phone text,
     source text NOT NULL DEFAULT 'manual',
-    status text NOT NULL DEFAULT 'In Progress'
-        CHECK (status IN ('In Progress', 'Waiting', 'Completed')),
+    status text NOT NULL DEFAULT 'New'
+        CHECK (status IN ('New', 'In Progress', 'Waiting', 'Completed')),
     priority text NOT NULL DEFAULT 'Medium'
         CHECK (priority IN ('Low', 'Medium', 'High', 'Urgent')),
     notes text,
