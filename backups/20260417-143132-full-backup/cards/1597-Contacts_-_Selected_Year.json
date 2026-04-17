@@ -1,0 +1,676 @@
+{
+  "cache_invalidated_at": "2026-04-13T08:15:28.236438Z",
+  "description": null,
+  "archived": false,
+  "view_count": 603,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": 14,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "bigserial",
+      "semantic_type": null,
+      "lib/deduplicated-name": "raw_member_id",
+      "lib/original-name": "raw_member_id",
+      "name": "raw_member_id",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "raw_member_id",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "raw_member_id",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "raw_member_id",
+      "display_name": "raw_member_id",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 0,
+          "nil%": null
+        },
+        "type": {
+          "type/Number": {
+            "min": null,
+            "q1": null,
+            "q3": null,
+            "max": null,
+            "sd": null,
+            "avg": null
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": "type/URL",
+      "lib/deduplicated-name": "n8n_base_url",
+      "lib/original-name": "n8n_base_url",
+      "name": "n8n_base_url",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "n8n_base_url",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "n8n_base_url",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "n8n_base_url",
+      "display_name": "n8n_base_url",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 0,
+          "nil%": null
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": null,
+            "percent-url": null,
+            "percent-email": null,
+            "percent-state": null,
+            "average-length": null
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Add Items",
+      "lib/original-name": "Add Items",
+      "name": "Add Items",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Add Items",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Add Items",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Add Items",
+      "display_name": "Add Items",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 0,
+          "nil%": null
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": null,
+            "percent-url": null,
+            "percent-email": null,
+            "percent-state": null,
+            "average-length": null
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": "type/Name",
+      "lib/deduplicated-name": "Name",
+      "lib/original-name": "Name",
+      "name": "Name",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Name",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Name",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Name",
+      "display_name": "Name",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 0,
+          "nil%": null
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": null,
+            "percent-url": null,
+            "percent-email": null,
+            "percent-state": null,
+            "average-length": null
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "First name",
+      "lib/original-name": "First name",
+      "name": "First name",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "First name",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "First name",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "First name",
+      "display_name": "First name",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 0,
+          "nil%": null
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": null,
+            "percent-url": null,
+            "percent-email": null,
+            "percent-state": null,
+            "average-length": null
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Last name",
+      "lib/original-name": "Last name",
+      "name": "Last name",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Last name",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Last name",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Last name",
+      "display_name": "Last name",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 0,
+          "nil%": null
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": null,
+            "percent-url": null,
+            "percent-email": null,
+            "percent-state": null,
+            "average-length": null
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Membership",
+      "lib/original-name": "Membership",
+      "name": "Membership",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Membership",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Membership",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Membership",
+      "display_name": "Membership",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 0,
+          "nil%": null
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": null,
+            "percent-url": null,
+            "percent-email": null,
+            "percent-state": null,
+            "average-length": null
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Consent",
+      "lib/original-name": "Consent",
+      "name": "Consent",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Consent",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Consent",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Consent",
+      "display_name": "Consent",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 0,
+          "nil%": null
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": null,
+            "percent-url": null,
+            "percent-email": null,
+            "percent-state": null,
+            "average-length": null
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Email address",
+      "lib/original-name": "Email address",
+      "name": "Email address",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Email address",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Email address",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Email address",
+      "display_name": "Email address",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 0,
+          "nil%": null
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": null,
+            "percent-url": null,
+            "percent-email": null,
+            "percent-state": null,
+            "average-length": null
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Phone number",
+      "lib/original-name": "Phone number",
+      "name": "Phone number",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Phone number",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Phone number",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Phone number",
+      "display_name": "Phone number",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 0,
+          "nil%": null
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": null,
+            "percent-url": null,
+            "percent-email": null,
+            "percent-state": null,
+            "average-length": null
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Mobile number",
+      "lib/original-name": "Mobile number",
+      "name": "Mobile number",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Mobile number",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Mobile number",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Mobile number",
+      "display_name": "Mobile number",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 0,
+          "nil%": null
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": null,
+            "percent-url": null,
+            "percent-email": null,
+            "percent-state": null,
+            "average-length": null
+          }
+        }
+      },
+      "base_type": "type/Text"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": null,
+  "query_type": "native",
+  "name": "Contacts - Selected Year",
+  "last_query_start": "2026-04-17T11:21:38.769008Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-17T11:21:38.77581Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 92.1592775041050903,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-13T08:15:28.235264Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "template-tags": {
+          "search": {
+            "name": "search",
+            "display-name": "Search",
+            "type": "text",
+            "id": "search",
+            "required": false
+          },
+          "year": {
+            "name": "year",
+            "display-name": "Year",
+            "type": "text",
+            "id": "year",
+            "required": false
+          },
+          "category": {
+            "widget-type": "category",
+            "display-name": "Category",
+            "type": "dimension",
+            "id": "category",
+            "name": "category",
+            "dimension": [
+              "field",
+              {
+                "lib/uuid": "2c2eec4c-88cf-4b9e-bbc8-3eb8594d8218"
+              },
+              606
+            ],
+            "required": false
+          }
+        },
+        "lib/type": "mbql.stage/native",
+        "native": "WITH settings AS (\n  SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url\n  FROM public.global_settings\n  WHERE key = 'n8n_base_url'\n), member_rows AS (\n  SELECT\n    rm.id AS raw_member_id,\n    (SELECT n8n_base_url FROM settings) AS n8n_base_url,\n    '⚙️' AS \"Add Items\",\n    concat(rm.\"First name\", ' ', rm.\"Last name\") AS \"Name\",\n    rm.\"First name\",\n    rm.\"Last name\",\n    rm.\"Membership\",\n    CASE\n      WHEN lower(trim(coalesce(rm.\"Share Contact Detail\", ''))) IN ('yes', 'y', 'true', 't', '1') THEN '🟢 Yes'\n      ELSE '🔴 No'\n    END AS \"Consent\",\n    rm.\"Email address\",\n    rm.\"Phone number\",\n    rm.\"Mobile number\"\n  FROM public.raw_members rm\n  LEFT JOIN public.membership_packages\n    ON rm.\"Membership\" = membership_packages.name\n  WHERE COALESCE(membership_packages.category, '') <> 'Pavilion Key'\n    AND COALESCE(rm.is_current, true) = true\n  [[AND membership_packages.season = {{year}}]]\n  [[AND {{category}}]]\n  [[AND EXISTS (\n    SELECT 1\n    FROM regexp_split_to_table({{search}}, E'[\\n\\r,;]+') AS term(search_term)\n    WHERE btrim(search_term) <> ''\n      AND concat(rm.\"First name\", ' ', rm.\"Last name\") ILIKE '%' || btrim(search_term) || '%'\n  )]]\n)\nSELECT\n  raw_member_id,\n  n8n_base_url,\n  \"Add Items\",\n  \"Name\",\n  \"First name\",\n  \"Last name\",\n  \"Membership\",\n  \"Consent\",\n  \"Email address\",\n  \"Phone number\",\n  \"Mobile number\"\nFROM member_rows\nORDER BY \"Last name\", \"First name\", \"Membership\";\n"
+      }
+    ]
+  },
+  "id": 1597,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "_7OIurfHqMW2f6ZXfwO_K",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-13T08:15:28.302409Z"
+  },
+  "visualization_settings": {
+    "table.columns": [
+      {
+        "name": "raw_member_id",
+        "enabled": false
+      },
+      {
+        "name": "n8n_base_url",
+        "enabled": false
+      },
+      {
+        "name": "Add Items",
+        "enabled": true
+      },
+      {
+        "name": "Name",
+        "enabled": true
+      },
+      {
+        "name": "First name",
+        "enabled": true
+      },
+      {
+        "name": "Last name",
+        "enabled": true
+      },
+      {
+        "name": "Membership",
+        "enabled": true
+      },
+      {
+        "name": "Consent",
+        "enabled": true
+      },
+      {
+        "name": "Email address",
+        "enabled": true
+      },
+      {
+        "name": "Phone number",
+        "enabled": true
+      },
+      {
+        "name": "Mobile number",
+        "enabled": true
+      }
+    ],
+    "table": {
+      "columns": [
+        {
+          "name": "raw_member_id",
+          "enabled": false
+        },
+        {
+          "name": "n8n_base_url",
+          "enabled": false
+        },
+        {
+          "name": "Add Items",
+          "enabled": true
+        },
+        {
+          "name": "Name",
+          "enabled": true
+        },
+        {
+          "name": "First name",
+          "enabled": true
+        },
+        {
+          "name": "Last name",
+          "enabled": true
+        },
+        {
+          "name": "Membership",
+          "enabled": true
+        },
+        {
+          "name": "Consent",
+          "enabled": true
+        },
+        {
+          "name": "Email address",
+          "enabled": true
+        },
+        {
+          "name": "Phone number",
+          "enabled": true
+        },
+        {
+          "name": "Mobile number",
+          "enabled": true
+        }
+      ]
+    },
+    "table.pivot_column": "n8n_base_url",
+    "table.cell_column": "Mobile number",
+    "column_settings": {
+      "[\"name\",\"Add Items\"]": {
+        "view_as": "link",
+        "link_text": "⚙️",
+        "link_url": "{{n8n_base_url}}/webhook/manual-batch-item-form?member_id={{raw_member_id}}&member={{Name}}&membership={{Membership}}&email={{Email address}}",
+        "column_title": "Add Items"
+      },
+      "[\"name\",\"Name\"]": {
+        "view_as": "link",
+        "link_url": "{{n8n_base_url}}/webhook/member-search-detail?member_id={{raw_member_id}}&member={{Name}}&membership={{Membership}}&email={{Email address}}",
+        "column_title": "Name"
+      }
+    }
+  },
+  "collection": {
+    "metabase.collections.models.collection.root/is-root?": true,
+    "authority_level": null,
+    "name": "Our analytics",
+    "is_personal": false,
+    "id": "root",
+    "is_remote_synced": false,
+    "can_write": true
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [
+    {
+      "id": "search",
+      "type": "string/=",
+      "target": [
+        "variable",
+        [
+          "template-tag",
+          "search"
+        ]
+      ],
+      "name": "Search",
+      "slug": "search",
+      "required": false,
+      "isMultiSelect": false
+    },
+    {
+      "id": "year",
+      "type": "string/=",
+      "target": [
+        "variable",
+        [
+          "template-tag",
+          "year"
+        ]
+      ],
+      "name": "Year",
+      "slug": "year",
+      "required": false,
+      "isMultiSelect": false
+    },
+    {
+      "id": "category",
+      "type": "category",
+      "target": [
+        "dimension",
+        [
+          "template-tag",
+          "category"
+        ]
+      ],
+      "name": "Category",
+      "slug": "category",
+      "required": false,
+      "isMultiSelect": true
+    }
+  ],
+  "dashboard_id": null,
+  "created_at": "2026-03-16T15:09:16.50228Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

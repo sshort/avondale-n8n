@@ -1,0 +1,67 @@
+{
+  "name": "Test Webhook",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "test-refund-minimal",
+        "httpMethod": "GET",
+        "responseMode": "responseNode"
+      },
+      "id": "test1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "test-refund-minimal",
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Hello World"
+      },
+      "id": "test2",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        200,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-03T08:00:16.52+00:00",
+  "updatedAt": "2026-04-03T08:00:16.52+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "e8708506-2cdf-4f75-9abf-f74b3ecb3d72",
+  "triggerCount": 1,
+  "id": "iPk0yrKO0hIpK5qW",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 55,
+  "description": null,
+  "activeVersionId": "e8708506-2cdf-4f75-9abf-f74b3ecb3d72"
+}

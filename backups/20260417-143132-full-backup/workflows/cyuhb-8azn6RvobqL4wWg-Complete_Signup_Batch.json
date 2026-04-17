@@ -1,0 +1,205 @@
+{
+  "name": "Complete Signup Batch",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a4ca9659-4cdf-4452-92d1-79263ae2f401",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "path": "complete-signup-batch",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "8f7f47fb-7d0e-4fd2-81c1-851b8ef3c101",
+      "name": "Complete Signup Batch Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        260,
+        140
+      ],
+      "webhookId": "complete-signup-batch"
+    },
+    {
+      "parameters": {
+        "jsCode": "const request = $('Complete Signup Batch Webhook').first()?.json ?? null;\nif (request) {\n  const query = request.query ?? {};\n  const params = request.params ?? {};\n  const candidates = [\n    request.batch_id,\n    request.batchId,\n    query.batch_id,\n    query.batchId,\n    params.batch_id,\n    params.batchId,\n  ];\n  const rawBatchId = candidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '');\n  const batchId = rawBatchId === undefined ? null : Number.parseInt(String(rawBatchId), 10);\n  return [{\n    json: {\n      batch_id: Number.isInteger(batchId) && batchId > 0 ? batchId : null,\n    },\n  }];\n}\n\n// Optionally set batchId before manual execution.\n// Leave as null to complete the latest batch that is still Processing.\nconst batchId = null;\n\nreturn [{\n  json: {\n    batch_id: batchId,\n  },\n}];"
+      },
+      "id": "8d80a2b3-8b3f-4f91-849e-f1192ab44f0d",
+      "name": "Set Batch Id",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawBatchId = $input.first()?.json?.batch_id;\nconst batchId = rawBatchId === null || rawBatchId === undefined || rawBatchId === ''\n  ? null\n  : Number(rawBatchId);\n\nif (batchId !== null && (!Number.isInteger(batchId) || batchId <= 0)) {\n  return [{\n    json: {\n      batch_id: rawBatchId,\n      completeBatchSql: \"select NULL::bigint as requested_batch_id, NULL::bigint as batch_id, 0::bigint as completed_signup_count, 'batch_id must be a positive integer when provided'::text as message;\",\n    },\n  }];\n}\n\nconst requestedBatchSql = batchId === null ? 'NULL' : `${batchId}::bigint`;\nconst selectedBatchSql = batchId === null\n  ? \"select id from signup_batches where status = 'Processing' order by id desc limit 1\"\n  : `select ${batchId}::bigint as id`;\n\nreturn [{\n  json: {\n    batch_id: batchId,\n    completeBatchSql: `with selected_batch as (\n    ${selectedBatchSql}\n),\nupdated_signups as (\n    update member_signups\n    set status = 'Complete'\n    where batch_id = (select id from selected_batch)\n      and status = 'Processing'\n    returning id\n),\nupdated_batch as (\n    update signup_batches\n    set status = 'Complete',\n        completed_at = now()\n    where id = (select id from selected_batch)\n      and status = 'Processing'\n    returning id\n)\nselect\n    ${requestedBatchSql} as requested_batch_id,\n    (select id from updated_batch) as batch_id,\n    coalesce((select count(*) from updated_signups), 0) as completed_signup_count,\n    case\n        when exists (select 1 from updated_batch) then 'Complete'\n        when exists (select 1 from selected_batch) then 'Batch not found or already complete'\n        else 'No processing batch found'\n    end as message;`,\n  },\n}];"
+      },
+      "id": "5f5ee683-4c7d-4b4b-9c7c-5744d60ee44c",
+      "name": "Build Completion Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        850,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.completeBatchSql }}"
+      },
+      "id": "9332f44c-100f-457f-a774-8209f2fbaee9",
+      "name": "Complete Batch",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1160,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const result = $input.first()?.json ?? {};\nconst escapeHtml = (value) => String(value ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\\\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst isSuccess = result.message === 'Complete';\nconst responseCode = isSuccess ? 200 : 409;\nconst details = [\n  ['Batch', result.batch_id],\n  ['Requested Batch', result.requested_batch_id],\n  ['Completed Signups', result.completed_signup_count],\n].filter(([, value]) => value !== null && value !== undefined && String(value).trim() !== '');\nconst detailHtml = details.map(([label, value]) => `<div class=\"detail\"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join('');\nconst html = `<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Batch Completion Result</title>\n  <style>\n    :root {\n      color-scheme: light;\n      --bg: #f4f7fb;\n      --panel: #ffffff;\n      --ink: #1f2937;\n      --muted: #667085;\n      --line: #d7e0ea;\n      --success: #166534;\n      --success-soft: #ecfdf3;\n      --error: #b42318;\n      --error-soft: #fef3f2;\n      --button: #e9eef5;\n    }\n    * { box-sizing: border-box; }\n    body {\n      margin: 0;\n      padding: 24px;\n      background: linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);\n      color: var(--ink);\n      font-family: Lato, Arial, sans-serif;\n    }\n    .panel {\n      max-width: 760px;\n      margin: 0 auto;\n      background: var(--panel);\n      border: 1px solid var(--line);\n      border-radius: 18px;\n      padding: 28px;\n      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);\n    }\n    .badge {\n      display: inline-flex;\n      padding: 6px 12px;\n      border-radius: 999px;\n      font-size: 13px;\n      font-weight: 700;\n      letter-spacing: 0.04em;\n      text-transform: uppercase;\n      color: ${isSuccess ? 'var(--success)' : 'var(--error)'};\n      background: ${isSuccess ? 'var(--success-soft)' : 'var(--error-soft)'};\n    }\n    h1 {\n      margin: 16px 0 8px;\n      font-size: 32px;\n      line-height: 1.1;\n    }\n    p {\n      margin: 0;\n      color: var(--muted);\n      line-height: 1.6;\n      font-size: 16px;\n    }\n    .details {\n      display: grid;\n      gap: 12px;\n      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));\n      margin-top: 24px;\n    }\n    .detail {\n      border: 1px solid var(--line);\n      border-radius: 14px;\n      padding: 14px 16px;\n      background: #f8fafc;\n    }\n    .detail span {\n      display: block;\n      margin-bottom: 6px;\n      color: var(--muted);\n      font-size: 13px;\n      font-weight: 700;\n      text-transform: uppercase;\n      letter-spacing: 0.04em;\n    }\n    .detail strong {\n      font-size: 17px;\n      line-height: 1.4;\n      word-break: break-word;\n    }\n    .actions {\n      display: flex;\n      gap: 12px;\n      flex-wrap: wrap;\n      margin-top: 24px;\n    }\n    button {\n      appearance: none;\n      border: 1px solid var(--line);\n      border-radius: 999px;\n      background: var(--button);\n      color: var(--ink);\n      font: inherit;\n      font-weight: 700;\n      padding: 12px 18px;\n      cursor: pointer;\n    }\n  </style>\n</head>\n<body>\n  <main class=\"panel\">\n    <span class=\"badge\">${isSuccess ? 'Success' : 'Action needed'}</span>\n    <h1>Complete signup batch</h1>\n    <p>${escapeHtml(result.message ?? (isSuccess ? 'Batch completed.' : 'The batch could not be completed.'))}</p>\n    ${detailHtml ? `<section class=\"details\">${detailHtml}</section>` : ''}\n    <div class=\"actions\">\n      <button type=\"button\" onclick=\"window.close()\">Close</button>\n    </div>\n  </main>\n</body>\n</html>`;\nreturn [{ json: { ...result, response_code: responseCode, html } }];"
+      },
+      "id": "4cecbdb1-5814-4187-a0fb-8a92d7f72ac2",
+      "name": "Build Result Page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1310,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": "={{ Number($json.response_code || 200) }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "bd730a16-f814-4984-94d1-0f244de1767e",
+      "name": "Respond Completion Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1470,
+        140
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Set Batch Id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complete Signup Batch Webhook": {
+      "main": [
+        [
+          {
+            "node": "Set Batch Id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Batch Id": {
+      "main": [
+        [
+          {
+            "node": "Build Completion Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Completion Query": {
+      "main": [
+        [
+          {
+            "node": "Complete Batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complete Batch": {
+      "main": [
+        [
+          {
+            "node": "Build Result Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Result Page": {
+      "main": [
+        [
+          {
+            "node": "Respond Completion Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-13T10:25:08.651+00:00",
+  "updatedAt": "2026-04-09T10:12:28.13+00:00",
+  "settings": {
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "773b4317-d13a-46e5-b1a6-ce89889e5603",
+  "triggerCount": 1,
+  "id": "cyuhb-8azn6RvobqL4wWg",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 60,
+  "description": "",
+  "activeVersionId": "773b4317-d13a-46e5-b1a6-ce89889e5603"
+}

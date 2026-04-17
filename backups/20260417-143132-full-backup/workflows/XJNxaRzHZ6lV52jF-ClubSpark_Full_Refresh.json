@@ -1,0 +1,452 @@
+{
+  "name": "ClubSpark Full Refresh",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "c54e2472-c240-4540-a297-f341f07e86b3",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        272,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 * * * *"
+            }
+          ]
+        }
+      },
+      "id": "b2786eaa-70af-4471-bf00-9d5f947f4bf2",
+      "name": "Every Hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        272,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "mode": "list",
+          "value": "6XC5aXJ8uS5DS553"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "bd1cbd51-5d94-4690-bcdf-c7c92cb7e800",
+      "name": "Execute Contacts Export",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        560,
+        304
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "189895af-7acb-4e50-bc12-96bc47a7988f",
+              "leftValue": "={{ !!$json.error }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0efdd05a-dc90-47fb-bbe4-d8b7f54b28af",
+      "name": "Contacts Export Failed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        832,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "mode": "list",
+          "value": "0cLfjgMnyQeFcJ8T"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "a2c77e7e-55f7-44d5-a7d4-c0a9f5186df6",
+      "name": "Execute Members Export",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        1088,
+        448
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "55180778-d76e-43d6-a839-13425a400b2b",
+              "leftValue": "={{ !!$json.error }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c6c7a636-a30b-4c04-a10b-d1fd9205d09d",
+      "name": "Members Export Failed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "58ced0a0-e65f-45a0-9e68-f1c9268fdaea",
+              "leftValue": "={{ !!$json.error }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "56546416-e14b-4379-9b8f-4cb0bf138c61",
+      "name": "Sync Failed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2240,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first()?.json ?? {};\nconst rawError = item.error;\nconst errorMessage = rawError?.message ?? rawError?.description ?? rawError ?? 'ClubSpark contacts export failed';\n\nreturn [{\n  json: {\n    overall_status: 'error',\n    failed_stage: 'contacts_export',\n    contacts_status: 'error',\n    members_status: 'not_started',\n    sync_status: 'not_started',\n    error_message: String(errorMessage),\n    completed_at: new Date().toISOString(),\n  },\n}];"
+      },
+      "id": "2db8d86c-0d1d-460c-9a83-b60ef9f46dbf",
+      "name": "Contacts Export Error Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first()?.json ?? {};\nconst rawError = item.error;\nconst errorMessage = rawError?.message ?? rawError?.description ?? rawError ?? 'ClubSpark members export failed';\n\nreturn [{\n  json: {\n    overall_status: 'error',\n    failed_stage: 'members_export',\n    contacts_status: 'success',\n    members_status: 'error',\n    sync_status: 'not_started',\n    error_message: String(errorMessage),\n    completed_at: new Date().toISOString(),\n  },\n}];"
+      },
+      "id": "f4c3caa1-24db-4ccc-8312-57c874f26957",
+      "name": "Members Export Error Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first()?.json ?? {};\nconst rawError = item.error;\nconst errorMessage = rawError?.message ?? rawError?.description ?? rawError ?? 'Raw table sync failed';\n\nreturn [{\n  json: {\n    overall_status: 'error',\n    failed_stage: 'sync_to_cloud',\n    contacts_status: 'success',\n    members_status: 'success',\n    sync_status: 'error',\n    error_message: String(errorMessage),\n    completed_at: new Date().toISOString(),\n  },\n}];"
+      },
+      "id": "8ec5ed7c-1c7d-4df6-8437-ee547ff286a2",
+      "name": "Sync Error Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2480,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    overall_status: 'success',\n    contacts_status: 'success',\n    members_status: 'success',\n    sync_status: 'success',\n    message: 'Contacts export, members export, and cloud sync completed successfully.',\n    completed_at: new Date().toISOString(),\n  },\n}];"
+      },
+      "id": "d4ca7e52-ec8c-48af-b3d7-6d4d71dd3f24",
+      "name": "Run Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2480,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "mode": "list",
+          "value": "3MIBMbNpV5HxZEop"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "f7aaf2cc-85b8-4f54-9e4d-64dff6b38741",
+      "name": "Execute Main Contacts Export",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        1616,
+        512
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e4e3d8df-3028-4103-bf79-06140c4e6d9a",
+              "leftValue": "={{ !!$json.error }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "df5c577c-3c76-4730-9b05-c4cabdd8ef6d",
+      "name": "Main Contacts Export Failed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1920,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const details = $json.error ?? $json;\nreturn [{\n  json: {\n    stage: 'main_contacts_export',\n    ok: false,\n    error: details.message ?? details.description ?? JSON.stringify(details),\n    details,\n  },\n}];"
+      },
+      "id": "4d89da66-9fcc-4fd0-8967-4f3a90b10d0f",
+      "name": "Main Contacts Export Error Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2224,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Execute Contacts Export",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every Hour": {
+      "main": [
+        [
+          {
+            "node": "Execute Contacts Export",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Contacts Export": {
+      "main": [
+        [
+          {
+            "node": "Contacts Export Failed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contacts Export Failed?": {
+      "main": [
+        [
+          {
+            "node": "Contacts Export Error Summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute Members Export",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Members Export": {
+      "main": [
+        [
+          {
+            "node": "Members Export Failed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Members Export Failed?": {
+      "main": [
+        [
+          {
+            "node": "Members Export Error Summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute Main Contacts Export",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync Failed?": {
+      "main": [
+        [
+          {
+            "node": "Sync Error Summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Run Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Main Contacts Export": {
+      "main": [
+        [
+          {
+            "node": "Main Contacts Export Failed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Main Contacts Export Failed?": {
+      "main": [
+        [
+          {
+            "node": "Main Contacts Export Error Summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sync Failed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-16T14:54:34.886+00:00",
+  "updatedAt": "2026-04-16T12:42:26.487+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": {
+    "node:Every Hour": {
+      "recurrenceRules": []
+    }
+  },
+  "pinData": {},
+  "versionId": "818f7e0e-acc2-495a-b068-09043f043c26",
+  "triggerCount": 1,
+  "id": "XJNxaRzHZ6lV52jF",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 90,
+  "description": null,
+  "activeVersionId": "818f7e0e-acc2-495a-b068-09043f043c26"
+}

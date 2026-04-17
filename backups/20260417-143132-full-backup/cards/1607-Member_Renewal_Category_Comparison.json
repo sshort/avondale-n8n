@@ -1,0 +1,759 @@
+{
+  "cache_invalidated_at": "2026-04-16T13:33:40.332508Z",
+  "description": "Renewal comparison matrix. Rows are category rows in display order. Total Previous Year counts members in that row last year; Not Renewed counts those who did not renew; New counts new joiners attributed to their current category row. Click a count to see the matching members.",
+  "archived": false,
+  "view_count": 465,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "filter_year",
+      "lib/original-name": "filter_year",
+      "name": "filter_year",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "filter_year",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "filter_year",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "filter_year",
+      "display_name": "filter_year",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 4.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Category",
+      "lib/original-name": "Category",
+      "name": "Category",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Category",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Category",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Category",
+      "display_name": "Category",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 10,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 9.3
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Total",
+      "lib/original-name": "Total",
+      "name": "Total",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Total",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Total",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "Total",
+      "display_name": "Total",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 10,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 5.0,
+            "q3": 66.0,
+            "max": 208.0,
+            "sd": 63.66788829543509,
+            "avg": 43.6
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Not Renewed",
+      "lib/original-name": "Not Renewed",
+      "name": "Not Renewed",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Not Renewed",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Not Renewed",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "Not Renewed",
+      "display_name": "Not Renewed",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 10,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 3.0,
+            "q3": 19.0,
+            "max": 59.0,
+            "sd": 18.916189421292604,
+            "avg": 15.6
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "New",
+      "lib/original-name": "New",
+      "name": "New",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "New",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "New",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "New",
+      "display_name": "New",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 6,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.26296581635734056,
+            "q3": 6.267949192431123,
+            "max": 10.0,
+            "sd": 3.6270588023294517,
+            "avg": 3.4
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Senior",
+      "lib/original-name": "Senior",
+      "name": "Senior",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Senior",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Senior",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "Senior",
+      "display_name": "Senior",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 4,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.0,
+            "q3": 1.0,
+            "max": 144.0,
+            "sd": 45.4063138047269,
+            "avg": 14.8
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Off Peak",
+      "lib/original-name": "Off Peak",
+      "name": "Off Peak",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Off Peak",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Off Peak",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "Off Peak",
+      "display_name": "Off Peak",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.0,
+            "q3": 17.904905444040843,
+            "max": 44.0,
+            "sd": 13.91402170474087,
+            "avg": 4.4
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Young Adult",
+      "lib/original-name": "Young Adult",
+      "name": "Young Adult",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Young Adult",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Young Adult",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "Young Adult",
+      "display_name": "Young Adult",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 4,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.0,
+            "q3": 1.5358983848622456,
+            "max": 4.0,
+            "sd": 1.4491376746189437,
+            "avg": 0.9
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Junior",
+      "lib/original-name": "Junior",
+      "name": "Junior",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Junior",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Junior",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "Junior",
+      "display_name": "Junior",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 4,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.0,
+            "q3": 1.0,
+            "max": 37.0,
+            "sd": 11.61416759345623,
+            "avg": 4.0
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Mini",
+      "lib/original-name": "Mini",
+      "name": "Mini",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Mini",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Mini",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "Mini",
+      "display_name": "Mini",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.0,
+            "q3": 0.5895738076846547,
+            "max": 9.0,
+            "sd": 2.8284271247461903,
+            "avg": 1.0
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Parent",
+      "lib/original-name": "Parent",
+      "name": "Parent",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Parent",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Parent",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "Parent",
+      "display_name": "Parent",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.0,
+            "q3": 0.5895738076846547,
+            "max": 9.0,
+            "sd": 2.8284271247461903,
+            "avg": 1.0
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Family",
+      "lib/original-name": "Family",
+      "name": "Family",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Family",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Family",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "Family",
+      "display_name": "Family",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.0,
+            "q3": 1.8685170918213299,
+            "max": 2.0,
+            "sd": 0.9944289260117533,
+            "avg": 0.9
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Sr Jr",
+      "lib/original-name": "Sr Jr",
+      "name": "Sr Jr",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Sr Jr",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Sr Jr",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "Sr Jr",
+      "display_name": "Sr Jr",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.0,
+            "q3": 1.1791476153693095,
+            "max": 8.0,
+            "sd": 2.5385910352879693,
+            "avg": 1.0
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Member Renewal Category Comparison",
+  "last_query_start": "2026-04-17T12:44:59.589068Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-17T12:44:59.653867Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 77.4736842105263158,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-16T13:33:40.327267Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "template-tags": {
+          "year": {
+            "type": "text",
+            "id": "year",
+            "name": "year",
+            "display-name": "Year",
+            "required": true
+          }
+        },
+        "lib/type": "mbql.stage/native",
+        "native": "WITH category_orders AS (\n  SELECT category, MIN(display_order) AS display_order\n  FROM public.membership_packages\n  WHERE season IN ((({{year}})::int - 1)::text, ({{year}})::text)\n    AND category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n  GROUP BY category\n), prev_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key,\n    src.previous_category\n  FROM (\n    SELECT\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      p.category AS previous_category,\n      m.id AS raw_member_id,\n      m.\"Membership\"\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = (({{year}})::int - 1)::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.previous_category, src.\"Membership\"\n), curr_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key,\n    src.current_category\n  FROM (\n    SELECT\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      p.category AS current_category,\n      m.id AS raw_member_id,\n      m.\"Membership\"\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = ({{year}})::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.current_category, src.\"Membership\"\n), member_matrix AS (\n  SELECT\n    CASE\n      WHEN p.member_identity_key IS NULL AND c.member_identity_key IS NOT NULL THEN c.current_category\n      ELSE p.previous_category\n    END AS row_category,\n    CASE\n      WHEN p.member_identity_key IS NULL AND c.member_identity_key IS NOT NULL THEN 'New'\n      WHEN c.member_identity_key IS NULL THEN 'Not Renewed'\n      ELSE c.current_category\n    END AS transition_category,\n    CASE\n      WHEN p.previous_category IS NOT NULL THEN true\n      ELSE false\n    END AS is_previous_year_member\n  FROM prev_members p\n  FULL OUTER JOIN curr_members c\n    ON c.member_identity_key = p.member_identity_key\n)\nSELECT\n  ({{year}})::text AS filter_year,\n  m.row_category AS \"Category\",\n  COUNT(*) FILTER (WHERE m.is_previous_year_member)::int AS \"Total\",\n  COUNT(*) FILTER (WHERE m.transition_category = 'Not Renewed')::int AS \"Not Renewed\",\n  COUNT(*) FILTER (WHERE m.transition_category = 'New')::int AS \"New\",\n  COUNT(*) FILTER (WHERE m.transition_category = 'Senior')::int AS \"Senior\",\n  COUNT(*) FILTER (WHERE m.transition_category = 'Off Peak')::int AS \"Off Peak\",\n  COUNT(*) FILTER (WHERE m.transition_category = 'Young Adult')::int AS \"Young Adult\",\n  COUNT(*) FILTER (WHERE m.transition_category = 'Junior')::int AS \"Junior\",\n  COUNT(*) FILTER (WHERE m.transition_category = 'Mini (U10)')::int AS \"Mini\",\n  COUNT(*) FILTER (WHERE m.transition_category = 'Parent')::int AS \"Parent\",\n  COUNT(*) FILTER (WHERE m.transition_category = 'Family')::int AS \"Family\",\n  COUNT(*) FILTER (WHERE m.transition_category = 'Senior Junior')::int AS \"Sr Jr\"\nFROM member_matrix m\nLEFT JOIN category_orders co\n  ON co.category = m.row_category\nGROUP BY filter_year, m.row_category, co.display_order\nORDER BY COALESCE(co.display_order, 999), m.row_category;"
+      }
+    ]
+  },
+  "id": 1607,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "Uo5GKUSmIViMhAfkTRxnI",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-16T13:33:40.373393Z"
+  },
+  "visualization_settings": {
+    "table.columns": [
+      {
+        "name": "filter_year",
+        "enabled": false
+      },
+      {
+        "name": "Category",
+        "enabled": true
+      },
+      {
+        "name": "Total",
+        "enabled": true
+      },
+      {
+        "name": "Not Renewed",
+        "enabled": true
+      },
+      {
+        "name": "New",
+        "enabled": true
+      },
+      {
+        "name": "Senior",
+        "enabled": true
+      },
+      {
+        "name": "Off Peak",
+        "enabled": true
+      },
+      {
+        "name": "Young Adult",
+        "enabled": true
+      },
+      {
+        "name": "Junior",
+        "enabled": true
+      },
+      {
+        "name": "Mini",
+        "enabled": true
+      },
+      {
+        "name": "Parent",
+        "enabled": true
+      },
+      {
+        "name": "Family",
+        "enabled": true
+      },
+      {
+        "name": "Sr Jr",
+        "enabled": true
+      }
+    ],
+    "table": {
+      "columns": [
+        {
+          "name": "filter_year",
+          "enabled": false
+        },
+        {
+          "name": "Category",
+          "enabled": true
+        },
+        {
+          "name": "Total",
+          "enabled": true
+        },
+        {
+          "name": "Not Renewed",
+          "enabled": true
+        },
+        {
+          "name": "New",
+          "enabled": true
+        },
+        {
+          "name": "Senior",
+          "enabled": true
+        },
+        {
+          "name": "Off Peak",
+          "enabled": true
+        },
+        {
+          "name": "Young Adult",
+          "enabled": true
+        },
+        {
+          "name": "Junior",
+          "enabled": true
+        },
+        {
+          "name": "Mini",
+          "enabled": true
+        },
+        {
+          "name": "Parent",
+          "enabled": true
+        },
+        {
+          "name": "Family",
+          "enabled": true
+        },
+        {
+          "name": "Sr Jr",
+          "enabled": true
+        }
+      ]
+    },
+    "column_settings": {
+      "[\"name\",\"Not Renewed\"]": {
+        "view_as": "link",
+        "link_url": "/question/1636?year={{filter_year}}&row_category={{Category}}&transition_category=Not Renewed",
+        "column_title": "Not Renewed"
+      },
+      "[\"name\",\"Total\"]": {
+        "view_as": "link",
+        "link_url": "/question/1636?year={{filter_year}}&row_category={{Category}}&transition_category=Total Previous Year",
+        "column_title": "Total"
+      },
+      "[\"name\",\"New\"]": {
+        "view_as": "link",
+        "link_url": "/question/1636?year={{filter_year}}&row_category={{Category}}&transition_category=New",
+        "column_title": "New"
+      },
+      "[\"name\",\"Parent\"]": {
+        "view_as": "link",
+        "link_url": "/question/1636?year={{filter_year}}&row_category={{Category}}&transition_category=Parent",
+        "column_title": "Parent"
+      },
+      "[\"name\",\"Off Peak\"]": {
+        "view_as": "link",
+        "link_url": "/question/1636?year={{filter_year}}&row_category={{Category}}&transition_category=Off Peak",
+        "column_title": "Off Peak"
+      },
+      "[\"name\",\"Young Adult\"]": {
+        "view_as": "link",
+        "link_url": "/question/1636?year={{filter_year}}&row_category={{Category}}&transition_category=Young Adult",
+        "column_title": "Young Adult"
+      },
+      "[\"name\",\"Mini\"]": {
+        "view_as": "link",
+        "link_url": "/question/1636?year={{filter_year}}&row_category={{Category}}&transition_category=Mini (U10)",
+        "column_title": "Mini"
+      },
+      "[\"name\",\"Family\"]": {
+        "view_as": "link",
+        "link_url": "/question/1636?year={{filter_year}}&row_category={{Category}}&transition_category=Family",
+        "column_title": "Family"
+      },
+      "[\"name\",\"Senior\"]": {
+        "view_as": "link",
+        "link_url": "/question/1636?year={{filter_year}}&row_category={{Category}}&transition_category=Senior",
+        "column_title": "Senior"
+      },
+      "[\"name\",\"Junior\"]": {
+        "view_as": "link",
+        "link_url": "/question/1636?year={{filter_year}}&row_category={{Category}}&transition_category=Junior",
+        "column_title": "Junior"
+      },
+      "[\"name\",\"Sr Jr\"]": {
+        "view_as": "link",
+        "link_url": "/question/1636?year={{filter_year}}&row_category={{Category}}&transition_category=Senior Junior",
+        "column_title": "Sr Jr"
+      }
+    }
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-03-22T11:45:19.964272Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

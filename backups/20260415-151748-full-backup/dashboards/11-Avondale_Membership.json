@@ -1,7 +1,7 @@
 {
   "description": null,
   "archived": false,
-  "view_count": 1395,
+  "view_count": 1396,
   "collection_position": null,
   "dashcards": [
     {
@@ -1209,261 +1209,134 @@
       "action_id": null,
       "collection_authority_level": null,
       "card": {
-        "cache_invalidated_at": "2026-03-30T14:06:43.104691Z",
+        "cache_invalidated_at": "2026-04-15T15:11:49.584426Z",
         "description": null,
         "archived": false,
-        "view_count": 140,
+        "view_count": 142,
         "collection_position": null,
         "source_card_id": null,
         "table_id": null,
         "result_metadata": [
           {
-            "database_type": "serial",
-            "semantic_type": null,
-            "lib/deduplicated-name": "execution_id",
-            "lib/original-name": "execution_id",
+            "name": "n8n_base_url",
+            "database_type": "text",
+            "base_type": "type/Text",
+            "display_name": "n8n_base_url",
+            "semantic_type": "type/URL",
+            "field_ref": [
+              "field",
+              "n8n_base_url",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          },
+          {
             "name": "execution_id",
-            "lib/source": "source/native",
-            "lib/source-column-alias": "execution_id",
-            "source": "native",
+            "database_type": "serial",
+            "base_type": "type/Integer",
+            "display_name": "execution_id",
             "field_ref": [
               "field",
               "execution_id",
               {
                 "base-type": "type/Integer"
               }
-            ],
-            "effective_type": "type/Integer",
-            "lib/desired-column-alias": "execution_id",
-            "display_name": "execution_id",
-            "fingerprint": {
-              "global": {
-                "distinct-count": 100,
-                "nil%": 0.0
-              },
-              "type": {
-                "type/Number": {
-                  "min": 7329.0,
-                  "q1": 7353.5,
-                  "q3": 7403.5,
-                  "max": 7428.0,
-                  "sd": 29.008358252146028,
-                  "avg": 7378.5
-                }
-              }
-            },
-            "base_type": "type/Integer"
+            ]
           },
           {
+            "name": "workflow_id",
             "database_type": "varchar",
-            "semantic_type": null,
-            "lib/deduplicated-name": "workflow_name",
-            "lib/original-name": "workflow_name",
+            "base_type": "type/Text",
+            "display_name": "workflow_id",
+            "field_ref": [
+              "field",
+              "workflow_id",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          },
+          {
             "name": "workflow_name",
-            "lib/source": "source/native",
-            "lib/source-column-alias": "workflow_name",
-            "source": "native",
+            "database_type": "varchar",
+            "base_type": "type/Text",
+            "display_name": "workflow_name",
             "field_ref": [
               "field",
               "workflow_name",
               {
                 "base-type": "type/Text"
               }
-            ],
-            "effective_type": "type/Text",
-            "lib/desired-column-alias": "workflow_name",
-            "display_name": "workflow_name",
-            "fingerprint": {
-              "global": {
-                "distinct-count": 17,
-                "nil%": 0.0
-              },
-              "type": {
-                "type/Text": {
-                  "percent-json": 0.0,
-                  "percent-url": 0.0,
-                  "percent-email": 0.0,
-                  "percent-state": 0.0,
-                  "average-length": 24.12
-                }
-              }
-            },
-            "base_type": "type/Text"
+            ]
           },
           {
-            "database_type": "varchar",
-            "semantic_type": "type/Category",
-            "lib/deduplicated-name": "status",
-            "lib/original-name": "status",
             "name": "status",
-            "lib/source": "source/native",
-            "lib/source-column-alias": "status",
-            "source": "native",
+            "database_type": "varchar",
+            "base_type": "type/Text",
+            "display_name": "status",
+            "semantic_type": "type/Category",
             "field_ref": [
               "field",
               "status",
               {
                 "base-type": "type/Text"
               }
-            ],
-            "effective_type": "type/Text",
-            "lib/desired-column-alias": "status",
-            "display_name": "status",
-            "fingerprint": {
-              "global": {
-                "distinct-count": 2,
-                "nil%": 0.0
-              },
-              "type": {
-                "type/Text": {
-                  "percent-json": 0.0,
-                  "percent-url": 0.0,
-                  "percent-email": 0.0,
-                  "percent-state": 0.0,
-                  "average-length": 6.78
-                }
-              }
-            },
-            "base_type": "type/Text"
+            ]
           },
           {
-            "database_type": "varchar",
-            "semantic_type": null,
-            "lib/deduplicated-name": "mode",
-            "lib/original-name": "mode",
             "name": "mode",
-            "lib/source": "source/native",
-            "lib/source-column-alias": "mode",
-            "source": "native",
+            "database_type": "varchar",
+            "base_type": "type/Text",
+            "display_name": "mode",
             "field_ref": [
               "field",
               "mode",
               {
                 "base-type": "type/Text"
               }
-            ],
-            "effective_type": "type/Text",
-            "lib/desired-column-alias": "mode",
-            "display_name": "mode",
-            "fingerprint": {
-              "global": {
-                "distinct-count": 4,
-                "nil%": 0.0
-              },
-              "type": {
-                "type/Text": {
-                  "percent-json": 0.0,
-                  "percent-url": 0.0,
-                  "percent-email": 0.0,
-                  "percent-state": 0.0,
-                  "average-length": 8.4
-                }
-              }
-            },
-            "base_type": "type/Text"
+            ]
           },
           {
-            "database_type": "timestamptz",
-            "semantic_type": "type/CreationTimestamp",
-            "lib/deduplicated-name": "started_at",
-            "lib/original-name": "started_at",
             "name": "started_at",
-            "lib/source": "source/native",
-            "lib/source-column-alias": "started_at",
-            "source": "native",
+            "database_type": "timestamptz",
+            "base_type": "type/DateTimeWithLocalTZ",
+            "display_name": "started_at",
+            "semantic_type": "type/CreationTimestamp",
             "field_ref": [
               "field",
               "started_at",
               {
                 "base-type": "type/DateTimeWithLocalTZ"
               }
-            ],
-            "effective_type": "type/DateTimeWithLocalTZ",
-            "lib/desired-column-alias": "started_at",
-            "display_name": "started_at",
-            "fingerprint": {
-              "global": {
-                "distinct-count": 100,
-                "nil%": 0.0
-              },
-              "type": {
-                "type/DateTime": {
-                  "earliest": "2026-04-15T07:15:02.352Z",
-                  "latest": "2026-04-15T14:50:40.15Z"
-                }
-              }
-            },
-            "base_type": "type/DateTimeWithLocalTZ"
+            ]
           },
           {
-            "database_type": "timestamptz",
-            "semantic_type": null,
-            "lib/deduplicated-name": "stopped_at",
-            "lib/original-name": "stopped_at",
             "name": "stopped_at",
-            "lib/source": "source/native",
-            "lib/source-column-alias": "stopped_at",
-            "source": "native",
+            "database_type": "timestamptz",
+            "base_type": "type/DateTimeWithLocalTZ",
+            "display_name": "stopped_at",
             "field_ref": [
               "field",
               "stopped_at",
               {
                 "base-type": "type/DateTimeWithLocalTZ"
               }
-            ],
-            "effective_type": "type/DateTimeWithLocalTZ",
-            "lib/desired-column-alias": "stopped_at",
-            "display_name": "stopped_at",
-            "fingerprint": {
-              "global": {
-                "distinct-count": 100,
-                "nil%": 0.0
-              },
-              "type": {
-                "type/DateTime": {
-                  "earliest": "2026-04-15T07:15:02.491Z",
-                  "latest": "2026-04-15T14:50:40.534Z"
-                }
-              }
-            },
-            "base_type": "type/DateTimeWithLocalTZ"
+            ]
           },
           {
-            "database_type": "numeric",
-            "semantic_type": "type/Duration",
-            "lib/deduplicated-name": "duration_seconds",
-            "lib/original-name": "duration_seconds",
             "name": "duration_seconds",
-            "lib/source": "source/native",
-            "lib/source-column-alias": "duration_seconds",
-            "source": "native",
+            "database_type": "numeric",
+            "base_type": "type/Decimal",
+            "display_name": "duration_seconds",
+            "semantic_type": "type/Duration",
             "field_ref": [
               "field",
               "duration_seconds",
               {
                 "base-type": "type/Decimal"
               }
-            ],
-            "effective_type": "type/Decimal",
-            "lib/desired-column-alias": "duration_seconds",
-            "display_name": "duration_seconds",
-            "fingerprint": {
-              "global": {
-                "distinct-count": 58,
-                "nil%": 0.0
-              },
-              "type": {
-                "type/Number": {
-                  "min": 0.0,
-                  "q1": 0.22426406871192847,
-                  "q3": 47.65,
-                  "max": 278.9,
-                  "sd": 70.02038412440547,
-                  "avg": 41.30699999999999
-                }
-              }
-            },
-            "base_type": "type/Decimal"
+            ]
           }
         ],
         "embedding_type": null,
@@ -1478,12 +1351,12 @@
         "download_perms": "full",
         "name": "n8n Recent Executions",
         "document_id": null,
-        "last_used_at": "2026-04-15T14:51:07.057991Z",
+        "last_used_at": "2026-04-15T15:10:24.888766Z",
         "type": "question",
-        "query_average_duration": 22,
+        "query_average_duration": null,
         "creator_id": 13371339,
         "moderation_reviews": [],
-        "updated_at": "2026-03-30T14:06:43.103478Z",
+        "updated_at": "2026-04-15T15:11:49.583384Z",
         "made_public_by_id": null,
         "embedding_params": null,
         "cache_ttl": null,
@@ -1492,7 +1365,7 @@
           "database": 2,
           "stages": [
             {
-              "native": "SELECT\n  e.id AS execution_id,\n  w.name AS workflow_name,\n  e.status,\n  e.mode,\n  e.\"startedAt\" AS started_at,\n  e.\"stoppedAt\" AS stopped_at,\n  round(extract(epoch from (coalesce(e.\"stoppedAt\", now()) - e.\"startedAt\"))::numeric, 1) AS duration_seconds\nFROM n8n.execution_entity e\nLEFT JOIN n8n.workflow_entity w ON w.id = e.\"workflowId\"\nORDER BY e.\"startedAt\" DESC\nLIMIT 100;",
+              "native": "WITH settings AS (\n  SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url\n  FROM public.global_settings\n  WHERE key = 'n8n_base_url'\n)\nSELECT\n  (SELECT n8n_base_url FROM settings) AS n8n_base_url,\n  e.id AS execution_id,\n  w.id AS workflow_id,\n  w.name AS workflow_name,\n  e.status,\n  e.mode,\n  e.\"startedAt\" AS started_at,\n  e.\"stoppedAt\" AS stopped_at,\n  round(extract(epoch from (coalesce(e.\"stoppedAt\", now()) - e.\"startedAt\"))::numeric, 1) AS duration_seconds\nFROM n8n.execution_entity e\nLEFT JOIN n8n.workflow_entity w ON w.id = e.\"workflowId\"\nORDER BY e.\"startedAt\" DESC\nLIMIT 100;\n",
               "lib/type": "mbql.stage/native"
             }
           ]
@@ -1504,7 +1377,98 @@
         "archived_directly": false,
         "entity_id": "OWsd_toK_5X8796Ybii6I",
         "collection_preview": true,
-        "visualization_settings": {},
+        "visualization_settings": {
+          "table.columns": [
+            {
+              "name": "n8n_base_url",
+              "enabled": false
+            },
+            {
+              "name": "workflow_id",
+              "enabled": false
+            },
+            {
+              "name": "execution_id",
+              "enabled": true
+            },
+            {
+              "name": "workflow_name",
+              "enabled": true
+            },
+            {
+              "name": "status",
+              "enabled": true
+            },
+            {
+              "name": "mode",
+              "enabled": true
+            },
+            {
+              "name": "started_at",
+              "enabled": true
+            },
+            {
+              "name": "stopped_at",
+              "enabled": true
+            },
+            {
+              "name": "duration_seconds",
+              "enabled": true
+            }
+          ],
+          "table": {
+            "columns": [
+              {
+                "name": "n8n_base_url",
+                "enabled": false
+              },
+              {
+                "name": "workflow_id",
+                "enabled": false
+              },
+              {
+                "name": "execution_id",
+                "enabled": true
+              },
+              {
+                "name": "workflow_name",
+                "enabled": true
+              },
+              {
+                "name": "status",
+                "enabled": true
+              },
+              {
+                "name": "mode",
+                "enabled": true
+              },
+              {
+                "name": "started_at",
+                "enabled": true
+              },
+              {
+                "name": "stopped_at",
+                "enabled": true
+              },
+              {
+                "name": "duration_seconds",
+                "enabled": true
+              }
+            ]
+          },
+          "column_settings": {
+            "[\"name\",\"execution_id\"]": {
+              "view_as": "link",
+              "link_url": "{{n8n_base_url}}/workflow/{{workflow_id}}/executions/{{execution_id}}",
+              "column_title": "execution_id"
+            },
+            "[\"name\",\"workflow_name\"]": {
+              "view_as": "link",
+              "link_url": "{{n8n_base_url}}/workflow/{{workflow_id}}",
+              "column_title": "workflow_name"
+            }
+          }
+        },
         "metabase_version": "v0.59.2.5 (0d6bac3)",
         "parameters": [],
         "dashboard_id": null,
@@ -1933,155 +1897,94 @@
       "action_id": null,
       "collection_authority_level": null,
       "card": {
-        "cache_invalidated_at": "2026-03-16T15:29:46.56273Z",
+        "cache_invalidated_at": "2026-04-15T15:11:49.335087Z",
         "description": null,
         "archived": false,
-        "view_count": 139,
+        "view_count": 140,
         "collection_position": null,
         "source_card_id": null,
         "table_id": null,
         "result_metadata": [
           {
+            "name": "n8n_base_url",
+            "database_type": "text",
+            "base_type": "type/Text",
+            "display_name": "n8n_base_url",
+            "semantic_type": "type/URL",
+            "field_ref": [
+              "field",
+              "n8n_base_url",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          },
+          {
+            "name": "workflow_id",
             "database_type": "varchar",
-            "semantic_type": null,
-            "lib/deduplicated-name": "workflow_name",
-            "lib/original-name": "workflow_name",
+            "base_type": "type/Text",
+            "display_name": "workflow_id",
+            "field_ref": [
+              "field",
+              "workflow_id",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          },
+          {
             "name": "workflow_name",
-            "lib/source": "source/native",
-            "lib/source-column-alias": "workflow_name",
-            "source": "native",
+            "database_type": "varchar",
+            "base_type": "type/Text",
+            "display_name": "workflow_name",
             "field_ref": [
               "field",
               "workflow_name",
               {
                 "base-type": "type/Text"
               }
-            ],
-            "effective_type": "type/Text",
-            "lib/desired-column-alias": "workflow_name",
-            "display_name": "workflow_name",
-            "fingerprint": {
-              "global": {
-                "distinct-count": 40,
-                "nil%": 0.0
-              },
-              "type": {
-                "type/Text": {
-                  "percent-json": 0.0,
-                  "percent-url": 0.0,
-                  "percent-email": 0.0,
-                  "percent-state": 0.0,
-                  "average-length": 24.526315789473685
-                }
-              }
-            },
-            "base_type": "type/Text"
+            ]
           },
           {
-            "database_type": "varchar",
-            "semantic_type": "type/Category",
-            "lib/deduplicated-name": "status",
-            "lib/original-name": "status",
             "name": "status",
-            "lib/source": "source/native",
-            "lib/source-column-alias": "status",
-            "source": "native",
+            "database_type": "varchar",
+            "base_type": "type/Text",
+            "display_name": "status",
+            "semantic_type": "type/Category",
             "field_ref": [
               "field",
               "status",
               {
                 "base-type": "type/Text"
               }
-            ],
-            "effective_type": "type/Text",
-            "lib/desired-column-alias": "status",
-            "display_name": "status",
-            "fingerprint": {
-              "global": {
-                "distinct-count": 3,
-                "nil%": 0.0
-              },
-              "type": {
-                "type/Text": {
-                  "percent-json": 0.0,
-                  "percent-url": 0.0,
-                  "percent-email": 0.0,
-                  "percent-state": 0.0,
-                  "average-length": 6.473684210526316
-                }
-              }
-            },
-            "base_type": "type/Text"
+            ]
           },
           {
-            "database_type": "int8",
-            "semantic_type": "type/Quantity",
-            "lib/deduplicated-name": "execution_count",
-            "lib/original-name": "execution_count",
             "name": "execution_count",
-            "lib/source": "source/native",
-            "lib/source-column-alias": "execution_count",
-            "source": "native",
+            "database_type": "int8",
+            "base_type": "type/BigInteger",
+            "display_name": "execution_count",
+            "semantic_type": "type/Quantity",
             "field_ref": [
               "field",
               "execution_count",
               {
                 "base-type": "type/BigInteger"
               }
-            ],
-            "effective_type": "type/BigInteger",
-            "lib/desired-column-alias": "execution_count",
-            "display_name": "execution_count",
-            "fingerprint": {
-              "global": {
-                "distinct-count": 35,
-                "nil%": 0.0
-              },
-              "type": {
-                "type/Number": {
-                  "min": 1.0,
-                  "q1": 3.55,
-                  "q3": 49.25,
-                  "max": 657.0,
-                  "sd": 130.7256017671882,
-                  "avg": 68.50877192982456
-                }
-              }
-            },
-            "base_type": "type/BigInteger"
+            ]
           },
           {
-            "database_type": "timestamptz",
-            "semantic_type": null,
-            "lib/deduplicated-name": "latest_execution_at",
-            "lib/original-name": "latest_execution_at",
             "name": "latest_execution_at",
-            "lib/source": "source/native",
-            "lib/source-column-alias": "latest_execution_at",
-            "source": "native",
+            "database_type": "timestamptz",
+            "base_type": "type/DateTimeWithLocalTZ",
+            "display_name": "latest_execution_at",
             "field_ref": [
               "field",
               "latest_execution_at",
               {
                 "base-type": "type/DateTimeWithLocalTZ"
               }
-            ],
-            "effective_type": "type/DateTimeWithLocalTZ",
-            "lib/desired-column-alias": "latest_execution_at",
-            "display_name": "latest_execution_at",
-            "fingerprint": {
-              "global": {
-                "distinct-count": 57,
-                "nil%": 0.0
-              },
-              "type": {
-                "type/DateTime": {
-                  "earliest": "2026-04-03T08:00:21.9Z",
-                  "latest": "2026-04-15T14:50:40.15Z"
-                }
-              }
-            },
-            "base_type": "type/DateTimeWithLocalTZ"
+            ]
           }
         ],
         "embedding_type": null,
@@ -2096,12 +1999,12 @@
         "download_perms": "full",
         "name": "n8n Executions by Workflow and Status",
         "document_id": null,
-        "last_used_at": "2026-04-15T14:51:07.057991Z",
+        "last_used_at": "2026-04-15T15:08:34.74371Z",
         "type": "question",
-        "query_average_duration": 17,
+        "query_average_duration": null,
         "creator_id": 13371339,
         "moderation_reviews": [],
-        "updated_at": "2026-03-16T15:29:46.561658Z",
+        "updated_at": "2026-04-15T15:11:49.334005Z",
         "made_public_by_id": null,
         "embedding_params": null,
         "cache_ttl": null,
@@ -2111,7 +2014,7 @@
           "stages": [
             {
               "lib/type": "mbql.stage/native",
-              "native": "SELECT\n  w.name AS workflow_name,\n  e.status,\n  count(*) AS execution_count,\n  max(e.\"startedAt\") AS latest_execution_at\nFROM n8n.execution_entity e\nLEFT JOIN n8n.workflow_entity w ON w.id = e.\"workflowId\"\nGROUP BY w.name, e.status\nORDER BY w.name, e.status;"
+              "native": "WITH settings AS (\n  SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url\n  FROM public.global_settings\n  WHERE key = 'n8n_base_url'\n)\nSELECT\n  (SELECT n8n_base_url FROM settings) AS n8n_base_url,\n  w.id AS workflow_id,\n  w.name AS workflow_name,\n  e.status,\n  count(*) AS execution_count,\n  max(e.\"startedAt\") AS latest_execution_at\nFROM n8n.execution_entity e\nLEFT JOIN n8n.workflow_entity w ON w.id = e.\"workflowId\"\nGROUP BY (SELECT n8n_base_url FROM settings), w.id, w.name, e.status\nORDER BY w.name, e.status;\n"
             }
           ]
         },
@@ -2122,7 +2025,69 @@
         "archived_directly": false,
         "entity_id": "TutG80hU8MjvnCgJJ1emC",
         "collection_preview": true,
-        "visualization_settings": {},
+        "visualization_settings": {
+          "table.columns": [
+            {
+              "name": "n8n_base_url",
+              "enabled": false
+            },
+            {
+              "name": "workflow_id",
+              "enabled": false
+            },
+            {
+              "name": "workflow_name",
+              "enabled": true
+            },
+            {
+              "name": "status",
+              "enabled": true
+            },
+            {
+              "name": "execution_count",
+              "enabled": true
+            },
+            {
+              "name": "latest_execution_at",
+              "enabled": true
+            }
+          ],
+          "table": {
+            "columns": [
+              {
+                "name": "n8n_base_url",
+                "enabled": false
+              },
+              {
+                "name": "workflow_id",
+                "enabled": false
+              },
+              {
+                "name": "workflow_name",
+                "enabled": true
+              },
+              {
+                "name": "status",
+                "enabled": true
+              },
+              {
+                "name": "execution_count",
+                "enabled": true
+              },
+              {
+                "name": "latest_execution_at",
+                "enabled": true
+              }
+            ]
+          },
+          "column_settings": {
+            "[\"name\",\"workflow_name\"]": {
+              "view_as": "link",
+              "link_url": "{{n8n_base_url}}/workflow/{{workflow_id}}",
+              "column_title": "workflow_name"
+            }
+          }
+        },
         "metabase_version": "v0.59.2.5 (0d6bac3)",
         "parameters": [],
         "dashboard_id": null,
@@ -13308,7 +13273,7 @@
     "bf153e5": "a"
   },
   "id": 11,
-  "last_viewed_at": "2026-04-15T15:02:19.861707Z",
+  "last_viewed_at": "2026-04-15T15:08:34.627018Z",
   "position": null,
   "archived_directly": false,
   "entity_id": "Q15PBJ4zP9orXfc_u7y5a",

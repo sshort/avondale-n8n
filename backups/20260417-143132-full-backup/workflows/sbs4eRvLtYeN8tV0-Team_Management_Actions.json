@@ -1,0 +1,342 @@
+{
+  "name": "Team Management Actions",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "tma000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "path": "team-management-actions",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "tma000000-0000-0000-0000-000000000002",
+      "name": "Team Management Actions Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "team-management-actions"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url FROM public.global_settings WHERE key IN ('n8n_base_url');"
+      },
+      "id": "tma000000-0000-0000-0000-000000000003",
+      "name": "Load Action Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        480,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const settings=$('Load Action Settings').first()?.json??{}; const request=$('Team Management Actions Webhook').first()?.json??$input.first()?.json??{}; const body=request.body??request.query??request; const headers=request.headers??{}; const clean=(value)=>value===null||value===undefined?'':String(value).trim(); const parseId=(value)=>{const n=Number.parseInt(clean(value),10); return Number.isInteger(n)&&n>0?n:null;}; const parseBool=(value)=>['1','true','yes','y','on'].includes(clean(value).toLowerCase()); const deriveBaseUrl=(sourceHeaders,fallback)=>{const forwardedProto=clean(sourceHeaders['x-forwarded-proto']); const forwardedHost=clean(sourceHeaders['x-forwarded-host']); const host=forwardedHost||clean(sourceHeaders.host); const forwardedPort=clean(sourceHeaders['x-forwarded-port']); if(!host) return fallback; const proto=forwardedProto||'http'; let authority=host; if(forwardedPort&&!authority.includes(':')){const isDefault=(proto==='http'&&forwardedPort==='80')||(proto==='https'&&forwardedPort==='443'); if(!isDefault) authority=authority+':'+forwardedPort;} return proto+'://'+authority;}; const fallbackBaseUrl=clean(settings.n8n_base_url)||'http://n8n:5678'; const n8nBaseUrl=deriveBaseUrl(headers,fallbackBaseUrl); const action=clean(body.action); const teamId=parseId(body.team_id); const playerId=parseId(body.player_id); const nicknameId=parseId(body.nickname_id); const overrideId=parseId(body.override_id); const returnUrl=clean(body.return_url)||(n8nBaseUrl+'/webhook/team-management?view=teams'); const payload={action,team_id:teamId,player_id:playerId,nickname_id:nicknameId,override_id:overrideId,section:clean(body.section),team_name:clean(body.team_name),season:clean(body.season),sort_order:Number.parseInt(clean(body.sort_order)||'0',10)||0,source_name:clean(body.source_name),is_captain:parseBool(body.is_captain),source:clean(body.source),target:clean(body.target),notes:clean(body.notes),return_url:returnUrl,n8n_base_url:n8nBaseUrl,error_message:''}; if(action==='create_team'){ if(!payload.section) payload.error_message='Section is required.'; else if(!payload.team_name) payload.error_message='Team name is required.'; else if(!payload.season) payload.error_message='Season is required.'; } else if(action==='update_team'){ if(!payload.team_id) payload.error_message='A valid team is required.'; else if(!payload.section) payload.error_message='Section is required.'; else if(!payload.team_name) payload.error_message='Team name is required.'; else if(!payload.season) payload.error_message='Season is required.'; } else if(action==='delete_team'){ if(!payload.team_id) payload.error_message='A valid team is required.'; } else if(action==='create_player'){ if(!payload.team_id) payload.error_message='A valid team is required.'; else if(!payload.source_name) payload.error_message='Player name is required.'; } else if(action==='update_player'){ if(!payload.player_id) payload.error_message='A valid player is required.'; else if(!payload.team_id) payload.error_message='A valid team is required.'; else if(!payload.source_name) payload.error_message='Player name is required.'; } else if(action==='delete_player'){ if(!payload.player_id) payload.error_message='A valid player is required.'; } else if(action==='create_nickname'){ if(!payload.source) payload.error_message='Source name is required.'; else if(!payload.target) payload.error_message='Target name is required.'; } else if(action==='update_nickname'){ if(!payload.nickname_id) payload.error_message='A valid nickname row is required.'; else if(!payload.source) payload.error_message='Source name is required.'; else if(!payload.target) payload.error_message='Target name is required.'; } else if(action==='delete_nickname'){ if(!payload.nickname_id) payload.error_message='A valid nickname row is required.'; } else if(action==='create_override'){ if(!payload.source) payload.error_message='Source name is required.'; else if(!payload.target) payload.error_message='Target name is required.'; } else if(action==='update_override'){ if(!payload.override_id) payload.error_message='A valid override row is required.'; else if(!payload.source) payload.error_message='Source name is required.'; else if(!payload.target) payload.error_message='Target name is required.'; } else if(action==='delete_override'){ if(!payload.override_id) payload.error_message='A valid override row is required.'; } else { payload.error_message='Unsupported action.'; } return [{json:payload}];"
+      },
+      "id": "tma000000-0000-0000-0000-000000000004",
+      "name": "Resolve Action Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "tma000000-0000-0000-0000-000000000005-condition",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "tma000000-0000-0000-0000-000000000005",
+      "name": "Check Request Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1020,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input=$('Resolve Action Request').first()?.json??{}; const message=input.error_message||'Unable to complete the requested action.'; const redirectTo=(input.return_url||'#')+((input.return_url||'').includes('?')?'&':'?')+'error='+encodeURIComponent(message); const escapeHtml=(value)=>String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\\\"/g,'&quot;').replace(/'/g,'&#39;'); const html='<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0; url='+escapeHtml(redirectTo)+'\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Action failed</title></head><body><p>'+escapeHtml(message)+'</p><p><a href=\"'+escapeHtml(redirectTo)+'\">Continue</a></p></body></html>'; return [{json:{html}}];"
+      },
+      "id": "tma000000-0000-0000-0000-000000000006",
+      "name": "Build Error HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "tma000000-0000-0000-0000-000000000007",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1520,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input=$input.first().json??{}; const sqlLiteral=(value)=>value===null||value===undefined?'NULL':\"'\"+String(value).replace(/'/g,\"''\")+\"'\"; const intLiteral=(value,fallback='NULL')=>Number.isInteger(value)?String(value):fallback; let sql=''; let successTitle='Saved'; let successMessage='Changes saved.'; if(input.action==='create_team'){ sql=['INSERT INTO public.teams (section, team_name, season, sort_order, updated_at)','VALUES ('+[sqlLiteral(input.section),sqlLiteral(input.team_name),sqlLiteral(input.season),String(input.sort_order||0),'now()'].join(', ')+')','RETURNING id::text AS team_id'].join('\\n'); successTitle='Team created'; successMessage='Team saved.'; } else if(input.action==='update_team'){ sql=['UPDATE public.teams','SET section = '+sqlLiteral(input.section)+',','    team_name = '+sqlLiteral(input.team_name)+',','    season = '+sqlLiteral(input.season)+',','    sort_order = '+String(input.sort_order||0)+',','    updated_at = now()','WHERE id = '+intLiteral(input.team_id),'RETURNING id::text AS team_id'].join('\\n'); successTitle='Team updated'; successMessage='Team updated.'; } else if(input.action==='delete_team'){ sql=['WITH deleted AS (','  DELETE FROM public.teams WHERE id = '+intLiteral(input.team_id)+' RETURNING id',')','SELECT COALESCE(MAX(id),0)::text AS team_id FROM deleted'].join('\\n'); successTitle='Team deleted'; successMessage='Team deleted.'; } else if(input.action==='create_player'){ sql=['INSERT INTO public.team_players (team_id, source_name, is_captain, sort_order, created_at)','VALUES ('+[intLiteral(input.team_id),sqlLiteral(input.source_name),input.is_captain?'TRUE':'FALSE',String(input.sort_order||0),'now()'].join(', ')+')','RETURNING team_id::text AS team_id, id::text AS player_id'].join('\\n'); successTitle='Player added'; successMessage='Player added to team.'; } else if(input.action==='update_player'){ sql=['UPDATE public.team_players','SET source_name = '+sqlLiteral(input.source_name)+',','    is_captain = '+(input.is_captain?'TRUE':'FALSE')+',','    sort_order = '+String(input.sort_order||0),'WHERE id = '+intLiteral(input.player_id),'RETURNING team_id::text AS team_id, id::text AS player_id'].join('\\n'); successTitle='Player updated'; successMessage='Team player updated.'; } else if(input.action==='delete_player'){ sql=['WITH deleted AS (','  DELETE FROM public.team_players WHERE id = '+intLiteral(input.player_id)+' RETURNING id, team_id',')','SELECT COALESCE(MAX(team_id),0)::text AS team_id, COALESCE(MAX(id),0)::text AS player_id FROM deleted'].join('\\n'); successTitle='Player deleted'; successMessage='Team player removed.'; } else if(input.action==='create_nickname'){ sql=['INSERT INTO public.team_nicknames (source, target, notes, created_at, updated_at)','VALUES ('+[sqlLiteral(input.source),sqlLiteral(input.target),sqlLiteral(input.notes||''),'now()','now()'].join(', ')+')','RETURNING id::text AS nickname_id'].join('\\n'); successTitle='Nickname created'; successMessage='Nickname saved.'; } else if(input.action==='update_nickname'){ sql=['UPDATE public.team_nicknames','SET source = '+sqlLiteral(input.source)+',','    target = '+sqlLiteral(input.target)+',','    notes = '+sqlLiteral(input.notes||'')+',','    updated_at = now()','WHERE id = '+intLiteral(input.nickname_id),'RETURNING id::text AS nickname_id'].join('\\n'); successTitle='Nickname updated'; successMessage='Nickname updated.'; } else if(input.action==='delete_nickname'){ sql=['WITH deleted AS (','  DELETE FROM public.team_nicknames WHERE id = '+intLiteral(input.nickname_id)+' RETURNING id',')','SELECT COALESCE(MAX(id),0)::text AS nickname_id FROM deleted'].join('\\n'); successTitle='Nickname deleted'; successMessage='Nickname deleted.'; } else if(input.action==='create_override'){ sql=['INSERT INTO public.team_name_overrides (source, target, created_at)','VALUES ('+[sqlLiteral(input.source),sqlLiteral(input.target),'now()'].join(', ')+')','RETURNING id::text AS override_id'].join('\\n'); successTitle='Override created'; successMessage='Override saved.'; } else if(input.action==='update_override'){ sql=['UPDATE public.team_name_overrides','SET source = '+sqlLiteral(input.source)+',','    target = '+sqlLiteral(input.target),'WHERE id = '+intLiteral(input.override_id),'RETURNING id::text AS override_id'].join('\\n'); successTitle='Override updated'; successMessage='Override updated.'; } else if(input.action==='delete_override'){ sql=['WITH deleted AS (','  DELETE FROM public.team_name_overrides WHERE id = '+intLiteral(input.override_id)+' RETURNING id',')','SELECT COALESCE(MAX(id),0)::text AS override_id FROM deleted'].join('\\n'); successTitle='Override deleted'; successMessage='Override deleted.'; } return [{json:{...input,sql,success_title:successTitle,success_message:successMessage}}];"
+      },
+      "id": "tma000000-0000-0000-0000-000000000008",
+      "name": "Build Action SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "tma000000-0000-0000-0000-000000000009",
+      "name": "Execute Action SQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1520,
+        320
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input=$('Build Action SQL').first()?.json??{}; const result=$input.first()?.json??{}; const clean=(value)=>value===null||value===undefined?'':String(value).trim(); let redirectTo=input.return_url||(input.n8n_base_url+'/webhook/team-management?view=teams'); if(input.action.includes('_player')){ const teamId=clean(result.team_id)||clean(input.team_id); redirectTo=input.n8n_base_url+'/webhook/team-management?view=players'+(teamId?'&team_id='+encodeURIComponent(teamId):''); } else if(input.action.includes('_nickname')){ redirectTo=input.n8n_base_url+'/webhook/team-management?view=nicknames'; } else if(input.action.includes('_override')){ redirectTo=input.n8n_base_url+'/webhook/team-management?view=overrides'; } else { redirectTo=input.n8n_base_url+'/webhook/team-management?view=teams'; } redirectTo += (redirectTo.includes('?') ? '&' : '?') + 'message=' + encodeURIComponent(input.success_message || 'Saved'); const escapeHtml=(value)=>String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\\\"/g,'&quot;').replace(/'/g,'&#39;'); const html='<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0; url='+escapeHtml(redirectTo)+'\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>'+escapeHtml(input.success_title||'Saved')+'</title></head><body><p>Saved. Redirecting…</p><p><a href=\"'+escapeHtml(redirectTo)+'\">Continue</a></p></body></html>'; return [{json:{html}}];"
+      },
+      "id": "tma000000-0000-0000-0000-000000000010",
+      "name": "Build Success HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "tma000000-0000-0000-0000-000000000011",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2000,
+        320
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Action Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Team Management Actions Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Action Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Action Settings": {
+      "main": [
+        [
+          {
+            "node": "Resolve Action Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Action Request": {
+      "main": [
+        [
+          {
+            "node": "Check Request Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Request Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Action SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Action SQL": {
+      "main": [
+        [
+          {
+            "node": "Execute Action SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Action SQL": {
+      "main": [
+        [
+          {
+            "node": "Build Success HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Success HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-16T15:05:33.548+00:00",
+  "updatedAt": "2026-04-16T15:06:32.282+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "4d8cf531-2674-4e5e-ba9f-b0b8f0f0c4e7",
+  "triggerCount": 1,
+  "id": "sbs4eRvLtYeN8tV0",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 9,
+  "description": null,
+  "activeVersionId": "4d8cf531-2674-4e5e-ba9f-b0b8f0f0c4e7"
+}

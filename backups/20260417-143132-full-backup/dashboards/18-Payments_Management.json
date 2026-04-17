@@ -1,0 +1,113 @@
+{
+  "description": null,
+  "archived": false,
+  "view_count": 28,
+  "collection_position": null,
+  "dashcards": [
+    {
+      "size_x": 4,
+      "dashboard_tab_id": null,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-03-16T15:09:21.185603Z",
+      "col": 0,
+      "id": 972,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "Bmn2V0ThLAzhKIVMTbVjD",
+      "visualization_settings": {
+        "actionDisplayType": "button",
+        "virtual_card": {
+          "name": null,
+          "display": "action",
+          "visualization_settings": {},
+          "dataset_query": {},
+          "archived": false
+        },
+        "button.label": "Edit Payment"
+      },
+      "size_y": 1,
+      "dashboard_id": 18,
+      "created_at": "2026-03-16T15:09:21.185603Z",
+      "row": 10
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "initially_published_at": null,
+  "can_write": true,
+  "can_set_cache_policy": true,
+  "tabs": [],
+  "enable_embedding": false,
+  "collection_id": 9,
+  "show_in_getting_started": false,
+  "name": "Payments Management",
+  "is_remote_synced": false,
+  "width": "fixed",
+  "caveats": null,
+  "collection_authority_level": null,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-03-13T14:27:52.120875Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "last_used_param_values": {},
+  "id": 18,
+  "last_viewed_at": "2026-03-13T14:27:52.120875Z",
+  "position": null,
+  "archived_directly": false,
+  "entity_id": "t4FcKYj4C2nOUdjIY_BeI",
+  "param_fields": {},
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-03-16T15:09:21.226922Z"
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "effective_location": "/",
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "parameters": [
+    {
+      "name": "Search",
+      "slug": "search",
+      "id": "4f5503f0",
+      "type": "string/contains",
+      "sectionId": "string",
+      "values_query_type": "search",
+      "isMultiSelect": false
+    }
+  ],
+  "auto_apply_filters": true,
+  "created_at": "2026-03-13T14:27:52.120875Z",
+  "public_uuid": null,
+  "points_of_interest": null,
+  "can_delete": false
+}

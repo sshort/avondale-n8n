@@ -1,0 +1,183 @@
+{
+  "name": "Signup Batch Review",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f4100000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "signup-batch-review",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f4100000-0000-0000-0000-000000000002",
+      "name": "Signup Batch Review Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "signup-batch-review"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const source = $input.first()?.json ?? {};\nconst query = source.query ?? source;\nconst headers = source.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst sqlLiteral = (value) => `'${String(value).replace(/'/g, \"''\")}'`;\nconst rawBatchId = clean(query.batch_id ?? query.batchId);\nconst parsedBatchId = Number.parseInt(rawBatchId, 10);\nconst fallbackBaseUrl = 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nif (!Number.isInteger(parsedBatchId) || parsedBatchId <= 0) {\n  return [{\n    json: {\n      batch_id: rawBatchId,\n      response_code: 400,\n      n8n_base_url: n8nBaseUrl,\n      sql: \"SELECT NULL::bigint AS batch_id, false AS batch_exists, NULL::text AS status, NULL::timestamptz AS created_at, NULL::timestamptz AS completed_at, 0::bigint AS signup_row_count, 0::bigint AS manual_row_count, 0::bigint AS regular_tags, 0::bigint AS parent_tags, 0::bigint AS keys, 0::bigint AS total_items, '[]'::json AS items;\"\n    }\n  }];\n}\nconst sql = `\nWITH requested AS (\n  SELECT ${sqlLiteral(parsedBatchId)}::bigint AS batch_id\n),\nbatch_base AS (\n  SELECT b.id, b.status, b.created_at, b.completed_at\n  FROM public.signup_batches b\n  JOIN requested r ON r.batch_id = b.id\n),\nsummary AS (\n  SELECT *\n  FROM public.vw_signup_batches_summary\n  WHERE batch_id = ${sqlLiteral(parsedBatchId)}::bigint\n),\nitems AS (\n  SELECT\n    i.source_table,\n    i.source_id,\n    i.item_date,\n    i.member,\n    i.payer,\n    COALESCE(NULLIF(TRIM(i.product), ''), CASE WHEN i.source_table = 'signup_batch_manual_items' THEN 'Manual batch item' ELSE 'Captured signup' END) AS product,\n    COALESCE(i.regular_tags, 0)::int AS regular_tags,\n    COALESCE(i.parent_tags, 0)::int AS parent_tags,\n    COALESCE(i.key_tags, 0)::int AS key_tags,\n    (COALESCE(i.regular_tags, 0) + COALESCE(i.parent_tags, 0) + COALESCE(i.key_tags, 0))::int AS total_items,\n    NULLIF(TRIM(i.email_address), '') AS email_address,\n    NULLIF(TRIM(i.address_1), '') AS address_1,\n    NULLIF(TRIM(i.address_2), '') AS address_2,\n    NULLIF(TRIM(i.address_3), '') AS address_3,\n    NULLIF(TRIM(i.town), '') AS town,\n    NULLIF(TRIM(i.postcode), '') AS postcode,\n    NULLIF(TRIM(i.notes), '') AS notes\n  FROM public.vw_signup_batch_items i\n  WHERE i.batch_id = ${sqlLiteral(parsedBatchId)}::bigint\n),\nitems_json AS (\n  SELECT COALESCE(\n    json_agg(\n      json_build_object(\n        'source_table', source_table,\n        'source_id', source_id,\n        'item_date', item_date,\n        'member', member,\n        'payer', payer,\n        'product', product,\n        'regular_tags', regular_tags,\n        'parent_tags', parent_tags,\n        'key_tags', key_tags,\n        'total_items', total_items,\n        'email_address', email_address,\n        'address_1', address_1,\n        'address_2', address_2,\n        'address_3', address_3,\n        'town', town,\n        'postcode', postcode,\n        'notes', notes\n      )\n      ORDER BY CASE WHEN source_table = 'signup_batch_manual_items' THEN 0 ELSE 1 END,\n               item_date DESC NULLS LAST,\n               member,\n               payer,\n               source_id\n    ),\n    '[]'::json\n  ) AS items\n  FROM items\n)\nSELECT\n  r.batch_id,\n  (b.id IS NOT NULL) AS batch_exists,\n  b.status,\n  b.created_at,\n  b.completed_at,\n  COALESCE(s.signup_rows, 0) AS signup_row_count,\n  COALESCE(s.manual_rows, 0) AS manual_row_count,\n  COALESCE(s.regular_tags, 0) AS regular_tags,\n  COALESCE(s.parent_tags, 0) AS parent_tags,\n  COALESCE(s.key_tags, 0) AS keys,\n  COALESCE(s.total_items, 0) AS total_items,\n  ij.items\nFROM requested r\nLEFT JOIN batch_base b ON b.id = r.batch_id\nLEFT JOIN summary s ON s.batch_id = r.batch_id\nCROSS JOIN items_json ij;`;\nreturn [{ json: { batch_id: parsedBatchId, response_code: 200, n8n_base_url: n8nBaseUrl, sql } }];"
+      },
+      "id": "f4100000-0000-0000-0000-000000000003",
+      "name": "Build Review Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "f4100000-0000-0000-0000-000000000004",
+      "name": "Load Batch Review",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        820,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const source = $('Build Review Query').first()?.json ?? {};\nconst row = $input.first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst escapeHtml = (value) => clean(value)\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\\\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst parseMaybe = (value, fallback) => {\n  if (value === null || value === undefined || value === '') return fallback;\n  if (typeof value === 'string') {\n    try { return JSON.parse(value); } catch { return fallback; }\n  }\n  return value;\n};\nconst formatDateTime = (value) => {\n  const raw = clean(value);\n  if (!raw) return 'Not available';\n  const date = new Date(raw);\n  if (Number.isNaN(date.getTime())) return raw;\n  return date.toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' });\n};\nconst formatDate = (value) => {\n  const raw = clean(value);\n  if (!raw) return 'Not available';\n  const date = new Date(raw);\n  if (Number.isNaN(date.getTime())) return raw;\n  return date.toLocaleDateString('en-GB', { dateStyle: 'medium' });\n};\nconst batchId = clean(row.batch_id || source.batch_id);\nconst hasBatch = row.batch_exists === true || clean(row.status) !== '';\nconst status = clean(row.status) || 'Unknown';\nconst canEditItems = status === 'Processing';\nconst createdAt = formatDateTime(row.created_at);\nconst completedAt = clean(row.completed_at) ? formatDateTime(row.completed_at) : 'Not completed';\nconst items = parseMaybe(row.items, []);\nconst n8nBaseUrl = clean(source.n8n_base_url) || 'http://n8n:5678';\nconst actionsUrl = `${n8nBaseUrl}/webhook/signup-batch-actions?batch_id=${encodeURIComponent(batchId)}`;\nconst deleteBaseUrl = `${n8nBaseUrl}/webhook/delete-manual-batch-item`;\nconst summaryCards = [\n  { label: 'Status', value: status },\n  { label: 'Created', value: createdAt },\n  { label: 'Completed', value: completedAt },\n  { label: 'Captured Rows', value: String(row.signup_row_count ?? 0) },\n  { label: 'Manual Rows', value: String(row.manual_row_count ?? 0) },\n  { label: 'Shoe Tags', value: String(row.regular_tags ?? 0) },\n  { label: 'Parents', value: String(row.parent_tags ?? 0) },\n  { label: 'Keys', value: String(row.keys ?? 0) },\n  { label: 'Total Items', value: String(row.total_items ?? 0) },\n];\nconst itemRows = Array.isArray(items) ? items.map((item, index) => {\n  const sourceTable = clean(item.source_table);\n  const isManual = sourceTable === 'signup_batch_manual_items';\n  const rowLabel = isManual ? `Manual #${escapeHtml(item.source_id)}` : `Signup #${escapeHtml(item.source_id)}`;\n  const typeBadge = isManual ? '<span class=\"badge badge-manual\">Manual</span>' : '<span class=\"badge badge-captured\">Captured</span>';\n  const address = [item.address_1, item.address_2, item.address_3, item.town, item.postcode].map(clean).filter(Boolean).join(', ');\n  const tags = [`S:${clean(item.regular_tags || 0)}`, `P:${clean(item.parent_tags || 0)}`, `K:${clean(item.key_tags || 0)}`].join(' · ');\n  let deleteAction = '<span class=\"action-note\">Delete only while Processing</span>';\n  if (canEditItems) {\n    const actionLabel = isManual ? 'Delete' : 'Remove';\n    deleteAction = `<a class=\"table-action danger\" href=\"${deleteBaseUrl}?batch_id=${encodeURIComponent(batchId)}&source_id=${encodeURIComponent(clean(item.source_id))}&source_table=${encodeURIComponent(sourceTable)}\">${actionLabel}</a>`;\n  }\n  return `<tr>\n    <td>${index + 1}</td>\n    <td>${rowLabel}</td>\n    <td>${escapeHtml(formatDate(item.item_date))}</td>\n    <td>${typeBadge}</td>\n    <td>${escapeHtml(item.member || '')}</td>\n    <td>${escapeHtml(item.payer || '')}</td>\n    <td>${escapeHtml(item.product || '')}</td>\n    <td>${escapeHtml(tags)}</td>\n    <td>${escapeHtml(item.email_address || '')}</td>\n    <td>${escapeHtml(address || '')}</td>\n    <td>${escapeHtml(item.notes || '')}</td>\n    <td class=\"action-cell\">${deleteAction}</td>\n  </tr>`;\n}).join('') : '';\nconst body = hasBatch ? `\n  <section class=\"hero\">\n    <div>\n      <h1>Batch ${escapeHtml(batchId)} Review</h1>\n      <p class=\"lede\">Review every captured signup row and manual adjustment before running labels, envelopes, or no-address emails.</p>\n    </div>\n    <div class=\"hero-actions\">\n      <a class=\"button secondary\" href=\"${actionsUrl}\">Back to Actions</a>\n      <button type=\"button\" class=\"button secondary\" onclick=\"window.close()\">Close</button>\n    </div>\n  </section>\n  <section class=\"summary-grid\">\n    ${summaryCards.map((card) => `<div class=\"summary-card\"><h2>${escapeHtml(card.label)}</h2><p>${escapeHtml(card.value)}</p></div>`).join('')}\n  </section>\n  <section class=\"panel note-panel\">\n    <strong>How to use this view</strong>\n    <p>Manual rows are highlighted and listed first so operator-added adjustments are easy to spot. While the batch is still <strong>Processing</strong>, manual rows can be deleted permanently and captured signups can be removed from the batch without deleting the underlying signup record.</p>\n  </section>\n  <section class=\"panel table-panel\">\n    <div class=\"table-header\">\n      <h2>Batch Items</h2>\n      <span>${escapeHtml(String(items.length))} rows</span>\n    </div>\n    <div class=\"table-wrap\">\n      <table>\n        <thead>\n          <tr>\n            <th>#</th>\n            <th>Row</th>\n            <th>Added</th>\n            <th>Type</th>\n            <th>Member</th>\n            <th>Payer</th>\n            <th>Product</th>\n            <th>Tags</th>\n            <th>Email</th>\n            <th>Address</th>\n            <th>Notes</th>\n            <th>Action</th>\n          </tr>\n        </thead>\n        <tbody>\n          ${itemRows || '<tr><td colspan=\"12\">No batch items found for this batch.</td></tr>'}\n        </tbody>\n      </table>\n    </div>\n  </section>` : `\n  <section class=\"hero\">\n    <div>\n      <h1>Batch Review</h1>\n      <p class=\"lede\">The batch could not be resolved from the request.</p>\n    </div>\n    <div class=\"hero-actions\">\n      <button type=\"button\" class=\"button secondary\" onclick=\"window.close()\">Close</button>\n    </div>\n  </section>\n  <section class=\"panel note-panel\">\n    <strong>Missing or invalid batch ID</strong>\n    <p>Open this page from the Signup Batches actions link so the batch ID is supplied automatically.</p>\n  </section>`;\nconst html = `<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>${hasBatch ? `Batch ${escapeHtml(batchId)} Review` : 'Batch Review'}</title>\n  <style>\n    :root {\n      color-scheme: light;\n      --bg: #f7f8fc;\n      --panel: #ffffff;\n      --ink: #2e3d4e;\n      --muted: #6b7785;\n      --line: #e2e8f0;\n      --accent: #509ee3;\n      --soft: #f2f7fd;\n      --manual: #fff7ed;\n      --captured: #eef6ff;\n      --danger: #b42318;\n      --button-soft: #eef2f7;\n    }\n    * { box-sizing: border-box; }\n    body {\n      margin: 0;\n      font-family: Lato, 'Helvetica Neue', Arial, sans-serif;\n      color: var(--ink);\n      background: linear-gradient(180deg, #fbfcfe 0%, var(--bg) 100%);\n      padding: 24px;\n    }\n    .wrap {\n      max-width: 1360px;\n      margin: 0 auto;\n      display: grid;\n      gap: 18px;\n    }\n    .hero, .panel {\n      background: var(--panel);\n      border: 1px solid var(--line);\n      border-radius: 18px;\n      padding: 24px;\n      box-shadow: 0 18px 40px rgba(53, 72, 91, 0.08);\n    }\n    .hero {\n      display: flex;\n      align-items: flex-start;\n      justify-content: space-between;\n      gap: 16px;\n      flex-wrap: wrap;\n    }\n    h1 {\n      margin: 0 0 6px;\n      font-size: 34px;\n      line-height: 1.05;\n      letter-spacing: -0.02em;\n    }\n    h2 {\n      margin: 0;\n      font-size: 20px;\n    }\n    .lede {\n      margin: 0;\n      color: var(--muted);\n      font-size: 16px;\n      max-width: 860px;\n    }\n    .hero-actions {\n      display: flex;\n      gap: 10px;\n      flex-wrap: wrap;\n    }\n    .button {\n      appearance: none;\n      border: 0;\n      border-radius: 999px;\n      padding: 11px 16px;\n      font: inherit;\n      font-weight: 700;\n      text-decoration: none;\n      cursor: pointer;\n      color: #fff;\n      background: linear-gradient(135deg, var(--accent) 0%, #2f80d8 100%);\n      box-shadow: 0 10px 24px rgba(80, 158, 227, 0.22);\n    }\n    .button.secondary {\n      color: var(--ink);\n      background: var(--button-soft);\n      border: 1px solid var(--line);\n      box-shadow: none;\n    }\n    .summary-grid {\n      display: grid;\n      gap: 14px;\n      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));\n    }\n    .summary-card {\n      border: 1px solid var(--line);\n      border-radius: 14px;\n      padding: 16px;\n      background: var(--soft);\n    }\n    .summary-card h2 {\n      margin: 0 0 8px;\n      font-size: 13px;\n      text-transform: uppercase;\n      letter-spacing: 0.08em;\n      color: var(--muted);\n    }\n    .summary-card p {\n      margin: 0;\n      font-size: 20px;\n      line-height: 1.3;\n    }\n    .note-panel strong {\n      display: block;\n      margin-bottom: 6px;\n      font-size: 16px;\n    }\n    .note-panel p {\n      margin: 0;\n      color: var(--muted);\n      line-height: 1.6;\n    }\n    .table-panel {\n      padding: 0;\n      overflow: hidden;\n    }\n    .table-header {\n      display: flex;\n      justify-content: space-between;\n      align-items: center;\n      gap: 12px;\n      padding: 20px 24px 12px;\n    }\n    .table-header span {\n      color: var(--muted);\n      font-weight: 700;\n    }\n    .table-wrap {\n      overflow: auto;\n      border-top: 1px solid var(--line);\n    }\n    table {\n      width: 100%;\n      border-collapse: collapse;\n      min-width: 1240px;\n    }\n    th, td {\n      padding: 12px 14px;\n      border-bottom: 1px solid var(--line);\n      text-align: left;\n      vertical-align: top;\n      font-size: 14px;\n    }\n    th {\n      position: sticky;\n      top: 0;\n      background: #f8fafc;\n      z-index: 1;\n      font-size: 12px;\n      text-transform: uppercase;\n      letter-spacing: 0.06em;\n      color: var(--muted);\n    }\n    tbody tr:nth-child(even) {\n      background: #fcfdff;\n    }\n    .badge {\n      display: inline-flex;\n      align-items: center;\n      padding: 4px 10px;\n      border-radius: 999px;\n      font-size: 12px;\n      font-weight: 700;\n    }\n    .badge-manual {\n      background: var(--manual);\n      color: #9a3412;\n      border: 1px solid #fdba74;\n    }\n    .badge-captured {\n      background: var(--captured);\n      color: #1d4ed8;\n      border: 1px solid #bfdbfe;\n    }\n    .action-cell {\n      white-space: nowrap;\n    }\n    .table-action {\n      display: inline-flex;\n      align-items: center;\n      justify-content: center;\n      padding: 8px 12px;\n      border-radius: 999px;\n      text-decoration: none;\n      font-size: 13px;\n      font-weight: 700;\n      border: 1px solid transparent;\n    }\n    .table-action.danger {\n      color: var(--danger);\n      background: #fef3f2;\n      border-color: #fecdca;\n    }\n    .action-note {\n      color: var(--muted);\n      font-size: 13px;\n      font-weight: 600;\n    }\n    @media (max-width: 900px) {\n      body { padding: 16px; }\n      .hero, .panel { padding: 18px; }\n      .table-header { padding: 18px 18px 10px; }\n    }\n  </style>\n</head>\n<body>\n  <div class=\"wrap\">${body}</div>\n</body>\n</html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "f4100000-0000-0000-0000-000000000005",
+      "name": "Build Review HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "f4100000-0000-0000-0000-000000000006",
+      "name": "Respond Review",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1420,
+        220
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Build Review Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Signup Batch Review Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build Review Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Review Query": {
+      "main": [
+        [
+          {
+            "node": "Load Batch Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Batch Review": {
+      "main": [
+        [
+          {
+            "node": "Build Review HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Review HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-10T11:07:02.988+00:00",
+  "updatedAt": "2026-04-13T15:36:55.838+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "e9a3fc9e-1aa4-4a8a-8688-ca2c9272bdaa",
+  "triggerCount": 1,
+  "id": "kRV2uP4nT8mQxL6b",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 20,
+  "description": "",
+  "activeVersionId": "e9a3fc9e-1aa4-4a8a-8688-ca2c9272bdaa"
+}

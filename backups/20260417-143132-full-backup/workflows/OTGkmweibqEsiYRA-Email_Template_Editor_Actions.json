@@ -1,0 +1,342 @@
+{
+  "name": "Email Template Editor Actions",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "eta000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "path": "email-template-editor-actions",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "eta000000-0000-0000-0000-000000000002",
+      "name": "Email Template Editor Actions Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "email-template-editor-actions"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url FROM public.global_settings WHERE key IN ('n8n_base_url');"
+      },
+      "id": "eta000000-0000-0000-0000-000000000003",
+      "name": "Load Action Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        480,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const settings=$('Load Action Settings').first()?.json??{}; const request=$('Email Template Editor Actions Webhook').first()?.json??$input.first()?.json??{}; const body=request.body??request.query??request; const headers=request.headers??{}; const clean=(value)=>value===null||value===undefined?'':String(value).trim(); const parseId=(value)=>{const n=Number.parseInt(clean(value),10); return Number.isInteger(n)&&n>0?n:null;}; const parseType=(value)=>{const n=Number.parseInt(clean(value),10); return Number.isInteger(n)&&[0,1,2].includes(n)?n:0;}; const parseBool=(value)=>['1','true','yes','y','on'].includes(clean(value).toLowerCase()); const hasLiteralUndefined=(value)=>/\\bundefined\\b/i.test(String(value??'')); const deriveBaseUrl=(sourceHeaders,fallback)=>{const forwardedProto=clean(sourceHeaders['x-forwarded-proto']); const forwardedHost=clean(sourceHeaders['x-forwarded-host']); const host=forwardedHost||clean(sourceHeaders.host); const forwardedPort=clean(sourceHeaders['x-forwarded-port']); if(!host) return fallback; const proto=forwardedProto||'http'; let authority=host; if(forwardedPort&&!authority.includes(':')){const isDefault=(proto==='http'&&forwardedPort==='80')||(proto==='https'&&forwardedPort==='443'); if(!isDefault) authority=authority+':'+forwardedPort;} return proto+'://'+authority;}; const decodeBase64=(value)=>{const raw=value===null||value===undefined?'':String(value); if(!raw) return null; try{return Buffer.from(raw,'base64').toString('utf8');}catch{return null;}}; const decodedField=(primary,fallback='')=>{const decoded=decodeBase64(primary); return decoded!==null?decoded:fallback;}; const fallbackBaseUrl=clean(settings.n8n_base_url)||'http://n8n:5678'; const n8nBaseUrl=deriveBaseUrl(headers,fallbackBaseUrl); const action=clean(body.action); const templateId=parseId(body.template_id); const returnUrl=clean(body.return_url)||(n8nBaseUrl+'/webhook/email-template-editor'); const decodedSubject=clean(decodedField(body.subject_template_b64, body.subject_template)); const decodedText=decodedField(body.text_template_b64, body.text_template??''); const decodedHtml=decodedField(body.html_template_b64, body.html_template??''); const payload={action,template_id:templateId,template_key:clean(body.template_key),template_name:clean(body.template_name),template_type:parseType(body.template_type),subject_template:clean(body.subject_template),text_template:body.text_template??'',html_template:body.html_template??'',subject_template_b64:clean(body.subject_template_b64),text_template_b64:clean(body.text_template_b64),html_template_b64:clean(body.html_template_b64),is_active:parseBool(body.is_active),return_url:returnUrl,n8n_base_url:n8nBaseUrl,error_message:''}; if(action==='create_template'){ if(!payload.template_key) payload.error_message='Template key is required.'; else if(!payload.template_name) payload.error_message='Template name is required.'; } else if(action==='update_template'){ if(!payload.template_id) payload.error_message='A valid template is required.'; else if(!payload.template_key) payload.error_message='Template key is required.'; else if(!payload.template_name) payload.error_message='Template name is required.'; } else if(action==='delete_template'){ if(!payload.template_id) payload.error_message='A valid template is required.'; } else { payload.error_message='Unsupported action.'; } if(!payload.error_message&&action!=='delete_template'&&[decodedSubject,decodedText,decodedHtml].some(hasLiteralUndefined)){ payload.error_message='Template content contains literal \"undefined\". Restore the template variable placeholder before saving.'; } return [{json:payload}];"
+      },
+      "id": "eta000000-0000-0000-0000-000000000004",
+      "name": "Resolve Action Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "eta000000-0000-0000-0000-000000000005-condition",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "eta000000-0000-0000-0000-000000000005",
+      "name": "Check Request Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1020,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input=$('Resolve Action Request').first()?.json??{}; const message=input.error_message||'Unable to complete the requested action.'; const redirectTo=(input.return_url||'#')+((input.return_url||'').includes('?')?'&':'?')+'error='+encodeURIComponent(message); const escapeHtml=(value)=>String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\\\"/g,'&quot;').replace(/'/g,'&#39;'); const html='<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0; url='+escapeHtml(redirectTo)+'\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Action failed</title></head><body><p>'+escapeHtml(message)+'</p><p><a href=\"'+escapeHtml(redirectTo)+'\">Continue</a></p></body></html>'; return [{json:{html}}];"
+      },
+      "id": "eta000000-0000-0000-0000-000000000006",
+      "name": "Build Error HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "eta000000-0000-0000-0000-000000000007",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1520,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input=$input.first().json??{}; const sqlLiteral=(value)=>value===null||value===undefined?'NULL':\"'\"+String(value).replace(/'/g,\"''\")+\"'\"; const sqlBase64Utf8=(value)=>{const raw=value===null||value===undefined?'':String(value).trim(); return raw?\"convert_from(decode('\"+raw.replace(/'/g,\"''\")+\"','base64'),'UTF8')\":null;}; const subjectExpr=sqlBase64Utf8(input.subject_template_b64)||sqlLiteral(input.subject_template); const textExpr=sqlBase64Utf8(input.text_template_b64)||sqlLiteral(input.text_template); const htmlExpr=sqlBase64Utf8(input.html_template_b64)||sqlLiteral(input.html_template); let sql=''; let successTitle='Saved'; let successMessage='Template saved.'; if(input.action==='create_template'){ sql=['INSERT INTO public.email_templates (template_key, template_name, template_type, subject_template, text_template, html_template, is_active, created_at, updated_at)','VALUES ('+[sqlLiteral(input.template_key),sqlLiteral(input.template_name),String(input.template_type||0),subjectExpr,textExpr,htmlExpr,input.is_active?'TRUE':'FALSE','now()','now()'].join(', ')+')','RETURNING id::text AS template_id'].join('\\n'); successTitle='Template created'; successMessage='Template created.'; } else if(input.action==='update_template'){ sql=['UPDATE public.email_templates','SET template_key = '+sqlLiteral(input.template_key)+',','    template_name = '+sqlLiteral(input.template_name)+',','    template_type = '+String(input.template_type||0)+',','    subject_template = '+subjectExpr+',','    text_template = '+textExpr+',','    html_template = '+htmlExpr+',','    is_active = '+(input.is_active?'TRUE':'FALSE')+',','    updated_at = now()','WHERE id = '+String(input.template_id),'RETURNING id::text AS template_id'].join('\\n'); successTitle='Template updated'; successMessage='Template updated.'; } else if(input.action==='delete_template'){ sql=['WITH deleted AS (','  DELETE FROM public.email_templates WHERE id = '+String(input.template_id)+' RETURNING id',')','SELECT COALESCE(MAX(id),0)::text AS template_id FROM deleted'].join('\\n'); successTitle='Template deleted'; successMessage='Template deleted.'; } return [{json:{...input,sql,success_title:successTitle,success_message:successMessage}}];"
+      },
+      "id": "eta000000-0000-0000-0000-000000000008",
+      "name": "Build Action SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "eta000000-0000-0000-0000-000000000009",
+      "name": "Execute Action SQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1520,
+        320
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input=$('Build Action SQL').first()?.json??{}; const result=$input.first()?.json??{}; const clean=(value)=>value===null||value===undefined?'':String(value).trim(); const baseReturnPath=(input.return_url||'').split('?')[0]||''; let redirectTo=input.return_url||(input.n8n_base_url+'/webhook/email-template-editor'); if(input.action==='delete_template'){ redirectTo=baseReturnPath||input.n8n_base_url+'/webhook/email-template-editor'; } else { const templateId=clean(result.template_id)||clean(input.template_id); redirectTo=(baseReturnPath||input.n8n_base_url+'/webhook/email-template-editor')+(templateId?('?template_id='+encodeURIComponent(templateId)):''); } redirectTo += (redirectTo.includes('?') ? '&' : '?') + 'message=' + encodeURIComponent(input.success_message || 'Saved'); const escapeHtml=(value)=>String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\\\"/g,'&quot;').replace(/'/g,'&#39;'); const html='<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0; url='+escapeHtml(redirectTo)+'\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>'+escapeHtml(input.success_title||'Saved')+'</title></head><body><p>Saved. Redirecting…</p><p><a href=\"'+escapeHtml(redirectTo)+'\">Continue</a></p></body></html>'; return [{json:{html}}];"
+      },
+      "id": "eta000000-0000-0000-0000-000000000010",
+      "name": "Build Success HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "eta000000-0000-0000-0000-000000000011",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2000,
+        320
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Action Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Template Editor Actions Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Action Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Action Settings": {
+      "main": [
+        [
+          {
+            "node": "Resolve Action Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Action Request": {
+      "main": [
+        [
+          {
+            "node": "Check Request Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Request Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Action SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Action SQL": {
+      "main": [
+        [
+          {
+            "node": "Execute Action SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Action SQL": {
+      "main": [
+        [
+          {
+            "node": "Build Success HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Success HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-16T15:05:33.68+00:00",
+  "updatedAt": "2026-04-17T13:17:36.102+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "7a1f5d02-f1de-419b-8d2a-9faa49af482a",
+  "triggerCount": 1,
+  "id": "OTGkmweibqEsiYRA",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 18,
+  "description": "",
+  "activeVersionId": "7a1f5d02-f1de-419b-8d2a-9faa49af482a"
+}

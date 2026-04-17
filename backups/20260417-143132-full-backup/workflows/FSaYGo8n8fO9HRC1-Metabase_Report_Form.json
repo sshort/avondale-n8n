@@ -1,0 +1,158 @@
+{
+  "name": "Metabase Report Form",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f3000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "report-form",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f3000000-0000-0000-0000-000000000002",
+      "name": "Report Form Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "report-form"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url,\n  MAX(CASE WHEN key = 'metabase_report_dashboards_json' THEN value END) AS metabase_report_dashboards_json,\n  MAX(CASE WHEN key = 'metabase_report_redaction_profiles_json' THEN value END) AS metabase_report_redaction_profiles_json\nFROM public.global_settings\nWHERE key IN ('n8n_base_url', 'metabase_report_dashboards_json', 'metabase_report_redaction_profiles_json');"
+      },
+      "id": "f3000000-0000-0000-0000-000000000003",
+      "name": "Load Report Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        520,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const trigger = $('Report Form Webhook').first()?.json ?? $('When clicking \\'Execute workflow\\'').first()?.json ?? {};\nconst request = trigger.query ?? trigger.body ?? trigger ?? {};\nconst headers = trigger.headers ?? {};\nconst settings = $('Load Report Settings').first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst escapeHtml = (value) => clean(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst toArray = (value) => {\n  if (Array.isArray(value)) return value.map(clean).filter(Boolean);\n  const text = clean(value);\n  return text ? [text] : [];\n};\nconst deriveBaseUrl = (inputHeaders, fallback) => {\n  const forwardedProto = clean(inputHeaders['x-forwarded-proto']);\n  const forwardedHost = clean(inputHeaders['x-forwarded-host']);\n  const host = forwardedHost || clean(inputHeaders.host);\n  const forwardedPort = clean(inputHeaders['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst parseJsonSetting = (value, fallback) => {\n  const text = clean(value);\n  if (!text) return fallback;\n  try {\n    return JSON.parse(text);\n  } catch (error) {\n    throw new Error(`Invalid JSON in global settings: ${error.message}`);\n  }\n};\nconst dashboards = parseJsonSetting(settings.metabase_report_dashboards_json, []);\nconst profiles = parseJsonSetting(settings.metabase_report_redaction_profiles_json, []);\nif (!dashboards.length) throw new Error('global_settings.metabase_report_dashboards_json is empty.');\nconst selectedDashboardId = clean(request.dashboard_id) || String(dashboards[0].id);\nconst selectedMode = clean(request.report_mode) || 'redact';\nconst selectedProfileId = clean(request.redaction_profile) || clean(profiles[0]?.id);\nconst selectedYear = clean(request.year);\nconst selectedSearch = clean(request.search);\nconst selectedOutputName = clean(request.output_name);\nconst selectedExtraTerms = clean(request.extra_redaction_terms);\nconst selectedTabs = toArray(request['tabs[]'] ?? request.tabs);\nconst fallbackBaseUrl = clean(settings.n8n_base_url) || 'http://n8n:5678';\nconst actionUrl = `${deriveBaseUrl(headers, fallbackBaseUrl)}/webhook/report-generate`;\nconst html = [\n  '<!doctype html>',\n  '<html lang=\"en\">',\n  '<head>',\n  '  <meta charset=\"utf-8\">',\n  '  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">',\n  '  <title>Metabase Report PDF</title>',\n  '  <style>',\n  '    :root { color-scheme: light; --bg: #f7f8fc; --panel: #ffffff; --ink: #2e3d4e; --muted: #6b7785; --line: #e2e8f0; --accent: #509ee3; --accent-dark: #2f80d8; --soft: #f2f7fd; --warning: #fff7e6; --warning-line: #f1cf7a; }',\n  '    * { box-sizing: border-box; }',\n  '    body { margin: 0; padding: 24px; min-height: 100vh; font-family: Lato, Helvetica Neue, Arial, sans-serif; background: linear-gradient(180deg, #fbfcfe 0%, var(--bg) 100%); color: var(--ink); }',\n  '    .wrap { max-width: 920px; margin: 0 auto; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 28px; box-shadow: 0 18px 40px rgba(53, 72, 91, 0.08); }',\n  '    h1 { margin: 0 0 10px; font-size: 30px; line-height: 1.1; letter-spacing: -0.02em; }',\n  '    .lede { margin: 0 0 18px; color: var(--muted); font-size: 16px; }',\n  '    .warning { margin: 0 0 22px; padding: 14px 16px; border-radius: 12px; background: var(--warning); border: 1px solid var(--warning-line); color: #7a5a00; }',\n  '    form { display: grid; gap: 18px; }',\n  '    .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }',\n  '    label { display: block; font-weight: 700; margin-bottom: 6px; }',\n  '    input, select, textarea { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font: inherit; color: var(--ink); background: #fff; }',\n  '    textarea { min-height: 120px; resize: vertical; }',\n  '    .help { margin-top: 4px; color: var(--muted); font-size: 13px; }',\n  '    .tabs { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }',\n  '    .tab-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }',\n  '    .tab-option input { width: auto; margin: 0; }',\n  '    .actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }',\n  '    button { appearance: none; border: 0; border-radius: 999px; padding: 12px 18px; font: inherit; font-weight: 700; cursor: pointer; color: white; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); box-shadow: 0 10px 24px rgba(80, 158, 227, 0.22); }',\n  '    .meta { color: var(--muted); font-size: 14px; }',\n  '    .mode-help { padding: 12px 14px; border-radius: 12px; background: var(--soft); border: 1px solid #d8e7f7; color: var(--muted); font-size: 14px; }',\n  '    [hidden] { display: none !important; }',\n  '  </style>',\n  '</head>',\n  '<body>',\n  '  <div class=\"wrap\">',\n  '    <h1>Metabase Report PDF</h1>',\n  '    <p class=\"lede\">Choose a dashboard, select the tab names to include, and generate a PDF through the local Playwright exporter and Stirling PDF.</p>',\n  '    <p class=\"warning\">Redact keeps the original values visible to the renderer and then masks them in the PDF. Anonymise keeps the same dashboard layout but replaces configured PII table values with consistent fake data during export.</p>',\n  `    <form action=\"${escapeHtml(actionUrl)}\" method=\"post\">`,\n  '      <div class=\"grid\">',\n  '        <div>',\n  '          <label for=\"dashboard_id\">Dashboard</label>',\n  `          <select id=\"dashboard_id\" name=\"dashboard_id\">${dashboards.map((dashboard) => `<option value=\"${escapeHtml(dashboard.id)}\"${String(dashboard.id) === selectedDashboardId ? ' selected' : ''}>${escapeHtml(dashboard.name)}</option>`).join('')}</select>`,\n  '          <div class=\"help\">Dashboards come from <code>global_settings.metabase_report_dashboards_json</code>.</div>',\n  '        </div>',\n  '        <div>',\n  '          <label for=\"report_mode\">Mode</label>',\n  `          <select id=\"report_mode\" name=\"report_mode\"><option value=\"redact\"${selectedMode === 'redact' ? ' selected' : ''}>Redact</option><option value=\"anonymise\"${selectedMode === 'anonymise' ? ' selected' : ''}>Anonymise</option></select>`,\n  '          <div class=\"help\">Redact uses Stirling auto-redact. Anonymise pseudonymises configured PII columns directly in the rendered report.</div>',\n  '        </div>',\n  '        <div>',\n  '          <label for=\"output_name\">Output name</label>',\n  `          <input id=\"output_name\" name=\"output_name\" type=\"text\" value=\"${escapeHtml(selectedOutputName)}\" placeholder=\"avondale-membership-report\">`,\n  '          <div class=\"help\">Leave blank to derive a filename automatically.</div>',\n  '        </div>',\n  '      </div>',\n  '      <div class=\"grid\">',\n  '        <div>',\n  '          <label for=\"year\">Year filter</label>',\n  `          <input id=\"year\" name=\"year\" type=\"text\" value=\"${escapeHtml(selectedYear)}\" placeholder=\"2026\">`,\n  '        </div>',\n  '        <div>',\n  '          <label for=\"search\">Search filter</label>',\n  `          <input id=\"search\" name=\"search\" type=\"text\" value=\"${escapeHtml(selectedSearch)}\" placeholder=\"Optional dashboard search filter\">`,\n  '        </div>',\n  '      </div>',\n  '      <div>',\n  '        <label>Tabs to include</label>',\n  '        <div class=\"help\">These are the tab names the Playwright exporter will click and print in order.</div>',\n  '        <div class=\"tabs\" data-tabs></div>',\n  '      </div>',\n  '      <div class=\"mode-help\" id=\"anonymise-help\" hidden>Anonymise mode pseudonymises configured PII columns with stable fake values that stay consistent across the whole report run.</div>',\n  '      <section id=\"redaction-section\">',\n  '        <div class=\"grid\">',\n  '          <div>',\n  '            <label for=\"redaction_profile\">Redaction profile</label>',\n  `            <select id=\"redaction_profile\" name=\"redaction_profile\">${profiles.map((profile) => `<option value=\"${escapeHtml(profile.id)}\"${String(profile.id) === selectedProfileId ? ' selected' : ''}>${escapeHtml(profile.name)}</option>`).join('')}</select>`,\n  '            <div class=\"help\">Profiles come from <code>global_settings.metabase_report_redaction_profiles_json</code>.</div>',\n  '          </div>',\n  '        </div>',\n  '        <div>',\n  '          <label for=\"extra_redaction_terms\">Extra redact terms</label>',\n  `          <textarea id=\"extra_redaction_terms\" name=\"extra_redaction_terms\" placeholder=\"Add one name, phrase, or regex per line\">${escapeHtml(selectedExtraTerms)}</textarea>`,\n  '          <div class=\"help\">These terms are appended to the selected profile before Stirling auto-redact runs.</div>',\n  '        </div>',\n  '      </section>',\n  '      <div class=\"actions\">',\n  '        <button type=\"submit\">Generate PDF</button>',\n  '        <span class=\"meta\">The generated file is returned directly by the report workflow.</span>',\n  '      </div>',\n  '    </form>',\n  '  </div>',\n  `  <script>\n       const dashboards = ${JSON.stringify(dashboards)};\n       const initiallySelectedTabs = new Set(${JSON.stringify(selectedTabs)});\n       const tabsHost = document.querySelector('[data-tabs]');\n       const dashboardSelect = document.getElementById('dashboard_id');\n       const modeSelect = document.getElementById('report_mode');\n       const redactionSection = document.getElementById('redaction-section');\n       const anonymiseHelp = document.getElementById('anonymise-help');\n       const renderTabs = () => {\n         const dashboard = dashboards.find((candidate) => String(candidate.id) === String(dashboardSelect.value)) || dashboards[0];\n         const explicitSelection = initiallySelectedTabs.size > 0;\n         const defaultTabs = new Set((dashboard.defaultTabs ?? []).map((value) => String(value)));\n         tabsHost.innerHTML = (dashboard.tabs ?? []).map((tab) => {\n           const checked = explicitSelection ? initiallySelectedTabs.has(String(tab.id)) : defaultTabs.has(String(tab.id));\n           return '<label class=\"tab-option\"><input type=\"checkbox\" name=\"tabs[]\" value=\"' + tab.id + '\"' + (checked ? ' checked' : '') + '><span>' + tab.name + '</span></label>';\n         }).join('');\n       };\n       const updateMode = () => {\n         const isRedact = modeSelect.value === 'redact';\n         redactionSection.hidden = !isRedact;\n         anonymiseHelp.hidden = isRedact;\n       };\n       dashboardSelect.addEventListener('change', renderTabs);\n       modeSelect.addEventListener('change', updateMode);\n       renderTabs();\n       updateMode();\n     </script>`,\n  '</body>',\n  '</html>',\n].join('\\n');\nreturn [{ json: { html } }];"
+      },
+      "id": "f3000000-0000-0000-0000-000000000004",
+      "name": "Build Form HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "f3000000-0000-0000-0000-000000000005",
+      "name": "Respond Form",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1080,
+        220
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Report Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Report Form Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Report Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Report Settings": {
+      "main": [
+        [
+          {
+            "node": "Build Form HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Form HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-08T09:26:32.92+00:00",
+  "updatedAt": "2026-04-08T15:48:50.792+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "f3104c1e-11c5-4bcb-9120-f931b53b19cb",
+  "triggerCount": 1,
+  "id": "FSaYGo8n8fO9HRC1",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 42,
+  "description": null,
+  "activeVersionId": "f3104c1e-11c5-4bcb-9120-f931b53b19cb"
+}

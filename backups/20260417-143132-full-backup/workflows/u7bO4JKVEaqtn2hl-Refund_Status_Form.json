@@ -1,0 +1,328 @@
+{
+  "name": "Refund Status Form",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "r6000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "refunds",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "r6000000-0000-0000-0000-000000000002",
+      "name": "Refund Status Form Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "refunds"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url,\n  MAX(CASE WHEN key = 'email_reply_to' THEN value END) AS email_reply_to\nFROM public.global_settings\nWHERE key IN ('n8n_base_url', 'email_reply_to');"
+      },
+      "id": "r6000000-0000-0000-0000-000000000003",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        520,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, name, refund_for, membership, reason, amount, refund, status, explanation,\n       request_email_message_id, bank_details_message_id, treasury_email_message_id,\n       paid_at, rejected_at, cancelled_at, notes, from_date, to_date, created_at, updated_at\nFROM public.refunds\nORDER BY id DESC\nLIMIT 100;"
+      },
+      "id": "r6000000-0000-0000-0000-000000000004",
+      "name": "List Refunds",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        520,
+        420
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const source = $('Refund Status Form Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst query = source.query ?? source;\nconst headers = source.headers ?? {};\nconst settings = $('Load Global Settings').first()?.json ?? {};\nconst refunds = $input.all().map((item) => item.json ?? {}).filter(Boolean);\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst escapeHtml = (value) => clean(value)\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst fallbackBaseUrl = clean(settings.n8n_base_url) || 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nconst selectedId = Number.parseInt(clean(query.id), 10);\nconst selectedRefund = refunds.find((refund) => Number(refund.id) === selectedId) ?? null;\nconst createUrl = `${n8nBaseUrl}/webhook/refund-form?return_url=${encodeURIComponent(`${n8nBaseUrl}/webhook/refunds`)}`;\nconst updateUrl = `${n8nBaseUrl}/webhook/update-refund-status`;\nconst previewUrl = `${n8nBaseUrl}/webhook/preview-refund-request-email`;\nconst message = clean(query.message);\nconst error = clean(query.error);\nconst formatMoney = (value) => {\n  if (value === null || value === undefined || value === '') return 'N/A';\n  const amount = Number(value);\n  if (!Number.isFinite(amount)) return escapeHtml(value);\n  return `£${amount.toFixed(2)}`;\n};\nconst formatDate = (value) => {\n  if (!value) return 'N/A';\n  const parsed = new Date(value);\n  if (Number.isNaN(parsed.getTime())) return escapeHtml(value);\n  return parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });\n};\nconst statusColors = {\n  'New Request': '#6b7785',\n  'Request Bank Details': '#f2994a',\n  'Bank Details Obtained': '#2f80d8',\n  'Submitted for Refund': '#7b61ff',\n  'Refund Processed': '#1f7a4d',\n  'Refund Rejected': '#b93a3a'\n};\nconst buildStatusBadge = (status) => `<span class=\"status-badge\" style=\"background:${statusColors[status] || '#6b7785'}\">${escapeHtml(status || 'Unknown')}</span>`;\nconst buildMessageLink = (messageId, label) => {\n  const id = clean(messageId);\n  if (!id) return '—';\n  const params = [\n    ['id', String(selectedRefund?.id ?? '')],\n    ['email_message_id', id],\n    ['email_label', label || 'Refund Email'],\n    ['return_url', `${n8nBaseUrl}/webhook/refunds?id=${selectedRefund?.id ?? ''}`],\n  ]\n    .filter(([, value]) => clean(value) !== '')\n    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(clean(value))}`)\n    .join('&');\n  const url = `${n8nBaseUrl}/webhook/refunds?${params}`;\n  return `<a href=\"${escapeHtml(url)}\">${escapeHtml(id)}</a>`;\n};\nconst refundRows = refunds.map((refund) => {\n  const isSelected = selectedRefund && Number(refund.id) === Number(selectedRefund.id);\n  return `<tr class=\"${isSelected ? 'selected' : ''}\" onclick=\"selectRefund(${Number(refund.id)})\"><td>${escapeHtml(refund.id)}</td><td>${escapeHtml(refund.refund_for)}</td><td>${escapeHtml(refund.membership)}</td><td>${formatMoney(refund.refund)}</td><td>${buildStatusBadge(refund.status)}</td><td>${formatDate(refund.created_at)}</td></tr>`;\n}).join('');\nconst buildStatusForm = (nextStatus, label, tone = 'secondary', notesPlaceholder = '') => `\n  <form class=\"inline-form\" method=\"POST\" action=\"${escapeHtml(updateUrl)}\">\n    <input type=\"hidden\" name=\"id\" value=\"${selectedRefund.id}\">\n    <input type=\"hidden\" name=\"action\" value=\"update_status\">\n    <input type=\"hidden\" name=\"status\" value=\"${escapeHtml(nextStatus)}\">\n    <input type=\"hidden\" name=\"return_url\" value=\"${escapeHtml(`${n8nBaseUrl}/webhook/refunds?id=${selectedRefund.id}`)}\">\n    <input type=\"text\" name=\"notes\" placeholder=\"${escapeHtml(notesPlaceholder)}\">\n    <button type=\"submit\" class=\"${tone}\">${escapeHtml(label)}</button>\n  </form>`;\nconst buildDeleteForm = () => `\n  <form class=\"inline-form\" method=\"POST\" action=\"${escapeHtml(updateUrl)}\" onsubmit=\"return window.confirm('Delete this refund permanently?');\">\n    <input type=\"hidden\" name=\"id\" value=\"${selectedRefund.id}\">\n    <input type=\"hidden\" name=\"action\" value=\"delete\">\n    <input type=\"hidden\" name=\"return_url\" value=\"${escapeHtml(`${n8nBaseUrl}/webhook/refunds?id=${selectedRefund.id}`)}\">\n    <input type=\"text\" name=\"notes\" placeholder=\"Optional deletion note\">\n    <button type=\"submit\" class=\"danger\">Delete Refund</button>\n  </form>`;\nconst buildForceStatusForm = () => `\n  <form class=\"inline-form\" method=\"POST\" action=\"${escapeHtml(updateUrl)}\">\n    <input type=\"hidden\" name=\"id\" value=\"${selectedRefund.id}\">\n    <input type=\"hidden\" name=\"action\" value=\"update_status\">\n    <input type=\"hidden\" name=\"return_url\" value=\"${escapeHtml(`${n8nBaseUrl}/webhook/refunds?id=${selectedRefund.id}`)}\">\n    <select name=\"status\" required>\n      ${forceStatusOptions}\n    </select>\n    <input type=\"text\" name=\"notes\" placeholder=\"Optional override note\">\n    <button type=\"submit\" class=\"secondary\">Force Status</button>\n  </form>`;\nconst buildEmailAction = (actionType, templateKey, label, intro) => `\n  <form class=\"action-card\" method=\"GET\" action=\"${escapeHtml(previewUrl)}\">\n    <input type=\"hidden\" name=\"refund_id\" value=\"${selectedRefund.id}\">\n    <input type=\"hidden\" name=\"action_type\" value=\"${escapeHtml(actionType)}\">\n    <input type=\"hidden\" name=\"template_key\" value=\"${escapeHtml(templateKey)}\">\n    <input type=\"hidden\" name=\"return_url\" value=\"${escapeHtml(`${n8nBaseUrl}/webhook/refunds?id=${selectedRefund.id}`)}\">\n    <h3>${escapeHtml(label)}</h3>\n    <p>${escapeHtml(intro)}</p>\n    <button type=\"submit\">Preview Email</button>\n  </form>`;\nconst lifecycle = ['New Request', 'Request Bank Details', 'Bank Details Obtained', 'Submitted for Refund', 'Refund Processed', 'Refund Rejected'];\nconst forceStatusOptions = lifecycle.map((status) => `<option value=\"${escapeHtml(status)}\"${selectedRefund && selectedRefund.status === status ? ' selected' : ''}>${escapeHtml(status)}</option>`).join('');\nlet actionCards = '<div class=\"empty-actions\"><p>Select a refund to see actions.</p></div>';\nif (selectedRefund) {\n  const cards = [];\n  if (['New Request', 'Request Bank Details'].includes(selectedRefund.status)) {\n    cards.push(buildEmailAction('request_bank_details', 'request_bank_details', 'Request Bank Details', 'Prepare the member-facing email requesting bank details.'));\n  }\n  if (selectedRefund.status === 'Request Bank Details') {\n    cards.push(`<div class=\"action-card\"><h3>Bank Details Obtained</h3><p>Record that the member has supplied their bank details without storing them here.</p>${buildStatusForm('Bank Details Obtained', 'Mark Bank Details Obtained', 'info', 'Optional note about how bank details were received')}</div>`);\n  }\n  if (['Bank Details Obtained', 'Submitted for Refund'].includes(selectedRefund.status)) {\n    cards.push(buildEmailAction('submit_refund_request', 'refund_request_treasury', 'Submit Refund Request', 'Preview the treasury request email before sending it.'));\n  }\n  if (selectedRefund.status === 'Submitted for Refund') {\n    cards.push(`<div class=\"action-card\"><h3>Refund Processed</h3><p>Use this after treasury confirms the refund has been processed.</p>${buildStatusForm('Refund Processed', 'Mark Refund Processed', 'success', 'Optional processed note')}</div>`);\n  }\n  if (!['Refund Processed', 'Refund Rejected'].includes(selectedRefund.status)) {\n    cards.push(`<div class=\"action-card\"><h3>Reject Refund</h3><p>Reject this refund request and record an optional reason.</p>${buildStatusForm('Refund Rejected', 'Reject Refund', 'danger', 'Optional rejection note')}</div>`);\n  }\n  cards.push(`<div class=\"action-card\"><h3>Force Status</h3><p>Set the refund status directly without following the email flow. Use this when the operational state is already known.</p>${buildForceStatusForm()}</div>`);\n  cards.push(`<details class=\"action-card delete-card\"><summary>Delete Refund</summary><p>Permanently remove this refund case from the refunds table.</p>${buildDeleteForm()}</details>`);\n  actionCards = cards.join('');\n}\nconst selectedSection = selectedRefund ? `\n  <div class=\"detail-header\">\n    <div>\n      <h2>${escapeHtml(selectedRefund.refund_for)}</h2>\n      <p>${escapeHtml(selectedRefund.membership)} · Requested by ${escapeHtml(selectedRefund.name || 'Unknown')}</p>\n    </div>\n    ${buildStatusBadge(selectedRefund.status)}\n  </div>\n  <div class=\"detail-grid\">\n    <div><label>Refund</label><span>${formatMoney(selectedRefund.refund)}</span></div>\n    <div><label>Amount Paid</label><span>${formatMoney(selectedRefund.amount)}</span></div>\n    <div><label>From</label><span>${formatDate(selectedRefund.from_date)}</span></div>\n    <div><label>To</label><span>${formatDate(selectedRefund.to_date)}</span></div>\n    <div><label>Created</label><span>${formatDate(selectedRefund.created_at)}</span></div>\n    <div><label>Updated</label><span>${formatDate(selectedRefund.updated_at)}</span></div>\n  </div>\n  <div class=\"detail-block\"><label>Reason</label><p>${escapeHtml(selectedRefund.reason || 'N/A')}</p></div>\n  <div class=\"detail-block\"><label>Explanation</label><p>${escapeHtml(selectedRefund.explanation || 'N/A')}</p></div>\n  <div class=\"detail-block\"><label>Notes</label><p>${escapeHtml(selectedRefund.notes || 'No notes recorded')}</p></div>\n  <div class=\"detail-block\"><label>Email Tracking</label><p>Request: ${buildMessageLink(selectedRefund.request_email_message_id, 'Refund Request Email')}<br>Bank details reply: ${buildMessageLink(selectedRefund.bank_details_message_id, 'Refund Bank Details Reply')}<br>Treasury: ${buildMessageLink(selectedRefund.treasury_email_message_id, 'Refund Treasury Email')}</p></div>\n  <div class=\"actions-grid\">${actionCards}</div>` : '<div class=\"empty-selection\"><p>Select a refund from the list to see its details and available actions.</p></div>';\nconst html = `<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Refunds</title>\n  <style>\n    :root { --bg:#f7f8fc; --panel:#ffffff; --ink:#2e3d4e; --muted:#6b7785; --line:#e2e8f0; --accent:#509ee3; --accent-dark:#2f80d8; --success:#1f7a4d; --danger:#b93a3a; --warn:#f2994a; }\n    * { box-sizing:border-box; }\n    body { margin:0; padding:24px; background:linear-gradient(180deg,#fbfcfe 0%,var(--bg) 100%); font-family:Lato,'Helvetica Neue',Arial,sans-serif; color:var(--ink); }\n    .wrap { max-width:1280px; margin:0 auto; display:grid; gap:20px; }\n    .hero, .panel { background:var(--panel); border:1px solid var(--line); border-radius:18px; box-shadow:0 18px 40px rgba(53,72,91,.08); padding:24px 28px; }\n    .hero { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; }\n    h1 { margin:0 0 8px; font-size:32px; line-height:1.05; letter-spacing:-.02em; }\n    h2 { margin:0; font-size:24px; }\n    p { margin:0; color:var(--muted); line-height:1.5; }\n    .hero-actions { display:flex; gap:12px; flex-wrap:wrap; }\n    .button, button { display:inline-flex; align-items:center; justify-content:center; border:0; border-radius:999px; padding:12px 18px; font:inherit; font-weight:700; text-decoration:none; cursor:pointer; }\n    .button, button { color:#fff; background:linear-gradient(135deg,var(--accent) 0%,var(--accent-dark) 100%); }\n    .secondary { background:#eef2f7; color:var(--ink); border:1px solid var(--line); }\n    .info { background:linear-gradient(135deg,#4ba3f0 0%,#2f80d8 100%); color:#fff; }\n    .success { background:linear-gradient(135deg,#2eb872 0%,#1f7a4d 100%); color:#fff; }\n    .danger { background:linear-gradient(135deg,#db5d5d 0%,#b93a3a 100%); color:#fff; }\n    .layout { display:grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap:20px; }\n    table { width:100%; border-collapse:collapse; }\n    th, td { padding:12px 8px; text-align:left; border-bottom:1px solid var(--line); vertical-align:top; }\n    th { font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; }\n    tr { cursor:pointer; transition:background .15s ease; }\n    tr:hover { background:#f8f9fc; }\n    tr.selected { background:#eef5fd; }\n    .status-badge { display:inline-block; padding:6px 12px; border-radius:999px; color:#fff; font-size:12px; font-weight:700; }\n    .banner { padding:14px 16px; border-radius:14px; font-weight:700; }\n    .banner.success-banner { background:#edf8f2; color:var(--success); }\n    .banner.error-banner { background:#fdecec; color:var(--danger); }\n    .detail-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:18px; }\n    .detail-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 18px; margin:18px 0; }\n    .detail-grid label, .detail-block label { display:block; margin-bottom:6px; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; }\n    .detail-grid span { display:block; color:var(--ink); }\n    .detail-block { margin-top:16px; padding-top:16px; border-top:1px solid var(--line); }\n    .detail-block p { color:var(--ink); white-space:pre-wrap; }\n    .detail-block a { color:var(--accent-dark); text-decoration:none; font-weight:700; }\n    .detail-block a:hover { text-decoration:underline; }\n    .actions-grid { display:grid; gap:14px; margin-top:20px; }\n    .action-card { border:1px solid var(--line); border-radius:14px; padding:16px; background:#f8fbff; }\n    .action-card h3 { margin:0 0 8px; font-size:16px; }\n    .action-card p { margin:0 0 14px; }\n    .delete-card summary { cursor:pointer; font-weight:700; list-style:none; }\n    .delete-card summary::-webkit-details-marker { display:none; }\n    .delete-card summary::after { content:'Show'; float:right; color:var(--muted); font-weight:700; }\n    .delete-card[open] summary::after { content:'Hide'; }\n    .delete-card[open] summary { margin-bottom:12px; }\n    .inline-form { display:grid; gap:10px; }\n    .inline-form input[type=text], .inline-form select { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font:inherit; background:#fff; color:var(--ink); }\n    .empty-selection, .empty-actions { text-align:center; padding:32px 20px; color:var(--muted); }\n    .lifecycle { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }\n    .lifecycle span { background:#eef2f7; border:1px solid var(--line); border-radius:999px; padding:6px 10px; font-size:12px; color:var(--muted); }\n    @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } .detail-grid { grid-template-columns: 1fr; } }\n  </style>\n</head>\n<body>\n  <div class=\"wrap\">\n    <section class=\"hero\">\n      <div>\n        <h1>Refunds</h1>\n        <p>Manage refund cases from one page. Create new requests, request bank details, submit to treasury, and record outcomes without leaving the HTML flow.</p>\n        <div class=\"lifecycle\">${lifecycle.map((status) => `<span>${escapeHtml(status)}</span>`).join('')}</div>\n      </div>\n      <div class=\"hero-actions\">\n        <a class=\"button\" href=\"${escapeHtml(createUrl)}\">Create Refund Request</a>\n        <button type=\"button\" class=\"button secondary\" onclick=\"window.close()\">Close</button>\n      </div>\n    </section>\n    ${message ? `<div class=\"banner success-banner\">${escapeHtml(message)}</div>` : ''}\n    ${error ? `<div class=\"banner error-banner\">${escapeHtml(error)}</div>` : ''}\n    <div class=\"layout\">\n      <section class=\"panel\">\n        <table>\n          <thead>\n            <tr>\n              <th>ID</th>\n              <th>Member</th>\n              <th>Membership</th>\n              <th>Refund</th>\n              <th>Status</th>\n              <th>Created</th>\n            </tr>\n          </thead>\n          <tbody>\n            ${refundRows || '<tr><td colspan=\"6\">No refunds found</td></tr>'}\n          </tbody>\n        </table>\n      </section>\n      <section class=\"panel\">\n        ${selectedSection}\n      </section>\n    </div>\n  </div>\n  <script>\n    function selectRefund(id) {\n      const url = new URL(window.location.href);\n      url.searchParams.set('id', id);\n      window.location.href = url.toString();\n    }\n  </script>\n</body>\n</html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "r6000000-0000-0000-0000-000000000005",
+      "name": "Build Form HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "r6000000-0000-0000-0000-000000000006",
+      "name": "Respond Form",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1060,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const request = $('Refund Status Form Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst query = request.query ?? request;\nconst headers = request.headers ?? {};\nconst settings = $('Load Global Settings').first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst fallbackBaseUrl = clean(settings.n8n_base_url) || 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nconst selectedId = Number.parseInt(clean(query.id), 10);\nconst emailMessageId = clean(query.email_message_id);\nconst emailLabel = clean(query.email_label) || 'Refund Email';\nconst returnUrl = clean(query.return_url) || (Number.isInteger(selectedId) ? `${n8nBaseUrl}/webhook/refunds?id=${selectedId}` : `${n8nBaseUrl}/webhook/refunds`);\nreturn [{ json: { id: Number.isInteger(selectedId) ? selectedId : null, email_message_id: emailMessageId, email_label: emailLabel, return_url: returnUrl, n8n_base_url: n8nBaseUrl } }];"
+      },
+      "id": "r6000000-0000-0000-0000-000000000007",
+      "name": "Resolve Refunds Page Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "refund-email-view-check",
+              "leftValue": "={{ $json.email_message_id || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "r6000000-0000-0000-0000-000000000008",
+      "name": "Check Email View Request",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1020,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "get",
+        "messageId": "={{ $('Resolve Refunds Page Request').first().json.email_message_id }}",
+        "simple": true,
+        "options": {}
+      },
+      "id": "r6000000-0000-0000-0000-000000000009",
+      "name": "Gmail Get Refund Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1280,
+        120
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const request = $('Resolve Refunds Page Request').first()?.json ?? {};\nconst result = $('Gmail Get Refund Email').first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst escapeHtml = (value) => clean(value)\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst textToHtml = (value) => escapeHtml(value).replace(/\\r/g, '').replace(/\\n/g, '<br>');\nconst label = clean(request.email_label) || 'Refund Email';\nconst returnUrl = clean(request.return_url) || `${clean(request.n8n_base_url) || 'http://n8n:5678'}/webhook/refunds`;\nconst hasError = !!result.error;\nconst errorMessage = hasError\n  ? String(result.error?.message ?? result.error?.description ?? result.error)\n  : (!clean(result.id) ? 'Email message was not found.' : '');\nconst subject = clean(result.subject) || clean(result.Subject) || label;\nconst fromText = clean(result.from?.text) || clean(result.from) || clean(result.From) || clean(result.headers?.from) || clean(result.headers?.From);\nconst toText = clean(result.to?.text) || clean(result.to) || clean(result.To) || clean(result.headers?.to) || clean(result.headers?.To);\nconst sentDate = clean(result.date) || clean(result.Date) || clean(result.headers?.date) || clean(result.headers?.Date);\nconst messageIdHeader = clean(result.messageId) || clean(result['Message-ID']) || clean(result.headers?.['message-id']) || clean(result.headers?.['Message-ID']);\nconst labelIds = Array.isArray(result.labelIds)\n  ? result.labelIds.filter(Boolean).join(', ')\n  : (Array.isArray(result.labels) ? result.labels.filter(Boolean).join(', ') : '');\nconst plainTextBody = clean(result.text) || clean(result.snippet);\nconst bodyHtml = clean(result.textAsHtml) ? result.textAsHtml : (plainTextBody ? textToHtml(plainTextBody) : '');\nconst html = `<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>${escapeHtml(subject)}</title>\n  <style>\n    :root { --bg:#f7f8fc; --panel:#ffffff; --ink:#2e3d4e; --muted:#6b7785; --line:#e2e8f0; --accent:#509ee3; --accent-dark:#2f80d8; --danger:#b93a3a; }\n    * { box-sizing:border-box; }\n    body { margin:0; padding:24px; background:linear-gradient(180deg,#fbfcfe 0%,var(--bg) 100%); font-family:Lato,'Helvetica Neue',Arial,sans-serif; color:var(--ink); }\n    .wrap { max-width:980px; margin:0 auto; display:grid; gap:20px; }\n    .panel { background:var(--panel); border:1px solid var(--line); border-radius:18px; box-shadow:0 18px 40px rgba(53,72,91,.08); padding:24px 28px; }\n    h1 { margin:0; font-size:30px; line-height:1.08; letter-spacing:-.02em; }\n    p { margin:0; color:var(--muted); line-height:1.5; }\n    .toolbar { display:flex; gap:12px; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; }\n    .toolbar-actions { display:flex; gap:12px; flex-wrap:wrap; }\n    .button { display:inline-flex; align-items:center; justify-content:center; border:0; border-radius:999px; padding:12px 18px; font:inherit; font-weight:700; text-decoration:none; cursor:pointer; color:#fff; background:linear-gradient(135deg,var(--accent) 0%,var(--accent-dark) 100%); }\n    .button.secondary { background:#eef2f7; color:var(--ink); border:1px solid var(--line); }\n    .banner { padding:14px 16px; border-radius:14px; font-weight:700; background:#fdecec; color:var(--danger); }\n    .meta-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 18px; }\n    .meta-item label { display:block; margin-bottom:6px; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; }\n    .meta-item div { color:var(--ink); word-break:break-word; }\n    .email-body { border-top:1px solid var(--line); padding-top:20px; color:var(--ink); line-height:1.6; }\n    .email-body a { color:var(--accent-dark); }\n    @media (max-width: 720px) { .meta-grid { grid-template-columns:1fr; } }\n  </style>\n</head>\n<body>\n  <div class=\"wrap\">\n    <section class=\"panel\">\n      <div class=\"toolbar\">\n        <div>\n          <h1>${escapeHtml(label)}</h1>\n          <p>${escapeHtml(subject)}</p>\n        </div>\n        <div class=\"toolbar-actions\">\n          <a class=\"button\" href=\"${escapeHtml(returnUrl)}\">Back to Refund</a>\n          <button type=\"button\" class=\"button secondary\" onclick=\"window.close()\">Close</button>\n        </div>\n      </div>\n    </section>\n    ${errorMessage ? `<div class=\"banner\">${escapeHtml(errorMessage)}</div>` : ''}\n    ${!errorMessage ? `<section class=\"panel\"><div class=\"meta-grid\">\n      <div class=\"meta-item\"><label>Subject</label><div>${escapeHtml(subject || 'N/A')}</div></div>\n      <div class=\"meta-item\"><label>Sent</label><div>${escapeHtml(sentDate || 'N/A')}</div></div>\n      <div class=\"meta-item\"><label>From</label><div>${escapeHtml(fromText || 'N/A')}</div></div>\n      <div class=\"meta-item\"><label>To</label><div>${escapeHtml(toText || 'N/A')}</div></div>\n      <div class=\"meta-item\"><label>Gmail ID</label><div>${escapeHtml(clean(result.id) || 'N/A')}</div></div>\n      <div class=\"meta-item\"><label>Message-ID</label><div>${escapeHtml(messageIdHeader || 'N/A')}</div></div>\n      <div class=\"meta-item\"><label>Thread ID</label><div>${escapeHtml(clean(result.threadId) || 'N/A')}</div></div>\n      <div class=\"meta-item\"><label>Labels</label><div>${escapeHtml(labelIds || 'N/A')}</div></div>\n    </div></section>\n    <section class=\"panel\"><div class=\"email-body\">${bodyHtml || '<p>No message body was returned.</p>'}</div></section>` : ''}\n  </div>\n</body>\n</html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "r6000000-0000-0000-0000-000000000010",
+      "name": "Build Refund Email HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        120
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Refund Status Form Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Resolve Refunds Page Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Refunds": {
+      "main": [
+        [
+          {
+            "node": "Build Form HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Form HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Refunds Page Request": {
+      "main": [
+        [
+          {
+            "node": "Check Email View Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Email View Request": {
+      "main": [
+        [
+          {
+            "node": "Gmail Get Refund Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "List Refunds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Get Refund Email": {
+      "main": [
+        [
+          {
+            "node": "Build Refund Email HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Refund Email HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-03T08:05:23.16+00:00",
+  "updatedAt": "2026-04-13T16:17:15.636+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "5b0607ff-3e3d-4425-b436-eba91f75eb6e",
+  "triggerCount": 1,
+  "id": "u7bO4JKVEaqtn2hl",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 104,
+  "description": "",
+  "activeVersionId": "4a6f4502-8664-4728-854c-6e132f2ea8d6"
+}

@@ -1,0 +1,157 @@
+{
+  "name": "Manual Batch Item Form",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f2000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "manual-batch-item-form",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f2000000-0000-0000-0000-000000000002",
+      "name": "Manual Batch Item Form Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "manual-batch-item-form"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url\nFROM public.global_settings\nWHERE key = 'n8n_base_url';"
+      },
+      "id": "f2000000-0000-0000-0000-000000000005",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        520,
+        140
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const source = $('Manual Batch Item Form Webhook').first()?.json ?? $('When clicking \\'Execute workflow\\'').first()?.json ?? $input.first()?.json ?? {};\nconst query = source.query ?? source;\nconst settings = $('Load Global Settings').first()?.json ?? {};\nconst headers = source.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst escapeHtml = (value) => clean(value)\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst member = clean(query.member);\nconst memberId = clean(query.member_id ?? query.raw_member_id);\nconst membership = clean(query.membership);\nconst memberEmail = clean(query.email ?? query.email_address);\nconst batchId = clean(query.batch_id ?? query.batchId);\nconst fallbackBaseUrl = clean(settings.n8n_base_url) || 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nconst actionUrl = `${n8nBaseUrl}/webhook/add-manual-batch-item`;\nconst html = `<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Manual Batch Item</title>\n  <style>\n    :root {\n      color-scheme: light;\n      --bg: #f7f8fc;\n      --panel: #ffffff;\n      --ink: #2e3d4e;\n      --muted: #6b7785;\n      --line: #e2e8f0;\n      --accent: #509ee3;\n      --accent-dark: #2f80d8;\n      --button-soft: #eef2f7;\n      --soft: #f2f7fd;\n    }\n    * { box-sizing: border-box; }\n    body { margin: 0; font-family: Lato, 'Helvetica Neue', Arial, sans-serif; color: var(--ink); background: linear-gradient(180deg, #fbfcfe 0%, var(--bg) 100%); min-height: 100vh; padding: 24px; }\n    .wrap { max-width: 760px; margin: 0 auto; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 28px; box-shadow: 0 18px 40px rgba(53, 72, 91, 0.08); }\n    h1 { margin: 0 0 8px; font-size: 30px; line-height: 1.1; letter-spacing: -0.02em; }\n    .lede { margin: 0 0 20px; color: var(--muted); font-size: 16px; }\n    .member { margin: 0 0 22px; padding: 14px 16px; background: var(--soft); border: 1px solid #d8e7f7; border-radius: 12px; }\n    .member strong { display: block; font-size: 20px; margin-bottom: 4px; }\n    form { display: grid; gap: 16px; }\n    .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }\n    label { display: block; font-weight: 700; margin-bottom: 6px; }\n    input, textarea { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font: inherit; color: var(--ink); background: #fff; }\n    input[type=\"number\"] { text-align: center; }\n    textarea { min-height: 110px; resize: vertical; }\n    .help { margin-top: 4px; color: var(--muted); font-size: 13px; }\n    .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 4px; }\n    button, .close-button { appearance: none; border: 0; border-radius: 999px; padding: 12px 18px; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; }\n    button { color: white; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); box-shadow: 0 10px 24px rgba(80, 158, 227, 0.22); }\n    .close-button { color: var(--ink); background: var(--button-soft); border: 1px solid var(--line); }\n    .note { color: var(--muted); font-size: 14px; }\n    .warning { margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--line); color: var(--muted); font-size: 14px; }\n  </style>\n</head>\n<body>\n  <div class=\"wrap\">\n    <h1>Manual Batch Item</h1>\n    <p class=\"lede\">Add shoe tags, parent tags, or keys without creating a fake signup row.</p>\n    <div class=\"member\">\n      <strong>${escapeHtml(member || 'Unknown member')}</strong>\n      <span>Row ID: ${escapeHtml(memberId || 'Not available')}<br>Membership: ${escapeHtml(membership || 'Not available')}<br>Email: ${escapeHtml(memberEmail || 'Not available')}</span>\n    </div>\n    <form action=\"${actionUrl}\" method=\"get\" target=\"_blank\">\n      <input type=\"hidden\" name=\"member_id\" value=\"${escapeHtml(memberId)}\">\n      <input type=\"hidden\" name=\"member\" value=\"${escapeHtml(member)}\">\n      <input type=\"hidden\" name=\"membership\" value=\"${escapeHtml(membership)}\">\n      <input type=\"hidden\" name=\"email_address\" value=\"${escapeHtml(memberEmail)}\">\n      <input type=\"hidden\" name=\"created_by\" value=\"metabase_manual_batch_form\">\n      <div>\n        <label for=\"batch_id\">Batch ID</label>\n        <input id=\"batch_id\" name=\"batch_id\" type=\"number\" min=\"1\" step=\"1\" value=\"${escapeHtml(batchId)}\">\n        <div class=\"help\">Leave blank to use the latest <code>Processing</code> batch.</div>\n      </div>\n      <div class=\"grid\">\n        <div><label for=\"regular_tags\">Shoe Tags</label><input id=\"regular_tags\" name=\"regular_tags\" type=\"number\" min=\"0\" step=\"1\" value=\"0\"></div>\n        <div><label for=\"parent_tags\">Parent Tags</label><input id=\"parent_tags\" name=\"parent_tags\" type=\"number\" min=\"0\" step=\"1\" value=\"0\"></div>\n        <div><label for=\"key_tags\">Keys</label><input id=\"key_tags\" name=\"key_tags\" type=\"number\" min=\"0\" step=\"1\" value=\"0\"></div>\n      </div>\n      <div>\n        <label for=\"notes\">Notes</label>\n        <textarea id=\"notes\" name=\"notes\" placeholder=\"Reason or context for the manual batch item\"></textarea>\n      </div>\n      <div class=\"actions\">\n        <button type=\"submit\">Add Manual Batch Item</button>\n        <button type=\"button\" class=\"close-button\" onclick=\"window.close()\">Close</button>\n        <span class=\"note\">The result opens in a new tab as JSON from the add-manual-item webhook.</span>\n      </div>\n    </form>\n    <div class=\"warning\">Use this only for genuine manual additions. Real signups should still come through the normal email capture path.</div>\n  </div>\n</body>\n</html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "f2000000-0000-0000-0000-000000000003",
+      "name": "Build Form HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "f2000000-0000-0000-0000-000000000004",
+      "name": "Respond Form",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        800,
+        220
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Batch Item Form Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Build Form HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Form HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-24T09:32:03.898+00:00",
+  "updatedAt": "2026-03-27T17:11:07.248+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "53deb544-d136-4b81-8ee2-df66d169716f",
+  "triggerCount": 1,
+  "id": "l97xMibLg5gRF8fb",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 73,
+  "description": null,
+  "activeVersionId": "53deb544-d136-4b81-8ee2-df66d169716f"
+}

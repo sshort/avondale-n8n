@@ -1,0 +1,206 @@
+{
+  "cache_invalidated_at": "2026-04-02T08:25:00.244867Z",
+  "description": null,
+  "archived": false,
+  "view_count": 479,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "int8",
+      "semantic_type": "type/Quantity",
+      "lib/deduplicated-name": "count",
+      "lib/original-name": "count",
+      "name": "count",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "count",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "count",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "count",
+      "display_name": "count",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.0,
+            "q3": 0.0,
+            "max": 0.0,
+            "sd": null,
+            "avg": 0.0
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "year",
+      "lib/original-name": "year",
+      "name": "year",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "year",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "year",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "year",
+      "display_name": "year",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 4.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Count of Non-Active Members",
+  "last_query_start": "2026-04-17T12:44:59.495206Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-17T12:44:59.653867Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 68.3839479392624729,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-02T08:25:00.241705Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "native": "SELECT\n  count(*) AS count,\n  ({{year}})::text AS year\nFROM raw_members AS m\nJOIN membership_packages AS p ON m.\"Membership\" = p.name\nWHERE p.season = ({{year}})::text\n  AND p.category <> 'Pavilion Key'\n  AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  AND m.\"Status\" IS DISTINCT FROM 'Active'\n  AND COALESCE(m.is_current, true) = true\n;",
+        "lib/type": "mbql.stage/native",
+        "template-tags": {
+          "year": {
+            "name": "year",
+            "display-name": "Year",
+            "type": "text",
+            "id": "year",
+            "required": true
+          }
+        }
+      }
+    ]
+  },
+  "id": 1469,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "scalar",
+  "archived_directly": false,
+  "entity_id": "QQfVVH99NEDa6tZkl2Oex",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-02T08:25:00.290201Z"
+  },
+  "visualization_settings": {
+    "scalar.segments": [],
+    "click_behavior": {
+      "type": "link",
+      "linkType": "url",
+      "linkTemplate": "/question/1514?year={{year}}"
+    }
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [
+    {
+      "id": "year",
+      "name": "Year",
+      "slug": "year",
+      "type": "category",
+      "target": [
+        "variable",
+        [
+          "template-tag",
+          "year"
+        ]
+      ]
+    }
+  ],
+  "dashboard_id": null,
+  "created_at": "2026-03-16T15:08:56.896593Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}
