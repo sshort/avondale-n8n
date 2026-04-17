@@ -43,6 +43,18 @@ Avondale n8n is a powerful low-code automation platform that streamlines club me
 - **Add Tags And Keys**: Manually add tags and keys for members for lost tags and when members do not register using ClubSpark
 - **Template Emails**: Personalized emails for reminders, and notifications
 
+### Case Tracking
+- **Web-Based Case UI**: Lightweight case management served via n8n webhooks with DaisyUI
+- **Dashboard View**: Case statistics, active/waiting/completed counts, free-text search, status and priority filters
+- **Case Management**: Create, update, and track cases through status (In Progress, Waiting, Completed) and priority (Low, Medium, High, Urgent)
+- **Activity Tracking**: Internal notes and outbound emails stored against each case
+- **Gmail Integration**: Two-way sync with Gmail labels (In Progress, Waiting, Completed)
+  - Imports Gmail threads into the case database
+  - Pushes status changes back to Gmail labels
+- **Contact Search**: Searches club contacts from cleaned data sources (raw_contacts, raw_members, vw_best_current_contacts)
+- **Email Templates**: Compose and preview emails using message templates and signatures
+- **Settings Management**: Configure email delivery mode, test recipient, sender name, reply-to, and default signature
+
 ### Team Sheet Management
 - **Source Document Processing**: Automatically parses Word documents (`*.docx`) containing league and squad team lists
   - Ladies, Mens, Mixed, and Vets teams for summer seasons

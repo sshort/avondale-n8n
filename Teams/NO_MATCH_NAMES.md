@@ -4,20 +4,37 @@ This file records the current non-trivial name matching used by [generate_team_c
 
 ## Remaining No Match Names
 
+- `Alistair Jones` - no unique candidate. Teams: A Squad, Reserves
+- `Joan Mc Crossan` - no unique candidate. Teams: B Squad, Reserves
+
+## No Contact Information (Matched but No Contact Details)
+
+
+## Not Signed Up (Contact Only, No Current Membership)
+
+- `Alex katon` - contact-only match - no current membership. Teams: B Team, D Squad
+- `Ben Fowler` - contact-only match - no current membership. Teams: E Squad
+- `David Jones` - contact-only match - no current membership. Teams: A Squad
+- `David Pharo` - contact-only match - no current membership. Teams: A Squad
+- `Jacob Diskin` - contact-only match - no current membership. Teams: B Squad
+- `Jane Vincent` - contact-only match - no current membership. Teams: A Squad, A Team
+- `Kate Liggett` - contact-only match - no current membership. Teams: C Squad
+- `Leila Warwick` - contact-only match - no current membership. Teams: A Squad
+- `Lynn McKenzie` - contact-only match - no current membership. Teams: C Squad
+- `Mark Hill` - contact-only match - no current membership. Teams: C Squad
+- `Richard Longworth` - contact-only match - no current membership. Teams: B Squad
 
 ## No Consent Contact Details
 
-- `Alec Mach` - self and parent contact details do not permit onward sharing. Teams: B Squad
+- `Alec Mach` - self contact details do not permit onward sharing. Teams: B Squad
 - `Alek Katon` - self contact details do not permit onward sharing. Teams: D Squad
 - `Alessandro Barcello` - self and parent contact details do not permit onward sharing. Teams: E Squad
 - `Alex katon` - self contact details do not permit onward sharing. Teams: B Team, D Squad
-- `Alex Mach` - self and parent contact details do not permit onward sharing. Teams: C Squad
-- `Alistair Jones` - self contact details do not permit onward sharing. Teams: A Squad, Reserves
+- `Alex Mach` - self contact details do not permit onward sharing. Teams: C Squad
 - `Amy Palmer` - parent contact details do not permit onward sharing. Teams: A Squad
 - `Andy Mc Elligot` - self contact details do not permit onward sharing. Teams: B Squad, Reserves
 - `Antonias Nicolaidis` - parent contact details do not permit onward sharing. Teams: D Squad
 - `Antonis Nicolaidis` - parent contact details do not permit onward sharing. Teams: D Squad
-- `Ben Fowler` - parent contact details do not permit onward sharing. Teams: E Squad
 - `Ben Hammond Duncan` - self contact details do not permit onward sharing. Teams: D Squad, E Squad
 - `Charlene Jacobs` - self contact details do not permit onward sharing. Teams: B Squad
 - `Edward Long` - self contact details do not permit onward sharing. Teams: Reserves
@@ -34,6 +51,7 @@ This file records the current non-trivial name matching used by [generate_team_c
 - `Liz Gruenstern` - self contact details do not permit onward sharing. Teams: E Squad
 - `Liz Gruernstern` - self contact details do not permit onward sharing. Teams: D Squad
 - `Liz Long` - self contact details do not permit onward sharing. Teams: B Squad, Reserves
+- `Michael Palmer` - self contact details do not permit onward sharing. Teams: B Squad
 - `Mo Clackett` - self contact details do not permit onward sharing. Teams: Reserves
 - `Nigel Fisher` - self contact details do not permit onward sharing. Teams: D Squad, E Squad
 - `Oliver Casselton` - self contact details do not permit onward sharing. Teams: B Squad
@@ -56,6 +74,24 @@ This file records the current non-trivial name matching used by [generate_team_c
 - `Jax S B` -> `Jacqueline Sinclair-Brown` - explicit full-name override from name_overrides.csv. Teams: D Squad, E Squad
 - `JAX S BROWN` -> `Jacqueline Sinclair-Brown` - explicit full-name override from name_overrides.csv. Teams: C Team
 - `Tom Van Klavern` -> `Thomas Van Klaveren` - explicit full-name override from name_overrides.csv. Teams: B Squad
+
+## Cross-Family Contact Matches
+
+- `Michael Palmer` -> `` - contact details from family member with same surname. Teams: B Squad
+
+## Not Signed Up (Contact Only, No Current Membership)
+
+- `Alex katon` - contact-only match - no current membership. Teams: B Team, D Squad
+- `Ben Fowler` - contact-only match - no current membership. Teams: E Squad
+- `David Jones` - contact-only match - no current membership. Teams: A Squad
+- `David Pharo` - contact-only match - no current membership. Teams: A Squad
+- `Jacob Diskin` - contact-only match - no current membership. Teams: B Squad
+- `Jane Vincent` - contact-only match - no current membership. Teams: A Squad, A Team
+- `Kate Liggett` - contact-only match - no current membership. Teams: C Squad
+- `Leila Warwick` - contact-only match - no current membership. Teams: A Squad
+- `Lynn McKenzie` - contact-only match - no current membership. Teams: C Squad
+- `Mark Hill` - contact-only match - no current membership. Teams: C Squad
+- `Richard Longworth` - contact-only match - no current membership. Teams: B Squad
 
 ## Short-Name / Nickname Matches
 
