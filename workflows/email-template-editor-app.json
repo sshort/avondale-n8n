@@ -1,0 +1,233 @@
+{
+  "name": "Email Template Editor App",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "etg000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "path": "email-template-editor",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "etg000000-0000-0000-0000-000000000002",
+      "name": "Email Template Editor App Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "email-template-editor"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url FROM public.global_settings WHERE key IN ('n8n_base_url');"
+      },
+      "id": "etg000000-0000-0000-0000-000000000003",
+      "name": "Load App Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        480,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const settings=$('Load App Settings').first()?.json??{}; const request=$('Email Template Editor App Webhook').first()?.json??$input.first()?.json??{}; const query=request.query??request; const headers=request.headers??{}; const clean=(value)=>value===null||value===undefined?'':String(value).trim(); const parseId=(value)=>{const n=Number.parseInt(clean(value),10); return Number.isInteger(n)&&n>0?n:null;}; const parseTypeFilter=(value)=>{const raw=clean(value).toLowerCase(); if(raw==='email'||raw==='0') return '0'; if(raw==='header'||raw==='1') return '1'; if(raw==='signature'||raw==='2') return '2'; return '';}; const deriveBaseUrl=(sourceHeaders,fallback)=>{const forwardedProto=clean(sourceHeaders['x-forwarded-proto']); const forwardedHost=clean(sourceHeaders['x-forwarded-host']); const host=forwardedHost||clean(sourceHeaders.host); const forwardedPort=clean(sourceHeaders['x-forwarded-port']); if(!host) return fallback; const proto=forwardedProto||'http'; let authority=host; if(forwardedPort&&!authority.includes(':')){const isDefault=(proto==='http'&&forwardedPort==='80')||(proto==='https'&&forwardedPort==='443'); if(!isDefault) authority=authority+':'+forwardedPort;} return proto+'://'+authority;}; const fallbackBaseUrl=clean(settings.n8n_base_url)||'http://n8n:5678'; const n8nBaseUrl=deriveBaseUrl(headers,fallbackBaseUrl); return [{json:{template_id:parseId(query.template_id),type_filter:parseTypeFilter(query.type_filter),active_filter:(()=>{const raw=clean(query.active_filter).toLowerCase(); return ['active','inactive'].includes(raw)?raw:'';})(),mode:clean(query.mode).toLowerCase()==='new'?'new':'view',flash_message:clean(query.message),flash_error:clean(query.error),n8n_base_url:n8nBaseUrl}}];"
+      },
+      "id": "etg000000-0000-0000-0000-000000000004",
+      "name": "Resolve App Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input=$input.first().json??{}; const sqlLiteral=(value)=>\"'\"+String(value??'').replace(/'/g,\"''\")+\"'\"; const typeFilter=input.type_filter!==''?` AND t.template_type = ${Number.parseInt(input.type_filter,10)}`:''; const activeFilter=input.active_filter==='active'?' AND t.is_active = TRUE':(input.active_filter==='inactive'?' AND t.is_active = FALSE':''); const selectedIdSql=Number.isInteger(input.template_id)?String(input.template_id):'NULL'; const useFirst=input.mode==='new'?'FALSE':'TRUE'; const sql=`WITH summary AS (SELECT count(*)::int AS total_templates, count(*) FILTER (WHERE is_active)::int AS active_templates, count(*) FILTER (WHERE template_type = 0)::int AS email_templates, count(*) FILTER (WHERE template_type = 2)::int AS signature_templates FROM public.email_templates), template_rows AS (SELECT id, template_key, template_name, template_type, subject_template, text_template, html_template, is_active, updated_at FROM public.email_templates t WHERE TRUE${typeFilter}${activeFilter} ORDER BY template_type ASC, lower(template_name) ASC, template_key ASC), selected_template AS (SELECT * FROM public.email_templates WHERE id = COALESCE(${selectedIdSql}, CASE WHEN ${useFirst} THEN (SELECT id FROM template_rows LIMIT 1) ELSE NULL END)) SELECT (SELECT row_to_json(summary) FROM summary) AS summary, COALESCE((SELECT json_agg(to_jsonb(template_rows)) FROM template_rows), '[]'::json) AS template_rows, COALESCE((SELECT to_jsonb(selected_template) FROM selected_template), '{}'::jsonb) AS selected_template`; return [{json:{...input,sql}}];"
+      },
+      "id": "etg000000-0000-0000-0000-000000000005",
+      "name": "Build Page SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "etg000000-0000-0000-0000-000000000006",
+      "name": "Load Page Data",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1320,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $('Resolve App Request').first()?.json ?? {};\nconst row = $('Load Page Data').first()?.json ?? {};\nconst parseMaybe = (value, fallback) => {\n  if (value === null || value === undefined || value === '') return fallback;\n  if (typeof value === 'string') {\n    try { return JSON.parse(value); } catch { return fallback; }\n  }\n  return value;\n};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst escapeHtml = (value) => clean(value)\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst toScriptString = (value) => JSON.stringify(String(value ?? '')).replace(/<\\/script/gi, '<\\\\/script');\nconst summary = parseMaybe(row.summary, {}) || {};\nconst templateRows = parseMaybe(row.template_rows, []);\nconst selectedTemplate = parseMaybe(row.selected_template, {}) || {};\nconst baseUrl = clean(input.n8n_base_url) || 'http://n8n:5678';\nconst appUrl = baseUrl + '/webhook/email-template-editor';\nconst actionsUrl = baseUrl + '/webhook/email-template-editor-actions';\nconst typeLabel = (value) => ({ 0: 'Email', 1: 'Header', 2: 'Signature' })[Number.parseInt(clean(value), 10)] || 'Email';\nconst renderNotice = () => clean(input.flash_error)\n  ? `<div class='alert alert-error shadow-sm'><span>${escapeHtml(input.flash_error)}</span></div>`\n  : (clean(input.flash_message) ? `<div class='alert alert-success shadow-sm'><span>${escapeHtml(input.flash_message)}</span></div>` : '');\nconst renderSummaryCards = () => [\n  { label: 'Total', value: clean(summary.total_templates) || '0' },\n  { label: 'Active', value: clean(summary.active_templates) || '0' },\n  { label: 'Email', value: clean(summary.email_templates) || '0' },\n  { label: 'Signature', value: clean(summary.signature_templates) || '0' },\n].map((item) => `<div class='stat bg-base-100 shadow-sm rounded-box border border-base-300'><div class='stat-title'>${escapeHtml(item.label)}</div><div class='stat-value text-2xl'>${escapeHtml(item.value)}</div></div>`).join('');\nconst renderShell = (title, intro, bodyHtml) => `<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>${escapeHtml(title)}</title><link href='https://cdn.jsdelivr.net/npm/daisyui@5' rel='stylesheet' type='text/css' /><script src='https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4'></script><style>body{background:linear-gradient(180deg,#f8fafc 0%,#eef2ff 100%)} .app-shell{min-height:100vh} .editor-frame{width:min(90%,54rem);max-width:100%;min-width:min(100%,36rem);min-height:23.5rem;resize:both;overflow:auto;display:flex;flex-direction:column;align-self:flex-start;border:1px solid oklch(var(--b3));border-radius:1rem;background:white} .editor-panel{flex:1 1 auto;min-height:0;display:flex} .editor-panel.hidden{display:none!important} .editor-toolbar{flex:0 0 auto;padding:.5rem;border-bottom:1px solid oklch(var(--b3));background:color-mix(in oklab,oklch(var(--b2)) 85%,white)} .editor-toolbar.hidden{display:none!important} .editor-rich-editor{flex:1 1 auto;min-height:100%;padding:.9rem;overflow:auto} #template-rich-editor:focus{outline:none} .editor-source{width:100%;height:100%;min-height:100%;padding:1rem;resize:none;border:0;outline:none;background:transparent;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.875rem} .tox-tbtn{border-radius:.5rem!important} .tox-tinymce-inline,.tox-editor-header{background:transparent!important} .tox-tinymce-inline{width:100%!important} .tox-toolbar__primary{flex-wrap:wrap!important}</style></head><body><div class='drawer lg:drawer-open app-shell'><input id='template-nav' type='checkbox' class='drawer-toggle' /><div class='drawer-content'><div class='navbar bg-base-100/90 backdrop-blur border-b border-base-300 sticky top-0 z-20'><div class='flex-none lg:hidden'><label for='template-nav' class='btn btn-square btn-ghost'>\u2630</label></div><div class='flex-1'><div><div class='text-xs font-semibold uppercase tracking-wide text-primary'>Avondale</div><h1 class='text-2xl font-bold'>${escapeHtml(title)}</h1><p class='text-sm text-base-content/70'>${escapeHtml(intro)}</p></div></div></div><main class='p-4 lg:p-6 space-y-6'>${renderNotice()}<section class='grid gap-4 md:grid-cols-4'>${renderSummaryCards()}</section>${bodyHtml}</main></div><div class='drawer-side z-30'><label for='template-nav' class='drawer-overlay'></label><aside class='w-80 bg-base-100 border-r border-base-300 p-4 flex flex-col gap-4'><div><div class='text-xs font-semibold uppercase tracking-wide text-primary'>Email Templates</div><div class='text-lg font-semibold'>n8n workflow app</div></div><form class='space-y-3' method='GET' action='${appUrl}'><label class='form-control'><span class='label-text'>Type</span><select class='select select-bordered' name='type_filter'><option value=''>All types</option><option value='0'${input.type_filter === '0' ? ' selected' : ''}>Email</option><option value='1'${input.type_filter === '1' ? ' selected' : ''}>Header</option><option value='2'${input.type_filter === '2' ? ' selected' : ''}>Signature</option></select></label><label class='form-control'><span class='label-text'>Status</span><select class='select select-bordered' name='active_filter'><option value=''>All templates</option><option value='active'${input.active_filter === 'active' ? ' selected' : ''}>Active</option><option value='inactive'${input.active_filter === 'inactive' ? ' selected' : ''}>Inactive</option></select></label><div class='flex gap-2'><button class='btn btn-outline btn-sm' type='submit'>Apply</button><a class='btn btn-ghost btn-sm' href='${appUrl}'>Clear</a></div></form><a class='btn btn-primary btn-sm' href='${appUrl}?mode=new${input.type_filter !== '' ? '&type_filter=' + encodeURIComponent(input.type_filter) : ''}${input.active_filter !== '' ? '&active_filter=' + encodeURIComponent(input.active_filter) : ''}'>New Template</a><div class='space-y-3 overflow-y-auto'>${templateRows.map((item) => `<a class='card bg-base-100 shadow-sm border border-base-300 ${clean(item.id) === clean(selectedTemplate.id) && input.mode !== 'new' ? 'border-primary bg-primary/5' : ''}' href='${appUrl}?template_id=${encodeURIComponent(clean(item.id))}${input.type_filter !== '' ? '&type_filter=' + encodeURIComponent(input.type_filter) : ''}${input.active_filter !== '' ? '&active_filter=' + encodeURIComponent(input.active_filter) : ''}'><div class='card-body py-4 gap-2'><div class='flex items-start justify-between gap-2'><div class='font-semibold'>${escapeHtml(item.template_name || item.template_key)}</div><div class='badge badge-outline'>${escapeHtml(typeLabel(item.template_type))}</div></div><div class='text-sm text-base-content/60'>${escapeHtml(item.template_key)}</div><div class='text-xs ${item.is_active ? 'text-success' : 'text-base-content/50'}'>${item.is_active ? 'Active' : 'Inactive'}</div></div></a>`).join('') || `<div class='card bg-base-100 border border-dashed border-base-300'><div class='card-body'><p>No templates found.</p></div></div>`}</div></aside></div></div></body></html>`;\nconst editingExisting = input.mode !== 'new' && clean(selectedTemplate.id) !== '';\nconst draft = editingExisting\n  ? selectedTemplate\n  : { id: '', template_key: '', template_name: '', template_type: input.type_filter !== '' ? Number.parseInt(input.type_filter, 10) : 0, subject_template: '', text_template: '', html_template: '', is_active: true };\nconst actionName = editingExisting ? 'update_template' : 'create_template';\nconst editorTitle = editingExisting ? 'Edit Template' : 'New Template';\nconst filterSuffix = (input.type_filter !== '' ? '&type_filter=' + encodeURIComponent(input.type_filter) : '') + (input.active_filter !== '' ? '&active_filter=' + encodeURIComponent(input.active_filter) : '');\nconst editorUrl = editingExisting ? `${appUrl}?template_id=${encodeURIComponent(clean(draft.id))}${filterSuffix}` : `${appUrl}?mode=new${filterSuffix}`;\nconst initialNameLiteral = toScriptString(draft.template_name);\nconst initialHtmlLiteral = toScriptString(draft.html_template);\nconst initialTextLiteral = toScriptString(draft.text_template);\nconst deleteForm = editingExisting ? `<form class='mt-4' method='POST' action='${actionsUrl}' onsubmit='return window.confirm(&quot;Delete this template?&quot;)'><input type='hidden' name='action' value='delete_template'><input type='hidden' name='template_id' value='${escapeHtml(draft.id)}'><input type='hidden' name='return_url' value='${escapeHtml(editorUrl)}'><button class='btn btn-error btn-outline' type='submit'>Delete</button></form>` : '';\nconst bodyHtml = `<section class='grid gap-6 xl:grid-cols-[minmax(0,1fr)]'><div class='card bg-base-100 shadow-sm border border-base-300'><div class='card-body'><div class='flex flex-wrap items-start justify-between gap-3'><div><h2 class='card-title'>${escapeHtml(editorTitle)}</h2><p class='text-sm text-base-content/60'>Create, edit, and save HTML and plain-text variants in one page.</p></div>${editingExisting ? `<div class='badge badge-outline'>${escapeHtml(draft.template_key)}</div>` : ''}</div><form id='template-editor-form' class='space-y-4' method='POST' action='${actionsUrl}'><input type='hidden' name='action' value='${actionName}'><input type='hidden' name='template_id' value='${escapeHtml(draft.id)}'><input type='hidden' name='return_url' value='${escapeHtml(editorUrl)}'><div class='grid gap-4 md:grid-cols-2 xl:grid-cols-4'><label class='form-control'><span class='label-text'>Template key</span><input class='input input-bordered' type='text' name='template_key' value='${escapeHtml(draft.template_key)}' required></label><label class='form-control'><span class='label-text'>Template name</span><input class='input input-bordered' type='text' name='template_name' value='${escapeHtml(draft.template_name)}' required></label><label class='form-control'><span class='label-text'>Template type</span><select class='select select-bordered' name='template_type'><option value='0'${Number(draft.template_type) === 0 ? ' selected' : ''}>Email</option><option value='1'${Number(draft.template_type) === 1 ? ' selected' : ''}>Header</option><option value='2'${Number(draft.template_type) === 2 ? ' selected' : ''}>Signature</option></select></label><label class='label cursor-pointer justify-start gap-3 mt-8'><input class='checkbox' type='checkbox' name='is_active' value='1'${draft.is_active ? ' checked' : ''}><span class='label-text'>Active</span></label></div><label class='form-control'><span class='label-text'>Subject</span><input class='input input-bordered' type='text' name='subject_template' value='${escapeHtml(draft.subject_template)}'></label><div class='flex flex-wrap items-center justify-between gap-3'><div class='join'><button class='btn btn-sm btn-primary join-item' type='button' data-editor-mode='rich'>Rich Edit</button><button class='btn btn-sm btn-outline join-item' type='button' data-editor-mode='html'>HTML Edit</button><button class='btn btn-sm btn-outline join-item' type='button' data-editor-mode='text'>Text Edit</button></div><div class='flex flex-wrap gap-2'><button id='template-reload' class='btn btn-sm btn-ghost' type='button'>Reload</button><button id='template-convert' class='btn btn-sm btn-ghost' type='button'>Generate Text From HTML</button></div></div><div class='text-sm text-base-content/60'>The editor frame keeps the same size across modes and can be resized from the bottom-right corner.</div><div id='template-editor-frame' class='editor-frame'><div id='template-rich-toolbar' class='editor-toolbar'></div><div id='template-rich-panel' class='editor-panel'><div id='template-rich-editor' class='editor-rich-editor'></div></div><div id='template-html-panel' class='editor-panel hidden'><textarea id='template-html-source' class='editor-source' name='html_template'>${escapeHtml(draft.html_template)}</textarea></div><div id='template-text-panel' class='editor-panel hidden'><textarea id='template-text-source' class='editor-source' name='text_template'>${escapeHtml(draft.text_template)}</textarea></div></div><div class='flex flex-wrap gap-3'><button class='btn btn-primary' type='submit'>${editingExisting ? 'Save Template' : 'Create Template'}</button><a class='btn btn-ghost' href='${appUrl}'>${editingExisting ? 'Done' : 'Cancel'}</a></div></form>${deleteForm}</div></div></section><script src='https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js' referrerpolicy='origin'></script><script>(function () { const form = document.getElementById('template-editor-form'); if (!form) return; const templateNameInput = form.querySelector('input[name=\"template_name\"]'); const htmlSource = document.getElementById('template-html-source'); const textSource = document.getElementById('template-text-source'); const reloadButton = document.getElementById('template-reload'); const convertButton = document.getElementById('template-convert'); const toolbarContainer = document.getElementById('template-rich-toolbar'); const modeButtons = Array.from(form.querySelectorAll('[data-editor-mode]')); const panels = { rich: document.getElementById('template-rich-panel'), html: document.getElementById('template-html-panel'), text: document.getElementById('template-text-panel') }; const state = { currentMode: 'rich', initialName: ${initialNameLiteral}, initialHtml: ${initialHtmlLiteral}, initialText: ${initialTextLiteral} }; const normalizeRichHtml = (value) => String(value || '').replace(/<!doctype[^>]*>/ig, '').replace(/<\\\\/?(?:html|body)[^>]*>/ig, '').trim(); const htmlToText = (value) => String(value || '').split('<br />').join('<br/>').split('<br>').join('<br/>').split('<br/>').join('\\n').split('</p><p>').join('</p>\\n\\n<p>').split('</p> <p>').join('</p>\\n\\n<p>').split('</p>').join('</p>\\n\\n').split('</div>').join('</div>\\n').split('</li>').join('</li>\\n').replace(/<[^>]+>/g, '').replace(/\\r/g, '').replace(/\\n{3,}/g, '\\n\\n').trim(); const syncHtmlFromEditor = () => { const editor = window.tinymce && window.tinymce.get('template-rich-editor'); if (editor && htmlSource) htmlSource.value = editor.getContent({ format: 'html' }); }; const syncEditorFromHtml = () => { const editor = window.tinymce && window.tinymce.get('template-rich-editor'); if (!editor || !htmlSource) return; const nextValue = normalizeRichHtml(htmlSource.value || ''); if (editor.getContent({ format: 'html' }) !== nextValue) editor.setContent(nextValue); }; const setMode = (mode) => { if (!panels[mode]) return; if (state.currentMode === 'rich' && mode !== 'rich') syncHtmlFromEditor(); if (mode === 'rich') syncEditorFromHtml(); state.currentMode = mode; if (toolbarContainer) toolbarContainer.classList.toggle('hidden', mode !== 'rich'); Object.entries(panels).forEach(([key, panel]) => { if (!panel) return; panel.classList.toggle('hidden', key !== mode); }); modeButtons.forEach((button) => { const active = button.dataset.editorMode === mode; button.classList.toggle('btn-primary', active); button.classList.toggle('btn-outline', !active); }); }; modeButtons.forEach((button) => { button.addEventListener('click', () => setMode(button.dataset.editorMode)); }); if (reloadButton) { reloadButton.addEventListener('click', () => { if (templateNameInput) templateNameInput.value = state.initialName; if (htmlSource) htmlSource.value = state.initialHtml; if (textSource) textSource.value = state.initialText; syncEditorFromHtml(); setMode('rich'); }); } if (convertButton) { convertButton.addEventListener('click', () => { syncHtmlFromEditor(); if (textSource) textSource.value = htmlToText(htmlSource.value || ''); }); } form.addEventListener('submit', () => { syncHtmlFromEditor(); }); const initTinyMce = () => { if (!window.tinymce) { setMode('html'); return; } if (window.tinymce.get('template-rich-editor')) return; window.tinymce.init({ selector: '#template-rich-editor', inline: true, toolbar_persist: true, fixed_toolbar_container: '#template-rich-toolbar', menubar: false, promotion: false, branding: false, plugins: 'autolink code link lists table', toolbar: 'undo redo | blocks | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link table | removeformat code', content_style: 'body { font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.5; padding: 1rem; }', setup: (editor) => { editor.on('init', () => editor.setContent(normalizeRichHtml(state.initialHtml || ''))); editor.on('change input undo redo', () => syncHtmlFromEditor()); } }); }; setMode('rich'); initTinyMce(); })();</script>`;\nreturn [{ json: { html: renderShell('Email Template Editor', 'Edit message, header, and signature templates in n8n using the same HTML app pattern as case tracking.', bodyHtml) } }];"
+      },
+      "id": "etg000000-0000-0000-0000-000000000007",
+      "name": "Build Page HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              },
+              {
+                "name": "Pragma",
+                "value": "no-cache"
+              },
+              {
+                "name": "Expires",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "etg000000-0000-0000-0000-000000000008",
+      "name": "Respond App",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1860,
+        220
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load App Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Template Editor App Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load App Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load App Settings": {
+      "main": [
+        [
+          {
+            "node": "Resolve App Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve App Request": {
+      "main": [
+        [
+          {
+            "node": "Build Page SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Page SQL": {
+      "main": [
+        [
+          {
+            "node": "Load Page Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Page Data": {
+      "main": [
+        [
+          {
+            "node": "Build Page HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Page HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond App",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}
