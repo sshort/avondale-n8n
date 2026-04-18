@@ -136,12 +136,14 @@ if [[ "$SKIP_TRIGGER" -eq 0 ]]; then
   base_url="${TEAM_MAILOUT_WEBHOOK_BASE_URL:-http://192.168.1.237:5678}"
   webhook_url="${base_url%/}/webhook/send-team-captain-contact-lists"
   manifest_json="${TEAM_MAILOUT_GENERATED_DIR:-$ROOT_DIR/Teams/generated}/team-captain-email-jobs.json"
+  shared_bcc_file="$ROOT_DIR/Teams/team-captain-mailout-bcc.txt"
   payload_file="$(mktemp)"
   trap 'rm -f "$payload_file"' EXIT
   jq --arg mode "$MODE" \
     --arg base_dir "${TEAM_MAILOUT_CONTAINER_DIR:-/home/node/.n8n-files/teams-mailout/current}" \
+    --rawfile shared_bcc "$shared_bcc_file" \
     --argjson include_shared_bcc_in_test "$INCLUDE_SHARED_BCC_IN_TEST" \
-    '{delivery_mode: $mode, base_dir: $base_dir, attachment_mode: .attachment_mode, include_shared_bcc_in_test: $include_shared_bcc_in_test, jobs: .jobs}' \
+    '{delivery_mode: $mode, base_dir: $base_dir, attachment_mode: .attachment_mode, include_shared_bcc_in_test: $include_shared_bcc_in_test, shared_bcc: $shared_bcc, jobs: .jobs}' \
     "$manifest_json" > "$payload_file"
   echo "Triggering: $webhook_url"
   curl -sS \
