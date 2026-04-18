@@ -1,0 +1,222 @@
+{
+  "cache_invalidated_at": "2026-04-15T13:58:31.164439Z",
+  "description": null,
+  "archived": false,
+  "view_count": 492,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": 14,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "category",
+      "lib/original-name": "category",
+      "name": "category",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "category",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "category",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "category",
+      "display_name": "category",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 12,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 8.916666666666666
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Previous Year",
+      "lib/original-name": "Previous Year",
+      "name": "Previous Year",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Previous Year",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Previous Year",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "Previous Year",
+      "display_name": "Previous Year",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 11,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 6.0,
+            "q3": 47.0,
+            "max": 212.0,
+            "sd": 60.43397348772586,
+            "avg": 37.916666666666664
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Current Year",
+      "lib/original-name": "Current Year",
+      "name": "Current Year",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Current Year",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Current Year",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "Current Year",
+      "display_name": "Current Year",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 11,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 5.0,
+            "q3": 30.5,
+            "max": 158.0,
+            "sd": 44.023667876874285,
+            "avg": 27.083333333333332
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Members by category",
+  "last_query_start": "2026-04-18T16:09:48.024922Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-18T16:09:48.125612Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 64.3008130081300813,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-15T13:58:31.163393Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "native": "WITH latest AS (\n  SELECT max(season::int) AS latest_season\n  FROM public.membership_packages\n), current_display AS (\n  SELECT trim(category) AS category, min(display_order) AS display_order\n  FROM public.membership_packages p\n  CROSS JOIN latest l\n  WHERE p.season = l.latest_season::text\n    AND trim(category) <> 'Pavilion Key'\n    AND trim(category) <> ''\n    AND category IS NOT NULL\n  GROUP BY trim(category)\n), previous_display AS (\n  SELECT trim(category) AS category, min(display_order) AS display_order\n  FROM public.membership_packages p\n  CROSS JOIN latest l\n  WHERE p.season = (l.latest_season - 1)::text\n    AND trim(category) <> 'Pavilion Key'\n    AND trim(category) <> ''\n    AND category IS NOT NULL\n  GROUP BY trim(category)\n), current_counts AS (\n  SELECT trim(p.category) AS category, count(*)::int AS current_year\n  FROM public.raw_members m\n  JOIN public.membership_packages p\n    ON m.\"Membership\" = p.name\n  JOIN latest l\n    ON p.season = l.latest_season::text\n  WHERE trim(p.category) <> 'Pavilion Key'\n    AND trim(p.category) <> ''\n    AND p.category IS NOT NULL\n    AND m.\"Payment\" IN ('Paid', 'Part Paid')\n    AND coalesce(m.is_current, true) = true\n  GROUP BY trim(p.category)\n), previous_counts AS (\n  SELECT\n    h.membership AS category,\n    CASE format('%s/%s', l.latest_season - 1, l.latest_season)\n      WHEN '2026/2027' THEN h.\"2026/2027\"\n      WHEN '2025/2026' THEN h.\"2025/2026\"\n      WHEN '2024/2025' THEN h.\"2024/2025\"\n      WHEN '2023/2024' THEN h.\"2023/2024\"\n      WHEN '2022/2023' THEN h.\"2022/2023\"\n      WHEN '2021/2022' THEN h.\"2021/2022\"\n      WHEN '2020/2021' THEN h.\"2020/2021\"\n      WHEN '2019/2020' THEN h.\"2019/2020\"\n      WHEN '2018/2019' THEN h.\"2018/2019\"\n      WHEN '2017/2018' THEN h.\"2017/2018\"\n      WHEN '2016/2017' THEN h.\"2016/2017\"\n      WHEN '2015/2016' THEN h.\"2015/2016\"\n      WHEN '2014/2015' THEN h.\"2014/2015\"\n    END::int AS previous_year\n  FROM public.membership_history h\n  CROSS JOIN latest l\n  WHERE h.membership NOT IN ('Total', 'Pavilion Key')\n), categories AS (\n  SELECT category FROM current_counts\n  UNION\n  SELECT category FROM previous_counts\n)\nSELECT\n  c.category,\n  coalesce(prev.previous_year, 0)::int AS \"Previous Year\",\n  coalesce(cur.current_year, 0)::int AS \"Current Year\"\nFROM categories c\nLEFT JOIN current_counts cur ON cur.category = c.category\nLEFT JOIN previous_counts prev ON prev.category = c.category\nLEFT JOIN current_display cd ON cd.category = c.category\nLEFT JOIN previous_display pd ON pd.category = c.category\nORDER BY coalesce(cd.display_order, pd.display_order, 999), c.category;"
+      }
+    ]
+  },
+  "id": 1494,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "bar",
+  "archived_directly": false,
+  "entity_id": "agI6nJee7gE8zV0HEYzdm",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-15T13:58:31.18762Z"
+  },
+  "visualization_settings": {
+    "graph.dimensions": [
+      "category"
+    ],
+    "graph.x_axis.scale": "ordinal",
+    "graph.metrics": [
+      "Previous Year",
+      "Current Year"
+    ]
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-03-16T15:09:00.820964Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

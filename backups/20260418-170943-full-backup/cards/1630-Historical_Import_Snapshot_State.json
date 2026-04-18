@@ -1,0 +1,315 @@
+{
+  "cache_invalidated_at": null,
+  "description": "Current raw snapshot state alongside historical archive coverage for members and contacts.",
+  "archived": false,
+  "view_count": 19,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "text",
+      "semantic_type": "type/Source",
+      "lib/deduplicated-name": "Source",
+      "lib/original-name": "Source",
+      "name": "Source",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Source",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Source",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Source",
+      "display_name": "Source",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 7.5
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Current Snapshot Year",
+      "lib/original-name": "Current Snapshot Year",
+      "name": "Current Snapshot Year",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Current Snapshot Year",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Current Snapshot Year",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "Current Snapshot Year",
+      "display_name": "Current Snapshot Year",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 2026.0,
+            "q1": 2026.0,
+            "q3": 2026.0,
+            "max": 2026.0,
+            "sd": 0.0,
+            "avg": 2026.0
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int8",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Archived Rows",
+      "lib/original-name": "Archived Rows",
+      "name": "Archived Rows",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Archived Rows",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Archived Rows",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "Archived Rows",
+      "display_name": "Archived Rows",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.0,
+            "q3": 1249.0,
+            "max": 1249.0,
+            "sd": 883.1763697019978,
+            "avg": 624.5
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "timestamptz",
+      "semantic_type": null,
+      "lib/deduplicated-name": "First Archived At",
+      "lib/original-name": "First Archived At",
+      "name": "First Archived At",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "First Archived At",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "First Archived At",
+        {
+          "base-type": "type/DateTimeWithLocalTZ"
+        }
+      ],
+      "effective_type": "type/DateTimeWithLocalTZ",
+      "lib/desired-column-alias": "First Archived At",
+      "display_name": "First Archived At",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.5
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": "2026-04-18T06:30:00.092514Z",
+            "latest": "2026-04-18T06:30:00.092514Z"
+          }
+        }
+      },
+      "base_type": "type/DateTimeWithLocalTZ"
+    },
+    {
+      "database_type": "timestamptz",
+      "semantic_type": "type/UpdatedTimestamp",
+      "lib/deduplicated-name": "Last Archived / Updated",
+      "lib/original-name": "Last Archived / Updated",
+      "name": "Last Archived / Updated",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Last Archived / Updated",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Last Archived / Updated",
+        {
+          "base-type": "type/DateTimeWithLocalTZ"
+        }
+      ],
+      "effective_type": "type/DateTimeWithLocalTZ",
+      "lib/desired-column-alias": "Last Archived / Updated",
+      "display_name": "Last Archived / Updated",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": "2026-03-24T16:02:29.410321Z",
+            "latest": "2026-04-18T06:30:00.092514Z"
+          }
+        }
+      },
+      "base_type": "type/DateTimeWithLocalTZ"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": "type/Source",
+      "lib/deduplicated-name": "Snapshot Sources",
+      "lib/original-name": "Snapshot Sources",
+      "name": "Snapshot Sources",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Snapshot Sources",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Snapshot Sources",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Snapshot Sources",
+      "display_name": "Snapshot Sources",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.5
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 9.5
+          }
+        }
+      },
+      "base_type": "type/Text"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Historical Import Snapshot State",
+  "last_query_start": "2026-04-18T12:22:11.512799Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-18T12:22:11.530786Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 215.1578947368421053,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-07T15:36:31.893646Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "native": "with archive_rollup as (\n    select\n        'raw_members'::text as table_name,\n        count(*)::bigint as archived_rows,\n        min(archived_at) as first_archived_at,\n        max(archived_at) as last_archived_at,\n        string_agg(distinct snapshot_source, ', ' order by snapshot_source) as snapshot_sources\n    from public.raw_members_historical\n    union all\n    select\n        'raw_contacts'::text as table_name,\n        count(*)::bigint as archived_rows,\n        min(archived_at) as first_archived_at,\n        max(archived_at) as last_archived_at,\n        string_agg(distinct snapshot_source, ', ' order by snapshot_source) as snapshot_sources\n    from public.raw_contacts_historical\n)\nselect\n    case rss.table_name\n        when 'raw_members' then 'Members'\n        when 'raw_contacts' then 'Contacts'\n        else rss.table_name\n    end as \"Source\",\n    rss.current_snapshot_year as \"Current Snapshot Year\",\n    coalesce(ar.archived_rows, 0) as \"Archived Rows\",\n    ar.first_archived_at as \"First Archived At\",\n    coalesce(ar.last_archived_at, rss.updated_at) as \"Last Archived / Updated\",\n    ar.snapshot_sources as \"Snapshot Sources\"\nfrom public.raw_snapshot_state rss\nleft join archive_rollup ar on ar.table_name = rss.table_name\nwhere rss.table_name in ('raw_members', 'raw_contacts')\norder by \"Source\";"
+      }
+    ]
+  },
+  "id": 1630,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "TlAhchphJfhsRXG-n5vIa",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-07T15:36:31.907995Z"
+  },
+  "visualization_settings": {},
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-04-07T15:36:31.893646Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

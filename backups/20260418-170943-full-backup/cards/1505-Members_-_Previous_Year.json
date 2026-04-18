@@ -1,0 +1,244 @@
+{
+  "cache_invalidated_at": "2026-04-15T13:58:31.518665Z",
+  "description": null,
+  "archived": false,
+  "view_count": 487,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "category",
+      "lib/original-name": "category",
+      "name": "category",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "category",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "category",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "category",
+      "display_name": "category",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 11,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 8.727272727272727
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "display_order",
+      "lib/original-name": "display_order",
+      "name": "display_order",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "display_order",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "display_order",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "display_order",
+      "display_name": "display_order",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 11,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 1.0,
+            "q1": 3.25,
+            "q3": 8.75,
+            "max": 99.0,
+            "sd": 28.337254630609507,
+            "avg": 14.0
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": "type/Quantity",
+      "lib/deduplicated-name": "count",
+      "lib/original-name": "count",
+      "name": "count",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "count",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "count",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "count",
+      "display_name": "count",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 10,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 4.0,
+            "q1": 6.41886116991581,
+            "q3": 56.5,
+            "max": 212.0,
+            "sd": 62.134165685672045,
+            "avg": 41.36363636363637
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Members - Previous Year",
+  "last_query_start": "2026-04-18T13:17:14.017526Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-18T13:17:14.15646Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 68.7446808510638298,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-15T13:58:31.517591Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "native": "WITH target AS (\n  SELECT\n    format('%s/%s', (({{year}})::int - 1), {{year}}::int) AS season_key,\n    (({{year}})::int - 1)::text AS source_season\n), display_order AS (\n  SELECT category, min(display_order) AS display_order\n  FROM public.membership_packages, target\n  WHERE season = target.source_season\n    AND category <> 'Pavilion Key'\n  GROUP BY category\n)\nSELECT\n  h.membership AS category,\n  COALESCE(d.display_order, 999) AS display_order,\n  CASE target.season_key\n    WHEN '2026/2027' THEN h.\"2026/2027\"\n    WHEN '2025/2026' THEN h.\"2025/2026\"\n    WHEN '2024/2025' THEN h.\"2024/2025\"\n    WHEN '2023/2024' THEN h.\"2023/2024\"\n    WHEN '2022/2023' THEN h.\"2022/2023\"\n    WHEN '2021/2022' THEN h.\"2021/2022\"\n    WHEN '2020/2021' THEN h.\"2020/2021\"\n    WHEN '2019/2020' THEN h.\"2019/2020\"\n    WHEN '2018/2019' THEN h.\"2018/2019\"\n    WHEN '2017/2018' THEN h.\"2017/2018\"\n    WHEN '2016/2017' THEN h.\"2016/2017\"\n    WHEN '2015/2016' THEN h.\"2015/2016\"\n    WHEN '2014/2015' THEN h.\"2014/2015\"\n  END AS Count\nFROM public.membership_history h\nCROSS JOIN target\nLEFT JOIN display_order d ON d.category = h.membership\nWHERE h.membership NOT IN ('Total', 'Pavilion Key')\n  AND CASE target.season_key\n    WHEN '2026/2027' THEN h.\"2026/2027\"\n    WHEN '2025/2026' THEN h.\"2025/2026\"\n    WHEN '2024/2025' THEN h.\"2024/2025\"\n    WHEN '2023/2024' THEN h.\"2023/2024\"\n    WHEN '2022/2023' THEN h.\"2022/2023\"\n    WHEN '2021/2022' THEN h.\"2021/2022\"\n    WHEN '2020/2021' THEN h.\"2020/2021\"\n    WHEN '2019/2020' THEN h.\"2019/2020\"\n    WHEN '2018/2019' THEN h.\"2018/2019\"\n    WHEN '2017/2018' THEN h.\"2017/2018\"\n    WHEN '2016/2017' THEN h.\"2016/2017\"\n    WHEN '2015/2016' THEN h.\"2015/2016\"\n    WHEN '2014/2015' THEN h.\"2014/2015\"\n  END IS NOT NULL\nORDER BY COALESCE(d.display_order, 999), h.membership;",
+        "lib/type": "mbql.stage/native",
+        "template-tags": {
+          "year": {
+            "type": "text",
+            "id": "year",
+            "name": "year",
+            "display-name": "Year",
+            "required": true
+          }
+        }
+      }
+    ]
+  },
+  "id": 1505,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "02_T-b-wa8TpsQ_td-kgl",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-15T13:58:31.545352Z"
+  },
+  "visualization_settings": {
+    "column_settings": {
+      "[\"name\",\"category\"]": {
+        "column_title": "Membership Category"
+      }
+    }
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [
+    {
+      "id": "year",
+      "type": "string/=",
+      "target": [
+        "variable",
+        [
+          "template-tag",
+          "year"
+        ]
+      ],
+      "name": "Year",
+      "slug": "year",
+      "required": true,
+      "isMultiSelect": false
+    }
+  ],
+  "dashboard_id": null,
+  "created_at": "2026-03-16T15:09:02.315307Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

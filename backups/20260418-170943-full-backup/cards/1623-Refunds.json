@@ -1,0 +1,1122 @@
+{
+  "cache_invalidated_at": "2026-04-17T15:00:02.27494Z",
+  "description": null,
+  "archived": false,
+  "view_count": 88,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": 142,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "bigserial",
+      "semantic_type": "type/PK",
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "id",
+      "lib/original-name": "id",
+      "name": "id",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "id",
+      "lib/original-display-name": "ID",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2690,
+        null
+      ],
+      "effective_type": "type/BigInteger",
+      "active": true,
+      "id": 2690,
+      "lib/desired-column-alias": "id",
+      "position": 0,
+      "visibility_type": "normal",
+      "display_name": "ID",
+      "fingerprint": null,
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": "type/Name",
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "name",
+      "lib/original-name": "name",
+      "name": "name",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "name",
+      "lib/original-display-name": "Name",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2691,
+        null
+      ],
+      "effective_type": "type/Text",
+      "active": true,
+      "id": 2691,
+      "lib/desired-column-alias": "name",
+      "position": 1,
+      "visibility_type": "normal",
+      "display_name": "Name",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 5,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 12.6
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": "type/Category",
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "refund_for",
+      "lib/original-name": "refund_for",
+      "name": "refund_for",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "refund_for",
+      "lib/original-display-name": "Refund For",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2692,
+        null
+      ],
+      "effective_type": "type/Text",
+      "active": true,
+      "id": 2692,
+      "lib/desired-column-alias": "refund_for",
+      "position": 2,
+      "visibility_type": "normal",
+      "display_name": "Refund For",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 5,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 12.2
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": "type/Category",
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "reason",
+      "lib/original-name": "reason",
+      "name": "reason",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "reason",
+      "lib/original-display-name": "Reason",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2693,
+        null
+      ],
+      "effective_type": "type/Text",
+      "active": true,
+      "id": 2693,
+      "lib/desired-column-alias": "reason",
+      "position": 3,
+      "visibility_type": "normal",
+      "display_name": "Reason",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 7.8
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": "type/Category",
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "membership",
+      "lib/original-name": "membership",
+      "name": "membership",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "membership",
+      "lib/original-display-name": "Membership",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2694,
+        null
+      ],
+      "effective_type": "type/Text",
+      "active": true,
+      "id": 2694,
+      "lib/desired-column-alias": "membership",
+      "position": 4,
+      "visibility_type": "normal",
+      "display_name": "Membership",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 6.4
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "numeric",
+      "semantic_type": null,
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "amount",
+      "lib/original-name": "amount",
+      "name": "amount",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "amount",
+      "lib/original-display-name": "Amount",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2695,
+        null
+      ],
+      "effective_type": "type/Decimal",
+      "active": true,
+      "id": 2695,
+      "lib/desired-column-alias": "amount",
+      "position": 5,
+      "visibility_type": "normal",
+      "display_name": "Amount",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 4,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 145.0,
+            "q1": 197.5,
+            "q3": 220.83772233983163,
+            "max": 222.0,
+            "sd": 33.306155587218406,
+            "avg": 204.4
+          }
+        }
+      },
+      "base_type": "type/Decimal"
+    },
+    {
+      "database_type": "date",
+      "semantic_type": null,
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "from_date",
+      "lib/original-name": "from_date",
+      "name": "from_date",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "from_date",
+      "lib/original-display-name": "From Date",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2696,
+        null
+      ],
+      "effective_type": "type/Date",
+      "active": true,
+      "id": 2696,
+      "lib/desired-column-alias": "from_date",
+      "position": 6,
+      "visibility_type": "normal",
+      "display_name": "From Date",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 4,
+          "nil%": 0.4
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": "2022-06-22",
+            "latest": "2025-09-19"
+          }
+        }
+      },
+      "base_type": "type/Date"
+    },
+    {
+      "database_type": "date",
+      "semantic_type": null,
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "to_date",
+      "lib/original-name": "to_date",
+      "name": "to_date",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "to_date",
+      "lib/original-display-name": "To Date",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2697,
+        null
+      ],
+      "effective_type": "type/Date",
+      "active": true,
+      "id": 2697,
+      "lib/desired-column-alias": "to_date",
+      "position": 7,
+      "visibility_type": "normal",
+      "display_name": "To Date",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 4,
+          "nil%": 0.4
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": "2023-03-31",
+            "latest": "2026-03-31"
+          }
+        }
+      },
+      "base_type": "type/Date"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "months",
+      "lib/original-name": "months",
+      "name": "months",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "months",
+      "lib/original-display-name": "Months",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2698,
+        null
+      ],
+      "effective_type": "type/Integer",
+      "active": true,
+      "id": 2698,
+      "lib/desired-column-alias": "months",
+      "position": 8,
+      "visibility_type": "normal",
+      "display_name": "Months",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 3.0,
+            "q1": 4.5,
+            "q3": 7.0,
+            "max": 8.0,
+            "sd": 1.7888543819998317,
+            "avg": 5.8
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "numeric",
+      "semantic_type": null,
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "refund",
+      "lib/original-name": "refund",
+      "name": "refund",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "refund",
+      "lib/original-display-name": "Refund",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2699,
+        null
+      ],
+      "effective_type": "type/Decimal",
+      "active": true,
+      "id": 2699,
+      "lib/desired-column-alias": "refund",
+      "position": 9,
+      "visibility_type": "normal",
+      "display_name": "Refund",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 5,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 37.0,
+            "q1": 54.25,
+            "q3": 100.5,
+            "max": 126.0,
+            "sd": 34.04364110961106,
+            "avg": 81.33
+          }
+        }
+      },
+      "base_type": "type/Decimal"
+    },
+    {
+      "description": "Requested | Awaiting Bank Details | Bank Details Received | Ready For Treasury | Sent To Treasury | Paid | Rejected | Cancelled",
+      "database_type": "text",
+      "semantic_type": "type/Category",
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "status",
+      "lib/original-name": "status",
+      "name": "status",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "status",
+      "lib/original-display-name": "Status",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2700,
+        null
+      ],
+      "effective_type": "type/Text",
+      "active": true,
+      "id": 2700,
+      "lib/desired-column-alias": "status",
+      "position": 10,
+      "visibility_type": "normal",
+      "display_name": "Status",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 16.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": "type/Category",
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "explanation",
+      "lib/original-name": "explanation",
+      "name": "explanation",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "explanation",
+      "lib/original-display-name": "Explanation",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2701,
+        null
+      ],
+      "effective_type": "type/Text",
+      "active": true,
+      "id": 2701,
+      "lib/desired-column-alias": "explanation",
+      "position": 11,
+      "visibility_type": "normal",
+      "display_name": "Explanation",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 5,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 155.4
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": "type/Author",
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "created_by",
+      "lib/original-name": "created_by",
+      "name": "created_by",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "created_by",
+      "lib/original-display-name": "Created By",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2702,
+        null
+      ],
+      "effective_type": "type/Text",
+      "active": true,
+      "id": 2702,
+      "lib/desired-column-alias": "created_by",
+      "position": 12,
+      "visibility_type": "normal",
+      "display_name": "Created By",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 19.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "timestamptz",
+      "semantic_type": "type/CreationTimestamp",
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "created_at",
+      "lib/original-name": "created_at",
+      "name": "created_at",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "created_at",
+      "lib/original-display-name": "Created At",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2703,
+        null
+      ],
+      "effective_type": "type/DateTimeWithLocalTZ",
+      "active": true,
+      "id": 2703,
+      "lib/desired-column-alias": "created_at",
+      "position": 13,
+      "visibility_type": "normal",
+      "display_name": "Created At",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": "2026-04-03T06:57:02.383089Z",
+            "latest": "2026-04-03T06:57:02.383089Z"
+          }
+        }
+      },
+      "base_type": "type/DateTimeWithLocalTZ"
+    },
+    {
+      "database_type": "timestamptz",
+      "semantic_type": "type/UpdatedTimestamp",
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "updated_at",
+      "lib/original-name": "updated_at",
+      "name": "updated_at",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "updated_at",
+      "lib/original-display-name": "Updated At",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2704,
+        null
+      ],
+      "effective_type": "type/DateTimeWithLocalTZ",
+      "active": true,
+      "id": 2704,
+      "lib/desired-column-alias": "updated_at",
+      "position": 14,
+      "visibility_type": "normal",
+      "display_name": "Updated At",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": "2026-04-03T06:57:02.383089Z",
+            "latest": "2026-04-03T06:57:02.383089Z"
+          }
+        }
+      },
+      "base_type": "type/DateTimeWithLocalTZ"
+    },
+    {
+      "description": "Gmail message ID of the email sent to member requesting bank details",
+      "database_type": "text",
+      "semantic_type": null,
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "request_email_message_id",
+      "lib/original-name": "request_email_message_id",
+      "name": "request_email_message_id",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "request_email_message_id",
+      "lib/original-display-name": "Request Email Message ID",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2737,
+        null
+      ],
+      "effective_type": "type/Text",
+      "active": true,
+      "id": 2737,
+      "lib/desired-column-alias": "request_email_message_id",
+      "position": 15,
+      "visibility_type": "normal",
+      "display_name": "Request Email Message ID",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 1.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 0.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "description": "Gmail message ID of the reply containing bank details",
+      "database_type": "text",
+      "semantic_type": null,
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "bank_details_message_id",
+      "lib/original-name": "bank_details_message_id",
+      "name": "bank_details_message_id",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "bank_details_message_id",
+      "lib/original-display-name": "Bank Details Message ID",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2738,
+        null
+      ],
+      "effective_type": "type/Text",
+      "active": true,
+      "id": 2738,
+      "lib/desired-column-alias": "bank_details_message_id",
+      "position": 16,
+      "visibility_type": "normal",
+      "display_name": "Bank Details Message ID",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 1.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 0.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "description": "Gmail message ID of the email sent to treasury",
+      "database_type": "text",
+      "semantic_type": null,
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "treasury_email_message_id",
+      "lib/original-name": "treasury_email_message_id",
+      "name": "treasury_email_message_id",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "treasury_email_message_id",
+      "lib/original-display-name": "Treasury Email Message ID",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2739,
+        null
+      ],
+      "effective_type": "type/Text",
+      "active": true,
+      "id": 2739,
+      "lib/desired-column-alias": "treasury_email_message_id",
+      "position": 17,
+      "visibility_type": "normal",
+      "display_name": "Treasury Email Message ID",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 1.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 0.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "timestamptz",
+      "semantic_type": null,
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "paid_at",
+      "lib/original-name": "paid_at",
+      "name": "paid_at",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "paid_at",
+      "lib/original-display-name": "Paid At",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2740,
+        null
+      ],
+      "effective_type": "type/DateTimeWithLocalTZ",
+      "active": true,
+      "id": 2740,
+      "lib/desired-column-alias": "paid_at",
+      "position": 18,
+      "visibility_type": "normal",
+      "display_name": "Paid At",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 1.0
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": null,
+            "latest": null
+          }
+        }
+      },
+      "base_type": "type/DateTimeWithLocalTZ"
+    },
+    {
+      "database_type": "timestamptz",
+      "semantic_type": null,
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "rejected_at",
+      "lib/original-name": "rejected_at",
+      "name": "rejected_at",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "rejected_at",
+      "lib/original-display-name": "Rejected At",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2741,
+        null
+      ],
+      "effective_type": "type/DateTimeWithLocalTZ",
+      "active": true,
+      "id": 2741,
+      "lib/desired-column-alias": "rejected_at",
+      "position": 19,
+      "visibility_type": "normal",
+      "display_name": "Rejected At",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 1.0
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": null,
+            "latest": null
+          }
+        }
+      },
+      "base_type": "type/DateTimeWithLocalTZ"
+    },
+    {
+      "database_type": "timestamptz",
+      "semantic_type": "type/CancelationTimestamp",
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "cancelled_at",
+      "lib/original-name": "cancelled_at",
+      "name": "cancelled_at",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "cancelled_at",
+      "lib/original-display-name": "Cancelled At",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2742,
+        null
+      ],
+      "effective_type": "type/DateTimeWithLocalTZ",
+      "active": true,
+      "id": 2742,
+      "lib/desired-column-alias": "cancelled_at",
+      "position": 20,
+      "visibility_type": "normal",
+      "display_name": "Cancelled At",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 1.0
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": null,
+            "latest": null
+          }
+        }
+      },
+      "base_type": "type/DateTimeWithLocalTZ"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "table_id": 142,
+      "qp/implicit-field?": true,
+      "lib/deduplicated-name": "notes",
+      "lib/original-name": "notes",
+      "name": "notes",
+      "lib/source": "source/table-defaults",
+      "lib/source-column-alias": "notes",
+      "lib/original-display-name": "Notes",
+      "source": "fields",
+      "field_ref": [
+        "field",
+        2743,
+        null
+      ],
+      "effective_type": "type/Text",
+      "active": true,
+      "id": 2743,
+      "lib/desired-column-alias": "notes",
+      "position": 21,
+      "visibility_type": "normal",
+      "display_name": "Notes",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 1.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 0.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "steve@shortcentral.com",
+    "first_name": "Steve",
+    "is_data_analyst": false,
+    "last_login": "2026-04-18T16:09:54.380059Z",
+    "is_qbnewb": false,
+    "is_superuser": true,
+    "id": 1,
+    "last_name": "Short",
+    "tenant_id": null,
+    "date_joined": "2025-03-27T09:47:56.066303Z",
+    "common_name": "Steve Short"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "query",
+  "name": "Refunds",
+  "last_query_start": "2026-04-18T12:22:13.213343Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-18T12:22:13.254182Z",
+  "dashboard": {
+    "name": "Avondale Membership",
+    "id": 11,
+    "moderation_status": null
+  },
+  "type": "question",
+  "average_query_time": 55.5568181818181818,
+  "creator_id": 1,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-17T15:00:02.209392Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/mbql",
+        "source-table": 142
+      }
+    ]
+  },
+  "id": 1623,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "geOwfMM_h7A9PfGdy9xCJ",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-17T15:00:02.349827Z"
+  },
+  "visualization_settings": {
+    "table.columns": [
+      {
+        "name": "id",
+        "enabled": false
+      },
+      {
+        "name": "name",
+        "enabled": true
+      },
+      {
+        "name": "refund_for",
+        "enabled": true
+      },
+      {
+        "name": "reason",
+        "enabled": true
+      },
+      {
+        "name": "membership",
+        "enabled": true
+      },
+      {
+        "name": "amount",
+        "enabled": true
+      },
+      {
+        "name": "from_date",
+        "enabled": true
+      },
+      {
+        "name": "to_date",
+        "enabled": true
+      },
+      {
+        "name": "months",
+        "enabled": true
+      },
+      {
+        "name": "refund",
+        "enabled": true
+      },
+      {
+        "name": "status",
+        "enabled": true
+      },
+      {
+        "name": "explanation",
+        "enabled": false
+      },
+      {
+        "name": "created_at",
+        "enabled": false
+      },
+      {
+        "name": "updated_at",
+        "enabled": true
+      },
+      {
+        "name": "notes",
+        "enabled": true
+      }
+    ],
+    "table": {
+      "columns": [
+        {
+          "name": "id",
+          "enabled": false
+        },
+        {
+          "name": "name",
+          "enabled": true
+        },
+        {
+          "name": "refund_for",
+          "enabled": true
+        },
+        {
+          "name": "reason",
+          "enabled": true
+        },
+        {
+          "name": "membership",
+          "enabled": true
+        },
+        {
+          "name": "amount",
+          "enabled": true
+        },
+        {
+          "name": "from_date",
+          "enabled": true
+        },
+        {
+          "name": "to_date",
+          "enabled": true
+        },
+        {
+          "name": "months",
+          "enabled": true
+        },
+        {
+          "name": "refund",
+          "enabled": true
+        },
+        {
+          "name": "status",
+          "enabled": true
+        },
+        {
+          "name": "explanation",
+          "enabled": false
+        },
+        {
+          "name": "created_at",
+          "enabled": false
+        },
+        {
+          "name": "updated_at",
+          "enabled": true
+        },
+        {
+          "name": "notes",
+          "enabled": true
+        }
+      ]
+    },
+    "table.pivot_column": "to_date",
+    "table.cell_column": "amount",
+    "column_settings": {
+      "[\"name\",\"name\"]": {
+        "view_as": "link",
+        "link_url": "https://n8n.proxy.shortcentral.com/webhook/refunds?id={{id}}",
+        "column_title": "Name"
+      },
+      "[\"name\",\"refund_for\"]": {
+        "view_as": "link",
+        "link_url": "https://n8n.proxy.shortcentral.com/webhook/refunds?id={{id}}",
+        "column_title": "Refund For"
+      }
+    }
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": 11,
+  "created_at": "2026-04-03T08:09:45.416449Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

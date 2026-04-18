@@ -1,0 +1,331 @@
+{
+  "name": "Sync Case Tracking DB To Gmail Labels",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "ctf000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 */10 * * * *"
+            }
+          ]
+        }
+      },
+      "id": "ctf000000-0000-0000-0000-000000000002",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        220,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "label",
+        "operation": "getAll",
+        "simple": false,
+        "filters": {}
+      },
+      "id": "ctf000000-0000-0000-0000-000000000003",
+      "name": "Get Gmail Labels",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        460,
+        220
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const wanted = ['!New Case', '!In Progress', '!Waiting', '!Completed', 'To Do', 'To Do/Done'];\nconst labels = Object.fromEntries(\n  items\n    .map((item) => [item.json?.name, item.json?.id])\n    .filter(([name, id]) => wanted.includes(name) && id),\n);\nreturn [{ json: { label_ids: labels } }];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      },
+      "id": "ctf000000-0000-0000-0000-000000000004",
+      "name": "Build Gmail Label Map",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id::text AS case_id, status, metadata ->> 'gmail_thread_id' AS gmail_thread_id, metadata ->> 'gmail_status_label' AS current_label_name\nFROM public.cases\nWHERE COALESCE(metadata ->> 'gmail_thread_id', '') <> ''\n  AND updated_at > COALESCE((NULLIF(metadata ->> 'last_gmail_sync_at', '')::timestamptz + interval '1 minute'), 'epoch'::timestamptz);"
+      },
+      "id": "ctf000000-0000-0000-0000-000000000005",
+      "name": "Load Cases With Gmail Threads",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        940,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const labelMap = $('Build Gmail Label Map').first()?.json?.label_ids ?? {};\nconst statusToLabel = {\n  New: '!New Case',\n  'In Progress': '!In Progress',\n  'Waiting': '!Waiting',\n  'Completed': '!Completed',\n};\nconst removableNames = ['!New Case', '!In Progress', '!Waiting', '!Completed', 'To Do', 'To Do/Done'];\nconst now = new Date().toISOString();\nreturn $input.all()\n  .map((item) => item.json ?? {})\n  .filter((row) => String(row.gmail_thread_id ?? '').trim())\n  .map((row) => {\n    const targetLabelName = statusToLabel[String(row.status ?? '').trim()] || '!New Case';\n    const currentLabelName = String(row.current_label_name ?? '').trim();\n    const targetLabelId = labelMap[targetLabelName] || null;\n    const removeLabelIds = removableNames\n      .filter((name) => name !== targetLabelName)\n      .map((name) => labelMap[name])\n      .filter(Boolean);\n    const metadata = {\n      gmail_status_label: targetLabelName,\n      last_gmail_label_sync_at: now,\n    };\n    const sqlLiteral = (value) => value === null || value === undefined ? 'NULL' : \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n    const metadataSql = [\n      'UPDATE public.cases',\n      `SET metadata = COALESCE(metadata, '{}'::jsonb) || ${sqlLiteral(JSON.stringify(metadata))}::jsonb,`,\n      '    updated_at = now()',\n      `WHERE id = ${sqlLiteral(String(row.case_id ?? ''))}::uuid;`,\n    ].join('\\n');\n    return {\n      json: {\n        case_id: String(row.case_id ?? ''),\n        gmail_thread_id: String(row.gmail_thread_id ?? ''),\n        current_label_name: currentLabelName,\n        target_label_name: targetLabelName,\n        target_label_id: targetLabelId,\n        remove_label_ids: removeLabelIds,\n        metadata_sql: metadataSql,\n      },\n    };\n  })\n  .filter((item) => item.json.target_label_id && item.json.current_label_name !== item.json.target_label_name);\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      },
+      "id": "ctf000000-0000-0000-0000-000000000006",
+      "name": "Build Label Sync Items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-remove-labels",
+              "leftValue": "={{ Array.isArray($json.remove_label_ids) ? $json.remove_label_ids.length : 0 }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "ctf000000-0000-0000-0000-000000000007",
+      "name": "Has Labels To Remove?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1420,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "removeLabels",
+        "threadId": "={{ $('Build Label Sync Items').item.json.gmail_thread_id }}",
+        "labelIds": "={{ $('Build Label Sync Items').item.json.remove_label_ids }}"
+      },
+      "id": "ctf000000-0000-0000-0000-000000000008",
+      "name": "Remove Old Gmail Labels",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1660,
+        120
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "addLabels",
+        "threadId": "={{ $('Build Label Sync Items').item.json.gmail_thread_id }}",
+        "labelIds": "={{ [$('Build Label Sync Items').item.json.target_label_id] }}"
+      },
+      "id": "ctf000000-0000-0000-0000-000000000009",
+      "name": "Add Target Gmail Label",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1900,
+        220
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $('Build Label Sync Items').item.json.metadata_sql }}"
+      },
+      "id": "ctf000000-0000-0000-0000-000000000010",
+      "name": "Update Case Label Metadata",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2140,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Get Gmail Labels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Gmail Labels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Gmail Labels": {
+      "main": [
+        [
+          {
+            "node": "Build Gmail Label Map",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Gmail Label Map": {
+      "main": [
+        [
+          {
+            "node": "Load Cases With Gmail Threads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Cases With Gmail Threads": {
+      "main": [
+        [
+          {
+            "node": "Build Label Sync Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Label Sync Items": {
+      "main": [
+        [
+          {
+            "node": "Has Labels To Remove?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Labels To Remove?": {
+      "main": [
+        [
+          {
+            "node": "Remove Old Gmail Labels",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Target Gmail Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Old Gmail Labels": {
+      "main": [
+        [
+          {
+            "node": "Add Target Gmail Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Target Gmail Label": {
+      "main": [
+        [
+          {
+            "node": "Update Case Label Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-16T12:44:29.213+00:00",
+  "updatedAt": "2026-04-17T10:01:23.576+00:00",
+  "settings": {},
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "pinData": {},
+  "versionId": "106b6f23-459e-4148-ab10-a97bde038b0c",
+  "triggerCount": 1,
+  "id": "oTUS7fU3vdlZAaL8",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 42,
+  "description": "",
+  "activeVersionId": "106b6f23-459e-4148-ab10-a97bde038b0c"
+}
