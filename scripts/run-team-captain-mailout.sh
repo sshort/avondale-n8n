@@ -9,6 +9,7 @@ SKIP_TRIGGER=0
 GENERATE_ONLY=0
 LIST_ONLY=0
 ATTACHMENT_MODE=""
+INCLUDE_SHARED_BCC_IN_TEST=1
 
 usage() {
   cat <<'EOF'
@@ -30,6 +31,11 @@ Options:
             Every team sheet in the captain's section. This is the default.
   --list-only
       Generate the files and print the captain/file send list without syncing or sending.
+  --shared-bcc-in-test
+      Include recipients from team-captain-mailout-bcc.txt during test sends.
+      This is the default.
+  --no-shared-bcc-in-test
+      Do not include recipients from team-captain-mailout-bcc.txt during test sends.
   --generate-only
       Generate the files only. Do not sync or trigger n8n.
   --skip-generate
@@ -69,6 +75,12 @@ while [[ $# -gt 0 ]]; do
       ;;
     --list-only)
       LIST_ONLY=1
+      ;;
+    --shared-bcc-in-test)
+      INCLUDE_SHARED_BCC_IN_TEST=1
+      ;;
+    --no-shared-bcc-in-test)
+      INCLUDE_SHARED_BCC_IN_TEST=0
       ;;
     --attachment-mode)
       if [[ $# -lt 2 ]]; then
@@ -128,7 +140,8 @@ if [[ "$SKIP_TRIGGER" -eq 0 ]]; then
   trap 'rm -f "$payload_file"' EXIT
   jq --arg mode "$MODE" \
     --arg base_dir "${TEAM_MAILOUT_CONTAINER_DIR:-/home/node/.n8n-files/teams-mailout/current}" \
-    '{delivery_mode: $mode, base_dir: $base_dir, attachment_mode: .attachment_mode, jobs: .jobs}' \
+    --argjson include_shared_bcc_in_test "$INCLUDE_SHARED_BCC_IN_TEST" \
+    '{delivery_mode: $mode, base_dir: $base_dir, attachment_mode: .attachment_mode, include_shared_bcc_in_test: $include_shared_bcc_in_test, jobs: .jobs}' \
     "$manifest_json" > "$payload_file"
   echo "Triggering: $webhook_url"
   curl -sS \

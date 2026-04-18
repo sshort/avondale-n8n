@@ -11,6 +11,8 @@ manifest_json="$GENERATED_DIR/team-captain-email-jobs.json"
 manifest_csv="$GENERATED_DIR/team-captain-email-jobs.csv"
 captain_list="$GENERATED_DIR/team-captains-email-list.txt"
 review_md="$GENERATED_DIR/CAPTAIN_EMAIL_SEND_LIST.md"
+bcc_file_source="${TEAM_MAILOUT_BCC_FILE:-$ROOT_DIR/Teams/team-captain-mailout-bcc.txt}"
+bcc_file_name="team-captain-mailout-bcc.txt"
 
 if [[ ! -f "$manifest_json" ]]; then
   echo "Missing manifest: $manifest_json" >&2
@@ -24,14 +26,24 @@ if [[ ${#pdfs[@]} -eq 0 ]]; then
   exit 1
 fi
 
+extra_files=()
+if [[ -f "$bcc_file_source" ]]; then
+  extra_files+=("$bcc_file_source")
+fi
+
 ssh "$REMOTE_HOST" "mkdir -p '$REMOTE_DIR' && docker exec n8n mkdir -p '$CONTAINER_DIR'"
 scp \
   "$manifest_json" \
   "$manifest_csv" \
   "$captain_list" \
   "$review_md" \
+  "${extra_files[@]}" \
   "${pdfs[@]}" \
   "$REMOTE_HOST:$REMOTE_DIR/"
+
+if [[ -f "$bcc_file_source" && "$(basename "$bcc_file_source")" != "$bcc_file_name" ]]; then
+  ssh "$REMOTE_HOST" "mv '$REMOTE_DIR/$(basename "$bcc_file_source")' '$REMOTE_DIR/$bcc_file_name'"
+fi
 
 ssh "$REMOTE_HOST" "for file in '$REMOTE_DIR'/*; do docker cp \"\$file\" n8n:'$CONTAINER_DIR'/; done"
 

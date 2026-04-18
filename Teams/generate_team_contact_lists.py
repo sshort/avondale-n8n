@@ -83,6 +83,7 @@ class ContactCandidate:
     phone: str
     mobile: str
     share_contact_detail: str
+    venue_id: str
 
 
 @dataclass
@@ -427,7 +428,8 @@ def load_lookup_data() -> tuple[
           coalesce(c.email_address, '') as email_address,
           coalesce(c.phone_number, '') as phone_number,
           coalesce(c.mobile_number, '') as mobile_number,
-          coalesce(nullif(trim(rc."Share Contact Detail"), ''), '') as share_contact_detail
+          coalesce(nullif(trim(rc."Share Contact Detail"), ''), '') as share_contact_detail,
+          coalesce(nullif(trim(c.venue_id), ''), '') as venue_id
         from public.vw_best_current_contacts c
         left join public.raw_contacts rc
           on rc.id = c.contact_id
@@ -443,7 +445,7 @@ def load_lookup_data() -> tuple[
         join public.membership_packages mp
           on mp.name = ms.product
         where mp.season = '{SEASON}'
-          and coalesce(ms.status, '') = 'Complete'
+          and coalesce(ms.status, '') in ('Active', 'Complete', 'Pending', 'Processing')
           and mp.category not in ('Social', 'Pavilion Key')
         order by 1, 2;
     """
@@ -490,6 +492,7 @@ def load_lookup_data() -> tuple[
                 phone=clean_phone(row["phone_number"]),
                 mobile=clean_phone(row["mobile_number"]),
                 share_contact_detail=row["share_contact_detail"],
+                venue_id=row["venue_id"],
             )
         )
 
@@ -696,11 +699,12 @@ def email_matches_name(candidate: ContactCandidate, source_name: str) -> bool:
     return norm_first in local and norm_last in local
 
 
-def contact_quality_score(candidate: ContactCandidate) -> tuple[int, int, int]:
+def contact_quality_score(candidate: ContactCandidate) -> tuple[int, int, int, int]:
     return (
         1 if candidate.email else 0,
         1 if candidate.mobile else 0,
         1 if candidate.phone else 0,
+        1 if candidate.venue_id else 0,
     )
 
 
@@ -753,6 +757,10 @@ def disambiguate_contact_candidates(
     matching_all = [candidate for candidate in contact_candidates if email_matches_name(candidate, source_name)]
     if len(matching_all) == 1:
         return matching_all, True
+
+    best_overall = unique_best_contact(contact_candidates)
+    if len(best_overall) == 1:
+        return best_overall, True
 
     return contact_candidates, False
 
@@ -947,6 +955,8 @@ def resolve_row(
             "review_section": "nickname",
             "review_target": candidate_full_name(contact_candidates[0]),
             "review_reason": "nickname mapping from nicknames.csv",
+            "review_not_signed_up": True,
+            "not_signed_up_reason": "contact-only nickname match - no current membership",
             "no_consent_reason": contact_display.no_consent_reason,
         }
 
@@ -1000,6 +1010,8 @@ def resolve_row(
             "review_section": "fuzzy",
             "review_target": candidate_full_name(contact_candidates[0]),
             "review_reason": "fuzzy name match",
+            "review_not_signed_up": True,
+            "not_signed_up_reason": "contact-only fuzzy match - no current membership",
             "no_consent_reason": contact_display.no_consent_reason,
         }
 
@@ -1057,6 +1069,16 @@ def build_team_rows(
                         team_name=team_name.title(),
                     )
                 )
+            if details.get("review_not_signed_up") and details.get("review_section") != "not_signed_up":
+                review_entries.append(
+                    ReviewEntry(
+                        section="not_signed_up",
+                        source_name=str(entry["name"]),
+                        target_name=details.get("review_target", ""),
+                        reason=details.get("not_signed_up_reason", "contact-only match - no current membership"),
+                        team_name=team_name.title(),
+                    )
+                )
             if details.get("no_consent_reason"):
                 review_entries.append(
                     ReviewEntry(
@@ -1086,15 +1108,17 @@ def build_team_rows(
 def group_review_entries(review_entries: list[ReviewEntry]) -> dict[str, list[dict[str, object]]]:
     grouped: dict[tuple[str, str], dict[str, object]] = {}
     for entry in review_entries:
-        key = (entry.section, normalize_name(entry.source_name))
+        key_name = entry.target_name if entry.section == "not_signed_up" and entry.target_name else entry.source_name
+        display_name = key_name if entry.section == "not_signed_up" and key_name else entry.source_name
+        key = (entry.section, normalize_name(key_name))
         if key not in grouped:
             grouped[key] = {
-                "display_name": entry.source_name,
+                "display_name": display_name,
                 "target_name": entry.target_name,
                 "reason": entry.reason,
                 "teams": set(),
             }
-        grouped[key]["display_name"] = choose_display_name(grouped[key]["display_name"], entry.source_name)
+        grouped[key]["display_name"] = choose_display_name(grouped[key]["display_name"], display_name)
         grouped[key]["teams"].add(entry.team_name)
         if entry.target_name:
             grouped[key]["target_name"] = entry.target_name
@@ -1150,13 +1174,6 @@ def review_markdown_text(review_groups: dict[str, list[dict[str, object]]]) -> s
         teams = ", ".join(sorted(item["teams"]))
         lines.append(
             f"- `{item['display_name']}` -> `{item['target_name']}` - {item['reason']}. Teams: {teams}"
-        )
-
-    lines.extend(["", "## Not Signed Up (Contact Only, No Current Membership)", ""])
-    for item in review_groups.get("not_signed_up", []):
-        teams = ", ".join(sorted(item["teams"]))
-        lines.append(
-            f"- `{item['display_name']}` - {item['reason']}. Teams: {teams}"
         )
 
     lines.extend(["", "## Short-Name / Nickname Matches", ""])
@@ -1424,7 +1441,7 @@ def attachment_mode_summary(mode: str) -> str:
     summaries = {
         "own-plus-reserves": "Each captain receives their own team sheet plus the reserves sheet.",
         "own-next-plus-reserves": "Each captain receives their own team sheet, the next team down, and the reserves sheet.",
-        "all-in-section": "Each captain receives every team sheet in their section, including reserves where present.",
+        "all-in-section": "One email per section is sent to all captains in that section via BCC, and each email includes every team sheet in that section, including reserves where present.",
     }
     return summaries[mode]
 
@@ -1602,22 +1619,51 @@ def write_captain_email_send_list(
         by_section[job.section].append(job)
     for section in sorted(by_section.keys()):
         lines.extend([f"## {section}", ""])
-        for job in by_section[section]:
-            email_text = f"`{job.captain_email}`" if job.captain_email else f"`{job.blocked_reason or 'No email'}`"
-            lines.append(f"- {job.captain_name} — {email_text}")
+        if attachment_mode == "all-in-section":
+            sendable_jobs = [job for job in by_section[section] if job.can_send and job.captain_email]
+            blocked_jobs = [job for job in by_section[section] if not (job.can_send and job.captain_email)]
+            lines.append(f"- One email to all {section} captains via BCC")
+            lines.append("  BCC:")
+            for job in sendable_jobs:
+                lines.append(f"  - {job.captain_name} — `{job.captain_email}`")
+            if blocked_jobs:
+                lines.append("  Blocked:")
+                for job in blocked_jobs:
+                    reason = job.blocked_reason or "No email"
+                    lines.append(f"  - {job.captain_name} — {reason}")
             lines.append("  Attach:")
-            for attachment in job.attachments:
-                attachment_link = (
-                    f"[{attachment.file_name}]"
-                    f"(/mnt/c/dev/avondale-n8n/Teams/generated/{attachment.file_name.replace(' ', '%20')})"
-                )
-                lines.append(
-                    "  - "
-                    f"{attachment_kind_label(attachment)} — "
-                    f"{attachment_link}"
-                )
-            if not job.can_send:
-                lines.append(f"  Blocked: {job.blocked_reason}")
+            seen_files: set[str] = set()
+            for job in by_section[section]:
+                for attachment in job.attachments:
+                    if attachment.file_name in seen_files:
+                        continue
+                    seen_files.add(attachment.file_name)
+                    attachment_link = (
+                        f"[{attachment.file_name}]"
+                        f"(/mnt/c/dev/avondale-n8n/Teams/generated/{attachment.file_name.replace(' ', '%20')})"
+                    )
+                    lines.append(
+                        "  - "
+                        f"{attachment_kind_label(attachment)} — "
+                        f"{attachment_link}"
+                    )
+        else:
+            for job in by_section[section]:
+                email_text = f"`{job.captain_email}`" if job.captain_email else f"`{job.blocked_reason or 'No email'}`"
+                lines.append(f"- {job.captain_name} — {email_text}")
+                lines.append("  Attach:")
+                for attachment in job.attachments:
+                    attachment_link = (
+                        f"[{attachment.file_name}]"
+                        f"(/mnt/c/dev/avondale-n8n/Teams/generated/{attachment.file_name.replace(' ', '%20')})"
+                    )
+                    lines.append(
+                        "  - "
+                        f"{attachment_kind_label(attachment)} — "
+                        f"{attachment_link}"
+                    )
+                if not job.can_send:
+                    lines.append(f"  Blocked: {job.blocked_reason}")
         lines.append("")
     output_path.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
 
