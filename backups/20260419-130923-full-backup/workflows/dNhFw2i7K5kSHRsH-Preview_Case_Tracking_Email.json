@@ -1,0 +1,442 @@
+{
+  "name": "Preview Case Tracking Email",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "ctc000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "preview-case-tracking-email",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "ctc000000-0000-0000-0000-000000000002",
+      "name": "Preview Case Tracking Email Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "preview-case-tracking-email"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'email_delivery_mode' THEN value END) AS email_delivery_mode,\n  MAX(CASE WHEN key = 'email_test_recipient' THEN value END) AS email_test_recipient,\n  MAX(CASE WHEN key = 'email_sender_name' THEN value END) AS email_sender_name,\n  MAX(CASE WHEN key = 'email_reply_to' THEN value END) AS email_reply_to,\n  MAX(CASE WHEN key = 'email_signature_template_key' THEN value END) AS email_signature_template_key,\n  MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url\nFROM public.global_settings\nWHERE key IN ('email_delivery_mode', 'email_test_recipient', 'email_sender_name', 'email_reply_to', 'email_signature_template_key', 'n8n_base_url');"
+      },
+      "id": "ctc000000-0000-0000-0000-000000000003",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        480,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const settings = $('Load Global Settings').first()?.json ?? {};\nconst request = $('Preview Case Tracking Email Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst query = request.query ?? request;\nconst headers = request.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst truthy = (value) => ['1', 'true', 'yes', 'y', 'on'].includes(clean(value).toLowerCase());\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = authority + ':' + forwardedPort;\n  }\n  return proto + '://' + authority;\n};\nconst fallbackBaseUrl = clean(settings.n8n_base_url) || 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nconst caseId = /^[0-9a-fA-F-]{36}$/.test(clean(query.case_id)) ? clean(query.case_id) : '';\nconst templateKey = clean(query.template_key);\nconst signatureTemplateKey = clean(query.signature_template_key) || clean(settings.email_signature_template_key) || 'signature';\nconst returnUrl = clean(query.return_url) || (n8nBaseUrl + '/webhook/case-tracking?view=dashboard');\nconst deliveryMode = truthy(query.test_mode) || clean(settings.email_delivery_mode) !== 'production' ? 'test' : 'production';\nconst errorMessage = !caseId ? 'case_id is required.' : (!templateKey ? 'template_key is required.' : '');\nreturn [{ json: { case_id: caseId, template_key: templateKey, signature_template_key: signatureTemplateKey, to: clean(query.to), return_url: returnUrl, n8n_base_url: n8nBaseUrl, send_url: n8nBaseUrl + '/webhook/send-case-tracking-email', delivery_mode: deliveryMode, test_recipient: clean(settings.email_test_recipient) || 'steve.short@gmail.com', sender_name: clean(settings.email_sender_name) || 'Steve Short', reply_to: clean(settings.email_reply_to) || 'members.avondaleltc@gmail.com', error_message: errorMessage } }];"
+      },
+      "id": "ctc000000-0000-0000-0000-000000000004",
+      "name": "Resolve Preview Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ctc000000-0000-0000-0000-000000000005-condition",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "ctc000000-0000-0000-0000-000000000005",
+      "name": "Check Request Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1020,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const requestInput = $('Resolve Preview Request').first()?.json ?? {};\nconst contextRow = $('Load Preview Context').first()?.json ?? {};\nconst message = contextRow.error_message || requestInput.error_message || 'Unable to prepare the preview.';\nconst returnUrl = requestInput.return_url || '#';\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst html = '<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Email preview unavailable</title></head><body><p>' + escapeHtml(message) + '</p><p><a href=\"' + escapeHtml(returnUrl) + '\">Back to case</a></p></body></html>';\nreturn [{ json: { html } }];"
+      },
+      "id": "ctc000000-0000-0000-0000-000000000006",
+      "name": "Build Error HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              },
+              {
+                "name": "Pragma",
+                "value": "no-cache"
+              },
+              {
+                "name": "Expires",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "ctc000000-0000-0000-0000-000000000007",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1540,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Resolve Preview Request').first()?.json ?? {};\nconst sqlLiteral = (value) => \"'\" + String(value ?? '').replace(/'/g, \"''\") + \"'\";\nconst sql = [\n  'WITH selected_case AS (',\n  '  SELECT * FROM public.cases WHERE id = ' + sqlLiteral(input.case_id) + '::uuid',\n  '), message_template AS (',\n  '  SELECT template_key, template_name, subject_template, text_template, html_template',\n  '  FROM public.email_templates',\n  '  WHERE template_key = ' + sqlLiteral(input.template_key) + ' AND template_type = 0 AND is_active = true',\n  '  LIMIT 1',\n  '), signature_template AS (',\n  '  SELECT template_key, template_name, text_template, html_template',\n  '  FROM public.email_templates',\n  '  WHERE template_key = ' + sqlLiteral(input.signature_template_key) + ' AND template_type = 2 AND is_active = true',\n  '  LIMIT 1',\n  ')',\n  'SELECT',\n  \"  COALESCE((SELECT to_jsonb(selected_case) FROM selected_case), '{}'::jsonb) AS case_row,\",\n  '  (SELECT template_key FROM message_template) AS template_key,',\n  \"  (SELECT COALESCE(NULLIF(template_name, ''), template_key) FROM message_template) AS template_name,\",\n  '  (SELECT subject_template FROM message_template) AS subject_template,',\n  '  (SELECT text_template FROM message_template) AS text_template,',\n  '  (SELECT html_template FROM message_template) AS html_template,',\n  '  (SELECT template_key FROM signature_template) AS signature_template_key,',\n  \"  (SELECT COALESCE(NULLIF(template_name, ''), template_key) FROM signature_template) AS signature_template_name,\",\n  '  (SELECT text_template FROM signature_template) AS signature_text_template,',\n  '  (SELECT html_template FROM signature_template) AS signature_html_template,',\n  '  CASE',\n  \"    WHEN NOT EXISTS (SELECT 1 FROM selected_case) THEN 'Case not found.'\",\n  \"    WHEN NOT EXISTS (SELECT 1 FROM message_template) THEN 'Message template was not found.'\",\n  \"    WHEN NOT EXISTS (SELECT 1 FROM signature_template) THEN 'Signature template was not found.'\",\n  '    ELSE NULL',\n  '  END AS error_message'\n].join('\\n');\nreturn [{ json: { ...input, sql } }];"
+      },
+      "id": "ctc000000-0000-0000-0000-000000000008",
+      "name": "Build Preview Context SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "ctc000000-0000-0000-0000-000000000009",
+      "name": "Load Preview Context",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1540,
+        320
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ctc000000-0000-0000-0000-000000000010-condition",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "ctc000000-0000-0000-0000-000000000010",
+      "name": "Check Context Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1800,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Resolve Preview Request').first()?.json ?? {};\nconst context = $('Load Preview Context').first()?.json ?? {};\nconst parseMaybe = (value, fallback) => {\n  if (value === null || value === undefined || value === '') return fallback;\n  if (typeof value === 'string') { try { return JSON.parse(value); } catch { return fallback; } }\n  return value;\n};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst caseRow = parseMaybe(context.case_row, {}) || {};\nconst applyTokens = (value) => {\n  let rendered = String(value ?? '');\n  const tokenMap = { '{{case_title}}': clean(caseRow.title), '{{case_status}}': clean(caseRow.status), '{{case_priority}}': clean(caseRow.priority), '{{contact_name}}': clean(caseRow.contact_name), '{{contact_email}}': clean(caseRow.contact_email), '{{contact_phone}}': clean(caseRow.contact_phone), '{{today}}': new Date().toLocaleDateString('en-GB') };\n  for (const [token, replacement] of Object.entries(tokenMap)) rendered = rendered.split(token).join(replacement);\n  return rendered.trim();\n};\nconst emailType = clean(context.html_template) ? 'html' : 'text';\nconst renderedSubject = applyTokens(clean(context.subject_template) || 'Update from Avondale Tennis Club');\nconst renderedMessage = applyTokens(emailType === 'html' ? clean(context.html_template) : clean(context.text_template));\nconst renderedSignature = applyTokens(emailType === 'html' ? clean(context.signature_html_template) : clean(context.signature_text_template));\nconst intendedRecipient = clean(input.to) || clean(caseRow.contact_email);\nconst actualRecipient = input.delivery_mode === 'production' ? intendedRecipient : input.test_recipient;\nconst combinedPreviewHtml = emailType === 'html' ? (renderedMessage + renderedSignature) : '';\nreturn [{ json: { case_id: input.case_id, case_title: clean(caseRow.title), template_key: clean(context.template_key), template_name: clean(context.template_name), signature_template_key: clean(context.signature_template_key), signature_template_name: clean(context.signature_template_name), return_url: input.return_url, send_url: input.send_url, delivery_mode: input.delivery_mode, sender_name: input.sender_name, reply_to: input.reply_to, test_recipient: input.test_recipient, intended_recipient: intendedRecipient, actual_recipient: actualRecipient, email_type: emailType, rendered_subject: renderedSubject, rendered_message: renderedMessage, rendered_signature: renderedSignature, combined_preview_html: combinedPreviewHtml, missing_recipient: intendedRecipient ? '' : 'No recipient email is available for this case.' } }];"
+      },
+      "id": "ctc000000-0000-0000-0000-000000000011",
+      "name": "Render Preview Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2060,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $('Render Preview Data').first()?.json ?? {};\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst modeChecked = item.delivery_mode === 'production' ? '' : ' checked';\nconst previewPanel = item.email_type === 'html' ? '<div class=\"card bg-base-100 border border-base-300\"><div class=\"card-body\"><h2 class=\"card-title\">Rendered preview</h2><div class=\"prose max-w-none\">' + item.combined_preview_html + '</div></div></div>' : '';\nconst warningHtml = item.missing_recipient ? '<div class=\"alert alert-warning\"><span>' + escapeHtml(item.missing_recipient) + '</span></div>' : '';\nconst html = [\n  '<!doctype html>',\n  '<html lang=\"en\">',\n  '<head>',\n  '  <meta charset=\"utf-8\">',\n  '  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">',\n  '  <title>Email preview</title>',\n  '  <link href=\"https://cdn.jsdelivr.net/npm/daisyui@5\" rel=\"stylesheet\" type=\"text/css\" />',\n  '  <script src=\"https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4\"></script>',\n  '</head>',\n  '<body class=\"bg-base-200 min-h-screen\">',\n  '  <main class=\"max-w-6xl mx-auto p-4 lg:p-6 space-y-6\">',\n  '    <div class=\"flex flex-wrap items-center justify-between gap-3\">',\n  '      <div><div class=\"text-sm text-base-content/60\">Case</div><h1 class=\"text-3xl font-bold\">' + escapeHtml(item.case_title || 'Email preview') + '</h1></div>',\n  '      <a class=\"btn btn-ghost\" href=\"' + escapeHtml(item.return_url) + '\">Back to case</a>',\n  '    </div>',\n  '    ' + warningHtml,\n  '    <section class=\"grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]\">',\n  '      <div class=\"card bg-base-100 shadow-sm border border-base-300\">',\n  '        <div class=\"card-body\">',\n  '          <h2 class=\"card-title\">Compose</h2>',\n  '          <form class=\"space-y-3\" method=\"POST\" action=\"' + escapeHtml(item.send_url) + '\">',\n  '            <input type=\"hidden\" name=\"case_id\" value=\"' + escapeHtml(item.case_id) + '\">',\n  '            <input type=\"hidden\" name=\"template_key\" value=\"' + escapeHtml(item.template_key) + '\">',\n  '            <input type=\"hidden\" name=\"signature_template_key\" value=\"' + escapeHtml(item.signature_template_key) + '\">',\n  '            <input type=\"hidden\" name=\"email_type\" value=\"' + escapeHtml(item.email_type) + '\">',\n  '            <input type=\"hidden\" name=\"return_url\" value=\"' + escapeHtml(item.return_url) + '\">',\n  '            <label class=\"form-control\"><span class=\"label-text\">Recipient</span><input class=\"input input-bordered\" type=\"email\" name=\"to\" value=\"' + escapeHtml(item.intended_recipient) + '\" required></label>',\n  '            <label class=\"form-control\"><span class=\"label-text\">Subject</span><input class=\"input input-bordered\" type=\"text\" name=\"rendered_subject\" value=\"' + escapeHtml(item.rendered_subject) + '\" required></label>',\n  '            <label class=\"form-control\"><span class=\"label-text\">Message ' + (item.email_type === 'html' ? '(HTML)' : '(text)') + '</span><textarea class=\"textarea textarea-bordered min-h-72\" name=\"rendered_message\" required>' + escapeHtml(item.rendered_message) + '</textarea></label>',\n  '            <label class=\"form-control\"><span class=\"label-text\">Signature</span><textarea class=\"textarea textarea-bordered min-h-40\" name=\"rendered_signature\">' + escapeHtml(item.rendered_signature) + '</textarea></label>',\n  '            <label class=\"label cursor-pointer justify-start gap-3\"><input class=\"checkbox\" type=\"checkbox\" name=\"test_mode\" value=\"1\"' + modeChecked + '><span class=\"label-text\">Send in test mode</span></label>',\n  '            <div class=\"text-sm text-base-content/60\">Actual recipient: ' + escapeHtml(item.actual_recipient || item.test_recipient) + '</div>',\n  '            <button class=\"btn btn-primary\" type=\"submit\"' + (item.missing_recipient ? ' disabled' : '') + '>Send email</button>',\n  '          </form>',\n  '        </div>',\n  '      </div>',\n  '      <div class=\"space-y-4\">',\n  '        <div class=\"card bg-base-100 shadow-sm border border-base-300\"><div class=\"card-body\"><h2 class=\"card-title\">Template</h2><div class=\"text-sm\">' + escapeHtml(item.template_name || item.template_key) + '</div><div class=\"text-sm text-base-content/60\">Signature: ' + escapeHtml(item.signature_template_name || item.signature_template_key) + '</div></div></div>',\n  '        ' + previewPanel,\n  '      </div>',\n  '    </section>',\n  '  </main>',\n  '</body>',\n  '</html>'\n].join('');\nreturn [{ json: { html } }];"
+      },
+      "id": "ctc000000-0000-0000-0000-000000000012",
+      "name": "Build Preview HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2320,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              },
+              {
+                "name": "Pragma",
+                "value": "no-cache"
+              },
+              {
+                "name": "Expires",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "ctc000000-0000-0000-0000-000000000013",
+      "name": "Respond Preview",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2580,
+        420
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preview Case Tracking Email Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Resolve Preview Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Preview Request": {
+      "main": [
+        [
+          {
+            "node": "Check Request Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Request Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Preview Context SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Preview Context SQL": {
+      "main": [
+        [
+          {
+            "node": "Load Preview Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Preview Context": {
+      "main": [
+        [
+          {
+            "node": "Check Context Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Context Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render Preview Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render Preview Data": {
+      "main": [
+        [
+          {
+            "node": "Build Preview HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Preview HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Preview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-18T16:32:02.984+00:00",
+  "updatedAt": "2026-04-18T16:32:02.984+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "c9c21f77-bae4-484c-93c4-5ae55840cb12",
+  "triggerCount": 1,
+  "id": "dNhFw2i7K5kSHRsH",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 3,
+  "description": null,
+  "activeVersionId": "c9c21f77-bae4-484c-93c4-5ae55840cb12"
+}

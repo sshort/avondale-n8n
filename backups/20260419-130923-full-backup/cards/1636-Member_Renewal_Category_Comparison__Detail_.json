@@ -1,0 +1,669 @@
+{
+  "cache_invalidated_at": "2026-04-16T13:23:42.869716Z",
+  "description": "Detail rows for renewal comparison cells, including Total Previous Year, Not Renewed and New joiners attributed to their current category row.",
+  "archived": false,
+  "view_count": 32,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "int8",
+      "semantic_type": null,
+      "lib/deduplicated-name": "raw_member_id",
+      "lib/original-name": "raw_member_id",
+      "name": "raw_member_id",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "raw_member_id",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "raw_member_id",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "raw_member_id",
+      "display_name": "raw_member_id",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 8,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 2762.0,
+            "q1": 3350.5,
+            "q3": 5040.5,
+            "max": 5129.0,
+            "sd": 993.679732466294,
+            "avg": 4143.625
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": "type/URL",
+      "lib/deduplicated-name": "n8n_base_url",
+      "lib/original-name": "n8n_base_url",
+      "name": "n8n_base_url",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "n8n_base_url",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "n8n_base_url",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "n8n_base_url",
+      "display_name": "n8n_base_url",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 1.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 34.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "filter_year",
+      "lib/original-name": "filter_year",
+      "name": "filter_year",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "filter_year",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "filter_year",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "filter_year",
+      "display_name": "filter_year",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 4.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "row_category",
+      "lib/original-name": "row_category",
+      "name": "row_category",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "row_category",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "row_category",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "row_category",
+      "display_name": "row_category",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 6.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "transition_category",
+      "lib/original-name": "transition_category",
+      "name": "transition_category",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "transition_category",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "transition_category",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "transition_category",
+      "display_name": "transition_category",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 3.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "previous_total_bucket",
+      "lib/original-name": "previous_total_bucket",
+      "name": "previous_total_bucket",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "previous_total_bucket",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "previous_total_bucket",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "previous_total_bucket",
+      "display_name": "previous_total_bucket",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 1.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 0.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": "type/Name",
+      "lib/deduplicated-name": "Name",
+      "lib/original-name": "Name",
+      "name": "Name",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Name",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Name",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Name",
+      "display_name": "Name",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 8,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 12.25
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Previous Category",
+      "lib/original-name": "Previous Category",
+      "name": "Previous Category",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Previous Category",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Previous Category",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Previous Category",
+      "display_name": "Previous Category",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 3.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Previous Membership",
+      "lib/original-name": "Previous Membership",
+      "name": "Previous Membership",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Previous Membership",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Previous Membership",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Previous Membership",
+      "display_name": "Previous Membership",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 3.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Current Category",
+      "lib/original-name": "Current Category",
+      "name": "Current Category",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Current Category",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Current Category",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Current Category",
+      "display_name": "Current Category",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 6.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Current Membership",
+      "lib/original-name": "Current Membership",
+      "name": "Current Membership",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Current Membership",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Current Membership",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Current Membership",
+      "display_name": "Current Membership",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 14.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Email address",
+      "lib/original-name": "Email address",
+      "name": "Email address",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Email address",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Email address",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Email address",
+      "display_name": "Email address",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.875
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.125,
+            "percent-state": 0.0,
+            "average-length": 2.875
+          }
+        }
+      },
+      "base_type": "type/Text"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Member Renewal Category Comparison (Detail)",
+  "last_query_start": "2026-04-19T10:47:31.868351Z",
+  "is_remote_synced": false,
+  "dashboard_count": 0,
+  "document_id": null,
+  "last_used_at": "2026-04-19T10:47:31.874718Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 40.1875000000000000,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-16T13:23:42.865739Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "template-tags": {
+          "row_category": {
+            "type": "text",
+            "id": "row_category",
+            "name": "row_category",
+            "display-name": "Category Row",
+            "required": false
+          },
+          "year": {
+            "type": "text",
+            "id": "year",
+            "name": "year",
+            "display-name": "Year",
+            "required": true
+          },
+          "transition_category": {
+            "type": "text",
+            "id": "transition_category",
+            "name": "transition_category",
+            "display-name": "Transition Category",
+            "required": false
+          }
+        },
+        "lib/type": "mbql.stage/native",
+        "native": "WITH settings AS (\n  SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url\n  FROM public.global_settings\n  WHERE key = 'n8n_base_url'\n), prev_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key,\n    src.raw_member_id AS previous_raw_member_id,\n    (SELECT n8n_base_url FROM settings) AS n8n_base_url,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS member_name,\n    src.\"Email address\" AS previous_email_address,\n    src.\"Membership\" AS \"Previous Membership\",\n    src.previous_category,\n    src.previous_display_order\n  FROM (\n    SELECT\n      m.id AS raw_member_id,\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      m.*, p.category AS previous_category, p.display_order AS previous_display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = (({{year}})::int - 1)::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.previous_display_order, src.\"Membership\"\n), curr_members AS (\n  SELECT DISTINCT ON (member_identity_key)\n    member_identity_key,\n    src.raw_member_id AS current_raw_member_id,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS current_name,\n    src.\"Email address\" AS current_email_address,\n    src.\"Membership\" AS \"Current Membership\",\n    src.current_category,\n    src.current_display_order\n  FROM (\n    SELECT\n      m.id AS raw_member_id,\n      CASE\n        WHEN NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') IS NOT NULL THEN\n          lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) || '|' || lower(trim(m.\"Email address\"))\n        ELSE lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      END AS member_identity_key,\n      m.*, p.category AS current_category, p.display_order AS current_display_order\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = ({{year}})::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY member_identity_key, src.raw_member_id DESC, src.current_display_order, src.\"Membership\"\n), member_transitions AS (\n  SELECT\n    CASE\n      WHEN p.member_identity_key IS NULL AND c.member_identity_key IS NOT NULL THEN c.current_category\n      ELSE p.previous_category\n    END AS row_category,\n    CASE\n      WHEN p.member_identity_key IS NULL AND c.member_identity_key IS NOT NULL THEN 'New'\n      WHEN c.member_identity_key IS NULL THEN 'Not Renewed'\n      ELSE c.current_category\n    END AS transition_category,\n    CASE\n      WHEN p.previous_category IS NOT NULL THEN 'Total Previous Year'\n      ELSE NULL\n    END AS previous_total_bucket,\n    COALESCE(c.current_raw_member_id, p.previous_raw_member_id) AS raw_member_id,\n    COALESCE(p.n8n_base_url, (SELECT n8n_base_url FROM settings)) AS n8n_base_url,\n    COALESCE(c.current_name, p.member_name) AS member_name,\n    COALESCE(p.previous_category, 'New') AS previous_category,\n    COALESCE(p.\"Previous Membership\", 'New') AS previous_membership,\n    COALESCE(c.current_category, 'Not Renewed') AS current_category,\n    COALESCE(c.\"Current Membership\", 'Not Renewed') AS current_membership,\n    COALESCE(c.current_email_address, p.previous_email_address) AS email_address\n  FROM prev_members p\n  FULL OUTER JOIN curr_members c\n    ON c.member_identity_key = p.member_identity_key\n)\nSELECT\n  raw_member_id,\n  n8n_base_url,\n  ({{year}})::text AS filter_year,\n  row_category,\n  transition_category,\n  previous_total_bucket,\n  member_name AS \"Name\",\n  previous_category AS \"Previous Category\",\n  previous_membership AS \"Previous Membership\",\n  current_category AS \"Current Category\",\n  current_membership AS \"Current Membership\",\n  email_address AS \"Email address\"\nFROM member_transitions\nWHERE 1 = 1\n[[AND row_category = {{row_category}}]]\n[[AND (\n  ({{transition_category}} = 'Total Previous Year' AND previous_total_bucket = 'Total Previous Year')\n  OR ({{transition_category}} <> 'Total Previous Year' AND transition_category = {{transition_category}})\n)]]\nORDER BY \"Name\";"
+      }
+    ]
+  },
+  "id": 1636,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "3IprXs6tBgy1fqsTvBlTR",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-16T13:23:42.917387Z"
+  },
+  "visualization_settings": {
+    "table.columns": [
+      {
+        "name": "raw_member_id",
+        "enabled": false
+      },
+      {
+        "name": "n8n_base_url",
+        "enabled": false
+      },
+      {
+        "name": "filter_year",
+        "enabled": false
+      },
+      {
+        "name": "row_category",
+        "enabled": false
+      },
+      {
+        "name": "transition_category",
+        "enabled": false
+      },
+      {
+        "name": "previous_total_bucket",
+        "enabled": false
+      },
+      {
+        "name": "Email address",
+        "enabled": false
+      },
+      {
+        "name": "Name",
+        "enabled": true
+      },
+      {
+        "name": "Previous Category",
+        "enabled": true
+      },
+      {
+        "name": "Previous Membership",
+        "enabled": true
+      },
+      {
+        "name": "Current Category",
+        "enabled": true
+      },
+      {
+        "name": "Current Membership",
+        "enabled": true
+      }
+    ],
+    "table": {
+      "columns": [
+        {
+          "name": "raw_member_id",
+          "enabled": false
+        },
+        {
+          "name": "n8n_base_url",
+          "enabled": false
+        },
+        {
+          "name": "filter_year",
+          "enabled": false
+        },
+        {
+          "name": "row_category",
+          "enabled": false
+        },
+        {
+          "name": "transition_category",
+          "enabled": false
+        },
+        {
+          "name": "previous_total_bucket",
+          "enabled": false
+        },
+        {
+          "name": "Email address",
+          "enabled": false
+        },
+        {
+          "name": "Name",
+          "enabled": true
+        },
+        {
+          "name": "Previous Category",
+          "enabled": true
+        },
+        {
+          "name": "Previous Membership",
+          "enabled": true
+        },
+        {
+          "name": "Current Category",
+          "enabled": true
+        },
+        {
+          "name": "Current Membership",
+          "enabled": true
+        }
+      ]
+    },
+    "column_settings": {
+      "[\"name\",\"Name\"]": {
+        "view_as": "link",
+        "link_url": "{{n8n_base_url}}/webhook/member-search-detail?member_id={{raw_member_id}}&member={{Name}}&membership={{Current Membership}}&email={{Email address}}",
+        "column_title": "Name"
+      }
+    }
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-04-15T14:56:24.636393Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

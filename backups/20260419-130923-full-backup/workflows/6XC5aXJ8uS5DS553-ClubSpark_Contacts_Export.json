@@ -1,0 +1,446 @@
+{
+  "name": "ClubSpark Contacts Export",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000016",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        200,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'clubspark_exporter_base_url' THEN value END) AS clubspark_exporter_base_url\nFROM public.global_settings\nWHERE key = 'clubspark_exporter_base_url';"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000017",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        450,
+        460
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const getOrigin = (value) => {\n  const text = String(value ?? '').trim();\n  const match = text.match(/^https?:\\/\\/[^/]+/i);\n  return match ? match[0] : null;\n};\nconst getNodeJson = (nodeName) => {\n  try {\n    return $(nodeName).first().json ?? null;\n  } catch {\n    return null;\n  }\n};\nconst settings = $('Load Global Settings').first().json ?? {};\nconst incoming = getNodeJson('When Executed by Another Workflow') ?? getNodeJson(\"When clicking 'Execute workflow'\") ?? {};\nconst targetUrl = 'https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts';\nconst targetOrigin = getOrigin(targetUrl);\nconst forceRefresh = [true, 'true', '1', 1, 'yes'].includes(incoming.forceRefresh);\nconst requestedMaxAge = Number.parseFloat(String(incoming.maxAgeMinutes ?? incoming.cacheMaxAgeMinutes ?? '20'));\nconst maxAgeMinutes = Number.isFinite(requestedMaxAge) && requestedMaxAge > 0 ? requestedMaxAge : 20;\nconst providedCookieHeader = typeof incoming.cookieHeader === 'string' ? incoming.cookieHeader.trim() : '';\nconst providedUserAgent = typeof incoming.userAgent === 'string' ? incoming.userAgent.trim() : '';\nconst hasProvidedSession = Boolean(!forceRefresh && providedCookieHeader && providedUserAgent);\nconst staticData = $getWorkflowStaticData('global');\nconst fetchedAtMs = staticData.fetchedAt ? Date.parse(staticData.fetchedAt) : NaN;\nlet sameOrigin = true;\ntry {\n  const cachedOrigin = staticData.sessionOrigin ?? (staticData.targetUrl ? getOrigin(staticData.targetUrl) : null);\n  sameOrigin = cachedOrigin && targetOrigin ? cachedOrigin === targetOrigin : true;\n} catch {\n  sameOrigin = false;\n}\nconst hasCachedSession = Boolean(\n  !hasProvidedSession\n  && !forceRefresh\n  && staticData.cookieHeader\n  && staticData.userAgent\n  && Number.isFinite(fetchedAtMs)\n  && (Date.now() - fetchedAtMs) <= (maxAgeMinutes * 60 * 1000)\n  && sameOrigin\n);\nreturn [{\n  json: {\n    clubspark_exporter_base_url: settings.clubspark_exporter_base_url,\n    targetUrl,\n    maxAgeMinutes,\n    forceRefresh,\n    useCachedSession: hasProvidedSession || hasCachedSession,\n    authenticated: (hasProvidedSession || hasCachedSession) ? true : undefined,\n    authenticatedUrl: hasProvidedSession\n      ? (incoming.authenticatedUrl ?? targetUrl)\n      : hasCachedSession\n        ? (staticData.authenticatedUrl ?? targetUrl)\n        : undefined,\n    pageTitle: hasProvidedSession\n      ? (incoming.pageTitle ?? null)\n      : hasCachedSession\n        ? (staticData.pageTitle ?? null)\n        : undefined,\n    userAgent: hasProvidedSession ? providedUserAgent : hasCachedSession ? staticData.userAgent : undefined,\n    cookieHeader: hasProvidedSession ? providedCookieHeader : hasCachedSession ? staticData.cookieHeader : undefined,\n    cookieCount: hasProvidedSession\n      ? Number(incoming.cookieCount ?? 0)\n      : hasCachedSession\n        ? Number(staticData.cookieCount ?? 0)\n        : undefined,\n    probe: hasProvidedSession\n      ? {\n          source: 'input_session',\n          targetOrigin,\n        }\n      : hasCachedSession\n        ? {\n            source: 'workflow_static_data',\n            fetchedAt: staticData.fetchedAt ?? null,\n            maxAgeMinutes,\n            targetOrigin,\n          }\n        : null,\n  },\n}];"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000018",
+      "name": "Prepare Auth Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Load Global Settings').first().json.clubspark_exporter_base_url + '/clubspark-export' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-ClubSpark-Target-Url",
+              "value": "https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts"
+            },
+            {
+              "name": "X-ClubSpark-Cookie-Header",
+              "value": "={{ $('Keep Reusable Session').first().json.cookieHeader }}"
+            },
+            {
+              "name": "X-ClubSpark-User-Agent",
+              "value": "={{ $('Keep Reusable Session').first().json.userAgent }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000015",
+      "name": "Fetch Contacts CSV",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst payload = item.json ?? {};\nconst csvText = String(payload.body ?? payload.data ?? payload.stdout ?? '').trim();\nconst detail = JSON.stringify(Object.keys(payload));\nif (!csvText) {\n  throw new Error(`ClubSpark exporter did not return CSV output. Payload keys: ${detail}`);\n}\nif (/^<!DOCTYPE html/i.test(csvText) || /^<html/i.test(csvText) || /<title>.*Sign in/i.test(csvText)) {\n  throw new Error('ClubSpark exporter returned HTML instead of CSV. The browser login did not complete successfully.');\n}\nfunction parseCsv(text) {\n  const rows = [];\n  let row = [], field = '', inQuotes = false;\n  for (let i = 0; i < text.length; i++) {\n    const ch = text[i], next = text[i + 1];\n    if (inQuotes) {\n      if (ch === '\"' && next === '\"') { field += '\"'; i++; }\n      else if (ch === '\"') { inQuotes = false; }\n      else { field += ch; }\n    } else {\n      if (ch === '\"') { inQuotes = true; }\n      else if (ch === ',') { row.push(field); field = ''; }\n      else if (ch === '\\r' && next === '\\n') { row.push(field); field = ''; rows.push(row); row = []; i++; }\n      else if (ch === '\\n' || ch === '\\r') { row.push(field); field = ''; rows.push(row); row = []; }\n      else { field += ch; }\n    }\n  }\n  if (field || row.length) { row.push(field); rows.push(row); }\n  return rows;\n}\nconst allRows = parseCsv(csvText);\nif (allRows.length < 2) throw new Error(`CSV has fewer than 2 rows (got ${allRows.length}).`);\nconst headers = allRows[0].map((h) => h.trim());\nif (!headers.includes('First name') || !headers.includes('Last name')) {\n  throw new Error(`ClubSpark export did not return the expected contacts CSV headers. Got: ${headers.slice(0, 8).join(', ')}`);\n}\nconst dataRows = allRows.slice(1).filter((r) => r.some((c) => c.trim() !== ''));\nif (!dataRows.length) {\n  return [{ json: { rowCount: 0, message: 'No data rows in CSV export.' } }];\n}\nreturn dataRows.map((row) => ({ json: Object.fromEntries(headers.map((h, i) => [h, (row[i] ?? '').trim()])) }));"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000008",
+      "name": "Parse Contacts CSV",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sqlInteger = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const digits = String(value).replace(/[^0-9-]+/g, '');\n  if (!digits || digits === '-') return 'NULL';\n  const parsed = Number.parseInt(digits, 10);\n  return Number.isNaN(parsed) ? 'NULL' : String(parsed);\n};\nconst rows = $input.all().map((item) => item.json ?? {});\nif (!rows.length) {\n  throw new Error('No parsed contact rows were available to build the import SQL.');\n}\nconst columns = [\n  { db: 'Venue ID', headers: ['Venue ID'] },\n  { db: 'Unique ID', headers: ['Unique ID'] },\n  { db: 'First name', headers: ['First name'] },\n  { db: 'Last name', headers: ['Last name'] },\n  { db: 'gender', headers: ['Gender'] },\n  { db: 'age', headers: ['Age'], type: 'integer' },\n  { db: 'junior', headers: ['Junior'] },\n  { db: 'Date of birth', headers: ['Date of birth'] },\n  { db: 'Email address', headers: ['Email address'] },\n  { db: 'Phone number', headers: ['Phone number'] },\n  { db: 'Work number', headers: ['Work number'] },\n  { db: 'Mobile number', headers: ['Mobile number'] },\n  { db: 'Emergency contact name', headers: ['Emergency contact name'] },\n  { db: 'Emergency phone number', headers: ['Emergency phone number'] },\n  { db: 'Address 1', headers: ['Address 1'] },\n  { db: 'Address 2', headers: ['Address 2'] },\n  { db: 'Address 3', headers: ['Address 3'] },\n  { db: 'town', headers: ['Town', 'town'] },\n  { db: 'county', headers: ['County', 'county'] },\n  { db: 'country', headers: ['Country', 'country'] },\n  { db: 'postcode', headers: ['Postcode', 'postcode'] },\n  { db: 'British Tennis Number', headers: ['British Tennis Number'], type: 'integer' },\n  { db: 'Date joined venue', headers: ['Date joined venue'] },\n  { db: 'Medical history', headers: ['Medical history'] },\n  { db: 'occupation', headers: ['Occupation', 'occupation'] },\n  { db: 'registered', headers: ['Registered', 'registered'] },\n  { db: 'unsubscribed', headers: ['Unsubscribed', 'unsubscribed'] },\n  { db: 'Member status', headers: ['Member status'] },\n  { db: 'Last active', headers: ['Last active'] },\n  { db: 'created', headers: ['Created', 'created'] },\n  { db: 'Receipt of Emails', headers: ['Receipt of Emails'] },\n  { db: 'Share Contact Detail', headers: ['Share Contact Detail'] },\n  { db: \"Member's Directory\", headers: [\"Member's Directory\"] },\n  { db: 'photography', headers: ['Photography', 'photography'] }\n];\nconst getValue = (row, headers) => {\n  for (const header of headers) {\n    if (Object.prototype.hasOwnProperty.call(row, header)) {\n      return row[header];\n    }\n  }\n  return null;\n};\nconst quotedColumns = columns.map(({ db }) => '\"' + db.replace(/\"/g, '\"\"') + '\"').join(', ');\nconst values = rows.map((row) => {\n  const record = columns.map((column) => {\n    const rawValue = getValue(row, column.headers);\n    return column.type === 'integer' ? sqlInteger(rawValue) : sqlLiteral(rawValue);\n  });\n  return '(' + record.join(', ') + ')';\n}).join(',\\n  ');\nconst sql = 'BEGIN;\\n' +\n  'SELECT * FROM public.prepare_raw_contacts_import_staging();\\n' +\n  'INSERT INTO public.raw_contacts_import_staging (' + quotedColumns + ')\\n' +\n  'VALUES\\n  ' + values + ';\\n' +\n  'SELECT * FROM public.reconcile_raw_contacts_from_staging();\\n' +\n  'COMMIT;';\nreturn [{ json: { sql, rowCount: rows.length } }];"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000011",
+      "name": "Build Insert SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000012",
+      "name": "Insert Into raw_contacts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1950,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) AS total_contacts FROM raw_contacts;"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000013",
+      "name": "Verify Row Count",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2200,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const counts = $input.first().json ?? {};\nconst session = $('Keep Reusable Session').first().json ?? {};\nreturn [{\n  json: {\n    total_contacts: Number(counts.total_contacts ?? 0),\n    authenticated: session.authenticated === true,\n    targetUrl: session.targetUrl ?? 'https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts',\n    authenticatedUrl: session.authenticatedUrl ?? null,\n    pageTitle: session.pageTitle ?? null,\n    userAgent: session.userAgent ?? null,\n    cookieHeader: session.cookieHeader ?? null,\n    cookieCount: Number(session.cookieCount ?? 0),\n    probe: session.probe ?? null,\n  },\n}];"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000020",
+      "name": "Keep Session Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a1b2c3d4-0001-0001-0001-000000000021-reuse-cached-condition",
+              "leftValue": "={{ $json.useCachedSession === true }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000021-reuse-cached-session",
+      "name": "Reuse Cached Session?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        950,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Prepare Auth Request').first().json.clubspark_exporter_base_url + '/clubspark-auth-session' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-ClubSpark-Target-Url",
+              "value": "={{ $json.targetUrl }}"
+            }
+          ]
+        }
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000021-request-auth-session",
+      "name": "Request Auth Session",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const getOrigin = (value) => {\n  const text = String(value ?? '').trim();\n  const match = text.match(/^https?:\\/\\/[^/]+/i);\n  return match ? match[0] : null;\n};\nconst payload = $input.first().json ?? {};\nif (payload.authenticated !== true || !payload.cookieHeader || !payload.userAgent) {\n  throw new Error('ClubSpark auth session did not return a reusable authenticated session.');\n}\nconst staticData = $getWorkflowStaticData('global');\nstaticData.fetchedAt = new Date().toISOString();\nstaticData.targetUrl = payload.targetUrl ?? null;\nstaticData.sessionOrigin = payload.targetUrl ? getOrigin(payload.targetUrl) : null;\nstaticData.authenticatedUrl = payload.authenticatedUrl ?? payload.targetUrl ?? null;\nstaticData.pageTitle = payload.pageTitle ?? null;\nstaticData.userAgent = payload.userAgent;\nstaticData.cookieHeader = payload.cookieHeader;\nstaticData.cookieCount = Number(payload.cookieCount ?? 0);\nreturn [{ json: payload }];"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000021-cache-auth-session",
+      "name": "Cache Auth Session",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1450,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $input.first().json ?? {};\nif (!payload.cookieHeader) {\n  throw new Error('ClubSpark auth session did not return a reusable cookie header.');\n}\nif (payload.authenticated !== true) {\n  throw new Error('ClubSpark auth session did not report authenticated=true.');\n}\nreturn [{\n  json: {\n    authenticated: payload.authenticated,\n    targetUrl: payload.targetUrl,\n    authenticatedUrl: payload.authenticatedUrl,\n    pageTitle: payload.pageTitle,\n    userAgent: payload.userAgent,\n    cookieHeader: payload.cookieHeader,\n    cookieCount: payload.cookieCount,\n    probe: payload.probe ?? null,\n  },\n}];"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000021-keep-reusable-session",
+      "name": "Keep Reusable Session",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1700,
+        460
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Prepare Auth Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Auth Request": {
+      "main": [
+        [
+          {
+            "node": "Reuse Cached Session?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Contacts CSV": {
+      "main": [
+        [
+          {
+            "node": "Parse Contacts CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Contacts CSV": {
+      "main": [
+        [
+          {
+            "node": "Build Insert SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Insert SQL": {
+      "main": [
+        [
+          {
+            "node": "Insert Into raw_contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Into raw_contacts": {
+      "main": [
+        [
+          {
+            "node": "Verify Row Count",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Row Count": {
+      "main": [
+        [
+          {
+            "node": "Keep Session Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reuse Cached Session?": {
+      "main": [
+        [
+          {
+            "node": "Keep Reusable Session",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Request Auth Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request Auth Session": {
+      "main": [
+        [
+          {
+            "node": "Cache Auth Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cache Auth Session": {
+      "main": [
+        [
+          {
+            "node": "Keep Reusable Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep Reusable Session": {
+      "main": [
+        [
+          {
+            "node": "Fetch Contacts CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-13T10:10:50.019+00:00",
+  "updatedAt": "2026-04-15T13:37:50.82+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": {
+    "global": {
+      "fetchedAt": "2026-04-19T12:00:29.654Z",
+      "targetUrl": "https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts",
+      "sessionOrigin": "https://clubspark.lta.org.uk",
+      "authenticatedUrl": "https://clubspark.lta.org.uk/AvondaleTennisClub/Admin/Contacts",
+      "pageTitle": "Clubspark / Admin / Contacts",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/136.0.7103.25 Safari/537.36",
+      "cookieHeader": "lastVenue=AvondaleTennisClub; CsAuth=77u/PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48U2VjdXJpdHlDb250ZXh0VG9rZW4gcDE6SWQ9Il80YTMzYzVkYy1jNGE5LTRjOTMtOWFkYS1mZjI0ZTlmOWFiODEtNDEzQjdFNEU2RkY2QzlCNDRDMjA2NTdEOUZGNDAxM0QiIHhtbG5zOnAxPSJodHRwOi8vZG9jcy5vYXNpcy1vcGVuLm9yZy93c3MvMjAwNC8wMS9vYXNpcy0yMDA0MDEtd3NzLXdzc2VjdXJpdHktdXRpbGl0eS0xLjAueHNkIiB4bWxucz0iaHR0cDovL2RvY3Mub2FzaXMtb3Blbi5vcmcvd3Mtc3gvd3Mtc2VjdXJlY29udmVyc2F0aW9uLzIwMDUxMiI+PElkZW50aWZpZXI+dXJuOnV1aWQ6Mzg3MWNhNzctOGQxNy00OTk0LTg1ZjctYWRhYmZlOTAwOTQwPC9JZGVudGlmaWVyPjxDb29raWUgeG1sbnM9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwNi8wNS9zZWN1cml0eSI+TmhYYy8rQjlNa1hlT2l4OXh1NWZlZUxXZzhCZ2p2STVna0toUituMVlDeVZnV0c0eDBZZWV2Vy9rUkxQVisyK28wT1k3QUlOZHFmVU05WTJTbmlPUnlLbitFMGJSR1ZLZDlCcERBaC9MQjFVWS9BY1YzSGpzMEZPcXVrelZ3dUdoMGRUb0szSHlrZU12YkdDSDE0WEw0MWJsNkxqSTBWc3NiSjlJamRhajZVNTN0NzJra0R1VjdaK1VWUkpzM09JQ2pTczgwODVMWktBZ0U4UW1JL0xOUmFQS3ZnNzNKcUFpczZrQzVUMDRlUDRQamc5RlJOQ2YrSzMwSWtIK0ZxL05Kb2FZV1c0OHJjdkgrUjg2ZWhnNnhwdVRsQ05TWS9FcU9hNjE2ZzJ2VitUbXNBVnJ5dUVOdm1XTFNMOUVXcEQ0azIrSjJIWjhqakVNcnpEbWVBMW51M1owZmJ3N1IrUXM0aW1iWkp3cXIweVJqOEV2aTZiVmZkdTdsQi9zNzFwSHVaUnZ3U1ZxRlh5TE9Oc0RuT2hGc2ZHRHhUVTVESkZQL0E5NUxpQ3d5aERDdGpUbDNoNUpzcW1BYTBrVFc2blpiUUZSR1lTeEtCc3pWYTUzaHB6eStBNHpDYkJ2UW1WaDgvdHdSVTVVVjlJdVdSTHRSSnNzQzZPS3R5d2J2eHF5emZGbFZnVUhnSkJLQ2JzUEVxYjNSaTI3Qkl6bjZMMWV2SUhReVRXMXVaMU9POWlaT1A4ZE54Rm1tTUMxclM2eUk4QVQzcWRGaCtVWnZuMm1sVGVpZ2VJZThhNC9oWVBZWkxPQlQ3YU1OSFQvSEREL3YwcVRQeCtoVjFvRlg2OUFPS2MyMzgvSyt0L1VGNWp4MTFEbkVCekN6QzVCYW14TlFwSlZPd2ZKWi83dFM1Zm5GM25rV3VlRWVlV3FNV3FvNVlCczVpL0hyNE9qMzZ4ejRuRnZvVzB5MUdHOTd5aUlHQ29nYmh4d3RuTEFiR1hSejBCU25saXd6RjhhbkJJM0JWa25ZNWdSWTI0Y1RKSkltK0oyZ0t0TFdZQTIzVnBqMWpocHNhTGlTZWw2eWsvZWpTWkhnTTM4NW9IK0V4NWFGb1lvalhZcWloR2NISS94SzdUODJEd1YrS28vbTVoZFZkajloeGtIRWZxL3dPUjZBdUJ6Wm44OG5qVm11NXBuUWtLOEpOQzU4cHpKd09CSEFHdXpHdXBnb2U4cktIRUR4SlNwb1BYTDN6cnJkV0Y4U1BEUU9CbWxaS1lBQ2lKaHh1L3dmMUR2cUplaFlwNWcyVW1YN2lTdjlxWjZFMjJyRmgxNTVuNGNydFhNSm8zV0UrSHFuZXNMOXNyMERuTk5XSjA2a0FBcWR3azVoVkZkVHZidVMyeC9SakFwR2M3Yjdy; CsAuth1=NDU1a3JGWGc0WUdhU3J6YTFHTzFSS0VTUFh3cm0zS1lxVXVwVS90VzB5c05YOWVvM2YvNFI0MGpsOGgycDZweDdTeUdhRFZPUDEwTFFnYXEvTzVHYXZIb1N6ZE8rcjM0NmlwVG05emhRRHFSNEZrQUZnNUg2RUtQNll5RFRaT1hubnFIRU9Nbz08L0Nvb2tpZT48L1NlY3VyaXR5Q29udGV4dFRva2VuPg==; __cf_bm=qTeFEEs2br_GOAXujZxR6Of4sg.l3fesrzxONZoAKU0-1776600006.7794454-1.0.1.1-KvrOO.2DoSm_8LMFSMLZeBShHnYkG_J8PQWQII0S2o80OZDyxDTogFbwVO3BocsqNUv_6faRhFwpjzXTLL2kpPeHJh7lW0DrIWsiyJbY6J7_X_pdMAtXt8H0R4G46lN9; _gcl_au=1.1.1488400449.1776600009; _ga_R8CDFT1V4H=GS2.1.s1776600009$o1$g0$t1776600009$j60$l0$h0; _ga=GA1.3.1105959798.1776600009; _gid=GA1.3.1731048142.1776600010; _gat_UA-9407701-4=1; _ga_5THG22YLMH=GS2.1.s1776600009$o1$g0$t1776600009$j60$l0$h0; _ga_N6HHPLH4XC=GS2.1.s1776600009$o1$g0$t1776600009$j60$l0$h0; _ga_5CZ62BC06S=GS2.1.s1776600009$o1$g0$t1776600009$j60$l0$h0; osano_consentmanager_uuid=c4be476b-ed07-4faf-a360-59644a42a18a; osano_consentmanager=5aaD12UTq5ADGtsr4iTqFxfCZi1GCdMQ7AsEPVwKyywaSrlWcJoH0s5c7Cv8afKTgCiXta7u5UxhHKXRIajooFy-JWqDCoZi1gt7m0YrUbGvt-Rhu4P0KsNUDhYEILxExHYvtyuwTZLNvuwAilDgEW03vrMfZIOB5-DFLXRHoA3y7UkbBndNY3wfCC_ICAU71eOYp8nC3D12GLBGjWfLUVXgQQVPYnArvnksXKYbZmQLu3g3B9vzCgNMS_OBDoCqOQb8ihwZ5NPNfooG5tVUe96G7OXg4gtkNLV_3wwiZ6xyQfjcWwU_oOv6OQiebg_X",
+      "cookieCount": 14
+    }
+  },
+  "pinData": {},
+  "versionId": "84b43bbc-a2d2-4567-8892-23483d39a597",
+  "triggerCount": 0,
+  "id": "6XC5aXJ8uS5DS553",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 209,
+  "description": null,
+  "activeVersionId": "84b43bbc-a2d2-4567-8892-23483d39a597"
+}

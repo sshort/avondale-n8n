@@ -1,0 +1,514 @@
+{
+  "cache_invalidated_at": "2026-04-15T15:11:49.584426Z",
+  "description": null,
+  "archived": false,
+  "view_count": 160,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "text",
+      "semantic_type": "type/URL",
+      "lib/deduplicated-name": "n8n_base_url",
+      "lib/original-name": "n8n_base_url",
+      "name": "n8n_base_url",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "n8n_base_url",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "n8n_base_url",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "n8n_base_url",
+      "display_name": "n8n_base_url",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 1.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 34.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "serial",
+      "semantic_type": null,
+      "lib/deduplicated-name": "execution_id",
+      "lib/original-name": "execution_id",
+      "name": "execution_id",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "execution_id",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "execution_id",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "execution_id",
+      "display_name": "execution_id",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 100,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 9466.0,
+            "q1": 9490.5,
+            "q3": 9540.5,
+            "max": 9565.0,
+            "sd": 29.008358252146028,
+            "avg": 9515.5
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "workflow_id",
+      "lib/original-name": "workflow_id",
+      "name": "workflow_id",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "workflow_id",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "workflow_id",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "workflow_id",
+      "display_name": "workflow_id",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 18,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 16.3
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "workflow_name",
+      "lib/original-name": "workflow_name",
+      "name": "workflow_name",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "workflow_name",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "workflow_name",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "workflow_name",
+      "display_name": "workflow_name",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 18,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 26.35
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": "type/Category",
+      "lib/deduplicated-name": "status",
+      "lib/original-name": "status",
+      "name": "status",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "status",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "status",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "status",
+      "display_name": "status",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 6.98
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "mode",
+      "lib/original-name": "mode",
+      "name": "mode",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "mode",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "mode",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "mode",
+      "display_name": "mode",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 7.24
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "timestamptz",
+      "semantic_type": "type/CreationTimestamp",
+      "lib/deduplicated-name": "started_at",
+      "lib/original-name": "started_at",
+      "name": "started_at",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "started_at",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "started_at",
+        {
+          "base-type": "type/DateTimeWithLocalTZ"
+        }
+      ],
+      "effective_type": "type/DateTimeWithLocalTZ",
+      "lib/desired-column-alias": "started_at",
+      "display_name": "started_at",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 100,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": "2026-04-19T08:10:00.037Z",
+            "latest": "2026-04-19T11:36:11.326Z"
+          }
+        }
+      },
+      "base_type": "type/DateTimeWithLocalTZ"
+    },
+    {
+      "database_type": "timestamptz",
+      "semantic_type": null,
+      "lib/deduplicated-name": "stopped_at",
+      "lib/original-name": "stopped_at",
+      "name": "stopped_at",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "stopped_at",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "stopped_at",
+        {
+          "base-type": "type/DateTimeWithLocalTZ"
+        }
+      ],
+      "effective_type": "type/DateTimeWithLocalTZ",
+      "lib/desired-column-alias": "stopped_at",
+      "display_name": "stopped_at",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 100,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/DateTime": {
+            "earliest": "2026-04-19T08:10:00.412Z",
+            "latest": "2026-04-19T11:36:43.776Z"
+          }
+        }
+      },
+      "base_type": "type/DateTimeWithLocalTZ"
+    },
+    {
+      "database_type": "numeric",
+      "semantic_type": "type/Duration",
+      "lib/deduplicated-name": "duration_seconds",
+      "lib/original-name": "duration_seconds",
+      "name": "duration_seconds",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "duration_seconds",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "duration_seconds",
+        {
+          "base-type": "type/Decimal"
+        }
+      ],
+      "effective_type": "type/Decimal",
+      "lib/desired-column-alias": "duration_seconds",
+      "display_name": "duration_seconds",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 42,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.10842199585097567,
+            "q3": 11.758578643762691,
+            "max": 199.3,
+            "sd": 37.073431309913964,
+            "avg": 14.578
+          }
+        }
+      },
+      "base_type": "type/Decimal"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "n8n Recent Executions",
+  "last_query_start": "2026-04-19T11:38:39.013139Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-19T11:38:39.019231Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 42.3184713375796178,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-15T15:11:49.583384Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "native": "WITH settings AS (\n  SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url\n  FROM public.global_settings\n  WHERE key = 'n8n_base_url'\n)\nSELECT\n  (SELECT n8n_base_url FROM settings) AS n8n_base_url,\n  e.id AS execution_id,\n  w.id AS workflow_id,\n  w.name AS workflow_name,\n  e.status,\n  e.mode,\n  e.\"startedAt\" AS started_at,\n  e.\"stoppedAt\" AS stopped_at,\n  round(extract(epoch from (coalesce(e.\"stoppedAt\", now()) - e.\"startedAt\"))::numeric, 1) AS duration_seconds\nFROM n8n.execution_entity e\nLEFT JOIN n8n.workflow_entity w ON w.id = e.\"workflowId\"\nORDER BY e.\"startedAt\" DESC\nLIMIT 100;\n",
+        "lib/type": "mbql.stage/native"
+      }
+    ]
+  },
+  "id": 1511,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "OWsd_toK_5X8796Ybii6I",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-15T15:11:49.608671Z"
+  },
+  "visualization_settings": {
+    "table.columns": [
+      {
+        "name": "n8n_base_url",
+        "enabled": false
+      },
+      {
+        "name": "workflow_id",
+        "enabled": false
+      },
+      {
+        "name": "execution_id",
+        "enabled": true
+      },
+      {
+        "name": "workflow_name",
+        "enabled": true
+      },
+      {
+        "name": "status",
+        "enabled": true
+      },
+      {
+        "name": "mode",
+        "enabled": true
+      },
+      {
+        "name": "started_at",
+        "enabled": true
+      },
+      {
+        "name": "stopped_at",
+        "enabled": true
+      },
+      {
+        "name": "duration_seconds",
+        "enabled": true
+      }
+    ],
+    "table": {
+      "columns": [
+        {
+          "name": "n8n_base_url",
+          "enabled": false
+        },
+        {
+          "name": "workflow_id",
+          "enabled": false
+        },
+        {
+          "name": "execution_id",
+          "enabled": true
+        },
+        {
+          "name": "workflow_name",
+          "enabled": true
+        },
+        {
+          "name": "status",
+          "enabled": true
+        },
+        {
+          "name": "mode",
+          "enabled": true
+        },
+        {
+          "name": "started_at",
+          "enabled": true
+        },
+        {
+          "name": "stopped_at",
+          "enabled": true
+        },
+        {
+          "name": "duration_seconds",
+          "enabled": true
+        }
+      ]
+    },
+    "column_settings": {
+      "[\"name\",\"execution_id\"]": {
+        "view_as": "link",
+        "link_url": "{{n8n_base_url}}/workflow/{{workflow_id}}/executions/{{execution_id}}",
+        "column_title": "execution_id"
+      },
+      "[\"name\",\"workflow_name\"]": {
+        "view_as": "link",
+        "link_url": "{{n8n_base_url}}/workflow/{{workflow_id}}",
+        "column_title": "workflow_name"
+      }
+    }
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-03-16T15:09:03.05466Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

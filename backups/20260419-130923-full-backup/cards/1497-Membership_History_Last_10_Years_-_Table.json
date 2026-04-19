@@ -1,0 +1,620 @@
+{
+  "cache_invalidated_at": "2026-03-30T14:06:44.651277Z",
+  "description": null,
+  "archived": false,
+  "view_count": 517,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Membership",
+      "lib/original-name": "Membership",
+      "name": "Membership",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Membership",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Membership",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Membership",
+      "display_name": "Membership",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 13,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 8.615384615384615
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "2026/2027",
+      "lib/original-name": "2026/2027",
+      "name": "2026/2027",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "2026/2027",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "2026/2027",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "2026/2027",
+      "display_name": "2026/2027",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 12,
+          "nil%": 0.1538461538461538
+        },
+        "type": {
+          "type/Number": {
+            "min": 4.0,
+            "q1": 10.25,
+            "q3": 54.75,
+            "max": 336.0,
+            "sd": 101.5474810573404,
+            "avg": 61.09090909090909
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "2025/2026",
+      "lib/original-name": "2025/2026",
+      "name": "2025/2026",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "2025/2026",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "2025/2026",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "2025/2026",
+      "display_name": "2025/2026",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 12,
+          "nil%": 0.07692307692307691
+        },
+        "type": {
+          "type/Number": {
+            "min": 4.0,
+            "q1": 6.585786437626905,
+            "q3": 73.0,
+            "max": 455.0,
+            "sd": 133.29518393627754,
+            "avg": 75.83333333333333
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "2024/2025",
+      "lib/original-name": "2024/2025",
+      "name": "2024/2025",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "2024/2025",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "2024/2025",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "2024/2025",
+      "display_name": "2024/2025",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 10,
+          "nil%": 0.3076923076923077
+        },
+        "type": {
+          "type/Number": {
+            "min": 5.0,
+            "q1": 6.75,
+            "q3": 144.25,
+            "max": 456.0,
+            "sd": 152.09618667146128,
+            "avg": 100.66666666666667
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "2023/2024",
+      "lib/original-name": "2023/2024",
+      "name": "2023/2024",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "2023/2024",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "2023/2024",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "2023/2024",
+      "display_name": "2023/2024",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 9,
+          "nil%": 0.3846153846153846
+        },
+        "type": {
+          "type/Number": {
+            "min": 5.0,
+            "q1": 7.5,
+            "q3": 183.0,
+            "max": 478.0,
+            "sd": 165.9251121956615,
+            "avg": 119.5
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "2022/2023",
+      "lib/original-name": "2022/2023",
+      "name": "2022/2023",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "2022/2023",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "2022/2023",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "2022/2023",
+      "display_name": "2022/2023",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 9,
+          "nil%": 0.3846153846153846
+        },
+        "type": {
+          "type/Number": {
+            "min": 6.0,
+            "q1": 9.5,
+            "q3": 181.0,
+            "max": 473.0,
+            "sd": 163.36702762272967,
+            "avg": 118.25
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "2021/2022",
+      "lib/original-name": "2021/2022",
+      "name": "2021/2022",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "2021/2022",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "2021/2022",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "2021/2022",
+      "display_name": "2021/2022",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 9,
+          "nil%": 0.3846153846153846
+        },
+        "type": {
+          "type/Number": {
+            "min": 5.0,
+            "q1": 8.5,
+            "q3": 183.0,
+            "max": 471.0,
+            "sd": 163.93879519939316,
+            "avg": 117.75
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "2020/2021",
+      "lib/original-name": "2020/2021",
+      "name": "2020/2021",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "2020/2021",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "2020/2021",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "2020/2021",
+      "display_name": "2020/2021",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 8,
+          "nil%": 0.3846153846153846
+        },
+        "type": {
+          "type/Number": {
+            "min": 3.0,
+            "q1": 11.384776310850237,
+            "q3": 157.0,
+            "max": 425.0,
+            "sd": 148.18979143555836,
+            "avg": 106.25
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "2019/2020",
+      "lib/original-name": "2019/2020",
+      "name": "2019/2020",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "2019/2020",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "2019/2020",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "2019/2020",
+      "display_name": "2019/2020",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 9,
+          "nil%": 0.3846153846153846
+        },
+        "type": {
+          "type/Number": {
+            "min": 6.0,
+            "q1": 9.5,
+            "q3": 168.0,
+            "max": 452.0,
+            "sd": 156.81836627130127,
+            "avg": 113.0
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "2018/2019",
+      "lib/original-name": "2018/2019",
+      "name": "2018/2019",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "2018/2019",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "2018/2019",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "2018/2019",
+      "display_name": "2018/2019",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 9,
+          "nil%": 0.3846153846153846
+        },
+        "type": {
+          "type/Number": {
+            "min": 6.0,
+            "q1": 13.5,
+            "q3": 172.0,
+            "max": 472.0,
+            "sd": 161.4868415692127,
+            "avg": 118.0
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "2017/2018",
+      "lib/original-name": "2017/2018",
+      "name": "2017/2018",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "2017/2018",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "2017/2018",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "2017/2018",
+      "display_name": "2017/2018",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 9,
+          "nil%": 0.3846153846153846
+        },
+        "type": {
+          "type/Number": {
+            "min": 6.0,
+            "q1": 12.0,
+            "q3": 184.5,
+            "max": 487.0,
+            "sd": 167.01133408929383,
+            "avg": 121.75
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "2016/2017",
+      "lib/original-name": "2016/2017",
+      "name": "2016/2017",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "2016/2017",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "2016/2017",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "2016/2017",
+      "display_name": "2016/2017",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 8,
+          "nil%": 0.3846153846153846
+        },
+        "type": {
+          "type/Number": {
+            "min": 2.0,
+            "q1": 5.0,
+            "q3": 195.5,
+            "max": 493.0,
+            "sd": 171.4082428423024,
+            "avg": 123.25
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "2015/2016",
+      "lib/original-name": "2015/2016",
+      "name": "2015/2016",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "2015/2016",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "2015/2016",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "2015/2016",
+      "display_name": "2015/2016",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 8,
+          "nil%": 0.3846153846153846
+        },
+        "type": {
+          "type/Number": {
+            "min": 4.0,
+            "q1": 5.0,
+            "q3": 200.0,
+            "max": 507.0,
+            "sd": 175.89668233694135,
+            "avg": 126.75
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    },
+    {
+      "database_type": "int4",
+      "semantic_type": null,
+      "lib/deduplicated-name": "2014/2015",
+      "lib/original-name": "2014/2015",
+      "name": "2014/2015",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "2014/2015",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "2014/2015",
+        {
+          "base-type": "type/Integer"
+        }
+      ],
+      "effective_type": "type/Integer",
+      "lib/desired-column-alias": "2014/2015",
+      "display_name": "2014/2015",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 9,
+          "nil%": 0.3846153846153846
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 7.0,
+            "q3": 193.5,
+            "max": 498.0,
+            "sd": 171.40011668607463,
+            "avg": 124.5
+          }
+        }
+      },
+      "base_type": "type/Integer"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Membership History Last 10 Years - Table",
+  "last_query_start": "2026-04-19T12:06:57.816331Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-19T12:06:57.822973Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 71.8040404040404040,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-03-30T14:06:44.650052Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "native": "SELECT membership AS \"Membership\", \"2026/2027\", \"2025/2026\", \"2024/2025\", \"2023/2024\", \"2022/2023\", \"2021/2022\", \"2020/2021\", \"2019/2020\", \"2018/2019\", \"2017/2018\", \"2016/2017\", \"2015/2016\", \"2014/2015\" FROM public.membership_history ORDER BY CASE WHEN membership = 'Total' THEN 1 ELSE 0 END, membership;"
+      }
+    ]
+  },
+  "id": 1497,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "BvsuOVxrM_y21-MXyKO6c",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-03-30T14:06:44.682838Z"
+  },
+  "visualization_settings": {},
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-03-16T15:09:01.160554Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

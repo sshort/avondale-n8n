@@ -1,0 +1,160 @@
+{
+  "item": {
+    "id": "1748516739177513990",
+    "createdAt": "2026-04-08T06:50:38.244Z",
+    "updatedAt": "2026-04-08T06:51:19.185Z",
+    "position": 65536,
+    "name": "DevTest",
+    "defaultView": "kanban",
+    "defaultCardType": "project",
+    "limitCardTypesToDefaultOne": false,
+    "alwaysDisplayCardCreator": false,
+    "displayCardAges": false,
+    "expandTaskListsByDefault": false,
+    "projectId": "1748516685381370884",
+    "isSubscribed": false
+  },
+  "included": {
+    "boardMemberships": [
+      {
+        "id": "1748516739194291207",
+        "createdAt": "2026-04-08T06:50:38.246Z",
+        "updatedAt": null,
+        "role": "editor",
+        "canComment": null,
+        "projectId": "1748516685381370884",
+        "boardId": "1748516739177513990",
+        "userId": "1748502044374729729"
+      }
+    ],
+    "labels": [],
+    "lists": [
+      {
+        "id": "1748517179478770698",
+        "createdAt": "2026-04-08T06:51:30.730Z",
+        "updatedAt": null,
+        "type": "active",
+        "position": 65536,
+        "name": "Not Started",
+        "color": null,
+        "boardId": "1748516739177513990"
+      },
+      {
+        "id": "1748517231009989643",
+        "createdAt": "2026-04-08T06:51:36.875Z",
+        "updatedAt": null,
+        "type": "active",
+        "position": 131072,
+        "name": "In Progress",
+        "color": null,
+        "boardId": "1748516739177513990"
+      },
+      {
+        "id": "1748517255295009804",
+        "createdAt": "2026-04-08T06:51:39.770Z",
+        "updatedAt": null,
+        "type": "active",
+        "position": 196608,
+        "name": "In Review",
+        "color": null,
+        "boardId": "1748516739177513990"
+      },
+      {
+        "id": "1748517276853732365",
+        "createdAt": "2026-04-08T06:51:42.340Z",
+        "updatedAt": null,
+        "type": "active",
+        "position": 262144,
+        "name": "Complete",
+        "color": null,
+        "boardId": "1748516739177513990"
+      },
+      {
+        "id": "1748517304158651406",
+        "createdAt": "2026-04-08T06:51:45.595Z",
+        "updatedAt": null,
+        "type": "active",
+        "position": 327680,
+        "name": "Blocked",
+        "color": null,
+        "boardId": "1748516739177513990"
+      },
+      {
+        "id": "1748516739219457032",
+        "createdAt": "2026-04-08T06:50:38.249Z",
+        "updatedAt": null,
+        "type": "archive",
+        "position": null,
+        "name": null,
+        "color": null,
+        "boardId": "1748516739177513990"
+      },
+      {
+        "id": "1748516739227845641",
+        "createdAt": "2026-04-08T06:50:38.249Z",
+        "updatedAt": null,
+        "type": "trash",
+        "position": null,
+        "name": null,
+        "color": null,
+        "boardId": "1748516739177513990"
+      }
+    ],
+    "cards": [],
+    "cardMemberships": [],
+    "cardLabels": [],
+    "taskLists": [],
+    "tasks": [],
+    "customFieldGroups": [],
+    "customFields": [],
+    "customFieldValues": [],
+    "users": [
+      {
+        "id": "1748502044374729729",
+        "createdAt": "2026-04-08T06:21:26.483Z",
+        "updatedAt": "2026-04-08T06:32:19.699Z",
+        "email": "steve.short@gmail.com",
+        "role": "admin",
+        "name": "Steve Short",
+        "username": "steve",
+        "phone": null,
+        "organization": null,
+        "language": "en-US",
+        "apiKeyPrefix": null,
+        "subscribeToOwnCards": false,
+        "subscribeToCardWhenCommenting": true,
+        "turnOffRecentCardHighlighting": false,
+        "enableFavoritesByDefault": true,
+        "defaultEditorMode": "wysiwyg",
+        "defaultHomeView": "groupedProjects",
+        "defaultProjectsOrder": "byDefault",
+        "isSsoUser": false,
+        "isDeactivated": false,
+        "avatar": null,
+        "isDefaultAdmin": true,
+        "lockedFieldNames": [
+          "email",
+          "password",
+          "name",
+          "role",
+          "username"
+        ]
+      }
+    ],
+    "projects": [
+      {
+        "id": "1748516685381370884",
+        "createdAt": "2026-04-08T06:50:31.829Z",
+        "updatedAt": "2026-04-08T06:50:31.837Z",
+        "name": "Test",
+        "description": "Test project",
+        "backgroundType": null,
+        "backgroundGradient": null,
+        "isHidden": false,
+        "ownerProjectManagerId": "1748516685406536709",
+        "backgroundImageId": null
+      }
+    ],
+    "attachments": []
+  }
+}

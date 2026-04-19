@@ -1,0 +1,151 @@
+{
+  "cache_invalidated_at": "2026-04-15T14:41:09.904895Z",
+  "description": null,
+  "archived": false,
+  "view_count": 469,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "int8",
+      "semantic_type": "type/Quantity",
+      "lib/deduplicated-name": "count",
+      "lib/original-name": "count",
+      "name": "count",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "count",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "count",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "count",
+      "display_name": "count",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 1.0,
+            "q1": 1.0,
+            "q3": 1.0,
+            "max": 1.0,
+            "sd": null,
+            "avg": 1.0
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Count of Members Missing Signup Email",
+  "last_query_start": "2026-04-19T12:07:09.449932Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-19T12:07:09.644947Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 77.0389016018306636,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-15T14:41:09.90376Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "template-tags": {
+          "year": {
+            "name": "year",
+            "display-name": "Year",
+            "type": "text",
+            "id": "year",
+            "required": true
+          }
+        },
+        "lib/type": "mbql.stage/native",
+        "native": "WITH current_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS full_name,\n    src.\"Membership\",\n    src.signup_match_group,\n    COALESCE(\n      to_date(NULLIF(src.\"Date joined venue\", ''), 'DD/MM/YYYY'),\n      to_date(NULLIF(src.\"Start Date\", ''), 'DD/MM/YYYY')\n    ) AS effective_date\n  FROM (\n    SELECT\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*,\n      p.category,\n      p.display_order,\n      COALESCE(msg.signup_match_group, lower(trim(p.name))) AS signup_match_group\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = {{year}}\n    LEFT JOIN public.membership_signup_match_groups msg\n      ON msg.season = p.season\n     AND msg.package_name = p.name\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n      AND COALESCE(m.is_current, true) = true\n  ) src\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n), signups AS (\n  SELECT DISTINCT\n    lower(trim(s.member)) AS member_name,\n    COALESCE(msg.signup_match_group, lower(trim(s.product))) AS signup_match_group\n  FROM public.member_signups s\n  LEFT JOIN public.membership_packages p\n    ON s.product = p.name\n  LEFT JOIN public.membership_signup_match_groups msg\n    ON msg.season = COALESCE(p.season, {{year}})\n   AND msg.package_name = s.product\n  WHERE s.product LIKE '%' || {{year}} || '%'\n), missing AS (\n  SELECT c.*\n  FROM current_members c\n  LEFT JOIN signups s\n    ON lower(trim(c.full_name)) = s.member_name\n   AND c.signup_match_group = s.signup_match_group\n  WHERE s.member_name IS NULL\n    AND c.effective_date IS NOT NULL\n    AND (\n      c.effective_date > current_date\n      OR c.effective_date::timestamp <= now() - interval '1 hour'\n    )\n)\nSELECT COUNT(*)\nFROM missing;\n"
+      }
+    ]
+  },
+  "id": 1608,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "scalar",
+  "archived_directly": false,
+  "entity_id": "QRbQ8ux6sgxOAuYm6DLxO",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-15T14:41:09.935154Z"
+  },
+  "visualization_settings": {
+    "scalar.segments": []
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-03-22T12:21:36.527209Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}
