@@ -1,0 +1,137 @@
+{
+  "items": [
+    {
+      "id": "1748516685381370884",
+      "createdAt": "2026-04-08T06:50:31.829Z",
+      "updatedAt": "2026-04-08T06:50:31.837Z",
+      "name": "Test",
+      "description": "Test project",
+      "backgroundType": null,
+      "backgroundGradient": null,
+      "isHidden": false,
+      "ownerProjectManagerId": "1748516685406536709",
+      "backgroundImageId": null,
+      "isFavorite": false
+    },
+    {
+      "id": "1749306467707520017",
+      "createdAt": "2026-04-09T08:59:41.219Z",
+      "updatedAt": "2026-04-09T08:59:41.228Z",
+      "name": "Avondale",
+      "description": "Avondale development boards",
+      "backgroundType": null,
+      "backgroundGradient": null,
+      "isHidden": false,
+      "ownerProjectManagerId": "1749306467732685842",
+      "backgroundImageId": null,
+      "isFavorite": false
+    }
+  ],
+  "included": {
+    "projectManagers": [
+      {
+        "id": "1748516685406536709",
+        "createdAt": "2026-04-08T06:50:31.834Z",
+        "updatedAt": null,
+        "projectId": "1748516685381370884",
+        "userId": "1748502044374729729"
+      },
+      {
+        "id": "1749306467732685842",
+        "createdAt": "2026-04-09T08:59:41.224Z",
+        "updatedAt": null,
+        "projectId": "1749306467707520017",
+        "userId": "1748502044374729729"
+      }
+    ],
+    "baseCustomFieldGroups": [],
+    "boards": [
+      {
+        "id": "1748516739177513990",
+        "createdAt": "2026-04-08T06:50:38.244Z",
+        "updatedAt": "2026-04-08T06:51:19.185Z",
+        "position": 65536,
+        "name": "DevTest",
+        "defaultView": "kanban",
+        "defaultCardType": "project",
+        "limitCardTypesToDefaultOne": false,
+        "alwaysDisplayCardCreator": false,
+        "displayCardAges": false,
+        "expandTaskListsByDefault": false,
+        "projectId": "1748516685381370884"
+      },
+      {
+        "id": "1749307018184754195",
+        "createdAt": "2026-04-09T09:00:46.841Z",
+        "updatedAt": null,
+        "position": 65536,
+        "name": "Dev Kanban",
+        "defaultView": "kanban",
+        "defaultCardType": "project",
+        "limitCardTypesToDefaultOne": false,
+        "alwaysDisplayCardCreator": false,
+        "displayCardAges": false,
+        "expandTaskListsByDefault": false,
+        "projectId": "1749306467707520017"
+      }
+    ],
+    "boardMemberships": [
+      {
+        "id": "1748516739194291207",
+        "createdAt": "2026-04-08T06:50:38.246Z",
+        "updatedAt": null,
+        "role": "editor",
+        "canComment": null,
+        "projectId": "1748516685381370884",
+        "boardId": "1748516739177513990",
+        "userId": "1748502044374729729"
+      },
+      {
+        "id": "1749307018251863060",
+        "createdAt": "2026-04-09T09:00:46.850Z",
+        "updatedAt": null,
+        "role": "editor",
+        "canComment": null,
+        "projectId": "1749306467707520017",
+        "boardId": "1749307018184754195",
+        "userId": "1748502044374729729"
+      }
+    ],
+    "customFields": [],
+    "notificationServices": [],
+    "users": [
+      {
+        "id": "1748502044374729729",
+        "createdAt": "2026-04-08T06:21:26.483Z",
+        "updatedAt": "2026-04-08T06:32:19.699Z",
+        "email": "steve.short@gmail.com",
+        "role": "admin",
+        "name": "Steve Short",
+        "username": "steve",
+        "phone": null,
+        "organization": null,
+        "language": "en-US",
+        "apiKeyPrefix": null,
+        "subscribeToOwnCards": false,
+        "subscribeToCardWhenCommenting": true,
+        "turnOffRecentCardHighlighting": false,
+        "enableFavoritesByDefault": true,
+        "defaultEditorMode": "wysiwyg",
+        "defaultHomeView": "groupedProjects",
+        "defaultProjectsOrder": "byDefault",
+        "isSsoUser": false,
+        "isDeactivated": false,
+        "avatar": null,
+        "isDefaultAdmin": true,
+        "lockedFieldNames": [
+          "email",
+          "password",
+          "name",
+          "role",
+          "username"
+        ]
+      }
+    ],
+    "backgroundImages": []
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "Test Workflow",
+  "active": false,
+  "nodes": [],
+  "connections": {},
+  "createdAt": "2026-04-03T07:52:31.616+00:00",
+  "updatedAt": "2026-04-03T07:52:31.616+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "6b4029e2-ed18-444a-b8bc-1c580808678a",
+  "triggerCount": 0,
+  "id": "L2v8pHI69iq3XlA7",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 1,
+  "description": null,
+  "activeVersionId": null
+}
