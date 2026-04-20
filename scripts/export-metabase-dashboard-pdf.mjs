@@ -324,31 +324,36 @@ function normalizeSnapshotTargets(rawTargets) {
     .filter(Boolean);
 }
 
-async function snapshotDashcards(page, rawTargets = []) {
+async function captureDashcardSnapshots(page, rawTargets = []) {
   const targets = normalizeSnapshotTargets(rawTargets);
 
   if (!targets.length) {
-    return [];
+    return { append: [], inline: [] };
   }
 
   const cards = page.locator('.react-grid-item');
   const cardCount = await cards.count();
-  const snapshots = [];
+  const appendSnapshots = [];
+  const inlineSnapshots = [];
 
   for (let index = 0; index < cardCount; index += 1) {
     const card = cards.nth(index);
     const cardDescriptor = await card.evaluate((element) => {
-      const titleNode = element.querySelector('a, h1, h2, h3, h4, h5, h6, [role="heading"], [data-testid="dashcard-title"]');
+      const titleNode = element.querySelector(
+        '[data-testid="dashcard-title"], [role="heading"], h1, h2, h3, h4, h5, h6, .Card-title, .DashCard-title, .Visualization-title',
+      );
       return {
         title: titleNode?.textContent ?? '',
         dashcardKey: element.querySelector('[data-dashcard-key]')?.getAttribute('data-dashcard-key') ?? '',
         cardKey: element.querySelector('[data-card-key]')?.getAttribute('data-card-key') ?? '',
+        display: element.querySelector('[data-card-key]')?.getAttribute('data-display') ?? '',
       };
     }).catch(() => '');
 
     const normalizedTitle = normalizeHeaderName(cardDescriptor?.title ?? '');
     const normalizedDashcardKey = String(cardDescriptor?.dashcardKey ?? '').trim();
     const normalizedCardKey = String(cardDescriptor?.cardKey ?? '').trim();
+    const normalizedDisplay = String(cardDescriptor?.display ?? '').trim().toLowerCase();
 
     const matchingTarget = targets.find((target) => (
       (target.title && target.title === normalizedTitle)
@@ -362,6 +367,12 @@ async function snapshotDashcards(page, rawTargets = []) {
 
     await card.scrollIntoViewIfNeeded().catch(() => {});
     await page.waitForTimeout(300);
+    if (normalizedDisplay === 'table') {
+      await card.locator('th, [role="columnheader"], table, [role="grid"]').first()
+        .waitFor({ state: 'visible', timeout: 20000 })
+        .catch(() => {});
+      await page.waitForTimeout(500);
+    }
     for (const expectedText of matchingTarget.waitForText ?? []) {
       await card.getByText(expectedText, { exact: false }).first()
         .waitFor({ state: 'visible', timeout: 20000 })
@@ -383,64 +394,95 @@ async function snapshotDashcards(page, rawTargets = []) {
 
     const screenshot = await page.screenshot({ clip, type: 'png' });
     if (matchingTarget.placement === 'inline') {
-      const imageSrc = `data:image/png;base64,${screenshot.toString('base64')}`;
-      await card.evaluate(async (element, payload) => {
-        if (element.querySelector('[data-export-inline-snapshot="true"]')) {
-          return;
-        }
-
-        Array.from(element.children).forEach((child) => {
-          child.style.setProperty('display', 'none', 'important');
-        });
-
-        element.style.setProperty('height', `${payload.height}px`, 'important');
-        element.style.setProperty('min-height', `${payload.height}px`, 'important');
-        element.style.setProperty('overflow', 'hidden', 'important');
-        element.style.setProperty('background', '#ffffff', 'important');
-
-        const replacement = document.createElement('img');
-        replacement.src = payload.imageSrc;
-        replacement.alt = payload.alt;
-        replacement.setAttribute('data-export-inline-snapshot', 'true');
-        replacement.style.display = 'block';
-        replacement.style.width = '100%';
-        replacement.style.height = '100%';
-        replacement.style.objectFit = 'contain';
-        replacement.style.objectPosition = 'top left';
-        replacement.style.background = '#ffffff';
-
-        element.appendChild(replacement);
-
-        if (typeof replacement.decode === 'function') {
-          await replacement.decode().catch(() => {});
-        } else {
-          await new Promise((resolve) => {
-            replacement.addEventListener('load', resolve, { once: true });
-            replacement.addEventListener('error', resolve, { once: true });
-          });
-        }
-      }, {
-        imageSrc,
+      inlineSnapshots.push({
+        index,
+        imageBuffer: screenshot,
         height: clip.height,
         alt: String(cardDescriptor?.title ?? '').trim() || 'Card snapshot',
       });
       continue;
     }
 
-    snapshots.push({
+    appendSnapshots.push({
+      index,
       title: String(cardDescriptor?.title ?? '').trim(),
       imageBuffer: screenshot,
       width: clip.width,
       height: clip.height,
     });
+  }
 
+  return {
+    append: appendSnapshots,
+    inline: inlineSnapshots,
+  };
+}
+
+async function applyInlineDashcardSnapshots(page, snapshots = []) {
+  if (!Array.isArray(snapshots) || !snapshots.length) {
+    return;
+  }
+
+  const cards = page.locator('.react-grid-item');
+  for (const snapshot of snapshots) {
+    const card = cards.nth(snapshot.index);
+    const imageSrc = `data:image/png;base64,${snapshot.imageBuffer.toString('base64')}`;
+    await card.evaluate(async (element, payload) => {
+      if (element.querySelector('[data-export-inline-snapshot="true"]')) {
+        return;
+      }
+
+      Array.from(element.children).forEach((child) => {
+        child.style.setProperty('display', 'none', 'important');
+      });
+
+      element.style.setProperty('height', `${payload.height}px`, 'important');
+      element.style.setProperty('min-height', `${payload.height}px`, 'important');
+      element.style.setProperty('overflow', 'hidden', 'important');
+      element.style.setProperty('background', '#ffffff', 'important');
+
+      const replacement = document.createElement('img');
+      replacement.src = payload.imageSrc;
+      replacement.alt = payload.alt;
+      replacement.setAttribute('data-export-inline-snapshot', 'true');
+      replacement.style.display = 'block';
+      replacement.style.width = '100%';
+      replacement.style.height = '100%';
+      replacement.style.objectFit = 'contain';
+      replacement.style.objectPosition = 'top left';
+      replacement.style.background = '#ffffff';
+
+      element.appendChild(replacement);
+
+      if (typeof replacement.decode === 'function') {
+        await replacement.decode().catch(() => {});
+      } else {
+        await new Promise((resolve) => {
+          replacement.addEventListener('load', resolve, { once: true });
+          replacement.addEventListener('error', resolve, { once: true });
+        });
+      }
+    }, {
+      imageSrc,
+      height: snapshot.height,
+      alt: snapshot.alt,
+    });
+  }
+}
+
+async function hideOriginalDashcards(page, snapshots = []) {
+  if (!Array.isArray(snapshots) || !snapshots.length) {
+    return;
+  }
+
+  const cards = page.locator('.react-grid-item');
+  for (const snapshot of snapshots) {
+    const card = cards.nth(snapshot.index);
     await card.evaluate((element) => {
       element.setAttribute('data-export-hidden-original-card', 'true');
       element.style.setProperty('display', 'none', 'important');
     });
   }
-
-  return snapshots;
 }
 
 async function protectSensitiveColumns(page, rawColumnHeaders, reportMode = 'render') {
@@ -928,17 +970,25 @@ async function renderTabPdf(page, tab, pdfOptions, sensitiveColumnHeaders = [], 
   await page.emulateMedia({ media: 'screen' }).catch(() => {});
   await selectTab(page, tab);
   await waitForTabRender(page, 1500);
-  const standaloneDashcardSnapshots = await snapshotDashcards(page, snapshotTargets);
+  const dashcardSnapshots = await captureDashcardSnapshots(page, snapshotTargets);
   await page.emulateMedia({ media: 'print' }).catch(() => {});
   await waitForTabRender(page, 800);
+  await applyInlineDashcardSnapshots(page, dashcardSnapshots.inline);
+  await hideOriginalDashcards(page, dashcardSnapshots.append);
   await snapshotMapVisualizations(page);
   await protectSensitiveColumns(page, sensitiveColumnHeaders, reportMode);
   await page.waitForTimeout(200);
   let pdfBuffer = await renderSingleSnapshotTabPdf(page, pdfOptions);
   if (!pdfBuffer) {
-    pdfBuffer = await page.pdf(pdfOptions);
+    const scale = shouldScaleTabToFit(tab)
+      ? await resolvePdfScaleForVisibleContent(page, pdfOptions)
+      : 1;
+    pdfBuffer = await page.pdf({
+      ...pdfOptions,
+      scale,
+    });
   }
-  pdfBuffer = await appendSnapshotPagesToPdfBuffer(pdfBuffer, standaloneDashcardSnapshots, pdfOptions);
+  pdfBuffer = await appendSnapshotPagesToPdfBuffer(pdfBuffer, dashcardSnapshots.append, pdfOptions);
   await page.emulateMedia({ media: 'screen' }).catch(() => {});
   return pdfBuffer;
 }
@@ -991,6 +1041,10 @@ function resolvePdfPageSize(pdfOptions) {
   }
 
   return pdfOptions?.landscape ? [height, width] : [width, height];
+}
+
+function pointsToCssPixels(points) {
+  return Number(points ?? 0) * (96 / 72);
 }
 
 function parsePdfDistanceToPoints(value, fallbackPoints = 0) {
@@ -1129,6 +1183,57 @@ async function renderSingleSnapshotTabPdf(page, pdfOptions) {
   });
 
   return Buffer.from(await document.save());
+}
+
+function shouldScaleTabToFit(tab) {
+  const id = String(tab?.id ?? '').trim();
+  const name = String(tab?.name ?? '').trim().toLowerCase();
+  return id === '133'
+    || id === '136'
+    || id === '138'
+    || name === 'memberships'
+    || name === 'signup batches'
+    || name === 'keys';
+}
+
+async function resolvePdfScaleForVisibleContent(page, pdfOptions) {
+  const bounds = await page.evaluate(() => {
+    const visibleCards = Array.from(document.querySelectorAll('.react-grid-item'))
+      .filter((element) => {
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return style.display !== 'none'
+          && style.visibility !== 'hidden'
+          && rect.width > 40
+          && rect.height > 40;
+      });
+
+    if (!visibleCards.length) {
+      return null;
+    }
+
+    const rects = visibleCards.map((element) => element.getBoundingClientRect());
+    const minLeft = Math.min(...rects.map((rect) => rect.left));
+    const maxRight = Math.max(...rects.map((rect) => rect.right));
+
+    return {
+      contentWidth: Math.max(1, maxRight - minLeft),
+    };
+  }).catch(() => null);
+
+  if (!bounds?.contentWidth) {
+    return 1;
+  }
+
+  const [pageWidth] = resolvePdfPageSize(pdfOptions);
+  const marginRight = parsePdfDistanceToPoints(pdfOptions.margin?.right, 28.35);
+  const marginLeft = parsePdfDistanceToPoints(pdfOptions.margin?.left, 28.35);
+  const availableCssWidth = Math.max(1, pointsToCssPixels(pageWidth - marginLeft - marginRight));
+  if (bounds.contentWidth <= availableCssWidth) {
+    return 1;
+  }
+
+  return Math.max(0.1, Math.min(1, (availableCssWidth / bounds.contentWidth) * 0.98));
 }
 
 async function runStirling(stirlingBaseUrl, pathSuffix, sourceBuffer, fields = {}, apiKey = "") {

@@ -61,7 +61,7 @@ This keeps the workflow importable and lets operators update dashboard/tab metad
 The dashboard catalog can also carry PDF-export overrides. Current supported override:
 
 - `snapshotDashcards`
-  - array of selector objects such as `{ "dashcardKey": 1499 }` or `{ "cardKey": 1626 }`
+  - array of selector objects such as `{ "dashcardKey": 1499 }`, `{ "cardKey": 1626 }`, or `{ "title": "Summary of Keys" }`
   - optional `placement` supports `append` or `inline`
   - optional `waitForText` array waits for specific visible text inside the dashcard before the snapshot is taken
   - `append` hides the original dashcard and appends it back as a standalone image page in the final PDF

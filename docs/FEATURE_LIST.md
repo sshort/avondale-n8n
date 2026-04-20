@@ -1,5 +1,15 @@
 # Avondale n8n Automation Platform - Feature Highlights
 
+## Feature Summary
+
+- **Metabase Dashboard & Reporting**: Membership overview, statistics (year-over-year, age distribution, trends), signup tracking, batch execution status, key management, database audit, refund management, non-active member tracking
+- **Automated Member Signup Processing**: Gmail email parsing, batch creation, label/envelope printing, no-address detection, backfill from ClubSpark, templated emails, status tracking
+- **ClubSpark Integration**: Scheduled automated exports of members and contacts
+- **Refund Management**: Refund report, create requests, treasury email integration
+- **Member Lookup**: Fast/multi-member search, consolidated details, add tags/keys, template emails
+- **Case Tracking**: Web-based UI, dashboard with stats/filters, status/priority management, activity tracking, Gmail two-way sync, contact search, email compose, settings management
+- **Team Sheet Management**: Parse Word documents, intelligent player matching (exact, nickname, fuzzy, override), multi-format output (.xlsx, .csv, .pdf), captain email distribution, review/audit for unmatched players
+
 ## What is Avondale n8n?
 
 Avondale n8n is a powerful low-code automation platform that streamlines club membership management, replacing manual spreadsheets and email processing with intelligent, automated workflows.

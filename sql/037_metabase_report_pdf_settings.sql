@@ -19,16 +19,21 @@ VALUES
         "id": 11,
         "name": "Avondale Membership",
         "slug": "avondale-membership",
-        "defaultTabs": [112, 114],
+        "defaultTabs": [133, 135],
         "tabs": [
-          { "id": 112, "name": "Memberships" },
-          { "id": 113, "name": "Search" },
-          { "id": 114, "name": "Signup Statistics" },
-          { "id": 115, "name": "Signup Batches" },
-          { "id": 116, "name": "Batch Executions" },
-          { "id": 117, "name": "Keys" },
-          { "id": 118, "name": "Database" },
-          { "id": 119, "name": "Refunds" }
+          { "id": 134, "name": "Search" },
+          { "id": 133, "name": "Memberships" },
+          { "id": 143, "name": "Membership History" },
+          { "id": 144, "name": "Category Comparison" },
+          { "id": 145, "name": "Map" },
+          { "id": 135, "name": "Signup Statistics" },
+          { "id": 136, "name": "Signup Batches" },
+          { "id": 137, "name": "Batch Executions" },
+          { "id": 138, "name": "Keys" },
+          { "id": 139, "name": "Database" },
+          { "id": 140, "name": "Refunds" },
+          { "id": 141, "name": "History" },
+          { "id": 142, "name": "Webhooks" }
         ],
         "filterMap": {
           "year": "year",
@@ -42,6 +47,24 @@ VALUES
             "waitForText": [
               "How many people currently hold keys?",
               "How many key-related cases are we dealing with?"
+            ]
+          },
+          {
+            "title": "Signup Batches",
+            "dashcardKey": 1585,
+            "placement": "inline",
+            "waitForText": [
+              "batch_id",
+              "status"
+            ]
+          },
+          {
+            "title": "Summary of Keys",
+            "dashcardKey": 1557,
+            "placement": "inline",
+            "waitForText": [
+              "Question",
+              "Count"
             ]
           }
         ],
