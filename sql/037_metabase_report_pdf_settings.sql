@@ -19,7 +19,7 @@ VALUES
         "id": 11,
         "name": "Avondale Membership",
         "slug": "avondale-membership",
-        "defaultTabs": [133, 135],
+        "defaultTabs": [135, 136, 140, 133, 143, 144, 145, 138],
         "tabs": [
           { "id": 134, "name": "Search" },
           { "id": 133, "name": "Memberships" },
@@ -47,15 +47,6 @@ VALUES
             "waitForText": [
               "How many people currently hold keys?",
               "How many key-related cases are we dealing with?"
-            ]
-          },
-          {
-            "title": "Signup Batches",
-            "dashcardKey": 1585,
-            "placement": "inline",
-            "waitForText": [
-              "batch_id",
-              "status"
             ]
           },
           {

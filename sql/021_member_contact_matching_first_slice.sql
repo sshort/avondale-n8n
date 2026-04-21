@@ -669,6 +669,7 @@ BEGIN
         ) AS norm_phone,
         public.normalize_match_email(s."Email address") AS norm_email,
         public.normalize_match_text(s."Membership") AS norm_membership,
+        NULLIF(substring(s."Membership" from '(20[0-9]{2})'), '') AS membership_season,
         public.normalize_membership_category(s."Membership") AS norm_category,
         (
             CASE WHEN public.normalize_match_postcode(s."Postcode") IS NOT NULL THEN 1 ELSE 0 END +
@@ -707,6 +708,7 @@ BEGIN
         ) AS norm_phone,
         public.normalize_match_email(m."Email address") AS norm_email,
         public.normalize_match_text(m."Membership") AS norm_membership,
+        NULLIF(substring(m."Membership" from '(20[0-9]{2})'), '') AS membership_season,
         public.normalize_membership_category(m."Membership") AS norm_category,
         (
             CASE WHEN public.normalize_match_postcode(m."Postcode") IS NOT NULL THEN 1 ELSE 0 END +
@@ -1262,6 +1264,36 @@ BEGIN
       AND m.target_id IS NULL
       AND COALESCE(rm.is_current, true) = true;
     GET DIAGNOSTICS v_deactivated = ROW_COUNT;
+
+    UPDATE public.raw_members rm
+    SET "Status" = 'Cancelled'
+    FROM tmp_current_raw_members c
+    LEFT JOIN tmp_matched_raw_members m
+      ON m.target_id = c.id
+    WHERE rm.id = c.id
+      AND m.target_id IS NULL
+      AND c.membership_season IS NOT NULL
+      AND COALESCE(rm."Status", '') <> 'Cancelled'
+      AND EXISTS (
+          SELECT 1
+          FROM tmp_stage_raw_members s
+          WHERE s.membership_season = c.membership_season
+            AND s.norm_name = c.norm_name
+            AND COALESCE(s.norm_membership, '') <> COALESCE(c.norm_membership, '')
+            AND (
+                (c.norm_venue_id IS NOT NULL AND s.norm_venue_id = c.norm_venue_id)
+                OR (c.norm_btn IS NOT NULL AND s.norm_btn = c.norm_btn)
+                OR (c.norm_dob IS NOT NULL AND s.norm_dob = c.norm_dob)
+                OR (c.norm_email IS NOT NULL AND s.norm_email = c.norm_email)
+                OR (c.norm_phone IS NOT NULL AND s.norm_phone = c.norm_phone)
+                OR (
+                    c.norm_postcode IS NOT NULL
+                    AND c.norm_address_1 IS NOT NULL
+                    AND s.norm_postcode = c.norm_postcode
+                    AND s.norm_address_1 = c.norm_address_1
+                )
+            )
+      );
 
     RETURN QUERY SELECT v_updated, v_inserted, v_deactivated;
 END;

@@ -236,46 +236,73 @@ async function maybeLogin(page, baseUrl, credentials) {
   await waitForIdle(page);
 }
 
-async function hideChrome(page) {
-  await page.addStyleTag({
-    content: `
-      header,
-      nav,
-      .Nav,
-      .Navbar,
-      .PageHeader,
-      .Page-title,
-      .QuestionBreadcrumbs,
-      .AdminLayout-header,
-      .mantine-AppShell-header {
-        display: none !important;
-      }
+async function injectPageStyle(page, cssText, marker) {
+  await page.evaluate(({ css, key }) => {
+    if (!css) {
+      return;
+    }
 
-      body {
-        background: #fff !important;
-      }
-    `,
+    const selector = `style[data-export-style="${key}"]`;
+    if (document.head?.querySelector(selector)) {
+      return;
+    }
+
+    const nonceSource = document.querySelector('style[nonce], script[nonce]');
+    const nonce = nonceSource?.getAttribute('nonce') ?? '';
+    const style = document.createElement('style');
+    if (nonce) {
+      style.setAttribute('nonce', nonce);
+    }
+    style.setAttribute('data-export-style', key);
+    style.textContent = css;
+    document.head?.appendChild(style);
+  }, {
+    css: cssText,
+    key: marker,
+  }).catch(() => {});
+}
+
+async function hideChrome(page) {
+  await page.evaluate(() => {
+    const selectors = [
+      'header',
+      'nav',
+      '.Nav',
+      '.Navbar',
+      '.PageHeader',
+      '.Page-title',
+      '.QuestionBreadcrumbs',
+      '.AdminLayout-header',
+      '.mantine-AppShell-header',
+    ];
+
+    for (const selector of selectors) {
+      document.querySelectorAll(selector).forEach((element) => {
+        element.style.setProperty('display', 'none', 'important');
+      });
+    }
+
+    document.body?.style?.setProperty('background', '#fff', 'important');
   }).catch(() => {});
 }
 
 async function preparePdfRendering(page) {
-  await page.addStyleTag({
-    content: `
-      @media print {
-        [data-export-hidden-original-card="true"] {
-          display: none !important;
-        }
-      }
+  await page.evaluate(() => {
+    const selectors = [
+      '.dashboard-parameters-widget-container',
+      '[data-testid="dashboard-parameters-widget-container"]',
+      '[data-testid="parameter-widget"]',
+      '[data-testid="parameter-value-widget-target"]',
+      '.ParametersWidgetContainer',
+      '.DashboardParameterHeader',
+      '.DashboardParameterContainer',
+    ];
 
-      [data-export-map-image="true"] {
-        display: block !important;
-        width: 100% !important;
-        height: 100% !important;
-        object-fit: contain !important;
-        print-color-adjust: exact !important;
-        -webkit-print-color-adjust: exact !important;
-      }
-    `,
+    for (const selector of selectors) {
+      document.querySelectorAll(selector).forEach((element) => {
+        element.style.setProperty('display', 'none', 'important');
+      });
+    }
   }).catch(() => {});
 }
 
@@ -324,7 +351,51 @@ function normalizeSnapshotTargets(rawTargets) {
     .filter(Boolean);
 }
 
-async function captureDashcardSnapshots(page, rawTargets = []) {
+function resolveSnapshotSliceHeightCss(snapshotWidth, pdfOptions) {
+  const [pageWidth, pageHeight] = resolvePdfPageSize(pdfOptions);
+  const marginTop = parsePdfDistanceToPoints(pdfOptions.margin?.top, 28.35);
+  const marginRight = parsePdfDistanceToPoints(pdfOptions.margin?.right, 28.35);
+  const marginBottom = parsePdfDistanceToPoints(pdfOptions.margin?.bottom, 34.02);
+  const marginLeft = parsePdfDistanceToPoints(pdfOptions.margin?.left, 28.35);
+  const availableWidth = Math.max(1, pointsToCssPixels(pageWidth - marginLeft - marginRight));
+  const availableHeight = Math.max(1, pointsToCssPixels(pageHeight - marginTop - marginBottom));
+
+  if (!snapshotWidth || !availableWidth || !availableHeight) {
+    return null;
+  }
+
+  return Math.max(240, Math.floor(snapshotWidth * (availableHeight / availableWidth)));
+}
+
+function buildSnapshotSlices(clip, maxSliceHeight) {
+  if (!maxSliceHeight || clip.height <= maxSliceHeight) {
+    return [clip];
+  }
+
+  const slices = [];
+  const overlap = Math.min(32, Math.max(12, Math.floor(maxSliceHeight * 0.05)));
+  const maxY = clip.y + clip.height;
+  let currentY = clip.y;
+
+  while (currentY < maxY) {
+    const remainingHeight = maxY - currentY;
+    const currentHeight = Math.min(maxSliceHeight, remainingHeight);
+    slices.push({
+      x: clip.x,
+      y: currentY,
+      width: clip.width,
+      height: currentHeight,
+    });
+    if (currentY + currentHeight >= maxY) {
+      break;
+    }
+    currentY += Math.max(1, currentHeight - overlap);
+  }
+
+  return slices;
+}
+
+async function captureDashcardSnapshots(page, rawTargets = [], pdfOptions = {}) {
   const targets = normalizeSnapshotTargets(rawTargets);
 
   if (!targets.length) {
@@ -392,11 +463,22 @@ async function captureDashcardSnapshots(page, rawTargets = []) {
       height: Math.max(1, Math.ceil(bounds.height)),
     };
 
-    const screenshot = await page.screenshot({ clip, type: 'png' });
+    const sliceClips = matchingTarget.placement === 'append'
+      ? buildSnapshotSlices(clip, resolveSnapshotSliceHeightCss(clip.width, pdfOptions))
+      : [clip];
+    const screenshots = [];
+    for (const sliceClip of sliceClips) {
+      screenshots.push({
+        width: sliceClip.width,
+        height: sliceClip.height,
+        imageBuffer: await page.screenshot({ clip: sliceClip, type: 'png' }),
+      });
+    }
+
     if (matchingTarget.placement === 'inline') {
       inlineSnapshots.push({
         index,
-        imageBuffer: screenshot,
+        imageBuffer: screenshots[0].imageBuffer,
         height: clip.height,
         alt: String(cardDescriptor?.title ?? '').trim() || 'Card snapshot',
       });
@@ -406,9 +488,7 @@ async function captureDashcardSnapshots(page, rawTargets = []) {
     appendSnapshots.push({
       index,
       title: String(cardDescriptor?.title ?? '').trim(),
-      imageBuffer: screenshot,
-      width: clip.width,
-      height: clip.height,
+      slices: screenshots,
     });
   }
 
@@ -967,28 +1047,46 @@ async function selectTab(page, tab) {
 }
 
 async function renderTabPdf(page, tab, pdfOptions, sensitiveColumnHeaders = [], reportMode = 'render', snapshotTargets = []) {
+  const effectivePdfOptions = pdfOptions;
   await page.emulateMedia({ media: 'screen' }).catch(() => {});
   await selectTab(page, tab);
+  await preparePdfRendering(page);
   await waitForTabRender(page, 1500);
-  const dashcardSnapshots = await captureDashcardSnapshots(page, snapshotTargets);
+
+  if (isSignupBatchesTab(tab)) {
+    await waitForSignupBatchesContent(page);
+    await preparePdfRendering(page);
+    const visibleRegion = await captureVisibleDashcardsRegion(page);
+    if (visibleRegion) {
+      return renderImagePdfPage(
+        visibleRegion.imageBuffer,
+        visibleRegion.width,
+        visibleRegion.height,
+        effectivePdfOptions,
+      );
+    }
+  }
+
+  const dashcardSnapshots = await captureDashcardSnapshots(page, snapshotTargets, effectivePdfOptions);
   await page.emulateMedia({ media: 'print' }).catch(() => {});
   await waitForTabRender(page, 800);
+  await preparePdfRendering(page);
   await applyInlineDashcardSnapshots(page, dashcardSnapshots.inline);
   await hideOriginalDashcards(page, dashcardSnapshots.append);
   await snapshotMapVisualizations(page);
   await protectSensitiveColumns(page, sensitiveColumnHeaders, reportMode);
   await page.waitForTimeout(200);
-  let pdfBuffer = await renderSingleSnapshotTabPdf(page, pdfOptions);
+  let pdfBuffer = await renderSingleSnapshotTabPdf(page, effectivePdfOptions);
   if (!pdfBuffer) {
     const scale = shouldScaleTabToFit(tab)
-      ? await resolvePdfScaleForVisibleContent(page, pdfOptions)
+      ? await resolvePdfScaleForVisibleContent(page, effectivePdfOptions)
       : 1;
     pdfBuffer = await page.pdf({
-      ...pdfOptions,
+      ...effectivePdfOptions,
       scale,
     });
   }
-  pdfBuffer = await appendSnapshotPagesToPdfBuffer(pdfBuffer, dashcardSnapshots.append, pdfOptions);
+  pdfBuffer = await appendSnapshotPagesToPdfBuffer(pdfBuffer, dashcardSnapshots.append, effectivePdfOptions);
   await page.emulateMedia({ media: 'screen' }).catch(() => {});
   return pdfBuffer;
 }
@@ -1082,9 +1180,6 @@ async function appendSnapshotPagesToPdfBuffer(sourceBuffer, snapshots, pdfOption
   }
 
   const document = await PDFDocument.load(sourceBuffer);
-  if (document.getPageCount() > 1) {
-    document.removePage(document.getPageCount() - 1);
-  }
   const templatePage = document.getPages()[0];
   const pageWidth = templatePage?.getWidth?.() ?? 595.92;
   const pageHeight = templatePage?.getHeight?.() ?? 842.88;
@@ -1097,24 +1192,61 @@ async function appendSnapshotPagesToPdfBuffer(sourceBuffer, snapshots, pdfOption
   const availableHeight = Math.max(1, pageHeight - marginTop - marginBottom);
 
   for (const snapshot of snapshots) {
-    const embeddedImage = await document.embedPng(snapshot.imageBuffer);
-    const scale = Math.min(
-      availableWidth / snapshot.width,
-      availableHeight / snapshot.height,
-    );
-    const renderWidth = snapshot.width * scale;
-    const renderHeight = snapshot.height * scale;
-    const x = marginLeft + ((availableWidth - renderWidth) / 2);
-    const y = marginBottom + ((availableHeight - renderHeight) / 2);
+    const slices = Array.isArray(snapshot.slices) && snapshot.slices.length
+      ? snapshot.slices
+      : [snapshot];
 
-    const page = document.addPage([pageWidth, pageHeight]);
-    page.drawImage(embeddedImage, {
-      x,
-      y,
-      width: renderWidth,
-      height: renderHeight,
-    });
+    for (const slice of slices) {
+      const embeddedImage = await document.embedPng(slice.imageBuffer);
+      const scale = Math.min(
+        availableWidth / slice.width,
+        availableHeight / slice.height,
+      );
+      const renderWidth = slice.width * scale;
+      const renderHeight = slice.height * scale;
+      const x = marginLeft + ((availableWidth - renderWidth) / 2);
+      const y = pageHeight - marginTop - renderHeight;
+
+      const page = document.addPage([pageWidth, pageHeight]);
+      page.drawImage(embeddedImage, {
+        x,
+        y,
+        width: renderWidth,
+        height: renderHeight,
+      });
+    }
   }
+
+  return Buffer.from(await document.save());
+}
+
+async function renderImagePdfPage(imageBuffer, imageWidth, imageHeight, pdfOptions) {
+  const document = await PDFDocument.create();
+  const [pageWidth, pageHeight] = resolvePdfPageSize(pdfOptions);
+  const marginTop = parsePdfDistanceToPoints(pdfOptions.margin?.top, 28.35);
+  const marginRight = parsePdfDistanceToPoints(pdfOptions.margin?.right, 28.35);
+  const marginBottom = parsePdfDistanceToPoints(pdfOptions.margin?.bottom, 34.02);
+  const marginLeft = parsePdfDistanceToPoints(pdfOptions.margin?.left, 28.35);
+  const availableWidth = Math.max(1, pageWidth - marginLeft - marginRight);
+  const availableHeight = Math.max(1, pageHeight - marginTop - marginBottom);
+  const embeddedImage = await document.embedPng(imageBuffer);
+  const scale = Math.min(
+    1,
+    availableWidth / imageWidth,
+    availableHeight / imageHeight,
+  );
+  const renderWidth = imageWidth * scale;
+  const renderHeight = imageHeight * scale;
+  const x = marginLeft + ((availableWidth - renderWidth) / 2);
+  const y = pageHeight - marginTop - renderHeight;
+
+  const pdfPage = document.addPage([pageWidth, pageHeight]);
+  pdfPage.drawImage(embeddedImage, {
+    x,
+    y,
+    width: renderWidth,
+    height: renderHeight,
+  });
 
   return Buffer.from(await document.save());
 }
@@ -1156,44 +1288,84 @@ async function renderSingleSnapshotTabPdf(page, pdfOptions) {
   }
 
   const screenshot = await page.screenshot({ clip, type: 'png' });
-  const document = await PDFDocument.create();
-  const [pageWidth, pageHeight] = resolvePdfPageSize(pdfOptions);
-  const marginTop = parsePdfDistanceToPoints(pdfOptions.margin?.top, 28.35);
-  const marginRight = parsePdfDistanceToPoints(pdfOptions.margin?.right, 28.35);
-  const marginBottom = parsePdfDistanceToPoints(pdfOptions.margin?.bottom, 34.02);
-  const marginLeft = parsePdfDistanceToPoints(pdfOptions.margin?.left, 28.35);
-  const availableWidth = Math.max(1, pageWidth - marginLeft - marginRight);
-  const availableHeight = Math.max(1, pageHeight - marginTop - marginBottom);
-  const embeddedImage = await document.embedPng(screenshot);
-  const scale = Math.min(
-    availableWidth / clip.width,
-    availableHeight / clip.height,
-  );
-  const renderWidth = clip.width * scale;
-  const renderHeight = clip.height * scale;
-  const x = marginLeft + ((availableWidth - renderWidth) / 2);
-  const y = pageHeight - marginTop - renderHeight;
-
-  const pdfPage = document.addPage([pageWidth, pageHeight]);
-  pdfPage.drawImage(embeddedImage, {
-    x,
-    y,
-    width: renderWidth,
-    height: renderHeight,
-  });
-
-  return Buffer.from(await document.save());
+  return renderImagePdfPage(screenshot, clip.width, clip.height, pdfOptions);
 }
 
 function shouldScaleTabToFit(tab) {
   const id = String(tab?.id ?? '').trim();
   const name = String(tab?.name ?? '').trim().toLowerCase();
   return id === '133'
-    || id === '136'
     || id === '138'
     || name === 'memberships'
-    || name === 'signup batches'
     || name === 'keys';
+}
+
+function isSignupBatchesTab(tab) {
+  const id = String(tab?.id ?? '').trim();
+  const name = String(tab?.name ?? '').trim().toLowerCase();
+  return id === '136' || name === 'signup batches';
+}
+
+async function waitForSignupBatchesContent(page) {
+  await page.locator('.react-grid-item [data-dashcard-key="1585"]').first()
+    .waitFor({ state: 'visible', timeout: 20000 });
+  await page.getByText('Actions', { exact: true }).first()
+    .waitFor({ state: 'visible', timeout: 20000 })
+    .catch(() => {});
+  await page.getByText('Most Recent Signups', { exact: false }).first()
+    .waitFor({ state: 'visible', timeout: 20000 })
+    .catch(() => {});
+  await page.getByText('List of Members Missing Signup Email', { exact: false }).first()
+    .waitFor({ state: 'visible', timeout: 20000 })
+    .catch(() => {});
+
+  for (const offset of [0, 500, 950, 0]) {
+    await page.evaluate((y) => window.scrollTo(0, y), offset).catch(() => {});
+    await page.waitForTimeout(250);
+  }
+
+  await page.waitForTimeout(500);
+}
+
+async function captureVisibleDashcardsRegion(page) {
+  const clip = await page.evaluate(() => {
+    const visibleCards = Array.from(document.querySelectorAll('.react-grid-item'))
+      .filter((element) => {
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return style.display !== 'none'
+          && style.visibility !== 'hidden'
+          && rect.width > 40
+          && rect.height > 40;
+      });
+
+    if (!visibleCards.length) {
+      return null;
+    }
+
+    const rects = visibleCards.map((element) => element.getBoundingClientRect());
+    const minLeft = Math.min(...rects.map((rect) => rect.left + window.scrollX));
+    const maxRight = Math.max(...rects.map((rect) => rect.right + window.scrollX));
+    const minTop = Math.min(...rects.map((rect) => rect.top + window.scrollY));
+    const maxBottom = Math.max(...rects.map((rect) => rect.bottom + window.scrollY));
+    const padding = 8;
+
+    return {
+      x: Math.max(0, Math.floor(minLeft) - padding),
+      y: Math.max(0, Math.floor(minTop) - padding),
+      width: Math.max(1, Math.ceil(maxRight - minLeft) + (padding * 2)),
+      height: Math.max(1, Math.ceil(maxBottom - minTop) + (padding * 2)),
+    };
+  }).catch(() => null);
+
+  if (!clip) {
+    return null;
+  }
+
+  return {
+    ...clip,
+    imageBuffer: await page.screenshot({ clip, type: 'png' }),
+  };
 }
 
 async function resolvePdfScaleForVisibleContent(page, pdfOptions) {
