@@ -786,6 +786,22 @@ async function protectSensitiveColumns(page, rawColumnHeaders, reportMode = 'ren
       }
     }
 
+    for (const cell of document.querySelectorAll('[data-column-id]')) {
+      const columnId = cell.getAttribute('data-column-id') ?? '';
+      const normalizedColumnId = normalized(columnId);
+      if (!targets.has(normalizedColumnId)) {
+        continue;
+      }
+
+      const headerLabel = normalizedColumnId;
+      const visibleCell = cell.querySelector('[data-testid="cell-data"]') ?? cell;
+      if (mode === 'anonymise') {
+        pseudonymizeElement(visibleCell, headerLabel);
+      } else if (mode === 'redact') {
+        maskElement(visibleCell);
+      }
+    }
+
     for (const table of document.querySelectorAll('table')) {
       const headerIndexes = [];
       const headers = Array.from(table.querySelectorAll('thead th'));
@@ -815,6 +831,425 @@ async function protectSensitiveColumns(page, rawColumnHeaders, reportMode = 'ren
       }
     }
   }, { headers: targetHeaders, mode: reportMode });
+}
+
+async function protectSignupBatchColumns(page, rawColumnHeaders, reportMode = 'render') {
+  if (!['anonymise', 'redact'].includes(reportMode)) {
+    return;
+  }
+
+  const targetHeaders = [
+    ...normalizeStringArray(rawColumnHeaders),
+    'Payer',
+    'Member',
+    'Email address',
+    'Venue ID',
+    'British Tennis Number',
+  ]
+    .map(normalizeHeaderName)
+    .filter(Boolean);
+
+  if (!targetHeaders.length) {
+    return;
+  }
+
+  await page.evaluate(({ headers, mode }) => {
+    const normalized = (value) => String(value ?? '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .toLowerCase();
+    const targets = new Set(headers.map(normalized).filter(Boolean));
+    if (!targets.size) {
+      return;
+    }
+
+    const firstNames = ['Alex', 'Cameron', 'Charlie', 'Elliot', 'Fraser', 'Harper', 'Imogen', 'Jamie'];
+    const lastNames = ['Abbott', 'Ainsworth', 'Armstrong', 'Atkinson', 'Bailey', 'Barlow', 'Bennett', 'Bishop'];
+
+    const ensureState = () => {
+      if (!window.__codexSignupBatchPseudonyms) {
+        window.__codexSignupBatchPseudonyms = {
+          counters: Object.create(null),
+          values: Object.create(null),
+        };
+      }
+
+      return window.__codexSignupBatchPseudonyms;
+    };
+
+    const nextIndex = (state, category) => {
+      state.counters[category] = (state.counters[category] ?? 0) + 1;
+      return state.counters[category];
+    };
+
+    const resolveCategory = (headerLabel) => {
+      const label = normalized(headerLabel);
+      if (label.includes('email')) return 'email';
+      if (label.includes('venue id')) return 'venue-id';
+      if (label.includes('british tennis number')) return 'british-tennis-number';
+      return 'person-name';
+    };
+
+    const buildValue = (category, index) => {
+      if (category === 'email') {
+        return 'contact' + String(index).padStart(3, '0') + '@example.invalid';
+      }
+      if (category === 'venue-id') {
+        return 'VID-' + String(index).padStart(4, '0');
+      }
+      if (category === 'british-tennis-number') {
+        return '99' + String(index).padStart(8, '0');
+      }
+
+      const firstName = firstNames[(index - 1) % firstNames.length];
+      const lastName = lastNames[(index - 1) % lastNames.length];
+      return firstName + ' ' + lastName;
+    };
+
+    const pseudonymizeValue = (headerLabel, rawValue) => {
+      const originalValue = String(rawValue ?? '').trim();
+      if (!originalValue) {
+        return originalValue;
+      }
+
+      const category = resolveCategory(headerLabel);
+      const key = normalized(originalValue);
+      const state = ensureState();
+      state.values[category] ??= Object.create(null);
+
+      if (!state.values[category][key]) {
+        state.values[category][key] = buildValue(category, nextIndex(state, category));
+      }
+
+      return state.values[category][key];
+    };
+
+    const maskValue = (value) => String(value ?? '').replace(/[^\s]/g, '*');
+
+    for (const cell of document.querySelectorAll('[data-column-id]')) {
+      const columnId = normalized(cell.getAttribute('data-column-id') ?? '');
+      if (!targets.has(columnId)) {
+        continue;
+      }
+
+      const target = cell.querySelector('[data-testid="cell-data"]') ?? cell;
+      if (mode === 'anonymise') {
+        target.textContent = pseudonymizeValue(columnId, target.textContent);
+      } else if (mode === 'redact') {
+        target.textContent = maskValue(target.textContent);
+      }
+    }
+  }, { headers: targetHeaders, mode: reportMode });
+}
+
+async function protectSignupBatchDashcards(page, rawColumnHeaders, reportMode = 'render') {
+  if (!['anonymise', 'redact'].includes(reportMode)) {
+    return;
+  }
+
+  const targetHeaders = [
+    ...normalizeStringArray(rawColumnHeaders),
+    'Name',
+    'Member',
+    'Payer',
+    'Member Name',
+    'Payer Name',
+    'Refund For',
+    'Email address',
+    'Venue ID',
+    'British Tennis Number',
+  ]
+    .map(normalizeHeaderName)
+    .filter(Boolean);
+
+  const targetCardTitles = new Set([
+    'signup batches',
+    'most recent signups',
+    'list of members missing signup email',
+  ]);
+
+  const cards = page.locator('.react-grid-item');
+  const cardCount = await cards.count();
+
+  for (let index = 0; index < cardCount; index += 1) {
+    const card = cards.nth(index);
+    const cardDescriptor = await card.evaluate((element) => {
+      const titleNode = element.querySelector(
+        '[data-testid="dashcard-title"], [role="heading"], h1, h2, h3, h4, h5, h6, .Card-title, .DashCard-title, .Visualization-title',
+      );
+      const normalize = (value) => String(value ?? '')
+        .trim()
+        .replace(/\s+/g, ' ')
+        .toLowerCase();
+      return {
+        title: normalize(titleNode?.textContent ?? ''),
+        text: normalize(element.textContent ?? ''),
+      };
+    }).catch(() => ({ title: '', text: '' }));
+
+    const matchedCardTitle = Array.from(targetCardTitles)
+      .find((targetTitle) => (
+        cardDescriptor.title === targetTitle
+        || cardDescriptor.text.includes(targetTitle)
+      ));
+
+    if (!matchedCardTitle) {
+      continue;
+    }
+
+    await card.scrollIntoViewIfNeeded().catch(() => {});
+    await page.waitForTimeout(250);
+    await card.evaluate((element, payload) => {
+      const normalized = (value) => String(value ?? '')
+        .trim()
+        .replace(/\s+/g, ' ')
+        .toLowerCase();
+      const targets = new Set(payload.headers.map(normalized).filter(Boolean));
+      if (!targets.size) {
+        return;
+      }
+
+      const firstNames = [
+        'Alex', 'Cameron', 'Charlie', 'Elliot', 'Fraser', 'Harper', 'Imogen', 'Jamie',
+        'Kieran', 'Lauren', 'Lewis', 'Megan', 'Niamh', 'Orla', 'Poppy', 'Rosie',
+      ];
+      const lastNames = [
+        'Abbott', 'Ainsworth', 'Armstrong', 'Atkinson', 'Bailey', 'Barlow', 'Bennett', 'Bishop',
+        'Blake', 'Brennan', 'Campbell', 'Clarke', 'Dawson', 'Grant', 'Murphy', 'Palmer',
+      ];
+
+      const ensureState = () => {
+        if (!window.__codexSignupDashcardPseudonyms) {
+          window.__codexSignupDashcardPseudonyms = {
+            counters: Object.create(null),
+            values: Object.create(null),
+          };
+        }
+
+        return window.__codexSignupDashcardPseudonyms;
+      };
+
+      const nextIndex = (state, category) => {
+        state.counters[category] = (state.counters[category] ?? 0) + 1;
+        return state.counters[category];
+      };
+
+      const resolveCategory = (headerLabel) => {
+        const label = normalized(headerLabel);
+        if (label.includes('email')) return 'email';
+        if (label.includes('venue id')) return 'venue-id';
+        if (label.includes('british tennis number')) return 'british-tennis-number';
+        return 'person-name';
+      };
+
+      const buildValue = (category, index) => {
+        if (category === 'email') {
+          return `contact${String(index).padStart(3, '0')}@example.invalid`;
+        }
+        if (category === 'venue-id') {
+          return `VID-${String(index).padStart(4, '0')}`;
+        }
+        if (category === 'british-tennis-number') {
+          return `99${String(index).padStart(8, '0')}`;
+        }
+
+        const firstName = firstNames[(index - 1) % firstNames.length];
+        const lastName = lastNames[((index - 1) * 5) % lastNames.length];
+        return `${firstName} ${lastName}`;
+      };
+
+      const pseudonymizeValue = (headerLabel, rawValue) => {
+        const originalValue = String(rawValue ?? '').trim();
+        if (!originalValue) {
+          return originalValue;
+        }
+
+        const category = resolveCategory(headerLabel);
+        const key = normalized(originalValue);
+        const state = ensureState();
+        state.values[category] ??= Object.create(null);
+
+        if (!state.values[category][key]) {
+          state.values[category][key] = buildValue(category, nextIndex(state, category));
+        }
+
+        return state.values[category][key];
+      };
+
+      const maskValue = (value) => String(value ?? '').replace(/[^\s]/g, '*');
+
+      for (const cell of element.querySelectorAll('[data-column-id]')) {
+        const columnId = normalized(cell.getAttribute('data-column-id') ?? '');
+        if (!targets.has(columnId)) {
+          continue;
+        }
+
+        const target = cell.querySelector('[data-testid="cell-data"]') ?? cell;
+        if (payload.mode === 'anonymise') {
+          target.textContent = pseudonymizeValue(columnId, target.textContent);
+        } else {
+          target.textContent = maskValue(target.textContent);
+        }
+      }
+
+      for (const table of element.querySelectorAll('table')) {
+        const headerIndexes = [];
+        const headers = Array.from(table.querySelectorAll('thead th'));
+
+        headers.forEach((headerCell, headerIndex) => {
+          const headerLabel = normalized(headerCell.textContent);
+          if (targets.has(headerLabel)) {
+            headerIndexes.push({ headerIndex, headerLabel });
+          }
+        });
+
+        if (!headerIndexes.length) {
+          continue;
+        }
+
+        for (const row of table.querySelectorAll('tbody tr')) {
+          for (const { headerIndex, headerLabel } of headerIndexes) {
+            const cell = row.children[headerIndex];
+            if (!cell) {
+              continue;
+            }
+            if (payload.mode === 'anonymise') {
+              cell.textContent = pseudonymizeValue(headerLabel, cell.textContent);
+            } else {
+              cell.textContent = maskValue(cell.textContent);
+            }
+          }
+        }
+      }
+    }, {
+      headers: targetHeaders,
+      mode: reportMode,
+    }).catch(() => {});
+
+    const cardBox = await card.boundingBox().catch(() => null);
+    const screenshot = await card.screenshot({ type: 'png' }).catch(() => null);
+    if (!screenshot || !cardBox?.height) {
+      continue;
+    }
+
+    await card.evaluate(async (element, payload) => {
+      if (element.querySelector('[data-export-inline-snapshot="true"]')) {
+        return;
+      }
+
+      Array.from(element.children).forEach((child) => {
+        child.style.setProperty('display', 'none', 'important');
+      });
+
+      element.style.setProperty('height', `${payload.height}px`, 'important');
+      element.style.setProperty('min-height', `${payload.height}px`, 'important');
+      element.style.setProperty('overflow', 'hidden', 'important');
+      element.style.setProperty('background', '#ffffff', 'important');
+
+      const replacement = document.createElement('img');
+      replacement.src = payload.imageSrc;
+      replacement.alt = payload.alt;
+      replacement.setAttribute('data-export-inline-snapshot', 'true');
+      replacement.style.display = 'block';
+      replacement.style.width = '100%';
+      replacement.style.height = '100%';
+      replacement.style.objectFit = 'contain';
+      replacement.style.objectPosition = 'top left';
+      replacement.style.background = '#ffffff';
+
+      element.appendChild(replacement);
+
+      if (typeof replacement.decode === 'function') {
+        await replacement.decode().catch(() => {});
+      } else {
+        await new Promise((resolve) => {
+          replacement.addEventListener('load', resolve, { once: true });
+          replacement.addEventListener('error', resolve, { once: true });
+        });
+      }
+    }, {
+      imageSrc: `data:image/png;base64,${screenshot.toString('base64')}`,
+      height: Math.ceil(cardBox.height),
+      alt: matchedCardTitle,
+    }).catch(() => {});
+  }
+
+  await page.evaluate(() => window.scrollTo(0, 0)).catch(() => {});
+}
+
+async function forceSignupBatchAnonymisation(page, reportMode = 'render') {
+  if (!['anonymise', 'redact'].includes(reportMode)) {
+    return;
+  }
+
+  await page.evaluate(({ mode }) => {
+    const normalize = (value) => String(value ?? '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .toLowerCase();
+    const columnKinds = new Map([
+      ['payer', 'person'],
+      ['member', 'person'],
+      ['name', 'person'],
+      ['member name', 'person'],
+      ['payer name', 'person'],
+      ['email address', 'email'],
+      ['venue id', 'id'],
+      ['british tennis number', 'id'],
+    ]);
+    const state = {
+      counters: Object.create(null),
+      values: Object.create(null),
+    };
+
+    const nextValue = (kind, originalValue) => {
+      const original = String(originalValue ?? '').trim();
+      if (!original) {
+        return original;
+      }
+
+      state.values[kind] ??= Object.create(null);
+      if (state.values[kind][original]) {
+        return state.values[kind][original];
+      }
+
+      state.counters[kind] = (state.counters[kind] ?? 0) + 1;
+      const index = state.counters[kind];
+      let replacement = '';
+      if (kind === 'email') {
+        replacement = `contact${String(index).padStart(3, '0')}@example.invalid`;
+      } else if (kind === 'id') {
+        replacement = `MASKED-${String(index).padStart(4, '0')}`;
+      } else {
+        replacement = `Member ${String(index).padStart(3, '0')}`;
+      }
+
+      state.values[kind][original] = replacement;
+      return replacement;
+    };
+
+    const maskValue = (value) => String(value ?? '').replace(/[^\s]/g, '*');
+
+    for (const cell of document.querySelectorAll('[data-column-id]')) {
+      const columnId = normalize(cell.getAttribute('data-column-id') ?? '');
+      const kind = columnKinds.get(columnId);
+      if (!kind) {
+        continue;
+      }
+
+      const target = cell.querySelector('[data-testid="cell-data"]') ?? cell;
+      const originalValue = String(target.textContent ?? '').trim();
+      if (!originalValue) {
+        continue;
+      }
+
+      if (mode === 'redact') {
+        target.textContent = maskValue(originalValue);
+      } else {
+        target.textContent = nextValue(kind, originalValue);
+      }
+    }
+  }, { mode: reportMode });
 }
 
 function bufferToDataUrl(buffer, mimeType = 'image/png') {
@@ -856,6 +1291,9 @@ async function isMeaningfulMapCapture(page, dataUrl) {
     const sampleStepY = Math.max(1, Math.floor(height / 24));
     let sampled = 0;
     let nonBlank = 0;
+    let colourful = 0;
+    let minLuminance = 255;
+    let maxLuminance = 0;
 
     for (let y = 0; y < height; y += sampleStepY) {
       for (let x = 0; x < width; x += sampleStepX) {
@@ -871,10 +1309,26 @@ async function isMeaningfulMapCapture(page, dataUrl) {
         if (!nearWhite && !nearTransparent) {
           nonBlank += 1;
         }
+
+        if (!nearTransparent) {
+          const channelSpread = Math.max(red, green, blue) - Math.min(red, green, blue);
+          const luminance = ((red * 299) + (green * 587) + (blue * 114)) / 1000;
+          if (channelSpread >= 12) {
+            colourful += 1;
+          }
+          minLuminance = Math.min(minLuminance, luminance);
+          maxLuminance = Math.max(maxLuminance, luminance);
+        }
       }
     }
 
-    return sampled > 0 && (nonBlank / sampled) >= 0.04;
+    const nonBlankRatio = sampled > 0 ? (nonBlank / sampled) : 0;
+    const colourfulRatio = sampled > 0 ? (colourful / sampled) : 0;
+    const luminanceRange = maxLuminance - minLuminance;
+
+    return sampled > 0
+      && nonBlankRatio >= 0.04
+      && (colourfulRatio >= 0.02 || luminanceRange >= 35);
   }, dataUrl);
 }
 
@@ -884,7 +1338,32 @@ async function captureStableMapSnapshot(page, mapContent) {
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     await mapContent.scrollIntoViewIfNeeded().catch(() => {});
-    await mapContent.locator('.leaflet-tile-loaded').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+    await page.waitForFunction((element) => {
+      if (!element) {
+        return false;
+      }
+
+      const rect = element.getBoundingClientRect();
+      if (rect.width < 40 || rect.height < 40) {
+        return false;
+      }
+
+      const loadedTiles = element.querySelectorAll('.leaflet-tile-loaded').length;
+      const totalTiles = element.querySelectorAll('.leaflet-tile').length;
+      const loadedImages = element.querySelectorAll('img.leaflet-tile-loaded[src]').length;
+      const hasCanvas = element.querySelector('canvas');
+
+      if (hasCanvas) {
+        return true;
+      }
+
+      if (!totalTiles) {
+        return false;
+      }
+
+      return loadedTiles >= Math.max(4, Math.ceil(totalTiles * 0.6))
+        && loadedImages >= Math.max(1, Math.ceil(loadedTiles * 0.6));
+    }, await mapContent.elementHandle(), { timeout: 15000 }).catch(() => {});
     await page.waitForTimeout(1200 + (attempt * 300));
 
     const bounds = await mapContent.boundingBox().catch(() => null);
@@ -1054,8 +1533,10 @@ async function renderTabPdf(page, tab, pdfOptions, sensitiveColumnHeaders = [], 
   await waitForTabRender(page, 1500);
 
   if (isSignupBatchesTab(tab)) {
-    await waitForSignupBatchesContent(page);
     await preparePdfRendering(page);
+    await page.waitForTimeout(3000);
+    await forceSignupBatchAnonymisation(page, reportMode);
+    await page.waitForTimeout(200);
     const visibleRegion = await captureVisibleDashcardsRegion(page);
     if (visibleRegion) {
       return renderImagePdfPage(
@@ -1318,13 +1799,22 @@ async function waitForSignupBatchesContent(page) {
   await page.getByText('List of Members Missing Signup Email', { exact: false }).first()
     .waitFor({ state: 'visible', timeout: 20000 })
     .catch(() => {});
+  await page.locator('[data-column-id="Payer"]').first()
+    .waitFor({ state: 'visible', timeout: 20000 })
+    .catch(() => {});
+  await page.locator('[data-column-id="Member"]').first()
+    .waitFor({ state: 'visible', timeout: 20000 })
+    .catch(() => {});
+  await page.locator('[data-column-id="Email address"]').first()
+    .waitFor({ state: 'visible', timeout: 20000 })
+    .catch(() => {});
 
   for (const offset of [0, 500, 950, 0]) {
     await page.evaluate((y) => window.scrollTo(0, y), offset).catch(() => {});
     await page.waitForTimeout(250);
   }
 
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(1200);
 }
 
 async function captureVisibleDashcardsRegion(page) {

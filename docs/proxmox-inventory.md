@@ -26,6 +26,7 @@
 | 117 | appsmith | running | Low-code app platform |
 | 118 | planka | running | Project management (Trello alternative) |
 | 119 | pdf-tools | running | PDF generation/manipulation |
+| 121 | osticket | running | Help desk ticket system |
 
 ## Infrastructure
 
@@ -127,6 +128,12 @@
 |-------------------|------------|---------|
 | Stirling PDF | Docker | PDF manipulation |
 | BentoPDF | Docker | PDF conversion |
+
+### LXC 121 - osticket
+| Container/Service | Image/Type | Purpose |
+|-------------------|------------|---------|
+| osTicket 1.18.1 | LAMP (Apache/MariaDB/PHP) | Help desk ticket system |
+| SSH | Native | Admin access |
 
 ### VM 102 - maps
 | Container/Service | Image/Type | Purpose |
