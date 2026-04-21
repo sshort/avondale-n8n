@@ -1,0 +1,189 @@
+{
+  "name": "Refund Status Form",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "r6000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "refund-status-form",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "r6000000-0000-0000-0000-000000000002",
+      "name": "Refund Status Form Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "refund-status-form"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url FROM public.global_settings WHERE key = 'n8n_base_url';"
+      },
+      "id": "r6000000-0000-0000-0000-000000000003",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        520,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, name, refund_for, membership, reason, amount, refund, status, \n       request_email_message_id, bank_details_message_id, treasury_email_message_id,\n       paid_at, rejected_at, cancelled_at, notes, created_at\nFROM public.refunds\nORDER BY id DESC\nLIMIT 50;"
+      },
+      "id": "r6000000-0000-0000-0000-000000000004",
+      "name": "List Refunds",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        520,
+        420
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const webhookData = $('Refund Status Form Webhook').first()?.json ?? {};\nconst query = webhookData.query ?? {};\nconst headers = webhookData.headers ?? {};\nconst settings = $('Load Global Settings').first()?.json ?? {};\nconst refundsData = $('List Refunds').first()?.json ?? {};\nconst refunds = refundsData.rows ?? [refundsData].filter(r => r && typeof r === 'object' && r.id);\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst escapeHtml = (value) => clean(value)\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst fallbackBaseUrl = clean(settings.n8n_base_url) || 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nconst updateUrl = `${n8nBaseUrl}/webhook/update-refund-status`;\nconst memberEmailUrl = `${n8nBaseUrl}/webhook/send-member-calculation-email`;\nconst treasuryEmailUrl = `${n8nBaseUrl}/webhook/send-treasury-refund-request`;\nconst selectedId = parseInt(clean(query.id), 10);\nconst selectedRefund = refunds.find(r => r.id === selectedId);\nconst statuses = ['Requested', 'Awaiting Bank Details', 'Bank Details Received', 'Ready For Treasury', 'Sent To Treasury', 'Paid', 'Rejected', 'Cancelled'];\nconst statusColors = {\n  'Requested': '#6b7785',\n  'Awaiting Bank Details': '#f2994a',\n  'Bank Details Received': '#27ae60',\n  'Ready For Treasury': '#27ae60',\n  'Sent To Treasury': '#2f80d8',\n  'Paid': '#1f7a4d',\n  'Rejected': '#b93a3a',\n  'Cancelled': '#b93a3a'\n};\nconst formatMoney = (value) => {\n  if (value === null || value === undefined) return 'N/A';\n  return `£${Number(value).toFixed(2)}`;\n};\nconst formatDate = (value) => {\n  if (!value) return 'N/A';\n  return new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });\n};\nconst refundRows = refunds.map(r => {\n  const isSelected = r.id === selectedId;\n  const statusColor = statusColors[r.status] || '#6b7785';\n  return `<tr class=\"${isSelected ? 'selected' : ''}\" onclick=\"selectRefund(${r.id})\">\n    <td>${r.id}</td>\n    <td>${escapeHtml(r.refund_for)}</td>\n    <td>${escapeHtml(r.membership || '')}</td>\n    <td>${formatMoney(r.refund)}</td>\n    <td><span class=\"status-badge\" style=\"background:${statusColor}\">${escapeHtml(r.status || 'Unknown')}</span></td>\n    <td>${formatDate(r.created_at)}</td>\n  </tr>`;\n}).join('');\nconst statusOptions = statuses.map(s => `<option value=\"${escapeHtml(s)}\"${selectedRefund && selectedRefund.status === s ? ' selected' : ''}>${escapeHtml(s)}</option>`).join('');\nconst selectedSection = selectedRefund ? `\n  <div class=\"refund-details\">\n    <h2>Update Status</h2>\n    <form action=\"${escapeHtml(updateUrl)}\" method=\"POST\">\n      <input type=\"hidden\" name=\"id\" value=\"${selectedRefund.id}\">\n      <input type=\"hidden\" name=\"return_url\" value=\"${escapeHtml(n8nBaseUrl)}/webhook/refund-status-form?id=${selectedRefund.id}\">\n      <div class=\"detail-row\"><label>Refund ID</label><span>${selectedRefund.id}</span></div>\n      <div class=\"detail-row\"><label>Member</label><span>${escapeHtml(selectedRefund.refund_for)}</span></div>\n      <div class=\"detail-row\"><label>Membership</label><span>${escapeHtml(selectedRefund.membership || 'N/A')}</span></div>\n      <div class=\"detail-row\"><label>Reason</label><span>${escapeHtml(selectedRefund.reason || 'N/A')}</span></div>\n      <div class=\"detail-row\"><label>Amount Paid</label><span>${formatMoney(selectedRefund.amount)}</span></div>\n      <div class=\"detail-row\"><label>Refund Amount</label><span class=\"refund-amount\">${formatMoney(selectedRefund.refund)}</span></div>\n      <div class=\"form-group\"><label for=\"status\">Status</label><select name=\"status\" id=\"status\" required>${statusOptions}</select></div>\n      <div class=\"form-group\"><label for=\"notes\">Notes</label><textarea name=\"notes\" id=\"notes\" rows=\"3\">${escapeHtml(selectedRefund.notes || '')}</textarea></div>\n      <div class=\"email-tracking\"><h3>Email Tracking</h3>\n        <div class=\"detail-row\"><label>Request Email ID</label><input type=\"text\" name=\"request_email_message_id\" value=\"${escapeHtml(selectedRefund.request_email_message_id || '')}\"></div>\n        <div class=\"detail-row\"><label>Bank Details Email ID</label><input type=\"text\" name=\"bank_details_message_id\" value=\"${escapeHtml(selectedRefund.bank_details_message_id || '')}\"></div>\n        <div class=\"detail-row\"><label>Treasury Email ID</label><input type=\"text\" name=\"treasury_email_message_id\" value=\"${escapeHtml(selectedRefund.treasury_email_message_id || '')}\"></div>\n      </div>\n      <button type=\"submit\" class=\"submit-btn\">Update Status</button>\n    </form>\n    ${selectedRefund.status === 'Requested' ? `<div class=\"member-email-section\"><h3>Bank Details Request</h3><p>Request the member's bank details for this refund.</p><form action=\"${escapeHtml(memberEmailUrl)}\" method=\"POST\" target=\"_blank\"><input type=\"hidden\" name=\"refund_id\" value=\"${selectedRefund.id}\"><input type=\"hidden\" name=\"return_url\" value=\"${escapeHtml(n8nBaseUrl)}/webhook/refund-status-form?id=${selectedRefund.id}\"><div class=\"form-group\"><label for=\"member_email\">Member Email (optional)</label><input type=\"email\" name=\"member_email\" placeholder=\"member@example.com\"></div><button type=\"submit\" class=\"email-btn\">Request Bank Details from Member</button></form></div>` : ''}\n    ${selectedRefund.status === 'Ready For Treasury' ? `<div class=\"treasury-email-section\"><h3>Treasury Handoff</h3><p>Send the refund request to treasury for processing.</p><form action=\"${escapeHtml(treasuryEmailUrl)}\" method=\"POST\" target=\"_blank\"><input type=\"hidden\" name=\"refund_id\" value=\"${selectedRefund.id}\"><input type=\"hidden\" name=\"return_url\" value=\"${escapeHtml(n8nBaseUrl)}/webhook/refund-status-form?id=${selectedRefund.id}\"><div class=\"form-group\"><label for=\"treasury_email\">Treasury Email</label><input type=\"email\" name=\"treasury_email\" placeholder=\"treasury.avondaleltc@gmail.com\"></div><div class=\"checkbox-wrap\"><input type=\"checkbox\" name=\"test_mode\" value=\"1\" checked> Test mode</div><button type=\"submit\" class=\"treasury-btn\">Send to Treasury</button></form></div>` : ''}\n  </div>\n` : '<div class=\"no-selection\"><p>Select a refund from the list to update its status.</p></div>';\nconst html = `<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Refund Status Management</title>\n  <style>\n    :root { --bg: #f7f8fc; --panel: #ffffff; --ink: #2e3d4e; --muted: #6b7785; --line: #e2e8f0; --accent: #509ee3; }\n    * { box-sizing: border-box; }\n    body { margin: 0; padding: 24px; background: var(--bg); font-family: Lato, 'Helvetica Neue', Arial, sans-serif; color: var(--ink); }\n    .wrap { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }\n    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 18px 40px rgba(53,72,91,.08); padding: 28px; }\n    h1 { margin: 0 0 20px; font-size: 28px; }\n    h2 { margin: 0 0 16px; font-size: 20px; }\n    h3 { margin: 16px 0 12px; font-size: 14px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }\n    table { width: 100%; border-collapse: collapse; }\n    th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid var(--line); }\n    th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 700; }\n    tr { cursor: pointer; transition: background 0.15s; }\n    tr:hover { background: #f8f9fc; }\n    tr.selected { background: #eef2f7; }\n    .status-badge { display: inline-block; padding: 4px 10px; border-radius: 999px; color: white; font-size: 12px; font-weight: 700; }\n    .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); }\n    .detail-row label { font-weight: 700; color: var(--muted); }\n    .detail-row span, .detail-row input { color: var(--ink); }\n    .detail-row input { width: 60%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px; }\n    .refund-amount { font-size: 18px; font-weight: 700; color: var(--accent); }\n    .form-group { margin: 16px 0; }\n    .form-group label { display: block; margin-bottom: 6px; font-weight: 700; color: var(--muted); }\n    .form-group select, .form-group textarea, .form-group input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px; font-family: inherit; }\n    .email-tracking { margin-top: 20px; padding-top: 16px; border-top: 2px solid var(--line); }\n    .submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--accent) 0%, #2f80d8 100%); color: white; border: none; border-radius: 999px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 20px; }\n    .email-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%); color: white; border: none; border-radius: 999px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 12px; }\n    .treasury-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #2f80d8 0%, #1a5276 100%); color: white; border: none; border-radius: 999px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 12px; }\n    .member-email-section, .treasury-email-section { margin-top: 24px; padding: 20px; border-radius: 14px; }\n    .member-email-section { background: #f0f9f4; border: 1px solid #c8e6d9; }\n    .member-email-section h3 { color: #1e8449; }\n    .treasury-email-section { background: #eaf2f8; border: 1px solid #c3d9e6; }\n    .treasury-email-section h3 { color: #1a5276; }\n    .no-selection { text-align: center; color: var(--muted); padding: 40px 20px; }\n    @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }\n  </style>\n</head>\n<body>\n  <div class=\"wrap\">\n    <div class=\"panel\">\n      <h1>Refunds</h1>\n      <table>\n        <thead><tr><th>ID</th><th>Member</th><th>Membership</th><th>Refund</th><th>Status</th><th>Created</th></tr></thead>\n        <tbody>${refundRows || '<tr><td colspan=\"6\">No refunds</td></tr>'}</tbody>\n      </table>\n    </div>\n    <div class=\"panel\">${selectedSection}</div>\n  </div>\n  <script>function selectRefund(id) { window.location.href = '?id=' + id; }</script>\n</body>\n</html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "r6000000-0000-0000-0000-000000000005",
+      "name": "Build Form HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "r6000000-0000-0000-0000-000000000006",
+      "name": "Respond Form",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1060,
+        320
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Refund Status Form Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "List Refunds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Refunds": {
+      "main": [
+        [
+          {
+            "node": "Build Form HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Form HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-03T08:14:59.404+00:00",
+  "updatedAt": "2026-04-03T08:14:59.404+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "0b60152e-c3e8-4bd0-ac33-44f6fdccb82d",
+  "triggerCount": 1,
+  "id": "xLJjIOajWFvG1Ig6",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 4,
+  "description": null,
+  "activeVersionId": null
+}

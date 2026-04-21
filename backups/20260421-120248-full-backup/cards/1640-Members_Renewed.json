@@ -1,0 +1,160 @@
+{
+  "cache_invalidated_at": "2026-04-21T10:54:41.441302Z",
+  "description": "Current-year members who also existed as paid members in the previous season.",
+  "archived": false,
+  "view_count": 30,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "int8",
+      "semantic_type": "type/Quantity",
+      "lib/deduplicated-name": "renewed_count",
+      "lib/original-name": "renewed_count",
+      "name": "renewed_count",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "renewed_count",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "renewed_count",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "renewed_count",
+      "display_name": "renewed_count",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 293.0,
+            "q1": 293.0,
+            "q3": 293.0,
+            "max": 293.0,
+            "sd": null,
+            "avg": 293.0
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Members Renewed",
+  "last_query_start": "2026-04-21T10:55:32.921488Z",
+  "is_remote_synced": false,
+  "dashboard_count": 1,
+  "document_id": null,
+  "last_used_at": "2026-04-21T10:55:33.226005Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 43.5789473684210526,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-21T10:54:41.44023Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "template-tags": {
+          "year": {
+            "default": "2026",
+            "type": "text",
+            "required": true,
+            "id": "b8a4f20b-7bc0-4c7c-84f1-9f35c6184d8a",
+            "name": "year",
+            "display-name": "Year"
+          }
+        },
+        "lib/type": "mbql.stage/native",
+        "native": "WITH settings AS (\n  SELECT COALESCE(MAX(CASE WHEN key = 'n8n_base_url' THEN value END), 'http://n8n:5678') AS n8n_base_url\n  FROM public.global_settings\n),\ncurrent_rows AS (\n  SELECT\n    m.id AS raw_member_id,\n    settings.n8n_base_url,\n    trim(concat_ws(' ', m.\"First name\", m.\"Last name\")) AS member_name,\n    lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) AS name_key,\n    NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') AS email_key,\n    NULLIF(trim(COALESCE(m.\"Venue ID\", '')), '') AS venue_id,\n    NULLIF(trim(COALESCE(m.\"British Tennis Number\", '')), '') AS btn,\n    m.\"Email address\" AS email_address,\n    m.\"Membership\" AS membership,\n    p.category,\n    p.display_order,\n    COALESCE(m.\"Cost\", 0) AS member_cost,\n    {{year}}::text AS season_year\n  FROM public.raw_members m\n  JOIN public.membership_packages p\n    ON m.\"Membership\" = p.name\n   AND p.season = {{year}}::text\n  CROSS JOIN settings\n  WHERE p.category NOT IN ('Pavilion Key', 'Honorary')\n    AND m.\"Status\" = 'Active'\n),\nprev_rows AS (\n  SELECT\n    m.id AS raw_member_id,\n    settings.n8n_base_url,\n    trim(concat_ws(' ', m.\"First name\", m.\"Last name\")) AS member_name,\n    lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) AS name_key,\n    NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') AS email_key,\n    NULLIF(trim(COALESCE(m.\"Venue ID\", '')), '') AS venue_id,\n    NULLIF(trim(COALESCE(m.\"British Tennis Number\", '')), '') AS btn,\n    m.\"Email address\" AS email_address,\n    m.\"Membership\" AS membership,\n    p.category,\n    p.display_order,\n    COALESCE(m.\"Cost\", 0) AS member_cost,\n    (({{year}})::int - 1)::text AS season_year\n  FROM public.raw_members m\n  JOIN public.membership_packages p\n    ON m.\"Membership\" = p.name\n   AND p.season = (({{year}})::int - 1)::text\n  CROSS JOIN settings\n  WHERE p.category NOT IN ('Pavilion Key', 'Honorary')\n    AND m.\"Status\" = 'Active'\n),\ncurrent_best AS (\n  SELECT DISTINCT ON (COALESCE(email_key, venue_id, btn, name_key))\n    COALESCE(email_key, venue_id, btn, name_key) AS dedupe_key,\n    raw_member_id,\n    n8n_base_url,\n    member_name,\n    name_key,\n    email_key,\n    venue_id,\n    btn,\n    email_address,\n    membership,\n    category,\n    season_year\n  FROM current_rows\n  ORDER BY COALESCE(email_key, venue_id, btn, name_key), member_cost DESC, raw_member_id DESC, display_order, membership\n),\nprev_best AS (\n  SELECT DISTINCT ON (COALESCE(email_key, venue_id, btn, name_key))\n    COALESCE(email_key, venue_id, btn, name_key) AS dedupe_key,\n    raw_member_id,\n    n8n_base_url,\n    member_name,\n    name_key,\n    email_key,\n    venue_id,\n    btn,\n    email_address,\n    membership,\n    category,\n    season_year\n  FROM prev_rows\n  ORDER BY COALESCE(email_key, venue_id, btn, name_key), member_cost DESC, raw_member_id DESC, display_order, membership\n)\nSELECT COUNT(*) AS renewed_count\nFROM current_best c\nWHERE EXISTS (\n  SELECT 1 FROM prev_best p WHERE (\n  (c.email_key IS NOT NULL AND p.email_key = c.email_key)\n  OR (c.venue_id IS NOT NULL AND p.venue_id = c.venue_id)\n  OR (c.btn IS NOT NULL AND p.btn = c.btn)\n  OR ((COALESCE(c.email_key, c.venue_id, c.btn) IS NULL OR COALESCE(p.email_key, p.venue_id, p.btn) IS NULL) AND p.name_key = c.name_key)\n)\n);"
+      }
+    ]
+  },
+  "id": 1640,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "scalar",
+  "archived_directly": false,
+  "entity_id": "dSy_BwM83uKEAhE-Uz-Tc",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 1,
+    "email": "steve@shortcentral.com",
+    "first_name": "Steve",
+    "last_name": "Short",
+    "timestamp": "2026-04-21T10:54:41.463494Z"
+  },
+  "visualization_settings": {
+    "click_behavior": {
+      "type": "link",
+      "linkType": "url",
+      "targetId": 1639,
+      "linkTemplate": "/question/1639?year={{year}}&metric=Renewed",
+      "openInNewTab": false
+    },
+    "scalar.field": "renewed_count",
+    "scalar.segments": []
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-04-21T09:46:28.944612Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

@@ -1,0 +1,567 @@
+{
+  "cache_invalidated_at": "2026-03-23T19:47:57.351157Z",
+  "description": null,
+  "archived": false,
+  "view_count": 313,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "payer",
+      "lib/original-name": "payer",
+      "name": "payer",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "payer",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "payer",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "payer",
+      "display_name": "payer",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 18,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 12.5
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Address 1",
+      "lib/original-name": "Address 1",
+      "name": "Address 1",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Address 1",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Address 1",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Address 1",
+      "display_name": "Address 1",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 17,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 13.944444444444445
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Address 2",
+      "lib/original-name": "Address 2",
+      "name": "Address 2",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Address 2",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Address 2",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Address 2",
+      "display_name": "Address 2",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 9,
+          "nil%": 0.5
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 5.722222222222222
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Address 3",
+      "lib/original-name": "Address 3",
+      "name": "Address 3",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Address 3",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Address 3",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Address 3",
+      "display_name": "Address 3",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 1.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 0.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "town",
+      "lib/original-name": "town",
+      "name": "town",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "town",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "town",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "town",
+      "display_name": "town",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 8,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 7.333333333333333
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "postcode",
+      "lib/original-name": "postcode",
+      "name": "postcode",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "postcode",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "postcode",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "postcode",
+      "display_name": "postcode",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 17,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 7.888888888888889
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "int8",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Parent Tags",
+      "lib/original-name": "Parent Tags",
+      "name": "Parent Tags",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Parent Tags",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Parent Tags",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "Parent Tags",
+      "display_name": "Parent Tags",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.0,
+            "q3": 0.3526364567749658,
+            "max": 1.0,
+            "sd": 0.23570226039551584,
+            "avg": 0.05555555555555555
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "int8",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Regular Tags",
+      "lib/original-name": "Regular Tags",
+      "name": "Regular Tags",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Regular Tags",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Regular Tags",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "Regular Tags",
+      "display_name": "Regular Tags",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 4,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.687867558052475,
+            "q3": 1.4128896816219365,
+            "max": 3.0,
+            "sd": 0.5829830881301374,
+            "avg": 1.1111111111111112
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "int8",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Key",
+      "lib/original-name": "Key",
+      "name": "Key",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Key",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Key",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "Key",
+      "display_name": "Key",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 0.0,
+            "q1": 0.0,
+            "q3": 0.0,
+            "max": 0.0,
+            "sd": 0.0,
+            "avg": 0.0
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "int8",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Total Items",
+      "lib/original-name": "Total Items",
+      "name": "Total Items",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Total Items",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Total Items",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "Total Items",
+      "display_name": "Total Items",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 3,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 1.0,
+            "q1": 1.0,
+            "q3": 1.4307071990553695,
+            "max": 3.0,
+            "sd": 0.5144957554275266,
+            "avg": 1.1666666666666667
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "bool",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Has Manual Items",
+      "lib/original-name": "Has Manual Items",
+      "name": "Has Manual Items",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Has Manual Items",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Has Manual Items",
+        {
+          "base-type": "type/Boolean"
+        }
+      ],
+      "effective_type": "type/Boolean",
+      "lib/desired-column-alias": "Has Manual Items",
+      "display_name": "Has Manual Items",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 2,
+          "nil%": 0.0
+        }
+      },
+      "base_type": "type/Boolean"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Consolidated by Payer Address (for labels)",
+  "last_query_start": "2026-04-08T14:12:18.051193Z",
+  "is_remote_synced": false,
+  "dashboard_count": 0,
+  "document_id": null,
+  "last_used_at": "2026-04-08T14:12:18.124479Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 3289.2922535211267606,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-03-23T19:47:57.349841Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "native": "WITH current_batch AS (\n  SELECT id\n  FROM public.signup_batches\n  WHERE status = 'Processing'\n  ORDER BY id DESC\n  LIMIT 1\n)\nSELECT\n  c.payer,\n  c.address_1 AS \"Address 1\",\n  c.address_2 AS \"Address 2\",\n  c.address_3 AS \"Address 3\",\n  c.town,\n  c.postcode,\n  c.parent_tags AS \"Parent Tags\",\n  c.regular_tags AS \"Regular Tags\",\n  c.key_tags AS \"Key\",\n  c.total_items AS \"Total Items\",\n  c.has_manual_items AS \"Has Manual Items\"\nFROM public.vw_signup_batch_consolidated AS c\nJOIN current_batch AS b\n  ON b.id = c.batch_id\nORDER BY c.payer, c.address_1 NULLS LAST, c.address_2 NULLS LAST, c.address_3 NULLS LAST, c.town NULLS LAST, c.postcode NULLS LAST;"
+      }
+    ]
+  },
+  "id": 1596,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "45ZUCCu6igcMBawg4Xlww",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-03-23T19:47:57.382689Z"
+  },
+  "visualization_settings": {
+    "table.columns": [
+      {
+        "name": "payer",
+        "enabled": true
+      },
+      {
+        "name": "Address 1",
+        "enabled": true
+      },
+      {
+        "name": "Address 2",
+        "enabled": true
+      },
+      {
+        "name": "Address 3",
+        "enabled": true
+      },
+      {
+        "name": "town",
+        "enabled": true
+      },
+      {
+        "name": "postcode",
+        "enabled": true
+      },
+      {
+        "name": "Regular Tags",
+        "enabled": true
+      },
+      {
+        "name": "Parent Tags",
+        "enabled": true
+      },
+      {
+        "name": "Key",
+        "enabled": true
+      },
+      {
+        "name": "Total Items",
+        "enabled": true
+      },
+      {
+        "name": "Has Manual Items",
+        "enabled": true
+      }
+    ],
+    "column_settings": {
+      "[\"name\",\"payer\"]": {
+        "column_title": "Payer"
+      },
+      "[\"name\",\"town\"]": {
+        "column_title": "Town"
+      },
+      "[\"name\",\"postcode\"]": {
+        "column_title": "Postcode"
+      },
+      "[\"name\",\"Regular Tags\"]": {
+        "column_title": "Shoe Tags"
+      },
+      "[\"name\",\"Parent Tags\"]": {
+        "column_title": "Parent Tags"
+      },
+      "[\"name\",\"Key\"]": {
+        "column_title": "Key"
+      },
+      "[\"name\",\"Total Items\"]": {
+        "column_title": "Total Items"
+      },
+      "[\"name\",\"Has Manual Items\"]": {
+        "column_title": "Has Manual Items"
+      }
+    }
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-03-16T15:09:16.308689Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}
