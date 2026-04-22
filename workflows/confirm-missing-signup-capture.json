@@ -1,5 +1,6 @@
 {
   "name": "Confirm Missing Signup Capture",
+  "tags": ["Batch","ClubSpark"],
   "nodes": [
     {
       "parameters": {},

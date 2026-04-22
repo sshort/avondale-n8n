@@ -1,5 +1,6 @@
 {
   "name": "Email Template Editor App",
+  "tags": ["Admin","Email","Forms"],
   "nodes": [
     {
       "parameters": {},

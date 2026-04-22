@@ -1,5 +1,6 @@
 {
   "name": "ClubSpark Members Export",
+  "tags": ["ClubSpark","Export","Members"],
   "nodes": [
     {
       "parameters": {},

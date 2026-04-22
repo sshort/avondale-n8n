@@ -1,5 +1,6 @@
 {
   "name": "Add Manual Batch Item",
+  "tags": ["Admin","Batch","ClubSpark"],
   "nodes": [
     {
       "parameters": {},

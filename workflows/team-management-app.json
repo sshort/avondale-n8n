@@ -1,5 +1,6 @@
 {
   "name": "Team Management App",
+  "tags": ["Forms","Teams"],
   "nodes": [
     {
       "parameters": {},

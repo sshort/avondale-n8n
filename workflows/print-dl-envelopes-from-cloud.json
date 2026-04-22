@@ -1,5 +1,6 @@
 {
   "name": "Print DL Envelopes from Cloud",
+  "tags": ["Batch","Export","Print"],
   "nodes": [
     {
       "parameters": {},

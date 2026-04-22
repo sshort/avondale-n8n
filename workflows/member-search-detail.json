@@ -1,5 +1,6 @@
 {
   "name": "Member Search Detail",
+  "tags": ["Forms","Members"],
   "nodes": [
     {
       "parameters": {},

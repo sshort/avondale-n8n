@@ -1,5 +1,6 @@
 {
   "name": "Print J8160 Labels from Cloud",
+  "tags": ["Batch","ClubSpark","Export","Print"],
   "nodes": [
     {
       "parameters": {},

@@ -1,5 +1,6 @@
 {
   "name": "Add Refund",
+  "tags": ["Admin","Refund"],
   "nodes": [
     {
       "parameters": {},

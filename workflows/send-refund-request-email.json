@@ -1,5 +1,6 @@
 {
   "name": "Send Refund Request Email",
+  "tags": ["Email","Refund"],
   "nodes": [
     {
       "parameters": {},

@@ -1,5 +1,6 @@
 {
   "name": "Update Refund Status",
+  "tags": ["Admin","Refund"],
   "nodes": [
     {
       "parameters": {},

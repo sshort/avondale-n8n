@@ -1,5 +1,6 @@
 {
   "name": "Signup Batch Actions",
+  "tags": ["Admin","Batch","ClubSpark"],
   "nodes": [
     {
       "parameters": {},

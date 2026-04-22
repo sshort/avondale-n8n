@@ -1,5 +1,6 @@
 {
   "name": "Metabase Report Generate",
+  "tags": ["Export","Reports"],
   "nodes": [
     {
       "parameters": {},

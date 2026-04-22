@@ -1,5 +1,6 @@
 {
   "name": "Email Template Editor Actions",
+  "tags": ["Admin","Email"],
   "nodes": [
     {
       "parameters": {},

@@ -1,5 +1,6 @@
 {
   "name": "ClubSpark Package Members Import XLSX",
+  "tags": ["ClubSpark","Import","Members"],
   "nodes": [
     {
       "parameters": {},

@@ -1,5 +1,6 @@
 {
   "name": "Preview Member Template Email",
+  "tags": ["Email","Forms","Members"],
   "nodes": [
     {
       "parameters": {},

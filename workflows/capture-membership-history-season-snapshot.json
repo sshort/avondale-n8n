@@ -1,5 +1,6 @@
 {
   "name": "Capture Membership and Contact History Snapshot",
+  "tags": ["History","Members"],
   "nodes": [
     {
       "parameters": {},

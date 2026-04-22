@@ -1,5 +1,6 @@
 {
   "name": "Preview Refund Request Email",
+  "tags": ["Email","Forms","Refund"],
   "nodes": [
     {
       "parameters": {},

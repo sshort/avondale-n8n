@@ -1,5 +1,6 @@
 {
   "name": "Manual Batch Item Form",
+  "tags": ["Batch","ClubSpark","Forms"],
   "nodes": [
     {
       "parameters": {},

@@ -1,5 +1,6 @@
 {
   "name": "ClubSpark Full Refresh",
+  "tags": ["ClubSpark","Export","Import","Sync"],
   "nodes": [
     {
       "parameters": {},

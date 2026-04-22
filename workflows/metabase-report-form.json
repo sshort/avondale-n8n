@@ -1,5 +1,6 @@
 {
   "name": "Metabase Report Form",
+  "tags": ["Forms","Reports"],
   "nodes": [
     {
       "parameters": {},

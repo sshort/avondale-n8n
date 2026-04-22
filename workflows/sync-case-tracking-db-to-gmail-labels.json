@@ -1,5 +1,6 @@
 {
   "name": "Sync Case Tracking DB To Gmail Labels",
+  "tags": ["Email","Sync","Tickets"],
   "nodes": [
     {
       "parameters": {},

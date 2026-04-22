@@ -1,5 +1,6 @@
 {
   "name": "Sync local source of truth to cloud",
+  "tags": ["Export","Import","Sync"],
   "nodes": [
     {
       "parameters": {},

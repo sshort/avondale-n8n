@@ -1,5 +1,6 @@
 {
   "name": "Send Gmail Test Message",
+  "tags": ["Test"],
   "nodes": [
     {
       "parameters": {},

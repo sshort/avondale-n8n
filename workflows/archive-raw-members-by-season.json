@@ -1,5 +1,6 @@
 {
   "name": "Archive raw_members by membership season",
+  "tags": ["History","Members"],
   "nodes": [
     {
       "parameters": {},

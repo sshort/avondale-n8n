@@ -36,8 +36,9 @@ For this feature, open tracking is intentionally simple and best-effort:
 - [x] (2026-04-22 09:05Z) Wrote this ExecPlan as a concrete implementation plan tied to the current repository files.
 - [x] (2026-04-22 08:40Z) Added the additive schema migration file `sql/044_case_tracking_reply_threading.sql` for reply-thread metadata and simple open-tracking fields on `public.case_emails`.
 - [x] (2026-04-22 10:29Z) Applied `sql/044_case_tracking_reply_threading.sql` to the target PostgreSQL database on `homedb` and verified the new columns, check constraint, and indexes on `public.case_emails`.
-- [ ] Rework the case detail page and email preview flow to support explicit “reply to message” mode.
-- [ ] Add a simple tracking-pixel webhook flow and show open status on the case detail page.
+- [x] (2026-04-22 11:12Z) Updated `workflows/case-tracking-app.json` and synced live `Case Tracking App` so the case detail page now exposes reply links for email activity rows, carries `reply_to_case_email_id` into the preview URL, and shows the stored open-tracking status/summary on outbound messages.
+- [x] (2026-04-22 11:38Z) Updated `workflows/preview-case-tracking-email.json` and synced live `Preview Case Tracking Email` so the preview now supports explicit `new` vs `reply` mode, derives reply recipient/subject context from the selected parent email, exposes open-tracking choice for HTML email, and uses a non-editable signature dropdown that still updates the rendered preview.
+- [ ] Add a simple tracking-pixel webhook flow.
 - [ ] Replace or wrap the current Gmail send step so outbound replies can set `threadId`, `In-Reply-To`, `References`, and optionally inject a tracking pixel for HTML messages.
 - [ ] Extend Gmail import so replies attach to cases by stored message headers before falling back to label-based case matching.
 - [ ] Verify the full round trip with a real reply chain: new outbound, external reply, second outbound reply, and correct case/thread linkage.

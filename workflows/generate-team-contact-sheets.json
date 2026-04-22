@@ -1,5 +1,6 @@
 {
   "name": "Generate Team Contact Sheets",
+  "tags": ["Export","Teams"],
   "nodes": [
     {
       "parameters": {

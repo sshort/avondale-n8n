@@ -1,5 +1,6 @@
 {
   "name": "ClubSpark Main Contacts Export",
+  "tags": ["ClubSpark","Export"],
   "nodes": [
     {
       "parameters": {},

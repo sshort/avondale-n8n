@@ -1,5 +1,6 @@
 {
   "name": "Refund Status Form",
+  "tags": ["Forms","Refund"],
   "active": true,
   "nodes": [
     {

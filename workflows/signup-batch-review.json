@@ -1,6 +1,7 @@
 {
   "id": "kRV2uP4nT8mQxL6b",
   "name": "Signup Batch Review",
+  "tags": ["Admin","Batch","ClubSpark"],
   "active": true,
   "nodes": [
     {

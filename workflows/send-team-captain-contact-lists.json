@@ -1,5 +1,6 @@
 {
   "name": "Send Team Captain Contact Lists",
+  "tags": ["Email","Teams"],
   "nodes": [
     {
       "parameters": {

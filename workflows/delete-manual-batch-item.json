@@ -1,6 +1,7 @@
 {
   "id": "mD4sR7xQ9pLc2VnK",
   "name": "Delete Manual Batch Item",
+  "tags": ["Admin","Batch","ClubSpark"],
   "active": true,
   "nodes": [
     {

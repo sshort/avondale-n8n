@@ -1,5 +1,6 @@
 {
   "name": "Send Member Template Email",
+  "tags": ["Email","Members"],
   "nodes": [
     {
       "id": "c1000000-0000-0000-0000-000000000001",

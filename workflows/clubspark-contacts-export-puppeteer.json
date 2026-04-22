@@ -1,5 +1,6 @@
 {
   "name": "ClubSpark Contacts Export (Puppeteer)",
+  "tags": ["ClubSpark","Export"],
   "nodes": [
     {
       "parameters": {},

@@ -1,5 +1,6 @@
 {
   "name": "Send No-Address Batch Emails",
+  "tags": ["Batch","ClubSpark","Email"],
   "nodes": [
     {
       "parameters": {},

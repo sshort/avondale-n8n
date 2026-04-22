@@ -1,5 +1,6 @@
 {
   "name": "Sync Team Captain Mailout",
+  "tags": ["Export","Sync","Teams"],
   "nodes": [
     {
       "parameters": {

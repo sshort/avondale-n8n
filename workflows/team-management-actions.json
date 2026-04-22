@@ -1,5 +1,6 @@
 {
   "name": "Team Management Actions",
+  "tags": ["Admin","Teams"],
   "nodes": [
     {
       "parameters": {},

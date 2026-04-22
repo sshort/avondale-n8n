@@ -1,5 +1,6 @@
 {
   "name": "Case Tracking Actions",
+  "tags": ["Admin","Tickets"],
   "nodes": [
     {
       "parameters": {},

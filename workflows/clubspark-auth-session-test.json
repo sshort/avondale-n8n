@@ -1,5 +1,6 @@
 {
   "name": "ClubSpark Auth Session Test",
+  "tags": ["ClubSpark","Test"],
   "nodes": [
     {
       "parameters": {},

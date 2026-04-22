@@ -1,5 +1,6 @@
 {
   "name": "Refund Form",
+  "tags": ["Forms","Refund"],
   "nodes": [
     {
       "parameters": {},

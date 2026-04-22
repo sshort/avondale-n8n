@@ -1,5 +1,6 @@
 {
   "name": "Send Treasury Refund Request",
+  "tags": ["Email","Refund"],
   "nodes": [
     {
       "parameters": {},

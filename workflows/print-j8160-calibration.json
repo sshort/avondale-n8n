@@ -1,5 +1,6 @@
 {
   "name": "Print J8160 Calibration",
+  "tags": ["Print"],
   "nodes": [
     {
       "parameters": {},
