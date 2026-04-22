@@ -1,0 +1,16 @@
+{
+  "total": null,
+  "data": [],
+  "models": [
+    "card",
+    "collection",
+    "dashboard",
+    "dataset",
+    "document",
+    "metric",
+    "pulse",
+    "timeline"
+  ],
+  "limit": null,
+  "offset": null
+}

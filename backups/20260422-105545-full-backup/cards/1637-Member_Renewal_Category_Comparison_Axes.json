@@ -1,0 +1,131 @@
+{
+  "cache_invalidated_at": null,
+  "description": "Explains the row and column meanings for the renewal comparison matrix.",
+  "archived": false,
+  "view_count": 0,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "name": "Explanation",
+      "database_type": "text",
+      "base_type": "type/Text",
+      "display_name": "Explanation",
+      "field_ref": [
+        "field",
+        "Explanation",
+        {
+          "base-type": "type/Text"
+        }
+      ]
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Member Renewal Category Comparison Axes",
+  "last_query_start": null,
+  "is_remote_synced": false,
+  "dashboard_count": 0,
+  "document_id": null,
+  "last_used_at": "2026-04-16T13:24:00.020603Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": null,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-16T13:24:00.020603Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "lib/type": "mbql.stage/native",
+        "native": "select 'Rows are category rows. Total Previous Year counts members in that row in the previous season. Not Renewed counts those previous-year members who did not renew. New counts members with no previous-year package, attributed to their current category row. The remaining columns count where previous-year members renewed into the current-year category named by the column.' as \"Explanation\";"
+      }
+    ]
+  },
+  "id": 1637,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "HkpwpzY8DnB76cWOSEIi_",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-16T13:24:00.03211Z"
+  },
+  "visualization_settings": {
+    "table.columns": [
+      {
+        "name": "Explanation",
+        "enabled": true
+      }
+    ],
+    "table": {
+      "columns": [
+        {
+          "name": "Explanation",
+          "enabled": true
+        }
+      ]
+    }
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-04-16T13:24:00.020603Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}

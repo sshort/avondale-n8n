@@ -1,0 +1,468 @@
+{
+  "cache_invalidated_at": "2026-04-21T10:50:37.160537Z",
+  "description": "Underlying member rows for signup status overview metrics.",
+  "archived": false,
+  "view_count": 19,
+  "collection_position": null,
+  "source_card_id": null,
+  "table_id": null,
+  "can_run_adhoc_query": true,
+  "result_metadata": [
+    {
+      "database_type": "int8",
+      "semantic_type": null,
+      "lib/deduplicated-name": "raw_member_id",
+      "lib/original-name": "raw_member_id",
+      "name": "raw_member_id",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "raw_member_id",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "raw_member_id",
+        {
+          "base-type": "type/BigInteger"
+        }
+      ],
+      "effective_type": "type/BigInteger",
+      "lib/desired-column-alias": "raw_member_id",
+      "display_name": "raw_member_id",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 130,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Number": {
+            "min": 2627.0,
+            "q1": 2816.0,
+            "q3": 3267.5340557637865,
+            "max": 3485.0,
+            "sd": 260.8151125754106,
+            "avg": 3028.4692307692308
+          }
+        }
+      },
+      "base_type": "type/BigInteger"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": "type/URL",
+      "lib/deduplicated-name": "n8n_base_url",
+      "lib/original-name": "n8n_base_url",
+      "name": "n8n_base_url",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "n8n_base_url",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "n8n_base_url",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "n8n_base_url",
+      "display_name": "n8n_base_url",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 1.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 34.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "filter_year",
+      "lib/original-name": "filter_year",
+      "name": "filter_year",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "filter_year",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "filter_year",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "filter_year",
+      "display_name": "filter_year",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 4.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "metric",
+      "lib/original-name": "metric",
+      "name": "metric",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "metric",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "metric",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "metric",
+      "display_name": "metric",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 11.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": "type/Name",
+      "lib/deduplicated-name": "Name",
+      "lib/original-name": "Name",
+      "name": "Name",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Name",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Name",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Name",
+      "display_name": "Name",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 130,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 12.846153846153847
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Membership",
+      "lib/original-name": "Membership",
+      "name": "Membership",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Membership",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Membership",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Membership",
+      "display_name": "Membership",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 10,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 15.984615384615385
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "varchar",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Category",
+      "lib/original-name": "Category",
+      "name": "Category",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Category",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Category",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Category",
+      "display_name": "Category",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 10,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 7.1692307692307695
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Email address",
+      "lib/original-name": "Email address",
+      "name": "Email address",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Email address",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Email address",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Email address",
+      "display_name": "Email address",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 83,
+          "nil%": 0.3692307692307692
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.6307692307692307,
+            "percent-state": 0.0,
+            "average-length": 14.315384615384616
+          }
+        }
+      },
+      "base_type": "type/Text"
+    },
+    {
+      "database_type": "text",
+      "semantic_type": null,
+      "lib/deduplicated-name": "Season",
+      "lib/original-name": "Season",
+      "name": "Season",
+      "lib/source": "source/native",
+      "lib/source-column-alias": "Season",
+      "source": "native",
+      "field_ref": [
+        "field",
+        "Season",
+        {
+          "base-type": "type/Text"
+        }
+      ],
+      "effective_type": "type/Text",
+      "lib/desired-column-alias": "Season",
+      "display_name": "Season",
+      "fingerprint": {
+        "global": {
+          "distinct-count": 1,
+          "nil%": 0.0
+        },
+        "type": {
+          "type/Text": {
+            "percent-json": 0.0,
+            "percent-url": 0.0,
+            "percent-email": 0.0,
+            "percent-state": 0.0,
+            "average-length": 4.0
+          }
+        }
+      },
+      "base_type": "type/Text"
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "creator": {
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "is_data_analyst": false,
+    "last_login": null,
+    "is_qbnewb": true,
+    "is_superuser": true,
+    "id": 13371339,
+    "last_name": "",
+    "tenant_id": null,
+    "date_joined": "2026-03-13T13:48:56.540625Z",
+    "common_name": "codex"
+  },
+  "initially_published_at": null,
+  "can_write": true,
+  "card_schema": 23,
+  "database_id": 2,
+  "enable_embedding": false,
+  "collection_id": 9,
+  "query_type": "native",
+  "name": "Signup Status Overview (Detail)",
+  "last_query_start": "2026-04-22T07:37:15.799219Z",
+  "is_remote_synced": false,
+  "dashboard_count": 0,
+  "document_id": null,
+  "last_used_at": "2026-04-22T07:37:15.805511Z",
+  "dashboard": null,
+  "type": "question",
+  "average_query_time": 68.4062500000000000,
+  "creator_id": 13371339,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-21T10:50:37.159438Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "dataset_query": {
+    "lib/type": "mbql/query",
+    "database": 2,
+    "stages": [
+      {
+        "template-tags": {
+          "year": {
+            "default": "2026",
+            "type": "text",
+            "required": true,
+            "id": "167e7271-4cd9-4b44-b8a7-5e0e2ef3d83d",
+            "name": "year",
+            "display-name": "Year"
+          },
+          "metric": {
+            "name": "metric",
+            "required": false,
+            "type": "text",
+            "id": "c2271780-87e4-43df-a7a4-978a3c2466ff",
+            "display-name": "Metric"
+          }
+        },
+        "lib/type": "mbql.stage/native",
+        "native": "WITH settings AS (\n  SELECT COALESCE(MAX(CASE WHEN key = 'n8n_base_url' THEN value END), 'http://n8n:5678') AS n8n_base_url\n  FROM public.global_settings\n),\ncurrent_rows AS (\n  SELECT\n    m.id AS raw_member_id,\n    settings.n8n_base_url,\n    trim(concat_ws(' ', m.\"First name\", m.\"Last name\")) AS member_name,\n    lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) AS name_key,\n    NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') AS email_key,\n    NULLIF(trim(COALESCE(m.\"Venue ID\", '')), '') AS venue_id,\n    NULLIF(trim(COALESCE(m.\"British Tennis Number\", '')), '') AS btn,\n    m.\"Email address\" AS email_address,\n    m.\"Membership\" AS membership,\n    p.category,\n    p.display_order,\n    COALESCE(m.\"Cost\", 0) AS member_cost,\n    {{year}}::text AS season_year\n  FROM public.raw_members m\n  JOIN public.membership_packages p\n    ON m.\"Membership\" = p.name\n   AND p.season = {{year}}::text\n  CROSS JOIN settings\n  WHERE p.category NOT IN ('Pavilion Key', 'Honorary')\n    AND m.\"Status\" = 'Active'\n),\nprev_rows AS (\n  SELECT\n    m.id AS raw_member_id,\n    settings.n8n_base_url,\n    trim(concat_ws(' ', m.\"First name\", m.\"Last name\")) AS member_name,\n    lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\"))) AS name_key,\n    NULLIF(lower(trim(COALESCE(m.\"Email address\", ''))), '') AS email_key,\n    NULLIF(trim(COALESCE(m.\"Venue ID\", '')), '') AS venue_id,\n    NULLIF(trim(COALESCE(m.\"British Tennis Number\", '')), '') AS btn,\n    m.\"Email address\" AS email_address,\n    m.\"Membership\" AS membership,\n    p.category,\n    p.display_order,\n    COALESCE(m.\"Cost\", 0) AS member_cost,\n    (({{year}})::int - 1)::text AS season_year\n  FROM public.raw_members m\n  JOIN public.membership_packages p\n    ON m.\"Membership\" = p.name\n   AND p.season = (({{year}})::int - 1)::text\n  CROSS JOIN settings\n  WHERE p.category NOT IN ('Pavilion Key', 'Honorary')\n    AND m.\"Status\" = 'Active'\n),\ncurrent_best AS (\n  SELECT DISTINCT ON (COALESCE(email_key, venue_id, btn, name_key))\n    COALESCE(email_key, venue_id, btn, name_key) AS dedupe_key,\n    raw_member_id,\n    n8n_base_url,\n    member_name,\n    name_key,\n    email_key,\n    venue_id,\n    btn,\n    email_address,\n    membership,\n    category,\n    season_year\n  FROM current_rows\n  ORDER BY COALESCE(email_key, venue_id, btn, name_key), member_cost DESC, raw_member_id DESC, display_order, membership\n),\nprev_best AS (\n  SELECT DISTINCT ON (COALESCE(email_key, venue_id, btn, name_key))\n    COALESCE(email_key, venue_id, btn, name_key) AS dedupe_key,\n    raw_member_id,\n    n8n_base_url,\n    member_name,\n    name_key,\n    email_key,\n    venue_id,\n    btn,\n    email_address,\n    membership,\n    category,\n    season_year\n  FROM prev_rows\n  ORDER BY COALESCE(email_key, venue_id, btn, name_key), member_cost DESC, raw_member_id DESC, display_order, membership\n),\nsignup_current_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key,\n    settings.n8n_base_url,\n    src.id AS raw_member_id,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS member_name,\n    src.\"Membership\" AS membership,\n    src.category,\n    src.\"Email address\" AS email_address,\n    src.signup_match_group,\n    COALESCE(\n      to_date(NULLIF(src.\"Date joined venue\", ''), 'DD/MM/YYYY'),\n      to_date(NULLIF(src.\"Start Date\", ''), 'DD/MM/YYYY')\n    ) AS effective_date,\n    {{year}}::text AS season_year\n  FROM (\n    SELECT\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*, p.category, p.display_order,\n      COALESCE(msg.signup_match_group, lower(trim(p.name))) AS signup_match_group\n    FROM public.raw_members m\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = {{year}}\n    LEFT JOIN public.membership_signup_match_groups msg\n      ON msg.season = p.season\n     AND msg.package_name = p.name\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Status\" = 'Active'\n      AND COALESCE(m.is_current, true) = true\n  ) src\n  CROSS JOIN settings\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n),\nsignups AS (\n  SELECT DISTINCT\n    lower(trim(s.member)) AS member_name,\n    COALESCE(msg.signup_match_group, lower(trim(s.product))) AS signup_match_group\n  FROM public.member_signups s\n  LEFT JOIN public.membership_packages p ON s.product = p.name\n  LEFT JOIN public.membership_signup_match_groups msg\n    ON msg.season = COALESCE(p.season, {{year}})\n   AND msg.package_name = s.product\n  WHERE s.product LIKE '%' || {{year}} || '%'\n),\ndetail_rows AS (\n  SELECT\n    c.raw_member_id,\n    c.n8n_base_url,\n    {{year}}::text AS filter_year,\n    'Renewed'::text AS metric,\n    c.member_name,\n    c.membership,\n    c.category,\n    c.email_address,\n    c.season_year\n  FROM current_best c\n  WHERE EXISTS (\n    SELECT 1 FROM prev_best p WHERE (\n  (c.email_key IS NOT NULL AND p.email_key = c.email_key)\n  OR (c.venue_id IS NOT NULL AND p.venue_id = c.venue_id)\n  OR (c.btn IS NOT NULL AND p.btn = c.btn)\n  OR ((COALESCE(c.email_key, c.venue_id, c.btn) IS NULL OR COALESCE(p.email_key, p.venue_id, p.btn) IS NULL) AND p.name_key = c.name_key)\n)\n  )\n\n  UNION ALL\n\n  SELECT\n    p.raw_member_id,\n    p.n8n_base_url,\n    {{year}}::text AS filter_year,\n    'Not Renewed'::text AS metric,\n    p.member_name,\n    p.membership,\n    p.category,\n    p.email_address,\n    p.season_year\n  FROM prev_best p\n  WHERE NOT EXISTS (\n    SELECT 1 FROM current_best c WHERE (\n  (p.email_key IS NOT NULL AND c.email_key = p.email_key)\n  OR (p.venue_id IS NOT NULL AND c.venue_id = p.venue_id)\n  OR (p.btn IS NOT NULL AND c.btn = p.btn)\n  OR ((COALESCE(p.email_key, p.venue_id, p.btn) IS NULL OR COALESCE(c.email_key, c.venue_id, c.btn) IS NULL) AND c.name_key = p.name_key)\n)\n  )\n\n  UNION ALL\n\n  SELECT\n    c.raw_member_id,\n    c.n8n_base_url,\n    {{year}}::text AS filter_year,\n    'New'::text AS metric,\n    c.member_name,\n    c.membership,\n    c.category,\n    c.email_address,\n    c.season_year\n  FROM current_best c\n  WHERE NOT EXISTS (\n    SELECT 1 FROM prev_best p WHERE (\n  (c.email_key IS NOT NULL AND p.email_key = c.email_key)\n  OR (c.venue_id IS NOT NULL AND p.venue_id = c.venue_id)\n  OR (c.btn IS NOT NULL AND p.btn = c.btn)\n  OR ((COALESCE(c.email_key, c.venue_id, c.btn) IS NULL OR COALESCE(p.email_key, p.venue_id, p.btn) IS NULL) AND p.name_key = c.name_key)\n)\n  )\n\n  UNION ALL\n\n  SELECT\n    c.raw_member_id,\n    c.n8n_base_url,\n    {{year}}::text AS filter_year,\n    'Missing Signup Email'::text AS metric,\n    c.member_name,\n    c.membership,\n    c.category,\n    c.email_address,\n    c.season_year\n  FROM signup_current_members c\n  LEFT JOIN signups s\n    ON lower(trim(c.member_name)) = s.member_name\n   AND c.signup_match_group = s.signup_match_group\n  WHERE s.member_name IS NULL\n    AND c.effective_date IS NOT NULL\n    AND (\n      c.effective_date > current_date\n      OR c.effective_date::timestamp <= now() - interval '1 hour'\n    )\n)\nSELECT\n  raw_member_id,\n  n8n_base_url,\n  filter_year,\n  metric,\n  member_name AS \"Name\",\n  membership AS \"Membership\",\n  category AS \"Category\",\n  email_address AS \"Email address\",\n  season_year AS \"Season\"\nFROM detail_rows\nWHERE 1 = 1\n[[AND metric = {{metric}}]]\nORDER BY metric, \"Name\", \"Membership\", raw_member_id;"
+      }
+    ]
+  },
+  "id": 1639,
+  "legacy_query": null,
+  "parameter_mappings": [],
+  "can_manage_db": true,
+  "display": "table",
+  "archived_directly": false,
+  "entity_id": "e6r8nngC7mL1q1Dafu084",
+  "collection_preview": true,
+  "last-edit-info": {
+    "id": 13371339,
+    "email": "api-key-user-056cdbc3-ce51-430d-b689-dfd628a4bd46@api-key.invalid",
+    "first_name": "codex",
+    "last_name": "",
+    "timestamp": "2026-04-21T10:50:37.199022Z"
+  },
+  "visualization_settings": {
+    "table.columns": [
+      {
+        "name": "Name",
+        "enabled": true
+      },
+      {
+        "name": "Membership",
+        "enabled": true
+      },
+      {
+        "name": "Category",
+        "enabled": true
+      },
+      {
+        "name": "Email address",
+        "enabled": true
+      },
+      {
+        "name": "Season",
+        "enabled": true
+      }
+    ]
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "metabase_version": "v0.59.2.5 (0d6bac3)",
+  "parameters": [],
+  "dashboard_id": null,
+  "created_at": "2026-04-21T09:46:28.820988Z",
+  "parameter_usage_count": 0,
+  "public_uuid": null,
+  "can_delete": false
+}
