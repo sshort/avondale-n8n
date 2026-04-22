@@ -38,7 +38,7 @@ For this feature, open tracking is intentionally simple and best-effort:
 - [x] (2026-04-22 10:29Z) Applied `sql/044_case_tracking_reply_threading.sql` to the target PostgreSQL database on `homedb` and verified the new columns, check constraint, and indexes on `public.case_emails`.
 - [x] (2026-04-22 11:12Z) Updated `workflows/case-tracking-app.json` and synced live `Case Tracking App` so the case detail page now exposes reply links for email activity rows, carries `reply_to_case_email_id` into the preview URL, and shows the stored open-tracking status/summary on outbound messages.
 - [x] (2026-04-22 11:38Z) Updated `workflows/preview-case-tracking-email.json` and synced live `Preview Case Tracking Email` so the preview now supports explicit `new` vs `reply` mode, derives reply recipient/subject context from the selected parent email, exposes open-tracking choice for HTML email, and uses a non-editable signature dropdown that still updates the rendered preview.
-- [ ] Add a simple tracking-pixel webhook flow.
+- [x] (2026-04-22 14:02Z) Added `workflows/case-tracking-open-pixel.json`, created and activated the live `Case Tracking Open Pixel` workflow in n8n, registered its opaque `.gif` webhook path, and verified that a tokenless `GET` returns a 1x1 GIF without mutating any `case_emails` rows.
 - [ ] Replace or wrap the current Gmail send step so outbound replies can set `threadId`, `In-Reply-To`, `References`, and optionally inject a tracking pixel for HTML messages.
 - [ ] Extend Gmail import so replies attach to cases by stored message headers before falling back to label-based case matching.
 - [ ] Verify the full round trip with a real reply chain: new outbound, external reply, second outbound reply, and correct case/thread linkage.
@@ -224,7 +224,7 @@ Do not replace the existing “new outbound email” path. Reply mode must be ad
 
 ### 4. Add a simple tracking-pixel webhook before changing the send path
 
-Add a dedicated n8n workflow for the tracking pixel, for example `workflows/case-tracking-open-pixel.json`. It must expose a stable webhook URL that accepts an opaque token, returns a 1x1 image payload, and updates the matching `public.case_emails` row:
+Add a dedicated n8n workflow for the tracking pixel, for example `workflows/case-tracking-open-pixel.json`. It must expose a stable webhook URL that accepts an opaque token, returns a 1x1 image payload, and updates the matching `public.case_emails` row. The public path should look like an ordinary static asset, such as an opaque UUID-like `.gif` URL, rather than an obvious `tracking` or `open-pixel` endpoint:
 
 - increment `open_count`
 - set `first_opened_at` on the first hit only

@@ -1,0 +1,189 @@
+{
+  "name": "Case Tracking Open Pixel",
+  "description": "Returns an opaque 1x1 GIF and marks tracked case emails as opened when the token matches.",
+  "tags": [
+    "Email",
+    "Tickets"
+  ],
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "cto000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "6f3d9e58-5f0c-4f3e-b29c-1d6c8ef9d4a1.gif",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "cto000000-0000-0000-0000-000000000002",
+      "name": "Open Pixel Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "open-case-tracking-pixel"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const request = $('Open Pixel Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst query = request.query ?? request ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst token = clean(query.v);\nconst sqlLiteral = (value) => \"'\" + String(value ?? '').replace(/'/g, \"''\") + \"'\";\nconst sql = token\n  ? [\n      'WITH matched AS (',\n      '  SELECT id',\n      '  FROM public.case_emails',\n      '  WHERE open_tracking_enabled IS TRUE',\n      '    AND open_tracking_token = ' + sqlLiteral(token),\n      '  LIMIT 1',\n      '), updated AS (',\n      '  UPDATE public.case_emails',\n      '  SET open_count = COALESCE(open_count, 0) + 1,',\n      '      first_opened_at = COALESCE(first_opened_at, now()),',\n      '      last_opened_at = now(),',\n      \"      open_tracking_status = 'Opened'\",\n      '  WHERE id IN (SELECT id FROM matched)',\n      '  RETURNING id',\n      ')',\n      'SELECT COUNT(*)::bigint AS updated_rows FROM updated;'\n    ].join('\\n')\n  : 'SELECT 0::bigint AS updated_rows;';\nreturn [{ json: { sql, token_present: Boolean(token) } }];"
+      },
+      "id": "cto000000-0000-0000-0000-000000000003",
+      "name": "Build Open Tracking SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "cto000000-0000-0000-0000-000000000004",
+      "name": "Update Open Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        800,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const transparentGif = 'R0lGODlhAQABAPAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';\nconst updatedRows = Number($('Update Open Status').first()?.json?.updated_rows ?? 0);\nreturn [{\n  json: {\n    updated_rows: updatedRows,\n  },\n  binary: {\n    data: {\n      data: transparentGif,\n      mimeType: 'image/gif',\n      fileName: 'asset.gif',\n      fileExtension: 'gif'\n    }\n  }\n}];"
+      },
+      "id": "cto000000-0000-0000-0000-000000000005",
+      "name": "Build Transparent GIF",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "binary",
+        "responseDataSource": "set",
+        "inputFieldName": "data",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Cache-Control",
+                "value": "private, no-store, no-cache, must-revalidate, max-age=0"
+              },
+              {
+                "name": "Pragma",
+                "value": "no-cache"
+              },
+              {
+                "name": "Expires",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "cto000000-0000-0000-0000-000000000006",
+      "name": "Respond GIF",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1360,
+        220
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Build Open Tracking SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Open Pixel Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build Open Tracking SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Open Tracking SQL": {
+      "main": [
+        [
+          {
+            "node": "Update Open Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Open Status": {
+      "main": [
+        [
+          {
+            "node": "Build Transparent GIF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Transparent GIF": {
+      "main": [
+        [
+          {
+            "node": "Respond GIF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "pinData": {},
+  "versionId": "2e53792a-343d-4b50-9dbc-2dcc2246a5d3",
+  "meta": {
+    "instanceId": "avondale-n8n"
+  }
+}

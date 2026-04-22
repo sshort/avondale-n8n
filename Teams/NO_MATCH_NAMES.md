@@ -16,13 +16,8 @@ This file records the current non-trivial name matching used by [generate_team_c
 - `David Jones` - contact-only match - no current membership. Teams: A Squad
 - `David Pharo` - contact-only match - no current membership. Teams: A Squad
 - `Jacob Diskin` - contact-only match - no current membership. Teams: B Squad
-- `Jane Vincent` - contact-only match - no current membership. Teams: A Squad, A Team
-- `Joan Mc Crossan` - contact-only match - no current membership. Teams: B Squad, Reserves
 - `Kate Liggett` - contact-only match - no current membership. Teams: C Squad
-- `Leila Warwick` - contact-only match - no current membership. Teams: A Squad
-- `Lynn McKenzie` - contact-only match - no current membership. Teams: C Squad
 - `Mark Hill` - contact-only match - no current membership. Teams: C Squad
-- `Richard Longworth` - contact-only match - no current membership. Teams: B Squad
 - `Trish Harriss` - contact-only fuzzy match - no current membership. Teams: C Squad, C Team
 
 ## No Consent Contact Details
