@@ -18,7 +18,6 @@ This file records the current non-trivial name matching used by [generate_team_c
 - `Jacob Diskin` - contact-only match - no current membership. Teams: B Squad
 - `Kate Liggett` - contact-only match - no current membership. Teams: C Squad
 - `Mark Hill` - contact-only match - no current membership. Teams: C Squad
-- `Trish Harriss` - contact-only fuzzy match - no current membership. Teams: C Squad, C Team
 
 ## No Consent Contact Details
 

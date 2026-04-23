@@ -8,6 +8,7 @@ services:
     volumes:
       - n8n_data:/home/node/.n8n
       - /var/lib/n8n:/var/lib/n8n:rw
+      - /var/lib/n8n:/home/node/.n8n-files:rw
     environment:
       - N8N_SECURE_COOKIE=false
       - N8N_HOST=n8n.proxy.shortcentral.com
@@ -16,6 +17,7 @@ services:
       - N8N_EDITOR_BASE_URL=https://n8n.proxy.shortcentral.com
       - WEBHOOK_URL=https://n8n.proxy.shortcentral.com/
       - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - NODE_FUNCTION_ALLOW_BUILTIN=child_process,fs,http,https,url
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_DATABASE=postgres
       - DB_POSTGRESDB_HOST=192.168.1.248

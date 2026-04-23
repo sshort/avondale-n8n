@@ -52,9 +52,15 @@ THEME = {
 
 CAPTAIN_ATTACHMENT_MODE_DEFAULT = "all-in-section"
 CAPTAIN_ATTACHMENT_MODE_ALIASES = {
+    "0": "own-only",
     "1": "own-plus-reserves",
     "2": "own-next-plus-reserves",
     "3": "all-in-section",
+    "own-only": "own-only",
+    "ownonly": "own-only",
+    "own": "own-only",
+    "own-team": "own-only",
+    "own-team-only": "own-only",
     "own-plus-reserves": "own-plus-reserves",
     "ownplusreserves": "own-plus-reserves",
     "own+reserves": "own-plus-reserves",
@@ -68,6 +74,7 @@ CAPTAIN_ATTACHMENT_MODE_ALIASES = {
     "all": "all-in-section",
 }
 CAPTAIN_ATTACHMENT_MODE_LABELS = {
+    "own-only": "Own team sheet only",
     "own-plus-reserves": "Own team plus reserves",
     "own-next-plus-reserves": "Own team, next team down, plus reserves",
     "all-in-section": "All team sheets in the same section",
@@ -173,6 +180,8 @@ def normalize_captain_attachment_mode(value: str) -> str:
 def parse_args() -> argparse.Namespace:
     mode_help = "\n".join([
         "Captain attachment modes:",
+        "  0 / own-only",
+        "      Send the captain only their own team sheet.",
         "  1 / own-plus-reserves",
         "      Send the captain their own team sheet plus the reserves sheet.",
         "  2 / own-next-plus-reserves",
@@ -209,6 +218,10 @@ def run_query(sql: str) -> list[dict[str, str]]:
         text=True,
     )
     return list(csv.DictReader(io.StringIO(result.stdout)))
+
+
+def sql_literal(value: str) -> str:
+    return "'" + str(value or "").replace("'", "''") + "'"
 
 
 def normalize_name(value: str) -> str:
@@ -393,6 +406,36 @@ def parse_docx_teams(path: Path) -> dict[str, list[dict[str, object]]]:
                         "captain": is_captain(paragraph_text),
                     }
                 )
+    return teams
+
+
+def load_db_teams_for_section(section: str) -> dict[str, list[dict[str, object]]]:
+    rows = run_query(
+        f"""
+        select
+          t.team_name,
+          tp.source_name,
+          coalesce(tp.is_captain, false)::int as is_captain
+        from public.teams t
+        join public.team_players tp
+          on tp.team_id = t.id
+        where t.season = {sql_literal(SEASON)}
+          and lower(t.section) = lower({sql_literal(section)})
+        order by t.sort_order nulls last, t.team_name, tp.sort_order nulls last, tp.source_name;
+        """
+    )
+    teams: dict[str, list[dict[str, object]]] = {}
+    for row in rows:
+        team_name = clean_name(row["team_name"])
+        source_name = clean_name(row["source_name"])
+        if not team_name or not source_name or source_name in IGNORED_CELL_VALUES:
+            continue
+        teams.setdefault(team_name, []).append(
+            {
+                "name": source_name,
+                "captain": str(row["is_captain"]).strip() in {"1", "t", "true", "True"},
+            }
+        )
     return teams
 
 
@@ -1439,6 +1482,7 @@ def attachment_kind_label(attachment: CaptainEmailAttachment) -> str:
 
 def attachment_mode_summary(mode: str) -> str:
     summaries = {
+        "own-only": "Each captain receives only their own team sheet.",
         "own-plus-reserves": "Each captain receives their own team sheet plus the reserves sheet.",
         "own-next-plus-reserves": "Each captain receives their own team sheet, the next team down, and the reserves sheet.",
         "all-in-section": "One email per section is sent to all captains in that section via BCC, and each email includes every team sheet in that section, including reserves where present.",
@@ -1455,7 +1499,9 @@ def build_captain_email_attachments(
     attachment_mode: str,
 ) -> list[CaptainEmailAttachment]:
     attachment_plan: list[tuple[str, str]] = []
-    if attachment_mode == "own-plus-reserves":
+    if attachment_mode == "own-only":
+        attachment_plan.append(("own", team_name))
+    elif attachment_mode == "own-plus-reserves":
         attachment_plan.append(("own", team_name))
         if reserves_name:
             attachment_plan.append(("reserves", reserves_name))
@@ -1760,7 +1806,10 @@ def main() -> None:
 
     for docx_path in sorted(BASE_DIR.glob("*.docx")):
         title = doc_title_from_filename(docx_path)
-        teams = parse_docx_teams(docx_path)
+        section = section_label_from_title(title)
+        teams = load_db_teams_for_section(section)
+        if not teams:
+            teams = parse_docx_teams(docx_path)
         resolved_teams, review_entries = build_team_rows(
             teams,
             members_by_name,

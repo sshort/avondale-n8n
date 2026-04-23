@@ -9,7 +9,8 @@ SKIP_TRIGGER=0
 GENERATE_ONLY=0
 LIST_ONLY=0
 ATTACHMENT_MODE=""
-INCLUDE_SHARED_BCC_IN_TEST=1
+INCLUDE_SHARED_BCC=0
+TEST_RECIPIENT=""
 
 usage() {
   cat <<'EOF'
@@ -23,6 +24,8 @@ Options:
   --attachment-mode <mode>
       Choose which PDFs each captain receives.
       Modes:
+        0 | own-only
+            Own team sheet only.
         1 | own-plus-reserves
             Own team sheet plus reserves.
         2 | own-next-plus-reserves
@@ -31,11 +34,12 @@ Options:
             Every team sheet in the captain's section. This is the default.
   --list-only
       Generate the files and print the captain/file send list without syncing or sending.
-  --shared-bcc-in-test
-      Include recipients from team-captain-mailout-bcc.txt during test sends.
-      This is the default.
-  --no-shared-bcc-in-test
-      Do not include recipients from team-captain-mailout-bcc.txt during test sends.
+  --shared-bcc
+      Include recipients from team-captain-mailout-bcc.txt in test and production sends.
+  --no-shared-bcc
+      Do not include recipients from team-captain-mailout-bcc.txt. This is the default.
+  --test-recipient <email>
+      Override the test-mode recipient passed to the n8n send webhook.
   --generate-only
       Generate the files only. Do not sync or trigger n8n.
   --skip-generate
@@ -76,11 +80,19 @@ while [[ $# -gt 0 ]]; do
     --list-only)
       LIST_ONLY=1
       ;;
-    --shared-bcc-in-test)
-      INCLUDE_SHARED_BCC_IN_TEST=1
+    --shared-bcc|--shared-bcc-in-test)
+      INCLUDE_SHARED_BCC=1
       ;;
-    --no-shared-bcc-in-test)
-      INCLUDE_SHARED_BCC_IN_TEST=0
+    --no-shared-bcc|--no-shared-bcc-in-test)
+      INCLUDE_SHARED_BCC=0
+      ;;
+    --test-recipient)
+      if [[ $# -lt 2 ]]; then
+        echo "Missing value for --test-recipient" >&2
+        exit 1
+      fi
+      TEST_RECIPIENT="$2"
+      shift
       ;;
     --attachment-mode)
       if [[ $# -lt 2 ]]; then
@@ -141,9 +153,10 @@ if [[ "$SKIP_TRIGGER" -eq 0 ]]; then
   trap 'rm -f "$payload_file"' EXIT
   jq --arg mode "$MODE" \
     --arg base_dir "${TEAM_MAILOUT_CONTAINER_DIR:-/home/node/.n8n-files/teams-mailout/current}" \
+    --arg test_recipient "$TEST_RECIPIENT" \
     --rawfile shared_bcc "$shared_bcc_file" \
-    --argjson include_shared_bcc_in_test "$INCLUDE_SHARED_BCC_IN_TEST" \
-    '{delivery_mode: $mode, base_dir: $base_dir, attachment_mode: .attachment_mode, include_shared_bcc_in_test: $include_shared_bcc_in_test, shared_bcc: $shared_bcc, jobs: .jobs}' \
+    --argjson include_shared_bcc "$INCLUDE_SHARED_BCC" \
+    '{delivery_mode: $mode, base_dir: $base_dir, attachment_mode: .attachment_mode, include_shared_bcc: $include_shared_bcc, include_shared_bcc_in_test: $include_shared_bcc, shared_bcc: $shared_bcc, jobs: .jobs} + (if $test_recipient == "" then {} else {test_recipient: $test_recipient} end)' \
     "$manifest_json" > "$payload_file"
   echo "Triggering: $webhook_url"
   curl -sS \
