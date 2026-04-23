@@ -17,7 +17,7 @@ The implementation is intended as a pragmatic MVP:
 - contacts can seed new cases
 - signatures and selected email settings can be edited from the case-tracking UI
 - Gmail-labeled threads can now be imported into the case-tracking database
-- case emails can be sent as normal replies with stored mail-thread headers
+- case emails can be sent as new messages, replies, reply-all messages, or forwards
 - tracked HTML outbound messages show whether the tracking pixel has been opened
 - the dashboard supports free-text search plus explicit status and priority filters
 
@@ -162,12 +162,16 @@ The settings page reads and writes existing `global_settings` keys:
 
 ## Email behavior
 
-The case email preview/send workflows support two modes:
+The case email preview/send workflows support four modes:
 
 - `new`: compose a new outbound case email
 - `reply`: reply to a selected case email row
+- `reply_all`: reply to the selected case email and include other external participants in Cc
+- `forward`: forward a selected case email as a new outbound message linked back to the case row
 
-The reply mode loads the selected parent email, pre-fills the external recipient, renders a single `Re: ...` subject, and carries the parent `Message-ID`, `References`, and Gmail thread id through to the send workflow.
+Reply modes load the selected parent email, pre-fill the external recipient, render a single `Re: ...` subject, and carry the parent `Message-ID`, `References`, and Gmail thread id through to the send workflow. Forward mode renders `Fwd: ...`, includes a forwarded-message block, and logs local parent linkage without forcing Gmail reply headers.
+
+Reply and reply-all previews can include no quoted history, the previous message, or the whole case thread. The quote formatting follows normal email-client style (`On <date>, <sender> wrote:` plus a blockquote). Forward previews include the selected source message with forwarded-message headers. Historical 1x1 open-tracking pixels are stripped from quoted/forwarded history to avoid false open events.
 
 The workflows follow the same broad pattern already used for the member and refund email flows:
 
@@ -189,7 +193,7 @@ Supported case tokens:
 - `{{contact_phone}}`
 - `{{today}}`
 
-The composer currently sends to a single `to` recipient. The logged `case_emails.recipients` JSON stores both the intended recipient and, in test mode, the actual test recipient.
+The composer accepts multiple `to` recipients and optional `cc` recipients. In test mode, only the configured test recipient is used as the actual delivery target. The logged `case_emails.recipients` JSON stores intended and actual To/Cc values.
 
 For replies, outbound rows store:
 

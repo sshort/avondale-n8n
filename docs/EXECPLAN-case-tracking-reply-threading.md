@@ -45,6 +45,8 @@ For this feature, open tracking is intentionally simple and best-effort:
 - [x] (2026-04-23 13:08Z) Updated `docs/CASE_TRACKING.md` to document reply mode, stored RFC headers, header-first Gmail import, local parent-message linkage, and simple open tracking.
 - [x] (2026-04-23 13:23Z) Fixed the Gmail import SQL literal helper so dollar signs in email bodies do not trigger n8n Postgres parameter parsing or PostgreSQL `CONCAT` argument limits.
 - [x] (2026-04-23 13:23Z) Verified the full round trip on `Test Case`: outbound row `4738ea3e-c6f6-49cc-b00d-2ba3ae0f6670` received a real external reply, Gmail sync execution `11734` imported inbound row `95908407-d4a8-4c5f-b0a5-6c5e51170bf0`, linked it to the outbound parent, preserved Gmail thread `19da17573df34b28`, and moved the case from `Waiting` to `In Progress`.
+- [x] (2026-04-23 15:10Z) Extended the live case timeline, preview workflow, and send workflow with Reply all, Forward, optional Cc, and quoted-history choices for replies: none, previous message, or whole thread.
+- [x] (2026-04-23 15:15Z) Verified the live case page exposes Reply, Reply all, and Forward links; verified the live Reply all preview renders Cc and whole-thread quote controls; verified quoted and forwarded history strips historical tracking pixels.
 
 ## Surprises & Discoveries
 
@@ -98,9 +100,13 @@ For this feature, open tracking is intentionally simple and best-effort:
   Rationale: this gives a pragmatic opened/not-opened signal with minimal schema and workflow change, while avoiding complex mail-provider-specific read-receipt logic.
   Date/Author: 2026-04-22 / Codex
 
+- Decision: strip historical tracking pixels from quoted and forwarded message history.
+  Rationale: embedding old 1x1 pixels inside a new reply or forward would create false open events for earlier outbound rows when the new recipient opens the message.
+  Date/Author: 2026-04-23 / Codex
+
 ## Outcomes & Retrospective
 
-This plan is not implemented yet. The current outcome is a concrete implementation path that fits the existing case-tracking MVP and names the exact schema, workflow, and validation work needed. The most important conclusion is that the current system is close to a real ticket workflow already; the missing pieces are explicit message-thread identity across outbound send and inbound import, plus a lightweight outbound open-status signal for operators.
+The core reply-threading and open-tracking plan is implemented and live. The case manager now stores standard mail-thread headers, sends raw-MIME Gmail messages for new/reply/reply-all/forward modes, imports inbound replies by header match before Gmail thread fallback, and exposes open-tracking status for outbound HTML messages. The later Reply all/Forward enhancement keeps Reply and Reply all as threaded Gmail replies, treats Forward as a case-linked outbound message without reply headers, and formats quoted history like an email client while avoiding false open tracking from historical quoted pixels.
 
 ## Context and Orientation
 
