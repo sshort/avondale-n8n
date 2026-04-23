@@ -39,9 +39,12 @@ For this feature, open tracking is intentionally simple and best-effort:
 - [x] (2026-04-22 11:12Z) Updated `workflows/case-tracking-app.json` and synced live `Case Tracking App` so the case detail page now exposes reply links for email activity rows, carries `reply_to_case_email_id` into the preview URL, and shows the stored open-tracking status/summary on outbound messages.
 - [x] (2026-04-22 11:38Z) Updated `workflows/preview-case-tracking-email.json` and synced live `Preview Case Tracking Email` so the preview now supports explicit `new` vs `reply` mode, derives reply recipient/subject context from the selected parent email, exposes open-tracking choice for HTML email, and uses a non-editable signature dropdown that still updates the rendered preview.
 - [x] (2026-04-22 14:02Z) Added `workflows/case-tracking-open-pixel.json`, created and activated the live `Case Tracking Open Pixel` workflow in n8n, registered its opaque `.gif` webhook path, and verified that a tokenless `GET` returns a 1x1 GIF without mutating any `case_emails` rows.
-- [ ] Replace or wrap the current Gmail send step so outbound replies can set `threadId`, `In-Reply-To`, `References`, and optionally inject a tracking pixel for HTML messages.
-- [ ] Extend Gmail import so replies attach to cases by stored message headers before falling back to label-based case matching.
-- [ ] Verify the full round trip with a real reply chain: new outbound, external reply, second outbound reply, and correct case/thread linkage.
+- [x] (2026-04-23 09:35Z) Updated `workflows/send-case-tracking-email.json` so outbound sends use a raw Gmail API payload, support explicit `new`/`reply` modes, include `threadId`, `In-Reply-To`, and `References` in reply mode, inject the disguised tracking pixel for tracked HTML messages, fetch sent Gmail metadata, and log reply/open-tracking fields to `public.case_emails`.
+- [x] (2026-04-23 13:00Z) Updated `workflows/sync-case-tracking-gmail-to-db.json` and synced live `Sync Case Tracking Gmail To DB` so Gmail imports store `Message-ID`, `In-Reply-To`, and `References`, attach inbound replies by stored header matches before Gmail thread fallback, set `parent_case_email_id`, and move active header-matched replies to `In Progress`.
+- [x] (2026-04-23 13:05Z) Sent a controlled test-mode HTML reply from the live send workflow against `Test Case`, verified the logged outbound row has `parent_case_email_id`, Gmail thread id, `internet_message_id`, `in_reply_to_message_id`, `references_header`, and `Not Opened` tracking state, then hit the disguised pixel endpoint and verified the row changed to `Opened` with `open_count = 1`.
+- [x] (2026-04-23 13:08Z) Updated `docs/CASE_TRACKING.md` to document reply mode, stored RFC headers, header-first Gmail import, local parent-message linkage, and simple open tracking.
+- [x] (2026-04-23 13:23Z) Fixed the Gmail import SQL literal helper so dollar signs in email bodies do not trigger n8n Postgres parameter parsing or PostgreSQL `CONCAT` argument limits.
+- [x] (2026-04-23 13:23Z) Verified the full round trip on `Test Case`: outbound row `4738ea3e-c6f6-49cc-b00d-2ba3ae0f6670` received a real external reply, Gmail sync execution `11734` imported inbound row `95908407-d4a8-4c5f-b0a5-6c5e51170bf0`, linked it to the outbound parent, preserved Gmail thread `19da17573df34b28`, and moved the case from `Waiting` to `In Progress`.
 
 ## Surprises & Discoveries
 
@@ -65,6 +68,9 @@ For this feature, open tracking is intentionally simple and best-effort:
 
 - Observation: migration number `043` is already taken by a later case-tracking status adjustment.
   Evidence: the repository already contains `/mnt/c/dev/avondale-n8n/sql/043_case_tracking_new_status.sql`, so the reply-threading migration must use `044` to preserve the real sequence.
+
+- Observation: n8n's Postgres node treats `$123` inside generated query text as a parameter marker, while PostgreSQL rejects `CONCAT(...)` with more than 100 arguments.
+  Evidence: full Gmail sync initially failed on a real imported thread with `cannot pass more than 100 arguments to a function`, then with `Variable $31326770 exceeds supported maximum of $100000`; the importer now reconstructs dollar-containing SQL literals using `|| chr(36) ||` and wraps JSON literals before `::jsonb`.
 
 ## Decision Log
 

@@ -17,6 +17,8 @@ The implementation is intended as a pragmatic MVP:
 - contacts can seed new cases
 - signatures and selected email settings can be edited from the case-tracking UI
 - Gmail-labeled threads can now be imported into the case-tracking database
+- case emails can be sent as normal replies with stored mail-thread headers
+- tracked HTML outbound messages show whether the tracking pixel has been opened
 - the dashboard supports free-text search plus explicit status and priority filters
 
 ## Database
@@ -25,6 +27,8 @@ Migrations:
 
 - `sql/041_case_tracking_schema.sql`
 - `sql/042_case_tracking_gmail_sync.sql`
+- `sql/043_case_tracking_new_status.sql`
+- `sql/044_case_tracking_reply_threading.sql`
 
 Tables:
 
@@ -34,6 +38,9 @@ Tables:
 - `public.case_emails`
   - case activity log
   - stores imported inbound/outbound thread messages, internal notes, and outbound email records
+  - stores RFC mail-thread headers: `internet_message_id`, `in_reply_to_message_id`, and `references_header`
+  - stores local reply linkage in `parent_case_email_id`
+  - stores simple open-tracking state for outbound HTML messages
 
 Current activity types:
 
@@ -66,6 +73,9 @@ Current activity types:
   - sends the email via Gmail
   - logs the outbound message in `case_emails`
   - updates the case to `Waiting`
+- `GET /webhook/6f3d9e58-5f0c-4f3e-b29c-1d6c8ef9d4a1.gif`
+  - disguised 1x1 image endpoint used for outbound HTML open tracking
+  - accepts an opaque token and updates the matching `case_emails` row
 
 ## Background sync workflows
 
@@ -85,7 +95,9 @@ Responsibilities:
   - `To Do/Done`
 - creates a new case if the thread has not been imported before
 - imports thread messages into `case_emails`
-- updates case status from the Gmail label
+- stores each message's `Message-ID`, `In-Reply-To`, and `References` headers where present
+- attaches inbound replies to existing cases by header match before falling back to Gmail thread id
+- updates case status from the Gmail label, with inbound header-matched replies moving active cases to `In Progress`
 - stores Gmail thread metadata in `cases.metadata`
 
 Label mapping:
@@ -112,6 +124,7 @@ This gives the MVP a practical two-way sync loop:
 
 - Gmail labels can seed/import cases into the database
 - database status changes can be pushed back to Gmail labels
+- standard email reply headers can attach a reply to an existing case without creating a new case
 
 ## Reused data
 
@@ -149,15 +162,22 @@ The settings page reads and writes existing `global_settings` keys:
 
 ## Email behavior
 
-The case email preview/send workflows follow the same pattern already used for the member
-and refund email flows:
+The case email preview/send workflows support two modes:
+
+- `new`: compose a new outbound case email
+- `reply`: reply to a selected case email row
+
+The reply mode loads the selected parent email, pre-fills the external recipient, renders a single `Re: ...` subject, and carries the parent `Message-ID`, `References`, and Gmail thread id through to the send workflow.
+
+The workflows follow the same broad pattern already used for the member and refund email flows:
 
 1. resolve request
 2. load settings and case/template context
 3. render subject/body tokens
 4. present an editable preview
-5. send via Gmail
-6. log the outbound activity in `case_emails`
+5. send via Gmail using a raw MIME payload
+6. fetch the sent Gmail message metadata
+7. log the outbound activity in `case_emails`
 
 Supported case tokens:
 
@@ -169,11 +189,29 @@ Supported case tokens:
 - `{{contact_phone}}`
 - `{{today}}`
 
-The composer currently supports a single `to` recipient and stores it in `case_emails.recipients`.
+The composer currently sends to a single `to` recipient. The logged `case_emails.recipients` JSON stores both the intended recipient and, in test mode, the actual test recipient.
+
+For replies, outbound rows store:
+
+- `parent_case_email_id`
+- `internet_message_id`
+- `in_reply_to_message_id`
+- `references_header`
+- Gmail message and thread ids
+
+For HTML messages with open tracking enabled, outbound rows also store:
+
+- `open_tracking_enabled = true`
+- `open_tracking_status = 'Not Opened'` until the pixel endpoint is requested
+- `open_tracking_token`
+- `first_opened_at`, `last_opened_at`, and `open_count`
+
+When the tracking pixel is requested, the row changes to `Opened` and `open_count` increments. This is a best-effort signal only; image blocking and privacy proxies can hide or distort opens.
 
 ## Current limitations
 
-- Gmail import currently relies on the case labels already being present on the thread.
+- Gmail labels are still the fallback import and status mechanism, even though header matching is preferred for replies.
 - Imported message direction is inferred from the sender and the configured reply-to address,
   so edge cases with shared/personal club mailboxes may need refinement later.
+- Open tracking works only for HTML outbound messages and depends on the recipient's mail client loading remote images.
 - The UI is served from n8n webhooks, so it is intentionally simple and self-contained.
