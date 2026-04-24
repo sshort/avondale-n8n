@@ -25,17 +25,21 @@ The visible proof is simple. An operator can open the email template editor or a
 - [x] (2026-04-24 13:42Z) Migrated `workflows/send-no-address-batch-emails.json` to the shared send helper and updated its per-recipient rendering to prefer HTML templates with a text fallback.
 - [x] (2026-04-24 14:22Z) Migrated `workflows/send-team-captain-contact-lists.json` to the shared send helper while preserving grouped attachments, visible `To`, and BCC behavior for captain mailouts.
 - [x] (2026-04-24 14:35Z) Migrated `workflows/send-case-tracking-email.json` to the shared send helper while preserving reply threading metadata, open-tracking token injection, and case-email logging.
-- [ ] Upgrade email template and preview editors to support managed image insertion.
+- [x] (2026-04-24 15:18Z) Added managed-image insertion and in-page upload support to `workflows/email-template-editor-app.json` and `workflows/email-template-editor-actions.json`, backed by `public.images`.
+- [x] (2026-04-24 15:42Z) Upgraded `workflows/preview-case-tracking-email.json` so the HTML compose surface can insert and upload managed images directly from the preview page.
+- [x] (2026-04-24 16:24Z) Upgraded `workflows/preview-member-template-email.json` and `workflows/preview-refund-request-email.json` to HTML-first previews with live rendered output, managed-image insertion/upload, and normalized submit payloads.
 - [x] Migrate the remaining outbound email workflows to the shared HTML plus CID-capable send path.
-- [ ] Validate updated workflow JSON and publish the changed workflows.
+- [x] (2026-04-24 16:24Z) Validated all changed workflow JSON files and embedded Code-node scripts for the editor and preview layer after the managed-image changes.
+- [x] (2026-04-24 16:31Z) Published the updated member and refund preview workflows to n8n using workflow ids `7YqE6u4FbNRAXaRp` and `KJ7Ys7oAxo0yGYhi`.
+- [ ] Complete live browser and outbound-email verification for the updated editor and preview workflows, then move the project item to `Done`.
 
 ## Surprises & Discoveries
 
 - Observation: the repository already has a durable binary image store and sync path.
   Evidence: `/mnt/c/dev/avondale-n8n/sql/011_images.sql` defines `public.images`, and `/mnt/c/dev/avondale-n8n/scripts/import-images.mjs` already imports local image files into that table.
 
-- Observation: the current HTML editor surface is inconsistent across email features.
-  Evidence: `/mnt/c/dev/avondale-n8n/workflows/email-template-editor-app.json` and `/mnt/c/dev/avondale-n8n/workflows/preview-case-tracking-email.json` load TinyMCE, but `/mnt/c/dev/avondale-n8n/workflows/preview-member-template-email.json` and `/mnt/c/dev/avondale-n8n/workflows/preview-refund-request-email.json` still render plain textareas.
+- Observation: multipart file upload was not the best contract for these n8n-hosted editor pages.
+  Evidence: the implemented editor and preview upload flows now read images in-browser and POST `image_base64` plus metadata into `email-template-editor-actions`, which avoided extra binary webhook plumbing while still writing canonical rows to `public.images`.
 
 - Observation: CID embedding is straightforward only in the existing raw-MIME path.
   Evidence: `/mnt/c/dev/avondale-n8n/workflows/send-case-tracking-email.json` already constructs MIME headers and sends to `https://gmail.googleapis.com/gmail/v1/users/me/messages/send`, while most other send workflows still use the simpler Gmail node with only `message` and `emailType`.
@@ -77,7 +81,9 @@ The visible proof is simple. An operator can open the email template editor or a
 
 ## Outcomes & Retrospective
 
-Implementation has started. The feature now has a dedicated branch, a tracked GitHub issue, a checked-in ExecPlan, a new image asset workflow, a new shared raw-MIME transport workflow, and all checked-in outbound email callers are migrated: `send-gmail-test-message`, `send-member-template-email`, `send-refund-request-email`, `send-member-calculation-email`, `send-treasury-refund-request`, `send-no-address-batch-emails`, `send-team-captain-contact-lists`, and `send-case-tracking-email`. The remaining work is now concentrated in the authoring layer and validation: the editor and preview surfaces still need managed image insertion, and the changed workflows have not yet been synced and verified live in n8n.
+Implementation is now substantially complete. The feature has a dedicated branch, a tracked GitHub issue, a checked-in ExecPlan, a new image asset workflow, a new shared raw-MIME transport workflow, migrated outbound senders, and upgraded authoring surfaces across the template editor, case preview, member preview, and refund preview. Managed images can now be uploaded into `public.images`, inserted into HTML compositions, previewed through the asset webhook, and carried through the shared send contract so they can be rewritten to CID at send time.
+
+The remaining work is mostly verification and close-out, not core implementation. The updated preview workflows have been published to n8n, but the feature still needs live browser checks across all editor surfaces and end-to-end outbound email verification in received messages. After that, the GitHub issue notes and project item should be finalized and moved to `Done`.
 
 ## Context and Orientation
 
@@ -133,13 +139,17 @@ Validate the new and changed workflow JSON files after each edit:
       workflows/send-team-captain-contact-lists.json \
       workflows/send-gmail-test-message.json
 
-Publish updated workflow JSON with the existing repository sync path once each batch is stable:
+Publish updated workflow JSON with the existing repository sync path once each batch is stable. The helper takes `<workflow-id> <workflow-json-file>` pairs, not only file paths:
 
     cd /mnt/c/dev/avondale-n8n
-    node scripts/sync-workflow-json-to-n8n-db.mjs workflows/email-image-asset.json
-    node scripts/sync-workflow-json-to-n8n-db.mjs workflows/email-send-core.json
+    node scripts/sync-workflow-json-to-n8n-db.mjs <workflow-id> workflows/email-image-asset.json
+    node scripts/sync-workflow-json-to-n8n-db.mjs <workflow-id> workflows/email-send-core.json
 
-Repeat that command for each workflow changed in later milestones.
+Repeat that command for each workflow changed in later milestones. For example, the published preview updates used:
+
+    cd /mnt/c/dev/avondale-n8n
+    node scripts/sync-workflow-json-to-n8n-db.mjs 7YqE6u4FbNRAXaRp workflows/preview-member-template-email.json
+    node scripts/sync-workflow-json-to-n8n-db.mjs KJ7Ys7oAxo0yGYhi workflows/preview-refund-request-email.json
 
 After publishing the asset workflow, verify that an existing image can be served:
 
