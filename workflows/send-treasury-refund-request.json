@@ -181,7 +181,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const input = $('Resolve Send Request').first().json ?? {};\nconst formatDate = (value) => {\n  if (!value) return '';\n  const d = new Date(value);\n  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;\n};\nconst formatMoney = (value) => {\n  const rounded = Math.round((Number(value) + Number.EPSILON) * 100) / 100;\n  return `£${Number.isInteger(rounded) ? rounded : rounded.toFixed(2)}`;\n};\nconst applyTokens = (value) => {\n  if (!value) return '';\n  return value\n    .replace(/\\{\\{name\\}\\}/g, input.name ?? '')\n    .replace(/\\{\\{refund_for\\}\\}/g, input.refund_for ?? '')\n    .replace(/\\{\\{reason\\}\\}/g, input.reason ?? '')\n    .replace(/\\{\\{membership\\}\\}/g, input.membership ?? '')\n    .replace(/\\{\\{amount\\}\\}/g, formatMoney(input.amount))\n    .replace(/\\{\\{refund\\}\\}/g, formatMoney(input.refund))\n    .replace(/\\{\\{from_date\\}\\}/g, formatDate(input.from_date))\n    .replace(/\\{\\{to_date\\}\\}/g, formatDate(input.to_date))\n    .replace(/\\{\\{explanation\\}\\}/g, input.explanation ?? '');\n};\nconst subject = applyTokens(input.subject_template);\nconst message = applyTokens(input.text_template);\nreturn [{ json: {\n  sender_name: input.sender_name,\n  reply_to: input.reply_to,\n  recipient: input.actual_recipient,\n  subject,\n  message,\n  refund_id: input.refund_id,\n  refund_for: input.refund_for,\n  intended_recipient: input.intended_recipient,\n  delivery_mode: input.delivery_mode,\n  return_url: input.return_url\n} }];"
+        "jsCode": "const input = $('Resolve Send Request').first().json ?? {};\nconst formatDate = (value) => {\n  if (!value) return '';\n  const d = new Date(value);\n  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;\n};\nconst formatMoney = (value) => {\n  const rounded = Math.round((Number(value) + Number.EPSILON) * 100) / 100;\n  return `£${Number.isInteger(rounded) ? rounded : rounded.toFixed(2)}`;\n};\nconst htmlToText = (value) => String(value ?? '')\n  .replace(/<\\s*br\\s*\\/?>/gi, '\\n')\n  .replace(/<\\/(p|div|section|article|header|footer|li|tr|h[1-6])>/gi, '\\n')\n  .replace(/<li\\b[^>]*>/gi, '- ')\n  .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/gi, '')\n  .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi, '')\n  .replace(/<[^>]+>/g, ' ')\n  .replace(/&nbsp;/gi, ' ')\n  .replace(/&amp;/gi, '&')\n  .replace(/&lt;/gi, '<')\n  .replace(/&gt;/gi, '>')\n  .replace(/&quot;/gi, '\"')\n  .replace(/&#39;/gi, \"'\")\n  .replace(/&#x27;/gi, \"'\")\n  .replace(/\\r/g, '')\n  .replace(/[ \\t]+\\n/g, '\\n')\n  .replace(/\\n[ \\t]+/g, '\\n')\n  .replace(/\\n{3,}/g, '\\n\\n')\n  .replace(/[ \\t]{2,}/g, ' ')\n  .trim();\nconst applyTokens = (value) => {\n  if (!value) return '';\n  return value\n    .replace(/\\{\\{name\\}\\}/g, input.name ?? '')\n    .replace(/\\{\\{refund_for\\}\\}/g, input.refund_for ?? '')\n    .replace(/\\{\\{reason\\}\\}/g, input.reason ?? '')\n    .replace(/\\{\\{membership\\}\\}/g, input.membership ?? '')\n    .replace(/\\{\\{amount\\}\\}/g, formatMoney(input.amount))\n    .replace(/\\{\\{refund\\}\\}/g, formatMoney(input.refund))\n    .replace(/\\{\\{from_date\\}\\}/g, formatDate(input.from_date))\n    .replace(/\\{\\{to_date\\}\\}/g, formatDate(input.to_date))\n    .replace(/\\{\\{explanation\\}\\}/g, input.explanation ?? '');\n};\nconst renderedSubject = applyTokens(input.subject_template);\nconst renderedHtml = applyTokens(input.html_template);\nconst renderedText = applyTokens(input.text_template) || htmlToText(renderedHtml);\nreturn [{ json: {\n  flow_name: 'send-treasury-refund-request',\n  sender_name: input.sender_name,\n  from_email: input.reply_to,\n  reply_to: input.reply_to,\n  to: input.actual_recipient,\n  actual_recipient: input.actual_recipient,\n  intended_recipient: input.intended_recipient,\n  rendered_subject: renderedSubject,\n  rendered_html: renderedHtml,\n  rendered_text: renderedText,\n  refund_id: input.refund_id,\n  refund_for: input.refund_for,\n  delivery_mode: input.delivery_mode,\n  return_url: input.return_url\n} }];"
       },
       "id": "r8000000-0000-0000-0000-000000000010",
       "name": "Render Email Content",
@@ -194,39 +194,27 @@
     },
     {
       "parameters": {
-        "authentication": "oAuth2",
-        "resource": "message",
-        "operation": "send",
-        "sendTo": "={{ $json.recipient }}",
-        "subject": "={{ $json.subject }}",
-        "emailType": "text",
-        "message": "={{ $json.message }}",
-        "options": {
-          "appendAttribution": false,
-          "replyTo": "={{ $json.reply_to }}",
-          "senderName": "={{ $json.sender_name }}"
-        }
+        "method": "POST",
+        "url": "http://n8n:5678/webhook/email-send-core",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
       },
       "id": "r8000000-0000-0000-0000-000000000011",
-      "name": "Send Gmail Message",
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2.2,
+      "name": "Send Email Via Core",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         1540,
         620
-      ],
-      "credentials": {
-        "gmailOAuth2": {
-          "id": "JHuPZBB6pULmuxKm",
-          "name": "Avondale Gmail OAuth2"
-        }
-      }
+      ]
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const input = $('Render Email Content').first().json ?? {};\nconst result = $('Send Gmail Message').first()?.json ?? {};\nconst messageId = result.id || result.message?.id || '';\nreturn [{ json: { ...input, message_id: messageId } }];"
+        "jsCode": "const input = $('Render Email Content').first().json ?? {};\nconst result = $('Send Email Via Core').first()?.json ?? {};\nconst messageId = result.gmail_message_id || result.internet_message_id || '';\nreturn [{ json: { ...input, message_id: messageId } }];"
       },
       "id": "r8000000-0000-0000-0000-000000000012",
       "name": "Capture Message ID",
@@ -427,14 +415,14 @@
       "main": [
         [
           {
-            "node": "Send Gmail Message",
+            "node": "Send Email Via Core",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Send Gmail Message": {
+    "Send Email Via Core": {
       "main": [
         [
           {

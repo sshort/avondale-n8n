@@ -1,0 +1,319 @@
+{
+  "name": "Email Image Asset",
+  "description": "Serves managed email images from public.images for browser preview and editor rendering.",
+  "tags": ["Email", "Images"],
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "eia000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [220, 320]
+    },
+    {
+      "parameters": {
+        "path": "email-image-asset",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "eia000000-0000-0000-0000-000000000002",
+      "name": "Email Image Asset Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 140],
+      "webhookId": "email-image-asset"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const request = $('Email Image Asset Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst query = request.query ?? request ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst imageKey = clean(query.image_key || query.imageKey || query.key);\nconst sqlLiteral = (value) => \"'\" + String(value ?? '').replace(/'/g, \"''\") + \"'\";\nconst errorMessage = imageKey ? '' : 'image_key is required';\nconst sql = imageKey\n  ? [\n      'WITH selected AS (',\n      \"  SELECT image_key, file_name, file_ext, content_type, encode(data, 'base64') AS data_base64\",\n      '  FROM public.images',\n      '  WHERE is_active = true',\n      '    AND image_key = ' + sqlLiteral(imageKey),\n      '  ORDER BY id DESC',\n      '  LIMIT 1',\n      ')',\n      'SELECT',\n      \"  COALESCE((SELECT image_key FROM selected), '') AS image_key,\",\n      \"  COALESCE((SELECT file_name FROM selected), '') AS file_name,\",\n      \"  COALESCE((SELECT file_ext FROM selected), '') AS file_ext,\",\n      \"  COALESCE((SELECT content_type FROM selected), '') AS content_type,\",\n      \"  COALESCE((SELECT data_base64 FROM selected), '') AS data_base64;\"\n    ].join('\\n')\n  : \"SELECT ''::text AS image_key, ''::text AS file_name, ''::text AS file_ext, ''::text AS content_type, ''::text AS data_base64;\";\nreturn [{ json: { image_key: imageKey, error_message: errorMessage, sql } }];"
+      },
+      "id": "eia000000-0000-0000-0000-000000000003",
+      "name": "Resolve Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 220]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "eia000000-0000-0000-0000-000000000004-condition",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "eia000000-0000-0000-0000-000000000004",
+      "name": "Check Request Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [760, 220]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "eia000000-0000-0000-0000-000000000005",
+      "name": "Load Image",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1020, 320],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "eia000000-0000-0000-0000-000000000005-condition",
+              "leftValue": "={{ $('Load Image').first()?.json?.data_base64 || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "eia000000-0000-0000-0000-000000000005a",
+      "name": "Check Image Found",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1270, 320]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const requestInput = $('Resolve Request').first()?.json ?? {};\nconst row = $('Load Image').first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst found = clean(row.image_key) !== '' && clean(row.data_base64) !== '';\nconst errorMessage = clean(requestInput.error_message) || (found ? '' : `Managed image '${clean(requestInput.image_key)}' was not found`);\nreturn [{ json: { image_key: requestInput.image_key || '', error_message: errorMessage, response_code: clean(requestInput.error_message) ? 400 : 404 } }];"
+      },
+      "id": "eia000000-0000-0000-0000-000000000006",
+      "name": "Build Error JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1280, 140]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { error: $json.error_message, image_key: $json.image_key || '' } }}",
+        "options": {
+          "responseCode": "={{ Number($json.response_code || 404) }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "private, no-store, no-cache, must-revalidate, max-age=0"
+              },
+              {
+                "name": "Pragma",
+                "value": "no-cache"
+              },
+              {
+                "name": "Expires",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "eia000000-0000-0000-0000-000000000007",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [1540, 140]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const row = $('Load Image').first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst fileName = clean(row.file_name) || clean(row.image_key) || 'image.bin';\nconst extension = clean(row.file_ext || ((fileName.match(/\\.([^.]+)$/) || [])[1]) || 'bin').toLowerCase();\nreturn [{\n  json: {\n    image_key: clean(row.image_key),\n    content_type: clean(row.content_type) || 'application/octet-stream',\n    file_name: fileName\n  },\n  binary: {\n    data: {\n      data: clean(row.data_base64),\n      mimeType: clean(row.content_type) || 'application/octet-stream',\n      fileName,\n      fileExtension: extension || 'bin'\n    }\n  }\n}];"
+      },
+      "id": "eia000000-0000-0000-0000-000000000008",
+      "name": "Build Binary Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1280, 320]
+    },
+    {
+      "parameters": {
+        "respondWith": "binary",
+        "responseDataSource": "set",
+        "inputFieldName": "data",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Cache-Control",
+                "value": "private, no-store, no-cache, must-revalidate, max-age=0"
+              },
+              {
+                "name": "Pragma",
+                "value": "no-cache"
+              },
+              {
+                "name": "Expires",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "eia000000-0000-0000-0000-000000000009",
+      "name": "Respond Asset",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [1540, 320]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Resolve Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Image Asset Webhook": {
+      "main": [
+        [
+          {
+            "node": "Resolve Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Request": {
+      "main": [
+        [
+          {
+            "node": "Check Request Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Request Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error JSON",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Image": {
+      "main": [
+        [
+          {
+            "node": "Check Image Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Image Found": {
+      "main": [
+        [
+          {
+            "node": "Build Binary Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error JSON": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Binary Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Asset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "pinData": {},
+  "versionId": "7d9f1ab4-1f7c-4dd9-b7d4-bf1c01f21931",
+  "meta": {
+    "instanceId": "avondale-n8n"
+  }
+}

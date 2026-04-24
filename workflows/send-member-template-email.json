@@ -219,40 +219,28 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const input = $('Resolve Send Request').first().json ?? {};\nconst context = $('Load Send Context').first()?.json ?? {};\nconst intendedRecipient = context.to_email;\nconst actualRecipient = input.delivery_mode === 'production' ? intendedRecipient : input.test_recipient;\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst renderedMessage = String(input.rendered_message ?? '');\nconst renderedSignature = String(input.rendered_signature ?? '');\nconst combinedMessage = input.email_type === 'html'\n  ? [renderedMessage, renderedSignature].filter((value) => clean(value)).join('')\n  : [clean(renderedMessage), clean(renderedSignature)].filter(Boolean).join('\\n\\n');\nreturn [{ json: { sender_name: input.sender_name, reply_to: input.reply_to, template_key: input.template_key, intended_recipient: intendedRecipient, actual_recipient: actualRecipient, delivery_mode: input.delivery_mode, member: context.member_name, membership: context.membership, return_url: input.return_url, rendered_subject: input.rendered_subject, rendered_message: combinedMessage, rendered_signature: renderedSignature, email_type: input.email_type } }];",
+        "jsCode": "const input = $('Resolve Send Request').first().json ?? {};\nconst context = $('Load Send Context').first()?.json ?? {};\nconst intendedRecipient = context.to_email;\nconst actualRecipient = input.delivery_mode === 'production' ? intendedRecipient : input.test_recipient;\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst htmlToText = (value) => String(value ?? '')\n  .replace(/<\\s*br\\s*\\/?>/gi, '\\n')\n  .replace(/<\\/(p|div|section|article|header|footer|li|tr|h[1-6])>/gi, '\\n')\n  .replace(/<li\\b[^>]*>/gi, '- ')\n  .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/gi, '')\n  .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi, '')\n  .replace(/<[^>]+>/g, ' ')\n  .replace(/&nbsp;/gi, ' ')\n  .replace(/&amp;/gi, '&')\n  .replace(/&lt;/gi, '<')\n  .replace(/&gt;/gi, '>')\n  .replace(/&quot;/gi, '\"')\n  .replace(/&#39;/gi, \"'\")\n  .replace(/&#x27;/gi, \"'\")\n  .replace(/\\r/g, '')\n  .replace(/[ \\t]+\\n/g, '\\n')\n  .replace(/\\n[ \\t]+/g, '\\n')\n  .replace(/\\n{3,}/g, '\\n\\n')\n  .replace(/[ \\t]{2,}/g, ' ')\n  .trim();\nconst renderedMessage = String(input.rendered_message ?? '');\nconst renderedSignature = String(input.rendered_signature ?? '');\nconst renderedHtml = input.email_type === 'html'\n  ? [renderedMessage, renderedSignature].filter((value) => clean(value)).join('').trim()\n  : '';\nconst renderedText = input.email_type === 'html'\n  ? htmlToText(renderedHtml)\n  : [clean(renderedMessage), clean(renderedSignature)].filter(Boolean).join('\\n\\n');\nreturn [{ json: { flow_name: 'send-member-template-email', to: actualRecipient, from_email: input.reply_to, sender_name: input.sender_name, reply_to: input.reply_to, template_key: input.template_key, intended_recipient: intendedRecipient, actual_recipient: actualRecipient, delivery_mode: input.delivery_mode, member: context.member_name, membership: context.membership, return_url: input.return_url, rendered_subject: input.rendered_subject, rendered_html: renderedHtml, rendered_text: renderedText } }];",
         "language": "javaScript"
       },
       "typeVersion": 2
     },
     {
       "id": "c1000000-0000-0000-0000-000000000012",
-      "name": "Send Gmail Message",
-      "type": "n8n-nodes-base.gmail",
+      "name": "Send Email Via Core",
+      "type": "n8n-nodes-base.httpRequest",
       "position": [
         2320,
         420
       ],
       "parameters": {
-        "sendTo": "={{ $json.actual_recipient }}",
-        "message": "={{ $json.rendered_message }}",
-        "options": {
-          "replyTo": "={{ $json.reply_to }}",
-          "senderName": "={{ $json.sender_name }}",
-          "appendAttribution": false
-        },
-        "subject": "={{ $json.rendered_subject }}",
-        "resource": "message",
-        "emailType": "={{ $json.email_type }}",
-        "operation": "send",
-        "authentication": "oAuth2"
+        "method": "POST",
+        "url": "http://n8n:5678/webhook/email-send-core",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
       },
-      "credentials": {
-        "gmailOAuth2": {
-          "id": "JHuPZBB6pULmuxKm",
-          "name": "Avondale Gmail OAuth2"
-        }
-      },
-      "typeVersion": 2.2
+      "typeVersion": 4.2
     },
     {
       "id": "c1000000-0000-0000-0000-000000000013",
@@ -413,14 +401,14 @@
       "main": [
         [
           {
-            "node": "Send Gmail Message",
+            "node": "Send Email Via Core",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Send Gmail Message": {
+    "Send Email Via Core": {
       "main": [
         [
           {
