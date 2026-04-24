@@ -23,8 +23,10 @@ The visible proof is simple. An operator can open the email template editor or a
 - [x] (2026-04-24 11:56Z) Migrated `workflows/send-gmail-test-message.json` to call `email-send-core` over a stable internal webhook path instead of using the stock Gmail node directly.
 - [x] (2026-04-24 13:18Z) Migrated `workflows/send-member-template-email.json`, `workflows/send-refund-request-email.json`, `workflows/send-member-calculation-email.json`, and `workflows/send-treasury-refund-request.json` to the shared send helper, and updated the calculation/treasury renderers to emit HTML plus text payloads from stored templates.
 - [x] (2026-04-24 13:42Z) Migrated `workflows/send-no-address-batch-emails.json` to the shared send helper and updated its per-recipient rendering to prefer HTML templates with a text fallback.
+- [x] (2026-04-24 14:22Z) Migrated `workflows/send-team-captain-contact-lists.json` to the shared send helper while preserving grouped attachments, visible `To`, and BCC behavior for captain mailouts.
+- [x] (2026-04-24 14:35Z) Migrated `workflows/send-case-tracking-email.json` to the shared send helper while preserving reply threading metadata, open-tracking token injection, and case-email logging.
 - [ ] Upgrade email template and preview editors to support managed image insertion.
-- [ ] Migrate the remaining outbound email workflows to the shared HTML plus CID-capable send path.
+- [x] Migrate the remaining outbound email workflows to the shared HTML plus CID-capable send path.
 - [ ] Validate updated workflow JSON and publish the changed workflows.
 
 ## Surprises & Discoveries
@@ -75,7 +77,7 @@ The visible proof is simple. An operator can open the email template editor or a
 
 ## Outcomes & Retrospective
 
-Implementation has started. The feature now has a dedicated branch, a tracked GitHub issue, a checked-in ExecPlan, a new image asset workflow, a new shared raw-MIME transport workflow, and six migrated callers: `send-gmail-test-message`, `send-member-template-email`, `send-refund-request-email`, `send-member-calculation-email`, `send-treasury-refund-request`, and `send-no-address-batch-emails`. The remaining work is still substantial: the editor surfaces are unchanged, the shared helper is not yet published or verified live, and the higher-complexity senders such as case tracking and team-captain mailout still need migration.
+Implementation has started. The feature now has a dedicated branch, a tracked GitHub issue, a checked-in ExecPlan, a new image asset workflow, a new shared raw-MIME transport workflow, and all checked-in outbound email callers are migrated: `send-gmail-test-message`, `send-member-template-email`, `send-refund-request-email`, `send-member-calculation-email`, `send-treasury-refund-request`, `send-no-address-batch-emails`, `send-team-captain-contact-lists`, and `send-case-tracking-email`. The remaining work is now concentrated in the authoring layer and validation: the editor and preview surfaces still need managed image insertion, and the changed workflows have not yet been synced and verified live in n8n.
 
 ## Context and Orientation
 
