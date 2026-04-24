@@ -81,7 +81,7 @@
       "typeVersion": 2.5,
       "position": [
         760,
-        420
+        620
       ],
       "credentials": {
         "postgres": {
@@ -101,7 +101,7 @@
       "typeVersion": 2.5,
       "position": [
         760,
-        620
+        420
       ],
       "credentials": {
         "postgres": {
@@ -188,29 +188,24 @@
     "Resolve Page Request": {
       "main": [
         {
-          "node": "List Refunds SQL",
-          "type": "main",
-          "index": 0
-        },
-        {
           "node": "Load HTML Template",
           "type": "main",
           "index": 0
         }
       ]
     },
-    "List Refunds SQL": {
+    "Load HTML Template": {
       "main": [
         [
           {
-            "node": "Load HTML Template",
+            "node": "List Refunds SQL",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Load HTML Template": {
+    "List Refunds SQL": {
       "main": [
         [
           {
