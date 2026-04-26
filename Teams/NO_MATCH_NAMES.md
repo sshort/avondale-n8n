@@ -11,7 +11,6 @@ This file records the current non-trivial name matching used by [generate_team_c
 ## Not Signed Up (Contact Only, No Current Membership)
 
 - `Alistair Jones` - contact-only match - no current membership. Teams: A Squad, Reserves
-- `Andy McElligott` - contact-only fuzzy match - no current membership. Teams: B Squad, Reserves
 - `Ben Fowler` - contact-only match - no current membership. Teams: E Squad
 - `David Jones` - contact-only match - no current membership. Teams: A Squad
 - `David Pharo` - contact-only match - no current membership. Teams: A Squad

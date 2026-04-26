@@ -1,0 +1,196 @@
+{
+  "description": null,
+  "archived": false,
+  "view_count": 22,
+  "collection_position": null,
+  "dashcards": [
+    {
+      "size_x": 21,
+      "dashboard_tab_id": null,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-04-22T12:51:42.753784Z",
+      "col": 0,
+      "id": 1766,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "OzJVshuMtvKYWL4Oh6Es0",
+      "visualization_settings": {
+        "virtual_card": {
+          "name": null,
+          "display": "text",
+          "visualization_settings": {},
+          "archived": false
+        },
+        "text": "# 👥 Teams Management\n---\n[🏠 Home](/dashboard/1) | [📈 Stats](/dashboard/2) | [⚙️ Settings](/dashboard/4)"
+      },
+      "size_y": 3,
+      "dashboard_id": 24,
+      "created_at": "2026-04-22T12:50:20.507311Z",
+      "row": 0
+    },
+    {
+      "size_x": 8,
+      "dashboard_tab_id": null,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-04-22T13:17:35.610679Z",
+      "col": 0,
+      "id": 1769,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "-_iSCHuGCNyLB-C356TzO",
+      "visualization_settings": {
+        "virtual_card": {
+          "name": null,
+          "display": "link",
+          "visualization_settings": {},
+          "archived": false
+        },
+        "link": {
+          "url": "[Open Tickets](https://n8n.proxy.shortcentral.com/webhook/case-tracking?view=dashboard)"
+        }
+      },
+      "size_y": 1,
+      "dashboard_id": 24,
+      "created_at": "2026-04-22T12:57:44.651806Z",
+      "row": 3
+    },
+    {
+      "size_x": 24,
+      "dashboard_tab_id": null,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-04-22T13:08:01.406118Z",
+      "col": 0,
+      "id": 1771,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "glMNY7WLqHJmhkO7Sqqcq",
+      "visualization_settings": {
+        "virtual_card": {
+          "name": null,
+          "display": "iframe",
+          "visualization_settings": {},
+          "archived": false
+        },
+        "iframe": "https://n8n.proxy.shortcentral.com/webhook/case-tracking?view=dashboard"
+      },
+      "size_y": 9,
+      "dashboard_id": 24,
+      "created_at": "2026-04-22T13:07:48.938382Z",
+      "row": 4
+    },
+    {
+      "size_x": 12,
+      "dashboard_tab_id": null,
+      "series": [],
+      "inline_parameters": [],
+      "action_id": null,
+      "collection_authority_level": null,
+      "card": {
+        "query_average_duration": null,
+        "download_perms": "none"
+      },
+      "updated_at": "2026-04-22T13:18:10.947869Z",
+      "col": 0,
+      "id": 1773,
+      "parameter_mappings": [],
+      "card_id": null,
+      "entity_id": "CdALmn9TBoxyitSh-lE5l",
+      "visualization_settings": {
+        "virtual_card": {
+          "name": null,
+          "display": "text",
+          "visualization_settings": {},
+          "archived": false
+        },
+        "text": "[Open Tickets](https://n8n.proxy.shortcentral.com/webhook/case-tracking?view=dashboard)"
+      },
+      "size_y": 3,
+      "dashboard_id": 24,
+      "created_at": "2026-04-22T13:18:10.947869Z",
+      "row": 13
+    }
+  ],
+  "embedding_type": null,
+  "dependency_analysis_version": 0,
+  "initially_published_at": null,
+  "can_write": true,
+  "can_set_cache_policy": true,
+  "tabs": [],
+  "enable_embedding": false,
+  "collection_id": 9,
+  "show_in_getting_started": false,
+  "name": "Test Dashbaord",
+  "is_remote_synced": false,
+  "width": "fixed",
+  "caveats": null,
+  "collection_authority_level": null,
+  "creator_id": 1,
+  "can_restore": false,
+  "moderation_reviews": [],
+  "updated_at": "2026-04-22T12:47:46.420602Z",
+  "made_public_by_id": null,
+  "embedding_params": null,
+  "cache_ttl": null,
+  "last_used_param_values": {},
+  "id": 24,
+  "last_viewed_at": "2026-04-22T12:47:46.420602Z",
+  "position": null,
+  "archived_directly": false,
+  "entity_id": "-XtOMRCbAUc8y-eajUFWt",
+  "param_fields": {},
+  "last-edit-info": {
+    "id": 1,
+    "email": "steve@shortcentral.com",
+    "first_name": "Steve",
+    "last_name": "Short",
+    "timestamp": "2026-04-22T13:18:10.991238Z"
+  },
+  "collection": {
+    "authority_level": null,
+    "description": null,
+    "archived": false,
+    "workspace_id": null,
+    "slug": "avondale",
+    "archive_operation_id": null,
+    "name": "Avondale",
+    "is_remote_synced": false,
+    "personal_owner_id": null,
+    "type": null,
+    "is_sample": false,
+    "effective_location": "/",
+    "id": 9,
+    "archived_directly": null,
+    "entity_id": "ujlwaF9DD6-U4iTPXZFrK",
+    "location": "/",
+    "namespace": null,
+    "is_personal": false,
+    "created_at": "2025-03-31T12:14:21.977075Z"
+  },
+  "parameters": [],
+  "auto_apply_filters": true,
+  "created_at": "2026-04-22T12:47:46.420602Z",
+  "public_uuid": null,
+  "points_of_interest": null,
+  "can_delete": false
+}

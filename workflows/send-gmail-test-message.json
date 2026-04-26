@@ -1,6 +1,6 @@
 {
   "name": "Send Gmail Test Message",
-  "tags": ["Test"],
+  "active": false,
   "nodes": [
     {
       "parameters": {},
@@ -114,7 +114,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const input = $('Editable Send Inputs').first().json;\nconst recipient = $('Load Recipient Record').first()?.json ?? {};\nconst template = $('Load Email Template').first()?.json ?? {};\nif (!recipient.email_address) {\n  throw new Error(`No email address found for ${input.recipient_first_name} ${input.recipient_last_name}`);\n}\nif (!template.template_key) {\n  throw new Error(`Email template ${input.template_key} was not found`);\n}\nconst tokenMap = {\n  '{{$json.first_name}}': recipient.first_name ?? '',\n  '{{$json.last_name}}': recipient.last_name ?? '',\n  '{{$json.email_address}}': recipient.email_address ?? '',\n  '{{$json.address_1}}': recipient.address_1 ?? '',\n  '{{$json.town}}': recipient.town ?? '',\n  '{{$json.postcode}}': recipient.postcode ?? '',\n  '{{$json.contact.first_name}}': recipient.first_name ?? '',\n  '{{$json.contact.last_name}}': recipient.last_name ?? '',\n  '{{$json.contact.email_address}}': recipient.email_address ?? '',\n  '{{$json.contact.address_1}}': recipient.address_1 ?? '',\n  '{{$json.contact.town}}': recipient.town ?? '',\n  '{{$json.contact.postcode}}': recipient.postcode ?? '',\n  '{{$json.member.first_name}}': recipient.first_name ?? '',\n  '{{$json.member.last_name}}': recipient.last_name ?? '',\n  '{{$json.member.email_address}}': recipient.email_address ?? '',\n  '{{first_name}}': recipient.first_name ?? '',\n  '{{last_name}}': recipient.last_name ?? '',\n  '{{email_address}}': recipient.email_address ?? '',\n  '{{address_1}}': recipient.address_1 ?? '',\n  '{{town}}': recipient.town ?? '',\n  '{{postcode}}': recipient.postcode ?? '',\n  '<first name>': recipient.first_name ?? '',\n  '<last name>': recipient.last_name ?? '',\n  '<email address>': recipient.email_address ?? '',\n  '{contact.first_name}': recipient.first_name ?? '',\n  '{contact.last_name}': recipient.last_name ?? '',\n  '{contact.email_address}': recipient.email_address ?? '',\n  '{contact.address_1}': recipient.address_1 ?? '',\n  '{contact.town}': recipient.town ?? '',\n  '{contact.postcode}': recipient.postcode ?? '',\n  '{member.first_name}': recipient.first_name ?? '',\n  '{member.last_name}': recipient.last_name ?? '',\n  '{member.email_address}': recipient.email_address ?? '',\n};\nconst applyTokens = (value) => {\n  let rendered = String(value ?? '');\n  for (const [token, replacement] of Object.entries(tokenMap)) {\n    rendered = rendered.split(token).join(String(replacement));\n  }\n  return rendered.trim();\n};\nconst renderedHtml = [applyTokens(template.html_template ?? ''), applyTokens(template.signature_html_template ?? '')].filter(Boolean).join('').trim();\nconst renderedText = [applyTokens(template.text_template ?? ''), applyTokens(template.signature_text_template ?? '')].filter(Boolean).join('\\n\\n').trim();\nreturn [{\n  json: {\n    flow_name: 'send-gmail-test-message',\n    to: recipient.email_address,\n    sender_name: input.sender_name,\n    from_email: input.reply_to,\n    reply_to: input.reply_to,\n    template_key: template.template_key,\n    rendered_subject: applyTokens(template.subject_template ?? 'Message from Avondale about your tags'),\n    rendered_html: renderedHtml,\n    rendered_text: renderedText,\n    recipient_first_name: recipient.first_name,\n    recipient_last_name: recipient.last_name\n  }\n}];"
+        "jsCode": "const input = $('Editable Send Inputs').first().json;\nconst recipient = $('Load Recipient Record').first()?.json ?? {};\nconst template = $('Load Email Template').first()?.json ?? {};\nif (!recipient.email_address) {\n  throw new Error(`No email address found for ${input.recipient_first_name} ${input.recipient_last_name}`);\n}\nif (!template.template_key) {\n  throw new Error(`Email template ${input.template_key} was not found`);\n}\nconst tokenMap = {\n  '{{$json.first_name}}': recipient.first_name ?? '',\n  '{{$json.last_name}}': recipient.last_name ?? '',\n  '{{$json.email_address}}': recipient.email_address ?? '',\n  '{{$json.address_1}}': recipient.address_1 ?? '',\n  '{{$json.town}}': recipient.town ?? '',\n  '{{$json.postcode}}': recipient.postcode ?? '',\n  '{{$json.contact.first_name}}': recipient.first_name ?? '',\n  '{{$json.contact.last_name}}': recipient.last_name ?? '',\n  '{{$json.contact.email_address}}': recipient.email_address ?? '',\n  '{{$json.contact.address_1}}': recipient.address_1 ?? '',\n  '{{$json.contact.town}}': recipient.town ?? '',\n  '{{$json.contact.postcode}}': recipient.postcode ?? '',\n  '{{$json.member.first_name}}': recipient.first_name ?? '',\n  '{{$json.member.last_name}}': recipient.last_name ?? '',\n  '{{$json.member.email_address}}': recipient.email_address ?? '',\n  '{{first_name}}': recipient.first_name ?? '',\n  '{{last_name}}': recipient.last_name ?? '',\n  '{{email_address}}': recipient.email_address ?? '',\n  '{{address_1}}': recipient.address_1 ?? '',\n  '{{town}}': recipient.town ?? '',\n  '{{postcode}}': recipient.postcode ?? '',\n  '<first name>': recipient.first_name ?? '',\n  '<last name>': recipient.last_name ?? '',\n  '<email address>': recipient.email_address ?? '',\n  '{contact.first_name}': recipient.first_name ?? '',\n  '{contact.last_name}': recipient.last_name ?? '',\n  '{contact.email_address}': recipient.email_address ?? '',\n  '{contact.address_1}': recipient.address_1 ?? '',\n  '{contact.town}': recipient.town ?? '',\n  '{contact.postcode}': recipient.postcode ?? '',\n  '{member.first_name}': recipient.first_name ?? '',\n  '{member.last_name}': recipient.last_name ?? '',\n  '{member.email_address}': recipient.email_address ?? '',\n};\nconst applyTokens = (value) => {\n  let rendered = String(value ?? '');\n  for (const [token, replacement] of Object.entries(tokenMap)) {\n    rendered = rendered.split(token).join(String(replacement));\n  }\n  return rendered.trim();\n};\nconst emailType = template.html_template && !template.text_template ? 'html' : 'text';\nconst bodySource = emailType === 'html'\n  ? (template.html_template ?? template.text_template ?? '')\n  : (template.text_template ?? template.html_template ?? '');\nconst signatureSource = emailType === 'html'\n  ? (template.signature_html_template ?? template.signature_text_template ?? '')\n  : (template.signature_text_template ?? template.signature_html_template ?? '');\nconst joinSeparator = emailType === 'html' ? '<br><br>' : '\\n\\n';\nreturn [{\n  json: {\n    to_email: recipient.email_address,\n    sender_name: input.sender_name,\n    reply_to: input.reply_to,\n    template_key: template.template_key,\n    rendered_subject: applyTokens(template.subject_template ?? 'Message from Avondale about your tags'),\n    rendered_message: [applyTokens(bodySource), applyTokens(signatureSource)].filter(Boolean).join(joinSeparator).trim(),\n    email_type: emailType,\n    recipient_first_name: recipient.first_name,\n    recipient_last_name: recipient.last_name,\n  },\n}];"
       },
       "id": "9f127ebf-51d7-4dae-ad95-2ec502b2324f",
       "name": "Render Message",
@@ -127,21 +127,33 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "http://n8n:5678/webhook/email-send-core",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ $json }}",
-        "options": {}
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.to_email }}",
+        "subject": "={{ $json.rendered_subject }}",
+        "emailType": "={{ $json.email_type }}",
+        "message": "={{ $json.rendered_message }}",
+        "options": {
+          "appendAttribution": false,
+          "replyTo": "={{ $json.reply_to }}",
+          "senderName": "={{ $json.sender_name }}"
+        }
       },
       "id": "54f78356-f5a5-4774-b2df-cbfa87f9241b",
-      "name": "Send Email Via Core",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "name": "Send Gmail Message",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
       "position": [
         2060,
         300
-      ]
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
     }
   ],
   "connections": {
@@ -226,7 +238,7 @@
       "main": [
         [
           {
-            "node": "Send Email Via Core",
+            "node": "Send Gmail Message",
             "type": "main",
             "index": 0
           }
@@ -238,8 +250,18 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
+  "staticData": {},
   "pinData": {},
   "meta": {
     "templateCredsSetupCompleted": true
-  }
+  },
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "ce443ddfc3ead13b",
+      "name": "Test"
+    }
+  ],
+  "description": ""
 }

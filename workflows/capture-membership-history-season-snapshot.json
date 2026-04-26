@@ -1,6 +1,6 @@
 {
   "name": "Capture Membership and Contact History Snapshot",
-  "tags": ["History","Members"],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -157,6 +157,29 @@
     }
   },
   "settings": {},
+  "staticData": {
+    "node:Half Past Every Hour": {
+      "recurrenceRules": []
+    },
+    "node:Daily at 02:30": {
+      "recurrenceRules": []
+    }
+  },
   "pinData": {},
-  "meta": null
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "1419672f1d672d15",
+      "name": "Members"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "8e9c8b5a41866f60",
+      "name": "History"
+    }
+  ],
+  "description": ""
 }

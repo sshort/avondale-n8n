@@ -1,6 +1,6 @@
 {
   "name": "Manual Batch Item Form",
-  "tags": ["Batch","ClubSpark","Forms"],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -141,7 +141,28 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
+  "staticData": {},
   "pinData": {},
-  "versionId": "53deb544-d136-4b81-8ee2-df66d169716f",
-  "active": true
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "5eb27d9d07f14a13",
+      "name": "Batch"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "23ad8e2617052af4",
+      "name": "ClubSpark"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "08ef3342121ccbfe",
+      "name": "Forms"
+    }
+  ],
+  "description": ""
 }

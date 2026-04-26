@@ -1,0 +1,519 @@
+{
+  "version": 1,
+  "resources": [
+    {
+      "key": "add-manual-batch-item",
+      "name": "Add Manual Batch Item",
+      "file": "workflows/add-manual-batch-item.json",
+      "ids": {
+        "local": "rnwJ9lr346JFHAa6"
+      }
+    },
+    {
+      "key": "add-refund",
+      "name": "Add Refund",
+      "file": "workflows/add-refund.json",
+      "ids": {
+        "local": "FmFGVKMxZLcPv6d7"
+      }
+    },
+    {
+      "key": "archive-raw-members-by-season",
+      "name": "Archive raw_members by membership season",
+      "file": "workflows/archive-raw-members-by-season.json",
+      "ids": {
+        "local": "SyT9FvdjQuJOcRGM"
+      }
+    },
+    {
+      "key": "capture-membership-history-season-snapshot",
+      "name": "Capture Membership and Contact History Snapshot",
+      "file": "workflows/capture-membership-history-season-snapshot.json",
+      "ids": {
+        "local": "Wgq4rJytywxHEZ5n"
+      }
+    },
+    {
+      "key": "case-tracking-actions",
+      "name": "Case Tracking Actions",
+      "file": "workflows/case-tracking-actions.json",
+      "ids": {
+        "local": "vb6vkJttjBsYzGsT"
+      }
+    },
+    {
+      "key": "case-tracking-app",
+      "name": "Case Tracking App",
+      "file": "workflows/case-tracking-app.json",
+      "ids": {
+        "local": "URTRDf2aT2eSmGqC"
+      }
+    },
+    {
+      "key": "case-tracking-open-pixel",
+      "name": "Case Tracking Open Pixel",
+      "file": "workflows/case-tracking-open-pixel.json",
+      "ids": {
+        "local": "YxC0sYfMd7e9NwQK"
+      }
+    },
+    {
+      "key": "clubspark-auth-session",
+      "name": "ClubSpark Auth Session",
+      "file": "workflows/clubspark-auth-session.json",
+      "ids": {
+        "local": "JETtfbr4EGBAcCAA"
+      }
+    },
+    {
+      "key": "clubspark-auth-session-test",
+      "name": "ClubSpark Auth Session Test",
+      "file": "workflows/clubspark-auth-session-test.json",
+      "ids": {
+        "local": "uRd78LSp8p7BWKkC"
+      }
+    },
+    {
+      "key": "clubspark-contacts-export",
+      "name": "ClubSpark Contacts Export",
+      "file": "workflows/clubspark-contacts-export.json",
+      "ids": {
+        "local": "6XC5aXJ8uS5DS553"
+      }
+    },
+    {
+      "key": "clubspark-contacts-export-puppeteer",
+      "name": "ClubSpark Contacts Export (Puppeteer)",
+      "file": "workflows/clubspark-contacts-export-puppeteer.json",
+      "ids": {}
+    },
+    {
+      "key": "clubspark-full-refresh",
+      "name": "ClubSpark Full Refresh",
+      "file": "workflows/clubspark-full-refresh.json",
+      "ids": {
+        "local": "XJNxaRzHZ6lV52jF"
+      }
+    },
+    {
+      "key": "clubspark-main-contacts-export",
+      "name": "ClubSpark Main Contacts Export",
+      "file": "workflows/clubspark-main-contacts-export.json",
+      "ids": {
+        "local": "3MIBMbNpV5HxZEop"
+      }
+    },
+    {
+      "key": "clubspark-members-export",
+      "name": "ClubSpark Members Export",
+      "file": "workflows/clubspark-members-export.json",
+      "ids": {
+        "local": "0cLfjgMnyQeFcJ8T"
+      }
+    },
+    {
+      "key": "clubspark-package-members-import-xlsx",
+      "name": "ClubSpark Package Members Import XLSX",
+      "file": "workflows/clubspark-package-members-import-xlsx.json",
+      "ids": {
+        "local": "uJlIbmLey3P3Wpps"
+      }
+    },
+    {
+      "key": "complete-signup-batch",
+      "name": "Complete Signup Batch",
+      "file": "workflows/complete-signup-batch.json",
+      "ids": {
+        "local": "cyuhb-8azn6RvobqL4wWg"
+      }
+    },
+    {
+      "key": "confirm-missing-signup-capture",
+      "name": "Confirm Missing Signup Capture",
+      "file": "workflows/confirm-missing-signup-capture.json",
+      "ids": {
+        "local": "lY64vAbOqCHjtNM9"
+      }
+    },
+    {
+      "key": "create-missing-signup-capture",
+      "name": "Create Missing Signup Capture",
+      "file": "workflows/create-missing-signup-capture.json",
+      "ids": {
+        "local": "3Pqx4wurJln7h1du"
+      }
+    },
+    {
+      "key": "create-signup-batch",
+      "name": "Create Signup Batch",
+      "file": "workflows/create-signup-batch.json",
+      "ids": {
+        "local": "YYrFJbug2FOcujPmhhQ8T"
+      }
+    },
+    {
+      "key": "debug-webhook",
+      "name": "Debug Webhook",
+      "file": "workflows/debug-webhook.json",
+      "ids": {
+        "local": "dMDJ7ewXKFSSq428"
+      }
+    },
+    {
+      "key": "delete-manual-batch-item",
+      "name": "Delete Manual Batch Item",
+      "file": "workflows/delete-manual-batch-item.json",
+      "ids": {
+        "local": "mD4sR7xQ9pLc2VnK"
+      }
+    },
+    {
+      "key": "email-image-asset",
+      "name": "Email Image Asset",
+      "file": "workflows/email-image-asset.json",
+      "ids": {}
+    },
+    {
+      "key": "email-send-core",
+      "name": "Email Send Core",
+      "file": "workflows/email-send-core.json",
+      "ids": {}
+    },
+    {
+      "key": "email-template-editor-actions",
+      "name": "Email Template Editor Actions",
+      "file": "workflows/email-template-editor-actions.json",
+      "ids": {
+        "local": "OTGkmweibqEsiYRA"
+      }
+    },
+    {
+      "key": "email-template-editor-app",
+      "name": "Email Template Editor App",
+      "file": "workflows/email-template-editor-app.json",
+      "ids": {
+        "local": "66hvNJQFeo6GBbaZ"
+      }
+    },
+    {
+      "key": "generate-team-contact-sheets",
+      "name": "Generate Team Contact Sheets",
+      "file": "workflows/generate-team-contact-sheets.json",
+      "ids": {
+        "local": "f5433cbcf5b14ade"
+      }
+    },
+    {
+      "key": "manual-batch-item-form",
+      "name": "Manual Batch Item Form",
+      "file": "workflows/manual-batch-item-form.json",
+      "ids": {
+        "local": "l97xMibLg5gRF8fb"
+      }
+    },
+    {
+      "key": "member-search-detail",
+      "name": "Member Search Detail",
+      "file": "workflows/member-search-detail.json",
+      "ids": {
+        "local": "Xw19pdpgo49bKfJW"
+      }
+    },
+    {
+      "key": "metabase-report-form",
+      "name": "Metabase Report Form",
+      "file": "workflows/metabase-report-form.json",
+      "ids": {
+        "local": "FSaYGo8n8fO9HRC1"
+      }
+    },
+    {
+      "key": "metabase-report-generate",
+      "name": "Metabase Report Generate",
+      "file": "workflows/metabase-report-generate.json",
+      "ids": {
+        "local": "TR2N0pzDUKftgGkN"
+      }
+    },
+    {
+      "key": "my-workflow",
+      "name": "My workflow",
+      "file": "workflows/my-workflow.json",
+      "ids": {
+        "local": "qIPVxBPsN57mcG3m"
+      }
+    },
+    {
+      "key": "new-member-email-parser",
+      "name": "New Member Email Parser",
+      "file": "workflows/new-member-email-parser.json",
+      "ids": {
+        "local": "AP0C00u3WbKfyIqD8pyZr"
+      }
+    },
+    {
+      "key": "nifi-new-member-emails-converted",
+      "name": "NiFi - New Member Emails (Converted)",
+      "file": "workflows/nifi-new-member-emails-converted.json",
+      "ids": {
+        "local": "G2eWuttplu8FkdR3"
+      }
+    },
+    {
+      "key": "preview-case-tracking-email",
+      "name": "Preview Case Tracking Email",
+      "file": "workflows/preview-case-tracking-email.json",
+      "ids": {
+        "local": "dNhFw2i7K5kSHRsH"
+      }
+    },
+    {
+      "key": "preview-member-template-email",
+      "name": "Preview Member Template Email",
+      "file": "workflows/preview-member-template-email.json",
+      "ids": {
+        "local": "7YqE6u4FbNRAXaRp"
+      }
+    },
+    {
+      "key": "preview-refund-request-email",
+      "name": "Preview Refund Request Email",
+      "file": "workflows/preview-refund-request-email.json",
+      "ids": {
+        "local": "KJ7Ys7oAxo0yGYhi"
+      }
+    },
+    {
+      "key": "print-dl-envelopes-from-cloud",
+      "name": "Print DL Envelopes from Cloud",
+      "file": "workflows/print-dl-envelopes-from-cloud.json",
+      "ids": {
+        "local": "xURlv3vYMA8cm84Z"
+      }
+    },
+    {
+      "key": "print-j8160-calibration",
+      "name": "Print J8160 Calibration",
+      "file": "workflows/print-j8160-calibration.json",
+      "ids": {
+        "local": "hDUOGcEmhcdO8dLN"
+      }
+    },
+    {
+      "key": "print-j8160-labels-from-cloud",
+      "name": "Print J8160 Labels from Cloud",
+      "file": "workflows/print-j8160-labels-from-cloud.json",
+      "ids": {
+        "local": "DnMcFsow6MHxEpaC"
+      }
+    },
+    {
+      "key": "process-clubspark-member-signups",
+      "name": "Process ClubSpark Member Signups",
+      "file": "workflows/process-clubspark-member-signups.json",
+      "ids": {
+        "local": "brWEL95y2tXiB9GI"
+      }
+    },
+    {
+      "key": "refund-form",
+      "name": "Refund Form",
+      "file": "workflows/refund-form.json",
+      "ids": {
+        "local": "Xs8KENEX5n7KKJsD"
+      }
+    },
+    {
+      "key": "refund-status-form",
+      "name": "Refund Status Form",
+      "file": "workflows/refund-status-form.json",
+      "ids": {
+        "local": "6XaRsJaK4VFZ1RV1"
+      }
+    },
+    {
+      "key": "refund-status-form-handlebars-test",
+      "name": "Test Refund Status Form using Template",
+      "file": "workflows/refund-status-form-handlebars-test.json",
+      "ids": {
+        "local": "zao4KCfgYl2XNof47X7OF"
+      }
+    },
+    {
+      "key": "send-case-tracking-email",
+      "name": "Send Case Tracking Email",
+      "file": "workflows/send-case-tracking-email.json",
+      "ids": {
+        "local": "8d87OUhbGRCWeKCL"
+      }
+    },
+    {
+      "key": "send-gmail-test-message",
+      "name": "Send Gmail Test Message",
+      "file": "workflows/send-gmail-test-message.json",
+      "ids": {
+        "local": "TPqbJ7Niw68B92T3"
+      }
+    },
+    {
+      "key": "send-member-calculation-email",
+      "name": "Send Member Calculation Email",
+      "file": "workflows/send-member-calculation-email.json",
+      "ids": {
+        "local": "LFcdt6IoOg5ufU7Z"
+      }
+    },
+    {
+      "key": "send-member-template-email",
+      "name": "Send Member Template Email",
+      "file": "workflows/send-member-template-email.json",
+      "ids": {
+        "local": "0OhUz6LZzWHupSKn"
+      }
+    },
+    {
+      "key": "send-no-address-batch-emails",
+      "name": "Send No-Address Batch Emails",
+      "file": "workflows/send-no-address-batch-emails.json",
+      "ids": {
+        "local": "otOxMsooAQde1Erj"
+      }
+    },
+    {
+      "key": "send-refund-request-email",
+      "name": "Send Refund Request Email",
+      "file": "workflows/send-refund-request-email.json",
+      "ids": {
+        "local": "ovfzjVKGfC2dt8qw"
+      }
+    },
+    {
+      "key": "send-team-captain-contact-lists",
+      "name": "Send Team Captain Contact Lists",
+      "file": "workflows/send-team-captain-contact-lists.json",
+      "ids": {
+        "local": "dosfDcDH2Hlond4z"
+      }
+    },
+    {
+      "key": "send-treasury-refund-request",
+      "name": "Send Treasury Refund Request",
+      "file": "workflows/send-treasury-refund-request.json",
+      "ids": {
+        "local": "XBIWQYMMTQX5TCp3"
+      }
+    },
+    {
+      "key": "signup-batch-actions",
+      "name": "Signup Batch Actions",
+      "file": "workflows/signup-batch-actions.json",
+      "ids": {
+        "local": "hGHWoDAENug2mnaT"
+      }
+    },
+    {
+      "key": "signup-batch-review",
+      "name": "Signup Batch Review",
+      "file": "workflows/signup-batch-review.json",
+      "ids": {
+        "local": "kRV2uP4nT8mQxL6b"
+      }
+    },
+    {
+      "key": "sync-case-tracking-db-to-gmail-labels",
+      "name": "Sync Case Tracking DB To Gmail Labels",
+      "file": "workflows/sync-case-tracking-db-to-gmail-labels.json",
+      "ids": {
+        "local": "oTUS7fU3vdlZAaL8"
+      }
+    },
+    {
+      "key": "sync-case-tracking-gmail-to-db",
+      "name": "Sync Case Tracking Gmail To DB",
+      "file": "workflows/sync-case-tracking-gmail-to-db.json",
+      "ids": {
+        "local": "w55ecWLuAWL57VtP"
+      }
+    },
+    {
+      "key": "sync-raw-tables-to-cloud",
+      "name": "Sync local source of truth to cloud",
+      "file": "workflows/sync-raw-tables-to-cloud.json",
+      "ids": {
+        "local": "GIMyaYVnTEQvLLVa"
+      }
+    },
+    {
+      "key": "sync-team-captain-mailout",
+      "name": "Sync Team Captain Mailout",
+      "file": "workflows/sync-team-captain-mailout.json",
+      "ids": {
+        "local": "bf006299ea994266"
+      }
+    },
+    {
+      "key": "team-captain-mailout-generate",
+      "name": "Team Captain Mailout Generate",
+      "file": "workflows/team-captain-mailout-generate.json",
+      "ids": {
+        "local": "9Im5C61a2Funx3zF"
+      }
+    },
+    {
+      "key": "team-captain-mailout-jobs",
+      "name": "Team Captain Mailout Jobs",
+      "file": "workflows/team-captain-mailout-jobs.json",
+      "ids": {
+        "local": "Fm5Y8E20OsBSnVU9"
+      }
+    },
+    {
+      "key": "team-management-actions",
+      "name": "Team Management Actions",
+      "file": "workflows/team-management-actions.json",
+      "ids": {
+        "local": "sbs4eRvLtYeN8tV0"
+      }
+    },
+    {
+      "key": "team-management-app",
+      "name": "Team Management App",
+      "file": "workflows/team-management-app.json",
+      "ids": {
+        "local": "QZs3SfLl3Sj423zS"
+      }
+    },
+    {
+      "key": "temp-inspect-refund-sent-email",
+      "name": "Temp Inspect Refund Sent Email",
+      "file": "workflows/temp-inspect-refund-sent-email.json",
+      "ids": {
+        "local": "XMnyVQmexuHUk9By"
+      }
+    },
+    {
+      "key": "test-webhook",
+      "name": "Test Webhook",
+      "file": "workflows/test-webhook.json",
+      "ids": {
+        "local": "iPk0yrKO0hIpK5qW"
+      }
+    },
+    {
+      "key": "test-workflow",
+      "name": "Test Workflow",
+      "file": "workflows/test-workflow.json",
+      "ids": {
+        "local": "L2v8pHI69iq3XlA7"
+      }
+    },
+    {
+      "key": "update-refund-status",
+      "name": "Update Refund Status",
+      "file": "workflows/update-refund-status.json",
+      "ids": {
+        "local": "ouYD0m2No7IBTYH4"
+      }
+    }
+  ]
+}

@@ -6,10 +6,12 @@ state_root="${METABASE_STATE_ROOT:-$repo_root/state/metabase}"
 export_dir="${METABASE_EXPORT_DIR:-$state_root/export}"
 metabase_version="${METABASE_VERSION:-v58}"
 conflict_mode="${METABASE_CONFLICT_MODE:-overwrite}"
-include_archived="${METABASE_INCLUDE_ARCHIVED:-1}"
+include_archived="${METABASE_INCLUDE_ARCHIVED:-0}"
 include_dashboards="${METABASE_INCLUDE_DASHBOARDS:-1}"
 include_permissions="${METABASE_INCLUDE_PERMISSIONS:-0}"
 apply_permissions="${METABASE_APPLY_PERMISSIONS:-0}"
+refresh_db_map="${METABASE_REFRESH_DB_MAP:-0}"
+exclude_root_collection_names="${METABASE_EXCLUDE_ROOT_COLLECTION_NAMES:-Examples,Trash}"
 
 usage() {
   cat <<EOF
@@ -31,7 +33,11 @@ Environment:
   METABASE_EXPORT_DIR              Default: state/metabase/export
   METABASE_VERSION                 Default: v58
   METABASE_DB_MAP                  Optional explicit db map path
+  METABASE_DB_NAME_MAP             Optional comma-separated source=target db name overrides
+  METABASE_REFRESH_DB_MAP          Default: 0 (set to 1 to rebuild db map before push/mirror)
+  METABASE_EXCLUDE_ROOT_COLLECTION_NAMES  Default: Examples,Trash
   METABASE_ROOT_COLLECTIONS        Optional comma-separated root collection ids for export
+  METABASE_INCLUDE_ARCHIVED        Default: 0
   METABASE_CONFLICT_MODE           Default: overwrite
 EOF
 }
@@ -82,6 +88,13 @@ append_auth_args() {
 }
 
 append_export_flags() {
+  local root_collections="${METABASE_ROOT_COLLECTIONS:-}"
+
+  if [[ -z "$root_collections" && -n "$exclude_root_collection_names" ]]; then
+    require_cmd node
+    root_collections="$(node "$repo_root/scripts/resolve-metabase-root-collections.mjs" "$source_env")"
+  fi
+
   if [[ "$include_dashboards" == "1" ]]; then
     export_flags+=(--include-dashboards)
   fi
@@ -91,9 +104,13 @@ append_export_flags() {
   if [[ "$include_permissions" == "1" ]]; then
     export_flags+=(--include-permissions)
   fi
-  if [[ -n "${METABASE_ROOT_COLLECTIONS:-}" ]]; then
-    export_flags+=(--root-collections "$METABASE_ROOT_COLLECTIONS")
+  if [[ -n "$root_collections" ]]; then
+    export_flags+=(--root-collections "$root_collections")
   fi
+}
+
+clear_export_dir() {
+  find "$export_dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 }
 
 resolve_db_map() {
@@ -104,9 +121,33 @@ resolve_db_map() {
   printf '%s' "$state_root/db-map.$1-to-$2.json"
 }
 
+db_map_is_empty() {
+  local db_map="$1"
+  [[ ! -f "$db_map" ]] && return 0
+  jq -e '((.by_id // {}) | length) == 0 and ((.by_name // {}) | length) == 0' "$db_map" >/dev/null 2>&1
+}
+
+maybe_generate_db_map() {
+  local source_env="$1"
+  local target_env="$2"
+  local db_map
+  db_map="$(resolve_db_map "$source_env" "$target_env")"
+
+  if [[ "$refresh_db_map" != "1" ]] && ! db_map_is_empty "$db_map"; then
+    printf '%s' "$db_map"
+    return
+  fi
+
+  require_cmd node
+  node "$repo_root/scripts/generate-metabase-db-map.mjs" "$source_env" "$target_env" --out "$db_map"
+  printf '%s' "$db_map"
+}
+
+require_cmd find
 require_cmd metabase-export
 require_cmd metabase-import
 require_cmd metabase-sync
+require_cmd jq
 mkdir -p "$export_dir"
 
 command="${1:-}"
@@ -122,6 +163,7 @@ case "$command" in
     export_flags=()
     append_auth_args "${source_env^^}" source
     append_export_flags
+    clear_export_dir
     metabase-export \
       --metabase-version "$metabase_version" \
       --source-url "$source_url" \
@@ -135,7 +177,7 @@ case "$command" in
     [[ -n "$target_url" ]] || { echo "Missing URL for $source_env" >&2; exit 1; }
     auth_args=()
     append_auth_args "${source_env^^}" target
-    db_map="$(resolve_db_map "$([[ "$source_env" == "live" ]] && echo local || echo live)" "$source_env")"
+    db_map="$(maybe_generate_db_map "$([[ "$source_env" == "live" ]] && echo local || echo live)" "$source_env")"
     [[ -f "$db_map" ]] || { echo "Missing db map: $db_map" >&2; exit 1; }
     import_flags=()
     if [[ "$include_archived" == "1" ]]; then
@@ -159,7 +201,7 @@ case "$command" in
     source_url="$(instance_url "$source_env")"
     target_url="$(instance_url "$target_env")"
     [[ -n "$source_url" && -n "$target_url" ]] || { echo "Missing source or target URL" >&2; exit 1; }
-    db_map="$(resolve_db_map "$source_env" "$target_env")"
+    db_map="$(maybe_generate_db_map "$source_env" "$target_env")"
     [[ -f "$db_map" ]] || { echo "Missing db map: $db_map" >&2; exit 1; }
     auth_args=()
     export_flags=()
@@ -167,6 +209,7 @@ case "$command" in
     append_auth_args "${target_env^^}" target
     append_export_flags
     import_flags=()
+    clear_export_dir
     if [[ "$apply_permissions" == "1" ]]; then
       import_flags+=(--apply-permissions)
     fi

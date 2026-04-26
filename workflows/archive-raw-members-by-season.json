@@ -1,6 +1,6 @@
 {
   "name": "Archive raw_members by membership season",
-  "tags": ["History","Members"],
+  "active": false,
   "nodes": [
     {
       "parameters": {},
@@ -74,5 +74,23 @@
   "settings": {
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": true
-  }
+  },
+  "staticData": {},
+  "pinData": {},
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "1419672f1d672d15",
+      "name": "Members"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "8e9c8b5a41866f60",
+      "name": "History"
+    }
+  ],
+  "description": ""
 }

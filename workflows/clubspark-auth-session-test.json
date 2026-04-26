@@ -1,6 +1,6 @@
 {
   "name": "ClubSpark Auth Session Test",
-  "tags": ["ClubSpark","Test"],
+  "active": false,
   "nodes": [
     {
       "parameters": {},
@@ -153,10 +153,22 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": true
   },
-  "staticData": null,
-  "meta": null,
-  "pinData": null,
-  "tags": [],
-  "active": false,
-  "isArchived": false
+  "staticData": {},
+  "pinData": {},
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "ce443ddfc3ead13b",
+      "name": "Test"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "23ad8e2617052af4",
+      "name": "ClubSpark"
+    }
+  ],
+  "description": ""
 }

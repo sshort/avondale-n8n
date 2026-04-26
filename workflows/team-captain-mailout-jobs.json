@@ -1,0 +1,97 @@
+{
+  "name": "Team Captain Mailout Jobs",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "team-captain-mailout-jobs",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "tmj-webhook-001",
+      "name": "Jobs Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        260,
+        260
+      ],
+      "webhookId": "team-captain-mailout-jobs"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://192.168.1.237:3010/jobs",
+        "options": {}
+      },
+      "id": "tmj-http-001",
+      "name": "Fetch Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "tmj-respond-001",
+      "name": "Respond Jobs",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        820,
+        260
+      ]
+    }
+  ],
+  "connections": {
+    "Jobs Webhook": {
+      "main": [
+        [
+          {
+            "node": "Fetch Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Jobs": {
+      "main": [
+        [
+          {
+            "node": "Respond Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": {},
+  "pinData": {},
+  "meta": {},
+  "tags": [],
+  "description": ""
+}

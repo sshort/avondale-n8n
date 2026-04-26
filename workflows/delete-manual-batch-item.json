@@ -1,7 +1,5 @@
 {
-  "id": "mD4sR7xQ9pLc2VnK",
   "name": "Delete Manual Batch Item",
-  "tags": ["Admin","Batch","ClubSpark"],
   "active": true,
   "nodes": [
     {
@@ -169,10 +167,28 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "staticData": null,
-  "meta": null,
+  "staticData": {},
   "pinData": {},
-  "versionId": "aa369c84-7dee-4a13-b6b8-62fdd03632a4",
-  "triggerCount": 1,
-  "tags": null
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "5eb27d9d07f14a13",
+      "name": "Batch"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "e46b47576592980b",
+      "name": "Admin"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "23ad8e2617052af4",
+      "name": "ClubSpark"
+    }
+  ],
+  "description": ""
 }

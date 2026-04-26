@@ -1,6 +1,6 @@
 {
   "name": "Send No-Address Batch Emails",
-  "tags": ["Batch","ClubSpark","Email"],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -333,7 +333,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const summary = $('Collect Recipient Data').first().json;\nconst template = $('Load Email Template').first()?.json ?? {};\nif (!template.template_key) {\n  throw new Error(`Email template ${summary.template_key} was not found`);\n}\nconst splitName = (payer) => {\n  const trimmed = String(payer ?? '').trim();\n  if (!trimmed) return { first_name: '', last_name: '' };\n  const parts = trimmed.split(/\\s+/);\n  return {\n    first_name: parts[0] ?? '',\n    last_name: parts.slice(1).join(' '),\n  };\n};\nconst htmlToText = (value) => String(value ?? '')\n  .replace(/<\\s*br\\s*\\/?>/gi, '\\n')\n  .replace(/<\\/(p|div|section|article|header|footer|li|tr|h[1-6])>/gi, '\\n')\n  .replace(/<li\\b[^>]*>/gi, '- ')\n  .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/gi, '')\n  .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi, '')\n  .replace(/<[^>]+>/g, ' ')\n  .replace(/&nbsp;/gi, ' ')\n  .replace(/&amp;/gi, '&')\n  .replace(/&lt;/gi, '<')\n  .replace(/&gt;/gi, '>')\n  .replace(/&quot;/gi, '\"')\n  .replace(/&#39;/gi, \"'\")\n  .replace(/&#x27;/gi, \"'\")\n  .replace(/\\r/g, '')\n  .replace(/[ \\t]+\\n/g, '\\n')\n  .replace(/\\n[ \\t]+/g, '\\n')\n  .replace(/\\n{3,}/g, '\\n\\n')\n  .replace(/[ \\t]{2,}/g, ' ')\n  .trim();\nconst applyTokens = (value, recipient) => {\n  const fallbackName = splitName(recipient.payer);\n  const firstName = String(recipient.first_name ?? '').trim() || fallbackName.first_name;\n  const lastName = String(recipient.last_name ?? '').trim() || fallbackName.last_name;\n  const emailAddress = String(recipient.email_address ?? '').trim();\n  const tokenMap = {\n    '{{$json.first_name}}': firstName,\n    '{{$json.last_name}}': lastName,\n    '{{$json.email_address}}': emailAddress,\n    '{{$json.address_1}}': recipient.address_1 ?? '',\n    '{{$json.address_2}}': recipient.address_2 ?? '',\n    '{{$json.town}}': recipient.town ?? '',\n    '{{$json.postcode}}': recipient.postcode ?? '',\n    '{{$json.contact.first_name}}': firstName,\n    '{{$json.contact.last_name}}': lastName,\n    '{{$json.contact.email_address}}': emailAddress,\n    '{{$json.contact.address_1}}': recipient.address_1 ?? '',\n    '{{$json.contact.address_2}}': recipient.address_2 ?? '',\n    '{{$json.contact.town}}': recipient.town ?? '',\n    '{{$json.contact.postcode}}': recipient.postcode ?? '',\n    '{{$json.member.first_name}}': firstName,\n    '{{$json.member.last_name}}': lastName,\n    '{{$json.member.email_address}}': emailAddress,\n    '{{first_name}}': firstName,\n    '{{last_name}}': lastName,\n    '{{email_address}}': emailAddress,\n    '{{address_1}}': recipient.address_1 ?? '',\n    '{{address_2}}': recipient.address_2 ?? '',\n    '{{town}}': recipient.town ?? '',\n    '{{postcode}}': recipient.postcode ?? '',\n    '<first name>': firstName,\n    '<last name>': lastName,\n    '<email address>': emailAddress,\n    '{contact.first_name}': firstName,\n    '{contact.last_name}': lastName,\n    '{contact.email_address}': emailAddress,\n    '{contact.address_1}': recipient.address_1 ?? '',\n    '{contact.address_2}': recipient.address_2 ?? '',\n    '{contact.town}': recipient.town ?? '',\n    '{contact.postcode}': recipient.postcode ?? '',\n    '{member.first_name}': firstName,\n    '{member.last_name}': lastName,\n    '{member.email_address}': emailAddress,\n  };\n  let rendered = String(value ?? '');\n  for (const [token, replacement] of Object.entries(tokenMap)) {\n    rendered = rendered.split(token).join(String(replacement));\n  }\n  return rendered.trim();\n};\nreturn summary.recipients.map((recipient) => {\n  const fallbackName = splitName(recipient.payer);\n  const firstName = String(recipient.first_name ?? '').trim() || fallbackName.first_name;\n  const lastName = String(recipient.last_name ?? '').trim() || fallbackName.last_name;\n  const originalEmail = String(recipient.email_address ?? '').trim();\n  const isTestMode = summary.delivery_mode !== 'production';\n  const targetEmail = isTestMode ? summary.test_recipient : originalEmail;\n  const tokenRecipient = { ...recipient, first_name: firstName, last_name: lastName, email_address: originalEmail };\n  const renderedSubject = applyTokens(template.subject_template ?? 'Message from Avondale about your tags', tokenRecipient);\n  const renderedHtmlBody = applyTokens(template.html_template ?? '', tokenRecipient);\n  const renderedHtmlSignature = applyTokens(template.signature_html_template ?? '', tokenRecipient);\n  const renderedTextBody = applyTokens(template.text_template ?? '', tokenRecipient);\n  const renderedTextSignature = applyTokens(template.signature_text_template ?? '', tokenRecipient);\n  const renderedHtml = [renderedHtmlBody, renderedHtmlSignature].filter(Boolean).join('').trim();\n  const renderedTextBase = [renderedTextBody, renderedTextSignature].filter(Boolean).join('\\n\\n').trim() || htmlToText(renderedHtml);\n  const testHtmlNotice = `<hr><p><strong>TEST MODE</strong><br>Original recipient: ${originalEmail}<br>Payer: ${String(recipient.payer ?? '').trim()}</p>`;\n  const testTextNotice = `\\n\\n---\\nTEST MODE\\nOriginal recipient: ${originalEmail}\\nPayer: ${recipient.payer}`;\n  return {\n    json: {\n      flow_name: 'send-no-address-batch-emails',\n      batch_id: summary.batch_id,\n      to: targetEmail,\n      to_email: targetEmail,\n      actual_recipient: targetEmail,\n      original_to_email: originalEmail,\n      intended_recipient: originalEmail,\n      payer: recipient.payer,\n      sender_name: summary.sender_name,\n      from_email: summary.reply_to,\n      reply_to: summary.reply_to,\n      template_key: template.template_key,\n      signature_template_key: template.signature_template_key || summary.signature_template_key || 'signature',\n      delivery_mode: summary.delivery_mode,\n      test_recipient: summary.test_recipient,\n      rendered_subject: renderedSubject,\n      rendered_html: renderedHtml ? (isTestMode ? renderedHtml + testHtmlNotice : renderedHtml) : '',\n      rendered_text: isTestMode ? renderedTextBase + testTextNotice : renderedTextBase,\n      recipient_first_name: firstName,\n      recipient_last_name: lastName\n    }\n  };\n});"
+        "jsCode": "const summary = $('Collect Recipient Data').first().json;\nconst template = $('Load Email Template').first()?.json ?? {};\nif (!template.template_key) {\n  throw new Error(`Email template ${summary.template_key} was not found`);\n}\nconst splitName = (payer) => {\n  const trimmed = String(payer ?? '').trim();\n  if (!trimmed) return { first_name: '', last_name: '' };\n  const parts = trimmed.split(/\\s+/);\n  return {\n    first_name: parts[0] ?? '',\n    last_name: parts.slice(1).join(' '),\n  };\n};\nconst applyTokens = (value, recipient) => {\n  const fallbackName = splitName(recipient.payer);\n  const firstName = String(recipient.first_name ?? '').trim() || fallbackName.first_name;\n  const lastName = String(recipient.last_name ?? '').trim() || fallbackName.last_name;\n  const emailAddress = String(recipient.email_address ?? '').trim();\n  const tokenMap = {\n    '{{$json.first_name}}': firstName,\n    '{{$json.last_name}}': lastName,\n    '{{$json.email_address}}': emailAddress,\n    '{{$json.address_1}}': recipient.address_1 ?? '',\n    '{{$json.address_2}}': recipient.address_2 ?? '',\n    '{{$json.town}}': recipient.town ?? '',\n    '{{$json.postcode}}': recipient.postcode ?? '',\n    '{{$json.contact.first_name}}': firstName,\n    '{{$json.contact.last_name}}': lastName,\n    '{{$json.contact.email_address}}': emailAddress,\n    '{{$json.contact.address_1}}': recipient.address_1 ?? '',\n    '{{$json.contact.address_2}}': recipient.address_2 ?? '',\n    '{{$json.contact.town}}': recipient.town ?? '',\n    '{{$json.contact.postcode}}': recipient.postcode ?? '',\n    '{{$json.member.first_name}}': firstName,\n    '{{$json.member.last_name}}': lastName,\n    '{{$json.member.email_address}}': emailAddress,\n    '{{first_name}}': firstName,\n    '{{last_name}}': lastName,\n    '{{email_address}}': emailAddress,\n    '{{address_1}}': recipient.address_1 ?? '',\n    '{{address_2}}': recipient.address_2 ?? '',\n    '{{town}}': recipient.town ?? '',\n    '{{postcode}}': recipient.postcode ?? '',\n    '<first name>': firstName,\n    '<last name>': lastName,\n    '<email address>': emailAddress,\n    '{contact.first_name}': firstName,\n    '{contact.last_name}': lastName,\n    '{contact.email_address}': emailAddress,\n    '{contact.address_1}': recipient.address_1 ?? '',\n    '{contact.address_2}': recipient.address_2 ?? '',\n    '{contact.town}': recipient.town ?? '',\n    '{contact.postcode}': recipient.postcode ?? '',\n    '{member.first_name}': firstName,\n    '{member.last_name}': lastName,\n    '{member.email_address}': emailAddress,\n  };\n  let rendered = String(value ?? '');\n  for (const [token, replacement] of Object.entries(tokenMap)) {\n    rendered = rendered.split(token).join(String(replacement));\n  }\n  return rendered.trim();\n};\nconst emailType = template.html_template && !template.text_template ? 'html' : 'text';\nconst bodySource = emailType === 'html'\n  ? (template.html_template ?? template.text_template ?? '')\n  : (template.text_template ?? template.html_template ?? '');\nconst signatureSource = emailType === 'html'\n  ? (template.signature_html_template ?? template.signature_text_template ?? '')\n  : (template.signature_text_template ?? template.signature_html_template ?? '');\nconst joinSeparator = emailType === 'html' ? '<br><br>' : '\\n\\n';\nreturn summary.recipients.map((recipient) => {\n  const fallbackName = splitName(recipient.payer);\n  const firstName = String(recipient.first_name ?? '').trim() || fallbackName.first_name;\n  const lastName = String(recipient.last_name ?? '').trim() || fallbackName.last_name;\n  const originalEmail = String(recipient.email_address ?? '').trim();\n  const isTestMode = summary.delivery_mode !== 'production';\n  const targetEmail = isTestMode ? summary.test_recipient : originalEmail;\n  const renderedMessage = applyTokens(bodySource, { ...recipient, first_name: firstName, last_name: lastName, email_address: originalEmail });\n  const renderedSignature = applyTokens(signatureSource, { ...recipient, first_name: firstName, last_name: lastName, email_address: originalEmail });\n  const composedMessage = [renderedMessage, renderedSignature].filter(Boolean).join(joinSeparator).trim();\n  const finalMessage = isTestMode\n    ? `${composedMessage}\\n\\n---\\nTEST MODE\\nOriginal recipient: ${originalEmail}\\nPayer: ${recipient.payer}`\n    : composedMessage;\n  return {\n    json: {\n      batch_id: summary.batch_id,\n      to_email: targetEmail,\n      original_to_email: originalEmail,\n      payer: recipient.payer,\n      sender_name: summary.sender_name,\n      reply_to: summary.reply_to,\n      template_key: template.template_key,\n      signature_template_key: template.signature_template_key || summary.signature_template_key || 'signature',\n      delivery_mode: summary.delivery_mode,\n      test_recipient: summary.test_recipient,\n      rendered_subject: applyTokens(template.subject_template ?? 'Message from Avondale about your tags', { ...recipient, first_name: firstName, last_name: lastName, email_address: originalEmail }),\n      rendered_message: finalMessage,\n      email_type: emailType,\n      recipient_first_name: firstName,\n      recipient_last_name: lastName,\n    }\n  };\n});"
       },
       "id": "91a5d1b5-1b90-4e5b-a0f0-000000000015",
       "name": "Build Send Items",
@@ -346,21 +346,33 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "http://n8n:5678/webhook/email-send-core",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ $json }}",
-        "options": {}
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.to_email }}",
+        "subject": "={{ $json.rendered_subject }}",
+        "emailType": "={{ $json.email_type }}",
+        "message": "={{ $json.rendered_message }}",
+        "options": {
+          "appendAttribution": false,
+          "replyTo": "={{ $json.reply_to }}",
+          "senderName": "={{ $json.sender_name }}"
+        }
       },
       "id": "91a5d1b5-1b90-4e5b-a0f0-000000000016",
-      "name": "Send Email Via Core",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "name": "Send Gmail Message",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
       "position": [
         3360,
         420
-      ]
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
     },
     {
       "parameters": {
@@ -401,7 +413,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const sentItems = $('Send Email Via Core').all();\nconst preparedItems = $('Build Send Items').all();\nconst summary = $('Collect Recipient Data').first().json;\nconst shouldMarkSent = $('Build Mark Sent SQL').first()?.json?.should_mark_sent === true;\nconst sentCount = sentItems.length;\nreturn [{\n  json: {\n    message: `Sent ${sentCount} email(s) for batch ${summary.batch_id} in ${summary.delivery_mode} mode`,\n    batch_id: summary.batch_id,\n    delivery_mode: summary.delivery_mode,\n    test_recipient: summary.test_recipient,\n    override_send: Boolean(summary.override_send),\n    no_address_email_sent: shouldMarkSent ? true : Boolean(summary.no_address_email_sent),\n    sent_count: sentCount,\n    recipients: preparedItems.slice(0, sentCount).map((item) => ({\n      payer: item.json.payer,\n      email: item.json.to_email,\n      original_email: item.json.original_to_email,\n      first_name: item.json.recipient_first_name,\n      last_name: item.json.recipient_last_name,\n    })),\n  }\n}];"
+        "jsCode": "const sentItems = $('Send Gmail Message').all();\nconst summary = $('Collect Recipient Data').first().json;\nconst shouldMarkSent = $('Build Mark Sent SQL').first()?.json?.should_mark_sent === true;\nreturn [{\n  json: {\n    message: `Sent ${sentItems.length} email(s) for batch ${summary.batch_id} in ${summary.delivery_mode} mode`,\n    batch_id: summary.batch_id,\n    delivery_mode: summary.delivery_mode,\n    test_recipient: summary.test_recipient,\n    override_send: Boolean(summary.override_send),\n    no_address_email_sent: shouldMarkSent ? true : Boolean(summary.no_address_email_sent),\n    sent_count: sentItems.length,\n    recipients: sentItems.map((item) => ({\n      payer: item.json.payer,\n      email: item.json.to_email,\n      original_email: item.json.original_to_email,\n      first_name: item.json.recipient_first_name,\n      last_name: item.json.recipient_last_name,\n    })),\n  }\n}];"
       },
       "id": "91a5d1b5-1b90-4e5b-a0f0-000000000017",
       "name": "Summarize Send",
@@ -615,14 +627,14 @@
       "main": [
         [
           {
-            "node": "Send Email Via Core",
+            "node": "Send Gmail Message",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Send Email Via Core": {
+    "Send Gmail Message": {
       "main": [
         [
           {
@@ -683,8 +695,30 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
+  "staticData": {},
   "pinData": {},
   "meta": {
     "templateCredsSetupCompleted": true
-  }
+  },
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "f7ca7159acbde431",
+      "name": "Email"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "5eb27d9d07f14a13",
+      "name": "Batch"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "23ad8e2617052af4",
+      "name": "ClubSpark"
+    }
+  ],
+  "description": ""
 }

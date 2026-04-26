@@ -1,6 +1,6 @@
 {
   "name": "ClubSpark Package Members Import XLSX",
-  "tags": ["ClubSpark","Import","Members"],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -622,7 +622,32 @@
       ]
     }
   },
-  "settings": {},
+  "settings": {
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": {},
   "pinData": {},
-  "versionId": "clubspark-package-members-import-xlsx-v1"
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "1419672f1d672d15",
+      "name": "Members"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "df46c901559c56fa",
+      "name": "Import"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "23ad8e2617052af4",
+      "name": "ClubSpark"
+    }
+  ],
+  "description": ""
 }

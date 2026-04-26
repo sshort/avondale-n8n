@@ -1,10 +1,6 @@
 {
   "name": "Case Tracking Open Pixel",
-  "description": "Returns an opaque 1x1 GIF and marks tracked case emails as opened when the token matches.",
-  "tags": [
-    "Email",
-    "Tickets"
-  ],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -181,9 +177,22 @@
     "availableInMCP": false,
     "callerPolicy": "workflowsFromSameOwner"
   },
+  "staticData": {},
   "pinData": {},
-  "versionId": "2e53792a-343d-4b50-9dbc-2dcc2246a5d3",
-  "meta": {
-    "instanceId": "avondale-n8n"
-  }
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "f7ca7159acbde431",
+      "name": "Email"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "481da1e1584ce9dc",
+      "name": "Tickets"
+    }
+  ],
+  "description": "Returns an opaque 1x1 GIF and marks tracked case emails as opened when the token matches."
 }

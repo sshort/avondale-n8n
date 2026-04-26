@@ -1,11 +1,6 @@
 {
   "name": "Sync Case Tracking Gmail To DB",
-  "tags": [
-    "Email",
-    "Import",
-    "Sync",
-    "Tickets"
-  ],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -298,5 +293,39 @@
       ]
     }
   },
-  "settings": {}
+  "settings": {},
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "pinData": {},
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "01bcdde6b1d2c414",
+      "name": "Sync"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "481da1e1584ce9dc",
+      "name": "Tickets"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "df46c901559c56fa",
+      "name": "Import"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "f7ca7159acbde431",
+      "name": "Email"
+    }
+  ],
+  "description": ""
 }

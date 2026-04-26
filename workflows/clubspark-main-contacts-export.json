@@ -1,6 +1,6 @@
 {
   "name": "ClubSpark Main Contacts Export",
-  "tags": ["ClubSpark","Export"],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -420,9 +420,21 @@
   "staticData": {
     "global": {}
   },
-  "meta": null,
-  "pinData": null,
-  "tags": [],
-  "active": true,
-  "isArchived": false
+  "pinData": {},
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "9499c9ef153bc908",
+      "name": "Export"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "23ad8e2617052af4",
+      "name": "ClubSpark"
+    }
+  ],
+  "description": ""
 }

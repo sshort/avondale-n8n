@@ -1,0 +1,100 @@
+{
+  "name": "Team Captain Mailout Generate",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "team-captain-mailout-generate",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "tmg-webhook-001",
+      "name": "Generate Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        260,
+        260
+      ],
+      "webhookId": "team-captain-mailout-generate"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.1.237:3010/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body || {} }}",
+        "options": {}
+      },
+      "id": "tmg-http-001",
+      "name": "Generate Bundle",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.success === false ? 500 : 200 }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "tmg-respond-001",
+      "name": "Respond Generate",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        860,
+        260
+      ]
+    }
+  ],
+  "connections": {
+    "Generate Webhook": {
+      "main": [
+        [
+          {
+            "node": "Generate Bundle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Bundle": {
+      "main": [
+        [
+          {
+            "node": "Respond Generate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": {},
+  "pinData": {},
+  "meta": {},
+  "tags": [],
+  "description": ""
+}

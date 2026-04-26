@@ -1,0 +1,66 @@
+{
+  "name": "Test Webhook",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "test-refund-minimal",
+        "httpMethod": "GET",
+        "responseMode": "responseNode"
+      },
+      "id": "test1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "test-refund-minimal",
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Hello World"
+      },
+      "id": "test2",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        200,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": {},
+  "pinData": {},
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "ce443ddfc3ead13b",
+      "name": "Test"
+    }
+  ],
+  "description": ""
+}

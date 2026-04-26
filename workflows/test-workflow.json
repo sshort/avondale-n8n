@@ -1,0 +1,23 @@
+{
+  "name": "Test Workflow",
+  "active": false,
+  "nodes": [],
+  "connections": {},
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": {},
+  "pinData": {},
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "ce443ddfc3ead13b",
+      "name": "Test"
+    }
+  ],
+  "description": ""
+}

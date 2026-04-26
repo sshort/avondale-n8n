@@ -1,10 +1,6 @@
 {
   "name": "Preview Refund Request Email",
-  "tags": [
-    "Email",
-    "Forms",
-    "Refund"
-  ],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -489,7 +485,28 @@
     "availableInMCP": false,
     "callerPolicy": "workflowsFromSameOwner"
   },
+  "staticData": {},
   "pinData": {},
-  "versionId": "7ee920d1-a362-45e5-bd74-cdb9325fc38e",
-  "active": true
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "b66d135472c8652d",
+      "name": "Refund"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "f7ca7159acbde431",
+      "name": "Email"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "08ef3342121ccbfe",
+      "name": "Forms"
+    }
+  ],
+  "description": ""
 }
