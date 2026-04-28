@@ -2,6 +2,7 @@
   "name": "Email Image Asset",
   "description": "Serves managed email images from public.images for browser preview and editor rendering.",
   "tags": ["Email", "Images"],
+  "active": true,
   "nodes": [
     {
       "parameters": {},

@@ -337,47 +337,27 @@
     },
     {
       "parameters": {
-        "authentication": "oAuth2",
-        "resource": "message",
-        "operation": "send",
-        "sendTo": "={{ $json.to_recipient }}",
-        "subject": "={{ $json.rendered_subject }}",
-        "emailType": "={{ $json.email_type }}",
-        "message": "={{ $json.rendered_message }}",
-        "options": {
-          "appendAttribution": false,
-          "bccList": "={{ $json.bcc_recipients }}",
-          "replyTo": "={{ $json.reply_to }}",
-          "senderName": "={{ $json.sender_name }}",
-          "attachmentsUi": {
-            "attachmentsBinary": [
-              {
-                "property": "={{ $json.attachment_binary_properties }}"
-              }
-            ]
-          }
-        }
+        "method": "POST",
+        "url": "http://127.0.0.1:5678/webhook/email-send-core",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { flow_name: 'send-team-captain-contact-lists', to: $json.to_recipient, bcc: $json.bcc_recipients, sender_name: $json.sender_name, reply_to: $json.reply_to, rendered_subject: $json.rendered_subject, rendered_message: $json.rendered_message, email_type: $json.email_type, attachments: $json.attachments } }}",
+        "options": {}
       },
       "id": "d4000000-0000-0000-0000-000000000017",
       "name": "Send Gmail Message",
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2.2,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         3300,
         520
-      ],
-      "credentials": {
-        "gmailOAuth2": {
-          "id": "JHuPZBB6pULmuxKm",
-          "name": "Avondale Gmail OAuth2"
-        }
-      }
+      ]
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const sentItems = $input.all().map((item) => item.json ?? {});\nreturn [{\n  json: {\n    message: `Sent ${sentItems.length} captain mailout email(s) in ${sentItems[0]?.delivery_mode ?? 'test'} mode`,\n    sent_count: sentItems.length,\n    delivery_mode: sentItems[0]?.delivery_mode ?? 'test',\n    sent: sentItems.map((item) => ({\n      captain_name: item.captain_name,\n      captain_names: item.captain_names ?? [],\n      team_name: item.team_name,\n      to_recipient: item.to_recipient,\n      bcc_recipients: item.bcc_recipients,\n      actual_recipient: item.actual_recipient,\n      intended_recipient: item.intended_recipient,\n      attachment_count: item.attachment_count ?? (Array.isArray(item.attachments) ? item.attachments.length : 0)\n    }))\n  }\n}];"
+        "jsCode": "const helperItems = $input.all().map((item) => item.json ?? {});\nconst sourceItems = $('Assemble Email Item').all().map((item) => item.json ?? {});\nreturn [{\n  json: {\n    message: `Sent ${sourceItems.length} captain mailout email(s) in ${sourceItems[0]?.delivery_mode ?? 'test'} mode`,\n    sent_count: sourceItems.length,\n    delivery_mode: sourceItems[0]?.delivery_mode ?? 'test',\n    helper_results: helperItems.map((item) => ({\n      gmail_message_id: item.gmail_message_id,\n      gmail_thread_id: item.gmail_thread_id,\n      inline_image_count: item.inline_image_count ?? 0,\n      ordinary_attachment_count: item.ordinary_attachment_count ?? 0\n    })),\n    sent: sourceItems.map((item) => ({\n      captain_name: item.captain_name,\n      captain_names: item.captain_names ?? [],\n      team_name: item.team_name,\n      to_recipient: item.to_recipient,\n      bcc_recipients: item.bcc_recipients,\n      actual_recipient: item.actual_recipient,\n      intended_recipient: item.intended_recipient,\n      attachment_count: item.attachment_count ?? (Array.isArray(item.attachments) ? item.attachments.length : 0)\n    }))\n  }\n}];"
       },
       "id": "d4000000-0000-0000-0000-000000000018",
       "name": "Summarize Send",

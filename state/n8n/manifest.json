@@ -171,13 +171,17 @@
       "key": "email-image-asset",
       "name": "Email Image Asset",
       "file": "workflows/email-image-asset.json",
-      "ids": {}
+      "ids": {
+        "local": "raEks5yRsFfGfRlz"
+      }
     },
     {
       "key": "email-send-core",
       "name": "Email Send Core",
       "file": "workflows/email-send-core.json",
-      "ids": {}
+      "ids": {
+        "local": "dmiRVYCUyUo3IVoX"
+      }
     },
     {
       "key": "email-template-editor-actions",

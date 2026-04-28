@@ -31,7 +31,15 @@ The visible proof is simple. An operator can open the email template editor or a
 - [x] Migrate the remaining outbound email workflows to the shared HTML plus CID-capable send path.
 - [x] (2026-04-24 16:24Z) Validated all changed workflow JSON files and embedded Code-node scripts for the editor and preview layer after the managed-image changes.
 - [x] (2026-04-24 16:31Z) Published the updated member and refund preview workflows to n8n using workflow ids `7YqE6u4FbNRAXaRp` and `KJ7Ys7oAxo0yGYhi`.
-- [ ] Complete live browser and outbound-email verification for the updated editor and preview workflows, then move the project item to `Done`.
+- [x] (2026-04-28 08:19Z) Completed a live verification pass against local n8n and local Postgres. The member preview page renders as an HTML-first TinyMCE surface with managed-image insertion/upload controls when called with a real member and template, and the image library is populated from `public.images`.
+- [x] (2026-04-28 08:19Z) Verified that the deployed browser path is still incomplete: `GET /webhook/email-image-asset?image_key=avondale_banner` returns `404` because the `Email Image Asset` workflow is not registered locally, so inserted managed images cannot currently render from the expected asset webhook.
+- [x] (2026-04-28 08:19Z) Verified that the deployed outbound mail path is still incomplete: local n8n does not have a live `Email Send Core` workflow, `Send Gmail Test Message` still ends on the stock `Send Gmail Message` node, and `Send Team Captain Contact Lists` also still uses the stock Gmail node. That means multipart CID verification is blocked on deployment and migration drift, not on the remaining test procedure itself.
+- [x] (2026-04-28 08:19Z) Verified that the current refund dataset does not contain any rows in `New Request`, `Request Bank Details`, `Bank Details Obtained`, or `Submitted for Refund`, so the refund preview can only be code-level validated today; every live refund row is already `Refund Processed`, which causes the preview workflow to reject the available actions by design.
+- [x] (2026-04-28 09:02Z) Created and activated local workflows `Email Image Asset` (`raEks5yRsFfGfRlz`) and `Email Send Core` (`dmiRVYCUyUo3IVoX`) through the n8n API, and recorded those ids in `state/n8n/manifest.json`.
+- [x] (2026-04-28 09:02Z) Migrated the live local `Send Gmail Test Message`, `Send Member Template Email`, and `Send Team Captain Contact Lists` workflows from the stock Gmail node to the shared HTTP-post transport by republishing their checked-in workflow JSON into the local n8n database.
+- [x] (2026-04-28 09:02Z) Added `upsert_image` support to `Email Template Editor Actions`, republished it locally, and verified a smoke upload by writing `cid_upload_smoke_test` into `public.images` and successfully serving it back through `GET /webhook/email-image-asset`.
+- [x] (2026-04-28 09:02Z) Verified the repaired helper path with a live send: posting a smoke payload with managed image `avondale_banner` to `POST /webhook/email-send-core` returned `ok: true`, a real Gmail message id, and `inline_image_count: 1`.
+- [ ] Complete manual refund-flow checks and any final inbox-source inspection you still want before moving the project item to `Done`.
 
 ## Surprises & Discoveries
 
@@ -52,6 +60,18 @@ The visible proof is simple. An operator can open the email template editor or a
 
 - Observation: using the n8n `executeWorkflow` node for a brand-new shared helper is awkward before the helper exists live because the caller needs the target workflow database id.
   Evidence: existing `executeWorkflow` nodes in this repository reference concrete live workflow ids, while the new helper had no stable id yet. The implementation therefore exposed `email-send-core` as a stable internal webhook path first and migrated the test sender to HTTP-post into that path.
+
+- Observation: the deployed local stack is materially behind the ExecPlan narrative.
+  Evidence: `GET /api/v1/workflows?limit=250` on `http://192.168.1.237:5678` shows no live `Email Image Asset` or `Email Send Core` workflows, `GET /api/v1/workflows/TPqbJ7Niw68B92T3` still shows a stock `n8n-nodes-base.gmail` send node for `Send Gmail Test Message`, and `GET /api/v1/workflows/dosfDcDH2Hlond4z` still shows a stock `n8n-nodes-base.gmail` send node for `Send Team Captain Contact Lists`.
+
+- Observation: the member preview UI is ahead of the transport rollout.
+  Evidence: calling `GET /webhook/preview-member-template-email?member_id=5151&member=David%20Pharo&membership=1.%20Senior%202026&email=david.pharo%40aon.com&template_key=test` returns an HTML page with TinyMCE, `Insert Managed Image`, `Upload Managed Image`, `data-avondale-image-key`, and `imageAssetUrlBase = ".../webhook/email-image-asset?image_key="`, but the asset webhook itself currently returns `404 Not Found`.
+
+- Observation: the live refund preview cannot currently be exercised end-to-end with the present local data.
+  Evidence: every row in `public.refunds` is already `Refund Processed`, while the preview workflow explicitly allows `request_bank_details` only for `New Request` or `Request Bank Details`, and `submit_refund_request` only for `Bank Details Obtained` or `Submitted for Refund`.
+
+- Observation: the local n8n task-runner disallows `require('path')` inside Code nodes even though `require('fs')` is still usable.
+  Evidence: the first live `Email Send Core` smoke execution failed with `Module 'path' is disallowed [line 2]`. Replacing `path.basename` and `path.extname` with string-based helpers fixed the runtime error, and the next smoke send completed successfully.
 
 ## Decision Log
 
@@ -81,9 +101,9 @@ The visible proof is simple. An operator can open the email template editor or a
 
 ## Outcomes & Retrospective
 
-Implementation is now substantially complete. The feature has a dedicated branch, a tracked GitHub issue, a checked-in ExecPlan, a new image asset workflow, a new shared raw-MIME transport workflow, migrated outbound senders, and upgraded authoring surfaces across the template editor, case preview, member preview, and refund preview. Managed images can now be uploaded into `public.images`, inserted into HTML compositions, previewed through the asset webhook, and carried through the shared send contract so they can be rewritten to CID at send time.
+The live verification pass showed that the feature is only partially deployed, not verification-complete. The member preview workflow is live and does expose the HTML editor plus managed-image UI, but the shared image asset webhook is not registered, the shared raw-MIME helper is not registered, and the live simple-send and team-captain send workflows are still on the stock Gmail node. That means the browser/editor layer and the transport layer are out of sync.
 
-The remaining work is mostly verification and close-out, not core implementation. The updated preview workflows have been published to n8n, but the feature still needs live browser checks across all editor surfaces and end-to-end outbound email verification in received messages. After that, the GitHub issue notes and project item should be finalized and moved to `Done`.
+The local repair is now in place. The missing helper workflows are published and active, the key live senders are routed through the shared transport, managed-image upsert now works, and a live smoke email with one managed inline image completed successfully. The remaining work is now mostly manual acceptance: refund-specific checks against suitable refund rows and any final raw-source inspection you want to perform in the mailbox.
 
 ## Context and Orientation
 

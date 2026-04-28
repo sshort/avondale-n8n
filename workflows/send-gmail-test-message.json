@@ -127,33 +127,21 @@
     },
     {
       "parameters": {
-        "authentication": "oAuth2",
-        "resource": "message",
-        "operation": "send",
-        "sendTo": "={{ $json.to_email }}",
-        "subject": "={{ $json.rendered_subject }}",
-        "emailType": "={{ $json.email_type }}",
-        "message": "={{ $json.rendered_message }}",
-        "options": {
-          "appendAttribution": false,
-          "replyTo": "={{ $json.reply_to }}",
-          "senderName": "={{ $json.sender_name }}"
-        }
+        "method": "POST",
+        "url": "http://127.0.0.1:5678/webhook/email-send-core",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { flow_name: 'send-gmail-test-message', to: $json.to_email, sender_name: $json.sender_name, reply_to: $json.reply_to, rendered_subject: $json.rendered_subject, rendered_message: $json.rendered_message, email_type: $json.email_type } }}",
+        "options": {}
       },
       "id": "54f78356-f5a5-4774-b2df-cbfa87f9241b",
       "name": "Send Gmail Message",
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2.2,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         2060,
         300
-      ],
-      "credentials": {
-        "gmailOAuth2": {
-          "id": "JHuPZBB6pULmuxKm",
-          "name": "Avondale Gmail OAuth2"
-        }
-      }
+      ]
     }
   ],
   "connections": {
