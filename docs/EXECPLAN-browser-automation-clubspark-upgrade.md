@@ -17,6 +17,7 @@ The visible proof is simple. After implementation, a human can execute the ClubS
 - [x] (2026-04-28 11:12Z) Confirmed that the current ClubSpark workflows still use `clubspark_exporter_base_url`, legacy `/clubspark-*` routes, and request headers rather than JSON request bodies.
 - [x] (2026-04-28 11:18Z) Drafted this ExecPlan for the browser-automation upgrade, including the requested move of ClubSpark and LTA credentials into `public.global_settings`.
 - [x] (2026-04-28 11:31Z) Created GitHub issue `#92`, added it to the `avondale-n8n board`, and moved the project item to `In Progress`.
+- [x] (2026-04-28 11:50Z) Refined the plan to include a portable repo-relative bind-mount strategy for script iteration without making it a required production deployment mode.
 - [ ] Add a SQL migration that seeds `browser_automation_base_url` and the ClubSpark/LTA credential keys in `public.global_settings`.
 - [ ] Add the repository-native `browser-automation` packaging and service entry point while preserving the local Metabase PDF script.
 - [ ] Update the ClubSpark service wrapper and ClubSpark scripts so JSON payload credentials are supported in this repository.
@@ -41,6 +42,9 @@ The visible proof is simple. After implementation, a human can execute the ClubS
 - Observation: the current local stack stores ClubSpark and LTA credentials in Docker environment variables, not in workflow-accessible settings.
   Evidence: `/mnt/c/dev/avondale-n8n/docker-compose.yml` currently sets `CLUBSPARK_EMAIL`, `CLUBSPARK_PASSWORD`, `LTA_USERNAME`, and `LTA_PASSWORD` on the `clubspark-exporter` container, while `/mnt/c/dev/avondale-n8n/sql/009_global_settings.sql` does not contain any credential keys.
 
+- Observation: a portable bind mount can be repo-relative, but the worker process must not use a read-only mounted script directory as its writable working directory.
+  Evidence: the ClubSpark export scripts write failure screenshots such as `clubspark-export-debug.png` and `clubspark-members-export-debug.png` using `path.resolve('./...')`, so a future read-only script mount requires a separate writable process cwd such as `/tmp`.
+
 ## Decision Log
 
 - Decision: keep `/mnt/c/dev/avondale-n8n/scripts/export-metabase-dashboard-pdf.mjs` as the canonical Metabase PDF renderer and only migrate its service route and packaging context.
@@ -61,6 +65,10 @@ The visible proof is simple. After implementation, a human can execute the ClubS
 
 - Decision: perform the workflow cutover in two layers: first move callers onto the new base URL and JSON body while the compatibility aliases still work, then switch the endpoints to `/jobs/...`.
   Rationale: this reduces blast radius. A broken route migration and a broken payload migration should not happen in the same opaque step if avoidable.
+  Date/Author: 2026-04-28 / Codex
+
+- Decision: plan for a portable development-time script mount using a repo-relative bind mount such as `./scripts:/app/runtime-scripts:ro`, but keep baked-in fallback scripts in the image so the mount is optional.
+  Rationale: this gives faster iteration when the container runs from a checked-out repository on any host, without making the deployment depend on one specific machine path or on the mount always being present.
   Date/Author: 2026-04-28 / Codex
 
 ## Outcomes & Retrospective
@@ -101,6 +109,10 @@ Next, replace the packaging boundary. Create a new repository-local `browser-aut
 - `POST /jobs/metabase/dashboard-pdf`
 
 The service must also retain the old aliases `/clubspark-export`, `/clubspark-members-export`, `/clubspark-members-main-contacts-export`, `/clubspark-auth-session`, and `/metabase-dashboard-pdf` so the migration can proceed safely. The route handler for the Metabase job must continue to invoke `/mnt/c/dev/avondale-n8n/scripts/export-metabase-dashboard-pdf.mjs`, not the older deploy-repo version.
+
+When designing that packaging boundary, treat script mounting as an optional development and operations convenience, not as a hard requirement for correctness. The image should still contain a working copy of the server wrapper and job scripts so it can run without any bind mount. In addition, the compose definition for repository-based deployments should support a portable repo-relative mount of the checked-out scripts directory, for example `./scripts:/app/runtime-scripts:ro`. The service entry point should prefer the mounted script directory when present and fall back to the baked-in scripts when it is absent. This is how the same container design remains portable across hosts: the compose file uses a relative path rooted at the repository checkout, not a workstation-specific absolute path.
+
+Because the ClubSpark worker scripts write debug screenshots on failure, the process model must also separate script location from writable working directory. In plain language, the scripts may be read from `/app/runtime-scripts`, but the child `node` processes should run with a writable cwd such as `/tmp` or another writable application work directory so failure artifacts do not try to write into a read-only bind mount.
 
 After the container boundary exists, add payload-driven credential handling for ClubSpark. The server wrapper must accept JSON request bodies that contain:
 
@@ -169,6 +181,8 @@ Build the new packaging boundary and validate the JSON manifests:
     node --check scripts/export-clubspark-members-local.mjs
     node --check scripts/export-metabase-dashboard-pdf.mjs
 
+If the implementation includes the planned optional script mount, validate both startup modes. First verify the image-only path with no bind mount. Then verify the repo-relative mount path with a compose or compose-override file rooted in the repository checkout, not in a machine-specific absolute path. In the mount-enabled case, edit one of the mounted ClubSpark job scripts and confirm that the next request uses the new file without rebuilding the image. If the server wrapper itself changes, expect a container restart but not an image rebuild.
+
 Validate each edited workflow export after every change:
 
     cd /mnt/c/dev/avondale-n8n
@@ -212,6 +226,8 @@ Repository acceptance requires `jq empty` to pass for all changed workflow JSON 
 ## Idempotence and Recovery
 
 This plan is designed to be implemented additively. Keep the legacy route aliases while the workflows move to JSON bodies and new setting keys. Keep the old `clubspark_exporter_base_url` row during the transition. Keep environment-variable fallback in the service and scripts until the new payload-driven path is verified. These choices make it possible to retry the migration without leaving the repository or live stack in a broken half-state.
+
+The optional script-mount path should also be additive. The image must still work with no bind mount. That makes recovery simple: if a host-specific compose override, a read-only mount, or a bad checked-out script causes trouble, disable the mount and run the baked-in scripts while continuing to use the same image and workflow contract.
 
 If the new `browser-automation` service boots but a workflow fails, point the workflow back to the compatibility alias or old base URL temporarily while debugging the JSON request body. If the workflow migration succeeds but the service naming update is incomplete, keep the legacy `clubspark-exporter` image build available long enough to compare behavior. Do not remove the old documentation or build helper until the new service and workflows have both been validated.
 
@@ -259,6 +275,22 @@ The final ClubSpark request body should carry both session reuse fields and cred
 
 The final Metabase request body should stay structurally the same as the one already produced by `workflows/metabase-report-generate.json`; only the base URL key and endpoint path should change. That is the operational meaning of “use the avondale-n8n Metabase script as is.”
 
+The planned portable mount strategy can be summarized briefly:
+
+    image contains:
+      /app/default-scripts/<server-and-job-scripts>
+
+    optional repo-relative compose mount:
+      ./scripts:/app/runtime-scripts:ro
+
+    runtime rule:
+      if /app/runtime-scripts exists with the required files, prefer it
+      otherwise run the baked-in /app/default-scripts copy
+
+    worker rule:
+      child job processes read scripts from the selected script directory
+      but run with a separate writable cwd such as /tmp
+
 ## Interfaces and Dependencies
 
 The service layer must end with a repository-local `browser-automation` package and a server entry point that mirrors the deploy-repo contract while calling the local scripts. The authoritative local scripts after implementation are:
@@ -276,3 +308,4 @@ The container layer must continue to provide `METABASE_BASE_URL` to the service,
 
 Revision note: created this plan after comparing the local repository with `/mnt/c/dev/avondale-deploy`, confirming that the service wrapper and workflow contract are the main migration target, and incorporating the user’s explicit requirements to keep the local Metabase renderer and move ClubSpark/LTA credentials into `public.global_settings`.
 Revision note: updated the plan after creating GitHub issue `#92` and moving the matching project item to `In Progress`, so the living-document status matches the actual board state.
+Revision note: updated the plan to capture a portable repo-relative script-mount strategy as an optional implementation detail, including the need for a writable worker cwd separate from a read-only script mount.
