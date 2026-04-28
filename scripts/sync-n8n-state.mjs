@@ -332,7 +332,8 @@ async function pushToInstance(instanceName, stateRoot, keys) {
     let result;
 
     if (targetId) {
-      result = await updateWorkflow(instance, targetId, payload);
+      const { active: _a, tags: _t, description: _d, pinData: _p, meta: _m, ...updatePayload } = payload;
+      result = await updateWorkflow(instance, targetId, updatePayload);
     } else {
       result = await createWorkflow(instance, payload);
       targetId = result?.id ?? result?.data?.id ?? null;
