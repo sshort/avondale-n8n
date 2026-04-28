@@ -1,0 +1,212 @@
+{
+  "id": "4Rf27cRk7JHG0sjq",
+  "name": "Global Settings Actions",
+  "nodes": [
+    {
+      "id": "gsx000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [224, 32],
+      "parameters": {}
+    },
+    {
+      "id": "gsx000000-0000-0000-0000-000000000002",
+      "name": "Global Settings Actions Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [224, 208],
+      "webhookId": "global-settings-actions",
+      "parameters": {
+        "path": "global-settings-actions",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "gsx000000-0000-0000-0000-000000000003",
+      "name": "Load Action Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [480, 224],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url FROM public.global_settings WHERE key IN ('n8n_base_url');",
+        "options": {}
+      }
+    },
+    {
+      "id": "gsx000000-0000-0000-0000-000000000004",
+      "name": "Resolve Action Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [768, 224],
+      "parameters": {
+        "jsCode": "const settings=$('Load Action Settings').first()?.json??{}; const request=$('Global Settings Actions Webhook').first()?.json??$input.first()?.json??{}; const body=request.body??request.query??request; const headers=request.headers??{}; const clean=(v)=>v===null||v===undefined?'':String(v).trim(); const deriveBaseUrl=(h,fb)=>{const fp=clean(h['x-forwarded-proto']);const fh=clean(h['x-forwarded-host']);const host=fh||clean(h.host);if(!host)return fb;const proto=fp||'http';let a=host;const fport=clean(h['x-forwarded-port']);if(fport&&!a.includes(':')){const def=(proto==='http'&&fport==='80')||(proto==='https'&&fport==='443');if(!def)a=a+':'+fport;}return proto+'://'+a;}; const fallbackBaseUrl=clean(settings.n8n_base_url)||'http://n8n:5678'; const n8nBaseUrl=deriveBaseUrl(headers,fallbackBaseUrl); const action=clean(body.action); const key=clean(body.key); const value=body.value!==undefined?String(body.value??''):''; const type=clean(body.type); const returnUrl=clean(body.return_url)||(n8nBaseUrl+'/webhook/global-settings'); const VALID_TYPES=['text','number','url','json','email_template_key','email']; let errorMessage=''; if(action==='update_setting'){if(!key){errorMessage='Setting key is required.';}else if(type&&!VALID_TYPES.includes(type)){errorMessage='Invalid type: '+type+'.';}else{const effectiveType=VALID_TYPES.includes(type)?type:'text';if(effectiveType==='number'){if(value.trim()!==''&&!isFinite(Number(value.trim()))){errorMessage='Value must be a valid number.';}}else if(effectiveType==='url'){if(value.trim()){try{new URL(value.trim());}catch{errorMessage='Value must be a valid URL (include http:// or https://).';}}}else if(effectiveType==='json'){if(value.trim()){try{JSON.parse(value.trim());}catch(e){errorMessage='Value must be valid JSON: '+e.message;}}}else if(effectiveType==='email_template_key'){if(!value.trim()){errorMessage='Please select a template.';}}else if(effectiveType==='email'){if(value.trim()&&!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(value.trim())){errorMessage='Value must be a valid email address.';}}}}else{errorMessage='Unknown action: '+action;} return [{json:{action,key,value,type:VALID_TYPES.includes(type)?type:'text',error_message:errorMessage,return_url:returnUrl,n8n_base_url:n8nBaseUrl,success_message:''}}];"
+      }
+    },
+    {
+      "id": "gsx000000-0000-0000-0000-000000000005",
+      "name": "Check Request Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1040, 224],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "gsx000000-0000-0000-0000-000000000005-condition",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "gsx000000-0000-0000-0000-000000000006",
+      "name": "Build Error HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1312, 112],
+      "parameters": {
+        "jsCode": "const input=$('Resolve Action Request').first()?.json??{}; const message=input.error_message||'Unable to complete the requested action.'; const returnBase=input.return_url||'#'; const redirectTo=returnBase+(returnBase.includes('?')?'&':'?')+'error='+encodeURIComponent(message); const escapeHtml=(v)=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;'); const html=`<!doctype html><html lang='en'><head><meta charset='utf-8'><meta http-equiv='refresh' content='0; url=${escapeHtml(redirectTo)}'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Error</title></head><body><p>${escapeHtml(message)}</p><p><a href='${escapeHtml(redirectTo)}'>Continue</a></p></body></html>`; return [{json:{html}}];"
+      }
+    },
+    {
+      "id": "gsx000000-0000-0000-0000-000000000007",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [1584, 112],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "text/html; charset=utf-8" },
+              { "name": "Cache-Control", "value": "no-store, no-cache, must-revalidate, max-age=0" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "gsx000000-0000-0000-0000-000000000008",
+      "name": "Build Action SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1312, 336],
+      "parameters": {
+        "jsCode": "const input=$input.first().json??{}; const sqlLiteral=(v)=>\"'\"+String(v??'').replace(/'/g,\"''\")+\"'\"; const key=input.key; const value=input.value; const type=input.type||'text'; const sql=`UPDATE public.global_settings SET value=${sqlLiteral(value)}, setting_type=${sqlLiteral(type)}, updated_at=now() WHERE key=${sqlLiteral(key)} RETURNING key`; const successMessage=`Setting saved.`; return [{json:{...input,sql,success_message:successMessage}}];"
+      }
+    },
+    {
+      "id": "gsx000000-0000-0000-0000-000000000009",
+      "name": "Execute Action SQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1584, 336],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "gsx000000-0000-0000-0000-000000000010",
+      "name": "Build Success HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1856, 336],
+      "parameters": {
+        "jsCode": "const input=$('Build Action SQL').first()?.json??{}; const clean=(v)=>v===null||v===undefined?'':String(v).trim(); const escapeHtml=(v)=>clean(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;'); const listUrl=(input.n8n_base_url||'')+'/webhook/global-settings'; const redirectTo=listUrl+(listUrl.includes('?')?'&':'?')+'message='+encodeURIComponent(input.success_message||'Saved'); const html=`<!doctype html><html lang='en'><head><meta charset='utf-8'><meta http-equiv='refresh' content='0; url=${escapeHtml(redirectTo)}'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Saved</title></head><body><p>Saved. <a href='${escapeHtml(redirectTo)}'>Continue</a></p></body></html>`; return [{json:{html}}];"
+      }
+    },
+    {
+      "id": "gsx000000-0000-0000-0000-000000000011",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [2128, 336],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "text/html; charset=utf-8" },
+              { "name": "Cache-Control", "value": "no-store, no-cache, must-revalidate, max-age=0" }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [[{ "node": "Load Action Settings", "type": "main", "index": 0 }]]
+    },
+    "Global Settings Actions Webhook": {
+      "main": [[{ "node": "Load Action Settings", "type": "main", "index": 0 }]]
+    },
+    "Load Action Settings": {
+      "main": [[{ "node": "Resolve Action Request", "type": "main", "index": 0 }]]
+    },
+    "Resolve Action Request": {
+      "main": [[{ "node": "Check Request Error", "type": "main", "index": 0 }]]
+    },
+    "Check Request Error": {
+      "main": [
+        [{ "node": "Build Error HTML", "type": "main", "index": 0 }],
+        [{ "node": "Build Action SQL", "type": "main", "index": 0 }]
+      ]
+    },
+    "Build Error HTML": {
+      "main": [[{ "node": "Respond Error", "type": "main", "index": 0 }]]
+    },
+    "Build Action SQL": {
+      "main": [[{ "node": "Execute Action SQL", "type": "main", "index": 0 }]]
+    },
+    "Execute Action SQL": {
+      "main": [[{ "node": "Build Success HTML", "type": "main", "index": 0 }]]
+    },
+    "Build Success HTML": {
+      "main": [[{ "node": "Respond Success", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "meta": {}
+}
