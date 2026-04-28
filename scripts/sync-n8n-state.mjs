@@ -125,7 +125,11 @@ async function api(instance, method, requestPath, body) {
   const text = await response.text();
   const data = text ? JSON.parse(text) : null;
   if (!response.ok) {
-    throw new Error(`${method} ${requestPath} on ${instance.name} failed: ${response.status} ${text}`);
+    const error = new Error(
+      `${method} ${requestPath} on ${instance.name} failed: ${response.status} ${text}`,
+    );
+    error.status = response.status;
+    throw error;
   }
 
   return data?.data ?? data;
@@ -271,7 +275,16 @@ async function pullFromInstance(instanceName, stateRoot, keys) {
 
   const pulledKeys = [];
   for (const summary of selectedSummaries) {
-    const full = await getWorkflow(instance, summary.id);
+    let full;
+    try {
+      full = await getWorkflow(instance, summary.id);
+    } catch (error) {
+      if (error?.status === 404) {
+        console.warn(`Skipping stale workflow id ${summary.id} from ${instanceName}; it is listed but not fetchable`);
+        continue;
+      }
+      throw error;
+    }
     const canonical = canonicalizeWorkflow(full);
     let resource =
       manifest.resources.find((entry) => entry.ids?.[instanceName] === summary.id) ??
@@ -319,7 +332,8 @@ async function pushToInstance(instanceName, stateRoot, keys) {
     let result;
 
     if (targetId) {
-      result = await updateWorkflow(instance, targetId, payload);
+      const { active: _a, tags: _t, description: _d, pinData: _p, meta: _m, ...updatePayload } = payload;
+      result = await updateWorkflow(instance, targetId, updatePayload);
     } else {
       result = await createWorkflow(instance, payload);
       targetId = result?.id ?? result?.data?.id ?? null;

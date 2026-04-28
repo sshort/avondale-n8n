@@ -1,6 +1,6 @@
 {
   "name": "Team Management Actions",
-  "tags": ["Admin","Teams"],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -325,5 +325,23 @@
     "executionOrder": "v1",
     "availableInMCP": false,
     "callerPolicy": "workflowsFromSameOwner"
-  }
+  },
+  "staticData": {},
+  "pinData": {},
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "e46b47576592980b",
+      "name": "Admin"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:03:32.648Z",
+      "id": "tHrjyTANqRdCkID6",
+      "name": "Teams"
+    }
+  ],
+  "description": ""
 }

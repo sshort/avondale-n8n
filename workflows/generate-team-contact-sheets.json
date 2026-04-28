@@ -1,9 +1,6 @@
 {
   "name": "Generate Team Contact Sheets",
-  "tags": [
-    "Export",
-    "Teams"
-  ],
+  "active": true,
   "nodes": [
     {
       "parameters": {
@@ -139,9 +136,26 @@
       ]
     }
   },
-  "active": true,
   "settings": {
     "executionOrder": "v1",
     "availableInMCP": false
-  }
+  },
+  "staticData": {},
+  "pinData": {},
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "9499c9ef153bc908",
+      "name": "Export"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:03:32.648Z",
+      "id": "tHrjyTANqRdCkID6",
+      "name": "Teams"
+    }
+  ],
+  "description": ""
 }

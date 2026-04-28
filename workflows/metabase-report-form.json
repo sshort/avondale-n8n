@@ -1,6 +1,6 @@
 {
   "name": "Metabase Report Form",
-  "tags": ["Forms","Reports"],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -142,7 +142,22 @@
     "availableInMCP": false,
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "pinData": null,
-  "versionId": "f3104c1e-11c5-4bcb-9120-f931b53b19cb",
-  "active": true
+  "staticData": {},
+  "pinData": {},
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "db222cd612b56c1f",
+      "name": "Reports"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "08ef3342121ccbfe",
+      "name": "Forms"
+    }
+  ],
+  "description": ""
 }

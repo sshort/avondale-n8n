@@ -1,6 +1,6 @@
 {
   "name": "ClubSpark Members Export",
-  "tags": ["ClubSpark","Export","Members"],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -420,11 +420,29 @@
   "staticData": {
     "global": {}
   },
+  "pinData": {},
   "meta": {
     "templateCredsSetupCompleted": false
   },
-  "pinData": {},
-  "tags": [],
-  "active": true,
-  "isArchived": false
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "1419672f1d672d15",
+      "name": "Members"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "9499c9ef153bc908",
+      "name": "Export"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "23ad8e2617052af4",
+      "name": "ClubSpark"
+    }
+  ],
+  "description": ""
 }

@@ -1,6 +1,6 @@
 {
   "name": "Sync local source of truth to cloud",
-  "tags": ["Export","Import","Sync"],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -1411,12 +1411,30 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": true
   },
-  "staticData": null,
+  "staticData": {},
+  "pinData": {},
   "meta": {
     "templateCredsSetupCompleted": false
   },
-  "pinData": {},
-  "tags": [],
-  "active": true,
-  "isArchived": false
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "9499c9ef153bc908",
+      "name": "Export"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "df46c901559c56fa",
+      "name": "Import"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "01bcdde6b1d2c414",
+      "name": "Sync"
+    }
+  ],
+  "description": ""
 }

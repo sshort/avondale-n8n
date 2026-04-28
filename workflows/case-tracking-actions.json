@@ -1,6 +1,6 @@
 {
   "name": "Case Tracking Actions",
-  "tags": ["Admin","Tickets"],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -188,7 +188,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const input = $('Build Action SQL').first()?.json ?? {};\nconst result = $input.first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nlet redirectTo = input.return_url || (input.n8n_base_url + '/webhook/case-tracking?view=dashboard');\nif (input.action === 'create_case' && clean(result.case_id)) {\n  redirectTo = input.n8n_base_url + '/webhook/case-tracking?view=case&id=' + encodeURIComponent(result.case_id);\n} else if ((input.action === 'update_case' || input.action === 'add_note') && clean(result.case_id)) {\n  redirectTo = input.n8n_base_url + '/webhook/case-tracking?view=case&id=' + encodeURIComponent(result.case_id);\n} else if (input.action === 'save_signature' && clean(input.template_key)) {\n  redirectTo = input.n8n_base_url + '/webhook/case-tracking?view=signatures&template_key=' + encodeURIComponent(input.template_key);\n} else if (input.action === 'save_settings') {\n  redirectTo = input.n8n_base_url + '/webhook/case-tracking?view=settings';\n}\nredirectTo += (redirectTo.includes('?') ? '&' : '?') + 'message=' + encodeURIComponent(input.success_message || 'Saved');\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst html = '<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0; url=' + escapeHtml(redirectTo) + '\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>' + escapeHtml(input.success_title) + '</title></head><body><p>Saved. Redirecting\u2026</p><p><a href=\"' + escapeHtml(redirectTo) + '\">Continue</a></p></body></html>';\nreturn [{ json: { html } }];"
+        "jsCode": "const input = $('Build Action SQL').first()?.json ?? {};\nconst result = $input.first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nlet redirectTo = input.return_url || (input.n8n_base_url + '/webhook/case-tracking?view=dashboard');\nif (input.action === 'create_case' && clean(result.case_id)) {\n  redirectTo = input.n8n_base_url + '/webhook/case-tracking?view=case&id=' + encodeURIComponent(result.case_id);\n} else if ((input.action === 'update_case' || input.action === 'add_note') && clean(result.case_id)) {\n  redirectTo = input.n8n_base_url + '/webhook/case-tracking?view=case&id=' + encodeURIComponent(result.case_id);\n} else if (input.action === 'save_signature' && clean(input.template_key)) {\n  redirectTo = input.n8n_base_url + '/webhook/case-tracking?view=signatures&template_key=' + encodeURIComponent(input.template_key);\n} else if (input.action === 'save_settings') {\n  redirectTo = input.n8n_base_url + '/webhook/case-tracking?view=settings';\n}\nredirectTo += (redirectTo.includes('?') ? '&' : '?') + 'message=' + encodeURIComponent(input.success_message || 'Saved');\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;');\nconst html = '<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0; url=' + escapeHtml(redirectTo) + '\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>' + escapeHtml(input.success_title) + '</title></head><body><p>Saved. Redirecting…</p><p><a href=\"' + escapeHtml(redirectTo) + '\">Continue</a></p></body></html>';\nreturn [{ json: { html } }];"
       },
       "id": "ctb000000-0000-0000-0000-000000000010",
       "name": "Build Success HTML",
@@ -349,5 +349,23 @@
     "executionOrder": "v1",
     "availableInMCP": false,
     "callerPolicy": "workflowsFromSameOwner"
-  }
+  },
+  "staticData": {},
+  "pinData": {},
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "481da1e1584ce9dc",
+      "name": "Tickets"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "e46b47576592980b",
+      "name": "Admin"
+    }
+  ],
+  "description": ""
 }

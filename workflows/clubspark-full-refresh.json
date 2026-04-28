@@ -1,6 +1,6 @@
 {
   "name": "ClubSpark Full Refresh",
-  "tags": ["ClubSpark","Export","Import","Sync"],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -9,8 +9,8 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        260,
-        300
+        272,
+        304
       ]
     },
     {
@@ -29,18 +29,16 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.3,
       "position": [
-        260,
+        272,
         480
       ]
     },
     {
       "parameters": {
-        "source": "database",
         "workflowId": {
           "mode": "list",
           "value": "6XC5aXJ8uS5DS553"
         },
-        "mode": "once",
         "options": {
           "waitForSubWorkflow": true
         }
@@ -51,7 +49,7 @@
       "typeVersion": 1.1,
       "position": [
         560,
-        300
+        304
       ],
       "alwaysOutputData": true,
       "onError": "continueRegularOutput"
@@ -86,18 +84,16 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        820,
-        300
+        832,
+        304
       ]
     },
     {
       "parameters": {
-        "source": "database",
         "workflowId": {
           "mode": "list",
           "value": "0cLfjgMnyQeFcJ8T"
         },
-        "mode": "once",
         "options": {
           "waitForSubWorkflow": true
         }
@@ -107,8 +103,8 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.1,
       "position": [
-        1080,
-        440
+        1088,
+        448
       ],
       "alwaysOutputData": true,
       "onError": "continueRegularOutput"
@@ -143,32 +139,9 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1340,
-        440
+        1344,
+        448
       ]
-    },
-    {
-      "parameters": {
-        "source": "database",
-        "workflowId": {
-          "mode": "list",
-          "value": "GIMyaYVnTEQvLLVa"
-        },
-        "mode": "once",
-        "options": {
-          "waitForSubWorkflow": true
-        }
-      },
-      "id": "5e8d5fc0-1db1-4410-b3fd-60d7e5c6d35f",
-      "name": "Execute Sync To Cloud",
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.1,
-      "position": [
-        1600,
-        580
-      ],
-      "alwaysOutputData": true,
-      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -200,8 +173,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1860,
-        580
+        2240,
+        672
       ]
     },
     {
@@ -213,7 +186,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1080,
+        1088,
         160
       ]
     },
@@ -227,7 +200,7 @@
       "typeVersion": 2,
       "position": [
         1600,
-        300
+        304
       ]
     },
     {
@@ -239,8 +212,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2120,
-        440
+        2480,
+        560
       ]
     },
     {
@@ -252,18 +225,16 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2120,
-        720
+        2480,
+        768
       ]
     },
     {
       "parameters": {
-        "source": "database",
         "workflowId": {
           "mode": "list",
           "value": "3MIBMbNpV5HxZEop"
         },
-        "mode": "once",
         "options": {
           "waitForSubWorkflow": true
         }
@@ -273,8 +244,8 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.1,
       "position": [
-        1600,
-        580
+        1616,
+        512
       ],
       "alwaysOutputData": true,
       "onError": "continueRegularOutput"
@@ -309,8 +280,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1860,
-        580
+        1920,
+        528
       ]
     },
     {
@@ -322,8 +293,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2120,
-        460
+        2224,
+        400
       ]
     }
   ],
@@ -408,17 +379,6 @@
         ]
       ]
     },
-    "Execute Sync To Cloud": {
-      "main": [
-        [
-          {
-            "node": "Sync Failed?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Sync Failed?": {
       "main": [
         [
@@ -459,7 +419,7 @@
         ],
         [
           {
-            "node": "Execute Sync To Cloud",
+            "node": "Sync Failed?",
             "type": "main",
             "index": 0
           }
@@ -471,5 +431,39 @@
     "executionOrder": "v1",
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": true
-  }
+  },
+  "staticData": {
+    "node:Every Hour": {
+      "recurrenceRules": []
+    }
+  },
+  "pinData": {},
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "01bcdde6b1d2c414",
+      "name": "Sync"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "23ad8e2617052af4",
+      "name": "ClubSpark"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "df46c901559c56fa",
+      "name": "Import"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "9499c9ef153bc908",
+      "name": "Export"
+    }
+  ],
+  "description": ""
 }

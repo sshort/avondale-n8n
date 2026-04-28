@@ -60,6 +60,7 @@ The wrapper uses:
 - `state/metabase/export/` as the tracked export package
 - `state/metabase/db-map.local-to-live.json`
 - `state/metabase/db-map.live-to-local.json`
+- `scripts/generate-metabase-db-map.mjs` to build those map files from instance metadata for new targets
 
 Expected environment variables:
 
@@ -68,9 +69,16 @@ Expected environment variables:
 - `METABASE_LIVE_URL`
 - `METABASE_LIVE_TOKEN` or `METABASE_LIVE_USERNAME` + `METABASE_LIVE_PASSWORD`
 - `METABASE_VERSION`
+- `METABASE_DB_NAME_MAP` for renamed databases in a fresh deployment, for example `avondale@homedb=avondale@prod`
+- `METABASE_EXCLUDE_ROOT_COLLECTION_NAMES` to drop non-deployable top-level collections, default `Examples,Trash`
+- `METABASE_INCLUDE_ARCHIVED` when you intentionally want archived content in the tracked package
 - `METABASE_ROOT_COLLECTIONS`
 
 The default local URL and token come from the existing repo backup tooling. Live values stay explicit.
+
+For a fresh deployment, `push` and `mirror` will auto-generate the required `db-map.*.json` file when it is missing or empty. Exact name matches are mapped automatically, the sample database is mapped by `is_sample`, and `METABASE_DB_NAME_MAP` covers renamed non-sample databases.
+The wrapper now exports non-archived content by default, which avoids stale archived cards blocking sync because of broken internal dependencies. Set `METABASE_INCLUDE_ARCHIVED=1` if you need the archived package as well.
+If `METABASE_ROOT_COLLECTIONS` is not set, the wrapper auto-resolves top-level collections and excludes `Examples` and `Trash` by default so the tracked state stays deployable.
 
 ## Why The Split
 

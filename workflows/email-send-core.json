@@ -1,0 +1,439 @@
+{
+  "name": "Email Send Core",
+  "description": "Shared raw-MIME Gmail transport for HTML plus plain-text email with CID-embedded managed images.",
+  "tags": ["Email", "Core"],
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "esc000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [220, 320]
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "esc000000-0000-0000-0000-000000000002",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [220, 500]
+    },
+    {
+      "parameters": {
+        "path": "email-send-core",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "esc000000-0000-0000-0000-000000000002a",
+      "name": "Email Send Core Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 140],
+      "webhookId": "email-send-core"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const webhookInput = (() => { try { return $('Email Send Core Webhook').first()?.json ?? null; } catch { return null; } })();\nconst rawInput = webhookInput ? (webhookInput.body ?? webhookInput.query ?? webhookInput) : ($input.first()?.json ?? {});\nconst input = rawInput && typeof rawInput === 'object' ? rawInput : {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst parseArray = (value) => {\n  if (Array.isArray(value)) return value;\n  if (typeof value === 'string' && clean(value)) {\n    try {\n      const parsed = JSON.parse(value);\n      return Array.isArray(parsed) ? parsed : [];\n    } catch {\n      return [];\n    }\n  }\n  return [];\n};\nconst normalizeAddressList = (value) => {\n  const values = Array.isArray(value) ? value : [value];\n  return values\n    .flatMap((entry) => String(entry ?? '').replace(/[\\r\\n]+/g, ' ').split(/[;,]+/))\n    .map((part) => clean(part))\n    .filter(Boolean)\n    .join(', ');\n};\nconst decodeEntity = (value) => String(value ?? '')\n  .replace(/&nbsp;/gi, ' ')\n  .replace(/&amp;/gi, '&')\n  .replace(/&lt;/gi, '<')\n  .replace(/&gt;/gi, '>')\n  .replace(/&quot;/gi, '\"')\n  .replace(/&#39;/gi, \"'\")\n  .replace(/&#x27;/gi, \"'\");\nconst htmlToText = (value) => decodeEntity(String(value ?? '')\n  .replace(/<\\s*br\\s*\\/?>/gi, '\\n')\n  .replace(/<\\/(p|div|section|article|header|footer|li|tr|h[1-6])>/gi, '\\n')\n  .replace(/<li\\b[^>]*>/gi, '- ')\n  .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/gi, '')\n  .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi, '')\n  .replace(/<[^>]+>/g, ' ')\n  .replace(/\\r/g, '')\n  .replace(/[ \\t]+\\n/g, '\\n')\n  .replace(/\\n[ \\t]+/g, '\\n')\n  .replace(/\\n{3,}/g, '\\n\\n'))\n  .replace(/[ \\t]{2,}/g, ' ')\n  .trim();\nconst attachments = parseArray(input.attachments ?? input.email_attachments ?? input.attachment_list).map((attachment) => ({\n  file_name: clean(attachment?.file_name ?? attachment?.fileName),\n  file_path: clean(attachment?.file_path ?? attachment?.filePath),\n  content_type: clean(attachment?.content_type ?? attachment?.contentType ?? attachment?.mime_type ?? attachment?.mimeType),\n  data_base64: clean(attachment?.data_base64 ?? attachment?.dataBase64 ?? attachment?.content_base64 ?? attachment?.contentBase64 ?? attachment?.data),\n  disposition: clean(attachment?.disposition ?? attachment?.content_disposition ?? attachment?.contentDisposition) || 'attachment',\n  content_id: clean(attachment?.content_id ?? attachment?.contentId),\n  description: clean(attachment?.description),\n})).filter((attachment) => attachment.file_name || attachment.file_path || attachment.data_base64);\nconst explicitHtml = String(input.rendered_html ?? input.html_body ?? input.html ?? '');\nconst explicitText = String(input.rendered_text ?? input.text_body ?? input.text ?? '');\nconst legacyMessage = String(input.rendered_message ?? '');\nconst legacySignature = String(input.rendered_signature ?? '');\nconst requestedType = clean(input.email_type).toLowerCase();\nconst renderedHtml = clean(explicitHtml)\n  ? explicitHtml\n  : (requestedType === 'html' ? [legacyMessage, legacySignature].filter((value) => clean(value)).join('') : '');\nconst renderedText = clean(explicitText)\n  ? explicitText\n  : (clean(renderedHtml)\n      ? htmlToText(renderedHtml)\n      : [legacyMessage, legacySignature].map((value) => clean(value)).filter(Boolean).join('\\n\\n'));\nconst to = normalizeAddressList(input.to ?? input.actual_recipient ?? input.recipient);\nconst cc = normalizeAddressList(input.cc ?? input.actual_cc);\nconst bcc = normalizeAddressList(input.bcc ?? input.actual_bcc);\nconst subject = clean(input.rendered_subject ?? input.subject);\nconst replyTo = clean(input.reply_to ?? input.replyTo ?? input.from_email ?? input.fromEmail);\nconst fromEmail = clean(input.from_email ?? input.fromEmail ?? replyTo);\nconst errorMessage = !to\n  ? 'A recipient is required.'\n  : !subject\n    ? 'Subject is required.'\n    : (!clean(renderedHtml) && !clean(renderedText)\n      ? 'Either rendered_html or rendered_text is required.'\n      : !fromEmail\n        ? 'from_email or reply_to is required.'\n        : '');\nreturn [{\n  json: {\n    invocation_source: webhookInput ? 'webhook' : 'internal',\n    flow_name: clean(input.flow_name ?? input.workflow_name ?? input.workflowName) || 'email-send-core',\n    to,\n    cc,\n    bcc,\n    sender_name: clean(input.sender_name ?? input.senderName) || 'Avondale LTC',\n    from_email: fromEmail,\n    reply_to: replyTo || fromEmail,\n    rendered_subject: subject,\n    rendered_html: renderedHtml,\n    rendered_text: renderedText,\n    attachments,\n    gmail_thread_id: clean(input.gmail_thread_id ?? input.thread_id ?? input.threadId),\n    in_reply_to_message_id: clean(input.in_reply_to_message_id ?? input.inReplyToMessageId),\n    references_header: clean(input.references_header ?? input.referencesHeader),\n    n8n_base_url: clean(input.n8n_base_url),\n    local_message_id: clean(input.local_message_id ?? input.localMessageId),\n    error_message: errorMessage,\n    original_input: input\n  }\n}];"
+      },
+      "id": "esc000000-0000-0000-0000-000000000003",
+      "name": "Resolve Inputs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 410]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "esc000000-0000-0000-0000-000000000004-condition",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "esc000000-0000-0000-0000-000000000004",
+      "name": "Check Request Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [760, 410]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const tryNode = (name) => { try { return $(name).first()?.json ?? null; } catch { return null; } };\nconst source = tryNode('Build Send Payload') || tryNode('Resolve Inputs') || {};\nreturn [{ json: { ok: false, error: true, stage: source.error_stage || 'validation', error_message: source.error_message || 'Unable to build the outbound email payload.', flow_name: source.flow_name || 'email-send-core' } }];"
+      },
+      "id": "esc000000-0000-0000-0000-000000000005",
+      "name": "Build Error Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1840, 250]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Resolve Inputs').first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst attrValue = (tag, name) => {\n  const escaped = String(name).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n  const match = tag.match(new RegExp(escaped + '\\\\s*=\\\\s*([\"\\'])([\\\\s\\\\S]*?)\\\\1', 'i'));\n  return match?.[2] ? String(match[2]) : '';\n};\nconst imageKeys = [];\nconst seen = new Set();\nconst html = String(input.rendered_html || '');\nfor (const tag of html.match(/<img\\b[^>]*>/gi) || []) {\n  const explicitKey = clean(attrValue(tag, 'data-avondale-image-key'));\n  const src = clean(attrValue(tag, 'src'));\n  let key = explicitKey;\n  if (!key && src) {\n    const srcMatch = src.match(/[?&]image_key=([^&#]+)/i);\n    key = srcMatch?.[1] ? decodeURIComponent(srcMatch[1]) : '';\n  }\n  const normalized = clean(key);\n  if (!normalized || seen.has(normalized.toLowerCase())) continue;\n  seen.add(normalized.toLowerCase());\n  imageKeys.push(normalized);\n}\nconst sqlLiteral = (value) => \"'\" + String(value ?? '').replace(/'/g, \"''\") + \"'\";\nconst sql = imageKeys.length\n  ? [\n      \"SELECT image_key, file_name, file_ext, content_type, encode(data, 'base64') AS data_base64\",\n      'FROM public.images',\n      'WHERE is_active = true',\n      '  AND image_key IN (' + imageKeys.map(sqlLiteral).join(', ') + ')',\n      'ORDER BY image_key;'\n    ].join('\\n')\n  : 'SELECT NULL::text AS image_key, NULL::text AS file_name, NULL::text AS file_ext, NULL::text AS content_type, NULL::text AS data_base64 WHERE false;';\nreturn [{ json: { ...input, image_keys: imageKeys, sql } }];"
+      },
+      "id": "esc000000-0000-0000-0000-000000000006",
+      "name": "Build Image Lookup SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1030, 410]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "esc000000-0000-0000-0000-000000000007",
+      "name": "Load Managed Images",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1290, 410],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const fs = require('fs');\nconst input = $('Build Image Lookup SQL').first()?.json ?? $('Resolve Inputs').first()?.json ?? {};\nconst imageRows = (() => { try { return $('Load Managed Images').all().map((item) => item.json ?? {}); } catch { return []; } })();\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst baseName = (value) => {\n  const normalized = clean(value).replace(/\\\\/g, '/');\n  return normalized.split('/').filter(Boolean).pop() || '';\n};\nconst extensionOf = (value) => {\n  const match = baseName(value).match(/\\.[^.]+$/);\n  return match ? match[0].toLowerCase() : '';\n};\nconst stripHeaderValue = (value) => clean(value).replace(/[\\r\\n]+/g, ' ');\nconst encodeHeaderValue = (value) => {\n  const text = stripHeaderValue(value);\n  if (!text) return '';\n  return /^[\\x20-\\x7e]*$/.test(text) ? text : '=?UTF-8?B?' + Buffer.from(text, 'utf8').toString('base64') + '?=';\n};\nconst encodeAddress = (name, email) => {\n  const address = clean(email);\n  const displayName = stripHeaderValue(name).replace(/\\\\/g, '\\\\\\\\').replace(/\"/g, '\\\\\"');\n  return displayName ? '\"' + displayName + '\" <' + address + '>' : address;\n};\nconst normalizeMessageId = (value) => {\n  const text = clean(value).replace(/[\\r\\n]+/g, ' ');\n  if (!text) return '';\n  const match = text.match(/<[^<>\\s]+@[^<>\\s]+>/);\n  return match ? match[0] : text;\n};\nconst uniqueMessageIdChain = (values) => {\n  const result = [];\n  const seen = new Set();\n  for (const value of values) {\n    const text = clean(value);\n    const ids = text.match(/<[^<>\\s]+@[^<>\\s]+>/g) || (text ? [text] : []);\n    for (const id of ids) {\n      const key = id.toLowerCase();\n      if (!id || seen.has(key)) continue;\n      seen.add(key);\n      result.push(id);\n    }\n  }\n  return result.join(' ');\n};\nconst wrapBase64 = (value) => String(value ?? '').replace(/(.{76})/g, '$1\\r\\n').trim();\nconst makeBoundary = (prefix) => prefix + '-' + Math.random().toString(16).slice(2) + '-' + Date.now().toString(16);\nconst htmlToText = (value) => String(value ?? '')\n  .replace(/<\\s*br\\s*\\/?>/gi, '\\n')\n  .replace(/<\\/(p|div|section|article|header|footer|li|tr|h[1-6])>/gi, '\\n')\n  .replace(/<li\\b[^>]*>/gi, '- ')\n  .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/gi, '')\n  .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi, '')\n  .replace(/<[^>]+>/g, ' ')\n  .replace(/&nbsp;/gi, ' ')\n  .replace(/&amp;/gi, '&')\n  .replace(/&lt;/gi, '<')\n  .replace(/&gt;/gi, '>')\n  .replace(/&quot;/gi, '\"')\n  .replace(/&#39;/gi, \"'\")\n  .replace(/&#x27;/gi, \"'\")\n  .replace(/\\r/g, '')\n  .replace(/[ \\t]+\\n/g, '\\n')\n  .replace(/\\n[ \\t]+/g, '\\n')\n  .replace(/\\n{3,}/g, '\\n\\n')\n  .replace(/[ \\t]{2,}/g, ' ')\n  .trim();\nconst mimeTypeFromName = (fileName) => {\n  const ext = extensionOf(fileName);\n  switch (ext) {\n    case '.png': return 'image/png';\n    case '.jpg':\n    case '.jpeg': return 'image/jpeg';\n    case '.gif': return 'image/gif';\n    case '.svg': return 'image/svg+xml';\n    case '.webp': return 'image/webp';\n    case '.pdf': return 'application/pdf';\n    case '.txt': return 'text/plain';\n    case '.html': return 'text/html';\n    default: return 'application/octet-stream';\n  }\n};\nconst imageMap = new Map(imageRows.filter((row) => clean(row.image_key)).map((row) => [clean(row.image_key), row]));\nconst attrValue = (tag, name) => {\n  const escaped = String(name).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n  const match = tag.match(new RegExp(escaped + '\\\\s*=\\\\s*([\"\\'])([\\\\s\\\\S]*?)\\\\1', 'i'));\n  return match?.[2] ? String(match[2]) : '';\n};\nconst cidByKey = new Map();\nconst missingImageKeys = [];\nconst rewrittenHtml = String(input.rendered_html || '').replace(/<img\\b[^>]*>/gi, (tag) => {\n  const explicitKey = clean(attrValue(tag, 'data-avondale-image-key'));\n  const src = clean(attrValue(tag, 'src'));\n  let imageKey = explicitKey;\n  if (!imageKey && src) {\n    const srcMatch = src.match(/[?&]image_key=([^&#]+)/i);\n    imageKey = srcMatch?.[1] ? decodeURIComponent(srcMatch[1]) : '';\n  }\n  imageKey = clean(imageKey);\n  if (!imageKey) return tag;\n  const row = imageMap.get(imageKey);\n  if (!row) {\n    if (!missingImageKeys.includes(imageKey)) missingImageKeys.push(imageKey);\n    return tag;\n  }\n  if (!cidByKey.has(imageKey)) {\n    const safeKey = imageKey.toLowerCase().replace(/[^a-z0-9._-]+/g, '-');\n    cidByKey.set(imageKey, 'img-' + String(cidByKey.size + 1) + '-' + safeKey + '@avondale.local');\n  }\n  const cid = cidByKey.get(imageKey);\n  let updatedTag = tag.replace(/\\sdata-avondale-image-key\\s*=\\s*([\"\\'])[\\s\\S]*?\\1/ig, '');\n  if (/\\ssrc\\s*=\\s*([\"\\'])[\\s\\S]*?\\1/i.test(updatedTag)) {\n    updatedTag = updatedTag.replace(/\\ssrc\\s*=\\s*([\"\\'])[\\s\\S]*?\\1/i, ' src=\"cid:' + cid + '\"');\n  } else {\n    updatedTag = updatedTag.replace(/>$/, ' src=\"cid:' + cid + '\">');\n  }\n  return updatedTag;\n});\nconst ordinaryAttachments = [];\nconst attachmentErrors = [];\nfor (const attachment of Array.isArray(input.attachments) ? input.attachments : []) {\n  const fileName = clean(attachment.file_name) || baseName(attachment.file_path) || 'attachment.bin';\n  let dataBase64 = clean(attachment.data_base64);\n  if (!dataBase64 && clean(attachment.file_path)) {\n    const filePath = clean(attachment.file_path);\n    if (!fs.existsSync(filePath)) {\n      attachmentErrors.push('Attachment file was not found: ' + filePath);\n      continue;\n    }\n    dataBase64 = fs.readFileSync(filePath).toString('base64');\n  }\n  if (!dataBase64) {\n    attachmentErrors.push('Attachment has no data: ' + fileName);\n    continue;\n  }\n  ordinaryAttachments.push({\n    file_name: fileName,\n    content_type: clean(attachment.content_type) || mimeTypeFromName(fileName),\n    data_base64: dataBase64,\n    disposition: clean(attachment.disposition) || 'attachment',\n    content_id: clean(attachment.content_id),\n    description: clean(attachment.description)\n  });\n}\nconst inlineAttachments = Array.from(cidByKey.entries()).map(([imageKey, cid]) => {\n  const row = imageMap.get(imageKey);\n  return {\n    file_name: clean(row.file_name) || (imageKey + '.' + clean(row.file_ext || 'bin')),\n    content_type: clean(row.content_type) || mimeTypeFromName(clean(row.file_name)),\n    data_base64: clean(row.data_base64),\n    content_id: cid,\n    disposition: 'inline'\n  };\n});\nconst renderedHtml = clean(rewrittenHtml) ? rewrittenHtml : '';\nconst renderedText = clean(input.rendered_text) || (renderedHtml ? htmlToText(renderedHtml) : '');\nconst errorMessage = attachmentErrors.length\n  ? attachmentErrors.join('; ')\n  : (missingImageKeys.length ? 'Managed image(s) not found: ' + missingImageKeys.join(', ') : '');\nif (errorMessage) {\n  return [{ json: { ...input, error_stage: 'payload', error_message: errorMessage, missing_image_keys: missingImageKeys } }];\n}\nconst sanitizeFileName = (value) => clean(value).replace(/[\\r\\n\"]/g, ' ');\nconst makeTextPart = (mimeType, value) => [\n  'Content-Type: ' + mimeType + '; charset=UTF-8',\n  'Content-Transfer-Encoding: base64',\n  '',\n  wrapBase64(Buffer.from(String(value ?? ''), 'utf8').toString('base64'))\n].join('\\r\\n');\nconst makeBinaryPart = (attachment) => {\n  const headers = [\n    'Content-Type: ' + (attachment.content_type || 'application/octet-stream') + '; name=\"' + sanitizeFileName(attachment.file_name) + '\"',\n    'Content-Transfer-Encoding: base64'\n  ];\n  if (clean(attachment.content_id)) headers.push('Content-ID: <' + clean(attachment.content_id).replace(/^<|>$/g, '') + '>');\n  if (clean(attachment.description)) headers.push('Content-Description: ' + encodeHeaderValue(attachment.description));\n  headers.push('Content-Disposition: ' + (attachment.disposition || 'attachment') + '; filename=\"' + sanitizeFileName(attachment.file_name) + '\"');\n  return headers.join('\\r\\n') + '\\r\\n\\r\\n' + wrapBase64(attachment.data_base64);\n};\nconst buildMultipart = (boundary, parts) => parts.map((part) => '--' + boundary + '\\r\\n' + part + '\\r\\n').join('') + '--' + boundary + '--';\nconst randomToken = () => {\n  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();\n  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (ch) => {\n    const value = Math.floor(Math.random() * 16);\n    return (ch === 'x' ? value : ((value & 0x3) | 0x8)).toString(16);\n  });\n};\nconst localMessageId = clean(input.local_message_id) || '<email-' + randomToken() + '@ticket.proxy.shortcentral.com>';\nconst headers = [\n  ['From', encodeAddress(input.sender_name, input.from_email)],\n  ['To', stripHeaderValue(input.to)],\n  ['Reply-To', stripHeaderValue(input.reply_to || input.from_email)],\n  ['Subject', encodeHeaderValue(input.rendered_subject)],\n  ['Message-ID', localMessageId],\n  ['MIME-Version', '1.0']\n];\nif (clean(input.cc)) headers.splice(2, 0, ['Cc', stripHeaderValue(input.cc)]);\nif (clean(input.bcc)) headers.splice(headers.length - 2, 0, ['Bcc', stripHeaderValue(input.bcc)]);\nconst inReplyTo = normalizeMessageId(input.in_reply_to_message_id);\nconst referencesHeader = uniqueMessageIdChain([input.references_header, inReplyTo]);\nif (inReplyTo) headers.push(['In-Reply-To', inReplyTo]);\nif (referencesHeader) headers.push(['References', referencesHeader]);\nlet body = '';\nif (!renderedHtml && ordinaryAttachments.length === 0) {\n  headers.push(['Content-Type', 'text/plain; charset=UTF-8']);\n  headers.push(['Content-Transfer-Encoding', 'base64']);\n  body = wrapBase64(Buffer.from(renderedText, 'utf8').toString('base64'));\n} else {\n  const altBoundary = makeBoundary('alt');\n  const alternativeParts = [\n    makeTextPart('text/plain', renderedText || htmlToText(renderedHtml)),\n    renderedHtml ? makeTextPart('text/html', renderedHtml) : null\n  ].filter(Boolean);\n  const alternativeEntity = 'Content-Type: multipart/alternative; boundary=\"' + altBoundary + '\"\\r\\n\\r\\n' + buildMultipart(altBoundary, alternativeParts);\n  const relatedEntity = inlineAttachments.length\n    ? (() => {\n        const relatedBoundary = makeBoundary('rel');\n        const relatedParts = [alternativeEntity, ...inlineAttachments.map(makeBinaryPart)];\n        return {\n          topContentType: 'multipart/related; boundary=\"' + relatedBoundary + '\"',\n          body: buildMultipart(relatedBoundary, relatedParts)\n        };\n      })()\n    : {\n        topContentType: 'multipart/alternative; boundary=\"' + altBoundary + '\"',\n        body: buildMultipart(altBoundary, alternativeParts)\n      };\n  if (ordinaryAttachments.length) {\n    const mixedBoundary = makeBoundary('mix');\n    headers.push(['Content-Type', 'multipart/mixed; boundary=\"' + mixedBoundary + '\"']);\n    const firstPart = 'Content-Type: ' + relatedEntity.topContentType + '\\r\\n\\r\\n' + relatedEntity.body;\n    const mixedParts = [firstPart, ...ordinaryAttachments.map(makeBinaryPart)];\n    body = buildMultipart(mixedBoundary, mixedParts);\n  } else {\n    headers.push(['Content-Type', relatedEntity.topContentType]);\n    body = relatedEntity.body;\n  }\n}\nconst rawMime = headers.map(([name, value]) => name + ': ' + value).join('\\r\\n') + '\\r\\n\\r\\n' + body;\nconst gmailRaw = Buffer.from(rawMime, 'utf8').toString('base64').replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/g, '');\nreturn [{ json: { ...input, error_stage: '', error_message: '', rendered_html: renderedHtml, rendered_text: renderedText || htmlToText(renderedHtml), inline_attachments: inlineAttachments, ordinary_attachments: ordinaryAttachments, gmail_raw: gmailRaw, raw_mime_preview: rawMime, local_message_id: localMessageId, in_reply_to_message_id: inReplyTo, references_header: referencesHeader, inline_image_count: inlineAttachments.length, ordinary_attachment_count: ordinaryAttachments.length, missing_image_keys: missingImageKeys } }];"
+      },
+      "id": "esc000000-0000-0000-0000-000000000008",
+      "name": "Build Send Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 410]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "esc000000-0000-0000-0000-000000000009-condition",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "esc000000-0000-0000-0000-000000000009",
+      "name": "Check Payload Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1820, 410]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "gmailOAuth2",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.gmail_thread_id ? { raw: $json.gmail_raw, threadId: $json.gmail_thread_id } : { raw: $json.gmail_raw } }}",
+        "options": {}
+      },
+      "id": "esc000000-0000-0000-0000-000000000010",
+      "name": "Send Gmail Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2080, 500],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://gmail.googleapis.com/gmail/v1/users/me/messages/' + $json.id + '?format=metadata&metadataHeaders=Message-ID&metadataHeaders=In-Reply-To&metadataHeaders=References' }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "gmailOAuth2",
+        "options": {}
+      },
+      "id": "esc000000-0000-0000-0000-000000000011",
+      "name": "Fetch Sent Gmail Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2340, 500],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JHuPZBB6pULmuxKm",
+          "name": "Avondale Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const payload = $('Build Send Payload').first()?.json ?? {};\nconst sendResponse = $('Send Gmail Message').first()?.json ?? {};\nconst gmailDetail = $('Fetch Sent Gmail Message').first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst headerValue = (name) => {\n  const headers = gmailDetail.payload?.headers || gmailDetail.message?.payload?.headers || [];\n  const found = Array.isArray(headers) ? headers.find((header) => String(header.name || '').toLowerCase() === String(name).toLowerCase()) : null;\n  return clean(found?.value);\n};\nreturn [{\n  json: {\n    ok: true,\n    error: false,\n    invocation_source: payload.invocation_source || 'internal',\n    flow_name: payload.flow_name || 'email-send-core',\n    gmail_message_id: clean(sendResponse.id || gmailDetail.id || gmailDetail.message?.id),\n    gmail_thread_id: clean(sendResponse.threadId || gmailDetail.threadId || gmailDetail.message?.threadId || payload.gmail_thread_id),\n    internet_message_id: headerValue('Message-ID') || clean(payload.local_message_id),\n    in_reply_to_message_id: headerValue('In-Reply-To') || clean(payload.in_reply_to_message_id),\n    references_header: headerValue('References') || clean(payload.references_header),\n    local_message_id: clean(payload.local_message_id),\n    rendered_subject: payload.rendered_subject,\n    rendered_html: payload.rendered_html,\n    rendered_text: payload.rendered_text,\n    raw_mime_preview: payload.raw_mime_preview,\n    inline_image_count: Number(payload.inline_image_count || 0),\n    ordinary_attachment_count: Number(payload.ordinary_attachment_count || 0),\n    managed_image_keys: Array.isArray(payload.image_keys) ? payload.image_keys : [],\n    to: payload.to,\n    cc: payload.cc,\n    bcc: payload.bcc,\n    reply_to: payload.reply_to,\n    from_email: payload.from_email,\n    sender_name: payload.sender_name,\n    gmail_send_response: sendResponse,\n    gmail_detail: gmailDetail\n  }\n}];"
+      },
+      "id": "esc000000-0000-0000-0000-000000000012",
+      "name": "Build Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2600, 500]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: false, error: true, flow_name: $json.flow_name || 'email-send-core', stage: $json.stage || 'validation', message: $json.error_message || 'Unable to build the outbound email payload.' } }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "esc000000-0000-0000-0000-000000000013",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [2080, 250]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "esc000000-0000-0000-0000-000000000014",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [2860, 500]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Resolve Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Resolve Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Send Core Webhook": {
+      "main": [
+        [
+          {
+            "node": "Resolve Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Inputs": {
+      "main": [
+        [
+          {
+            "node": "Check Request Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Request Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Image Lookup SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Image Lookup SQL": {
+      "main": [
+        [
+          {
+            "node": "Load Managed Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Managed Images": {
+      "main": [
+        [
+          {
+            "node": "Build Send Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Send Payload": {
+      "main": [
+        [
+          {
+            "node": "Check Payload Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Payload Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Gmail Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Gmail Message": {
+      "main": [
+        [
+          {
+            "node": "Fetch Sent Gmail Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Sent Gmail Message": {
+      "main": [
+        [
+          {
+            "node": "Build Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error Result": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Result": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "pinData": {},
+  "versionId": "5a81c84d-9d8b-4d6a-9ed1-6cce88ff3f13",
+  "meta": {
+    "instanceId": "avondale-n8n"
+  }
+}

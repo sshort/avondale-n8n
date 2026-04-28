@@ -1,6 +1,6 @@
 {
   "name": "Refund Form",
-  "tags": ["Forms","Refund"],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -172,7 +172,22 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
+  "staticData": {},
   "pinData": {},
-  "versionId": "0c839781-fdd0-4809-b87b-92d7b98349b4",
-  "active": true
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "b66d135472c8652d",
+      "name": "Refund"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "08ef3342121ccbfe",
+      "name": "Forms"
+    }
+  ],
+  "description": ""
 }

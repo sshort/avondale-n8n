@@ -1,6 +1,6 @@
 {
   "name": "Print J8160 Calibration",
-  "tags": ["Print"],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -228,5 +228,17 @@
     "executionOrder": "v1",
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": true
-  }
+  },
+  "staticData": {},
+  "pinData": {},
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "e9aac23eee2885c9",
+      "name": "Print"
+    }
+  ],
+  "description": ""
 }

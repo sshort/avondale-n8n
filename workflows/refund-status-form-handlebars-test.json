@@ -1,0 +1,275 @@
+{
+  "name": "Test Refund Status Form using Template",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "de7fde41-f0b3-487e-88a8-9d884f4fa9c3",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        8256,
+        2704
+      ]
+    },
+    {
+      "parameters": {
+        "path": "refunds-handlebars-test",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f1ff686f-d7e2-4c69-8bc3-495ca57e4bc3",
+      "name": "Refund Status Form Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        8272,
+        2512
+      ],
+      "webhookId": "refunds-handlebars-test"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url FROM public.global_settings WHERE key = 'n8n_base_url';",
+        "options": {}
+      },
+      "id": "ff6e94c2-fbd4-4a46-9c30-dac700f26ef9",
+      "name": "Load Global Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        8576,
+        2592
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "var src=$input.first().json||{};var q=src.query||src;var h=src.headers||{host:'localhost:5678'};var s=$('Load Global Settings').first().json||{};var clean=function(v){return v==null?'':String(v).trim()};var id=Number.parseInt(clean(q.id),10);return[{json:{n8n_base_url:h.host||s.n8n_base_url||'http://localhost:5678',selected_id:isNaN(id)?null:id,message:clean(q.message),error:clean(q.error)}}];"
+      },
+      "id": "3f4963bd-6311-4ad3-937d-71df4f70b945",
+      "name": "Resolve Page Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8816,
+        2592
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id,name,refund_for,membership,reason,amount,refund,status FROM public.refunds ORDER BY id DESC LIMIT 100;",
+        "options": {}
+      },
+      "id": "a644c954-7135-468a-af9a-2c4ab2aca75a",
+      "name": "List Refunds SQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        9184,
+        2736
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT html_template FROM public.html_templates WHERE template_name = 'refund-status-list' AND is_active = true ORDER BY id DESC LIMIT 1;",
+        "options": {}
+      },
+      "id": "96d112ea-5ee5-40a7-bca2-ebdec2cc287a",
+      "name": "Load HTML Template",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        9184,
+        2480
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "var input=$('Resolve Page Request').first().json||{};var rows=$('List Refunds SQL').all().map(function(i){return i.json});var tmpl=$('Load HTML Template').first().json.html_template||'';var C=function(v){return v==null?'':String(v).trim()};var M=function(v){if(!v&&v!==0)return'';var n=parseFloat(v);return isNaN(n)?'':'£'+n.toFixed(2)};var B=function(s){var x=C(s).toLowerCase();if(x.indexOf('processed')>=0||x.indexOf('paid')>=0)return's';if(x.indexOf('bank')>=0)return'w';return''};var data=rows.map(function(r){return{id:r.id,name:C(r.name),mem:C(r.membership),reason:C(r.reason),amt:M(r.amount),refundAmt:M(r.refund),status:C(r.status),cls:B(r.status)}});var h='<h1>Refunds ('+data.length+')</h1>';if(input.error)h+='<div style=\"background:#fee2e2;padding:12px\">'+input.error+'</div>';if(input.message)h+='<div style=\"background:#dcfce7;padding:12px\">'+input.message+'</div>';if(data.length>0){h+='<table style=\"width:100%;border-collapse:collapse;background:#fff\"><thead><tr><th style=\"padding:12px;background:#f9f9f9\">ID</th><th style=\"padding:12px;background:#f9f9f9\">Name</th><th style=\"padding:12px;background:#f9f9f9\">Member</th><th style=\"padding:12px;background:#f9f9f9\">Reason</th><th style=\"padding:12px;background:#f9f9f9\">Amount</th><th style=\"padding:12px;background:#f9f9f9\">Refund</th><th style=\"padding:12px;background:#f9f9f9\">Status</th></tr></thead><tbody>';h+=data.map(function(r){var bg=r.cls=='s'?'background:#dcfce7':(r.cls=='w'?'background:#fef3c7':'');return'<tr><td style=\"padding:12px;border-bottom:1px solid #ddd\">'+r.id+'</td><td style=\"padding:12px;border-bottom:1px solid #ddd\">'+r.name+'</td><td style=\"padding:12px;border-bottom:1px solid #ddd\">'+r.mem+'</td><td style=\"padding:12px;border-bottom:1px solid #ddd\">'+r.reason+'</td><td style=\"padding:12px;border-bottom:1px solid #ddd\">'+r.amt+'</td><td style=\"padding:12px;border-bottom:1px solid #ddd\">'+r.refundAmt+'</td><td style=\"padding:12px;border-bottom:1px solid #ddd\"><span style=\"padding:4px 8px;border-radius:4px;font-size:12px;'+bg+'\">'+r.status+'</span></td></tr>'}).join('');h+='</tbody></table>'}else{h+='<p>No refunds</p>'};var html=tmpl.replace('{{content}}',h);return[{json:{html:html}}];"
+      },
+      "id": "ccc5977c-2e6b-4e55-b17f-b32c5c85b2c0",
+      "name": "Render HTML Template",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        9712,
+        2592
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "1cb9b5fb-6ec1-43a2-8ec6-9709b7a3f60f",
+      "name": "Respond Form",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        9936,
+        2592
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        9488,
+        2592
+      ],
+      "id": "57679f4e-3f27-4a08-8b5f-3b9a68f597b9",
+      "name": "Merge"
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Refund Status Form Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Global Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Settings": {
+      "main": [
+        [
+          {
+            "node": "Resolve Page Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load HTML Template": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Refunds SQL": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Render HTML Template": {
+      "main": [
+        [
+          {
+            "node": "Respond Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Page Request": {
+      "main": [
+        [
+          {
+            "node": "Load HTML Template",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "List Refunds SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Render HTML Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": {},
+  "pinData": {},
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "b66d135472c8652d",
+      "name": "Refund"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "08ef3342121ccbfe",
+      "name": "Forms"
+    }
+  ],
+  "description": ""
+}

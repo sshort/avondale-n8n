@@ -1,6 +1,6 @@
 {
   "name": "Add Refund",
-  "tags": ["Admin","Refund"],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -300,7 +300,22 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
+  "staticData": {},
   "pinData": {},
-  "versionId": "48337cf9-c4ad-466b-957c-c861c618fb71",
-  "active": true
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "b66d135472c8652d",
+      "name": "Refund"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "e46b47576592980b",
+      "name": "Admin"
+    }
+  ],
+  "description": ""
 }

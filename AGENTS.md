@@ -21,6 +21,8 @@ This file contains specific instructions for AI agents working on this repositor
     3. When work starts, create or update the matching issue notes and, if used, in `kanban-notes`.
     4. When work is finished, ensure the final notes are present in the GitHub issue and, if a markdown note exists, move it into `kanban-completed`.
     5. Treat GitHub Projects as the source of truth for task state; markdown files are optional supporting notes.
+    6. When work has multiple stages, use a checklist in the GitHub issue to track progress.
+    7. When work is completed, move the project item to `Done`.
 
 ## Technical Standards
 

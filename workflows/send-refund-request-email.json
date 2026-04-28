@@ -1,6 +1,6 @@
 {
   "name": "Send Refund Request Email",
-  "tags": ["Email","Refund"],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -366,7 +366,22 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
+  "staticData": {},
   "pinData": {},
-  "versionId": "e2f789f0-2b1e-48be-a956-59462fbd755d",
-  "active": true
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "b66d135472c8652d",
+      "name": "Refund"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "f7ca7159acbde431",
+      "name": "Email"
+    }
+  ],
+  "description": ""
 }

@@ -1,7 +1,5 @@
 {
-  "id": "kRV2uP4nT8mQxL6b",
   "name": "Signup Batch Review",
-  "tags": ["Admin","Batch","ClubSpark"],
   "active": true,
   "nodes": [
     {
@@ -169,10 +167,28 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "staticData": null,
-  "meta": null,
+  "staticData": {},
   "pinData": {},
-  "versionId": "e9a3fc9e-1aa4-4a8a-8688-ca2c9272bdaa",
-  "triggerCount": 1,
-  "tags": null
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "5eb27d9d07f14a13",
+      "name": "Batch"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "e46b47576592980b",
+      "name": "Admin"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "23ad8e2617052af4",
+      "name": "ClubSpark"
+    }
+  ],
+  "description": ""
 }

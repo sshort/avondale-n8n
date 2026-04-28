@@ -1,6 +1,6 @@
 {
   "name": "Update Refund Status",
-  "tags": ["Admin","Refund"],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -325,7 +325,22 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
+  "staticData": {},
   "pinData": {},
-  "versionId": "850a1387-7318-4419-a16d-9e6dbb4fa0cb",
-  "active": true
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "b66d135472c8652d",
+      "name": "Refund"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "e46b47576592980b",
+      "name": "Admin"
+    }
+  ],
+  "description": ""
 }

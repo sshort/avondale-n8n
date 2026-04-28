@@ -1,6 +1,6 @@
 {
   "name": "Send Treasury Refund Request",
-  "tags": ["Email","Refund"],
+  "active": true,
   "nodes": [
     {
       "parameters": {},
@@ -495,7 +495,22 @@
     "availableInMCP": false,
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "pinData": null,
-  "versionId": "b6b73585-e0b6-4b56-8f34-d336dc193fff",
-  "active": true
+  "staticData": {},
+  "pinData": {},
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "b66d135472c8652d",
+      "name": "Refund"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "f7ca7159acbde431",
+      "name": "Email"
+    }
+  ],
+  "description": ""
 }
