@@ -1,0 +1,27 @@
+{
+    "model": "claude-3-5-sonnet",
+    "temperature": 0.2,
+    "max_tokens": 8192,
+    "permissions": {
+        "allow": [
+            "read",
+            "write",
+            "exec",
+            "network"
+        ]
+    },
+    "tools": {
+        "mcp": {
+            "enabled": true
+        }
+    },
+    "project": {
+        "name": "avondale-n8n",
+        "defaultBranch": "main"
+    },
+    "behavior": {
+        "followInstructions": true,
+        "preferProjectDocs": true,
+        "useExecPlansForComplexTasks": true
+    }
+}
