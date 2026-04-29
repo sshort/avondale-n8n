@@ -58,8 +58,13 @@ Current settings and their intended types:
 
 | key | type |
 |-----|------|
+| browser_automation_base_url | url |
 | clubspark_exporter_base_url | url |
+| clubspark_email | email |
+| clubspark_password | text |
 | gotenberg_base_url | url |
+| lta_username | text |
+| lta_password | text |
 | n8n_base_url | url |
 | metabase_base_url | url |
 | stirling_base_url | url |

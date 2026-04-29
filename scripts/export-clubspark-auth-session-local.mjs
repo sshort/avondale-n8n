@@ -6,6 +6,12 @@ import readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 
 import { chromium } from 'playwright';
+import { applyPayloadEnv, clubSparkCredentialFields, parseExporterPayload } from './browser-automation-payload.mjs';
+
+const payload = parseExporterPayload();
+for (const [envName, paths] of Object.entries(clubSparkCredentialFields)) {
+  applyPayloadEnv(payload, envName, paths);
+}
 
 const requiredEnv = [
   'CLUBSPARK_EMAIL',

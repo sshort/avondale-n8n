@@ -9,7 +9,7 @@ VALUES
   ),
   (
     'stirling_base_url',
-    'http://192.168.1.197:8080',
+    'http://192.168.1.204:8080',
     'Base URL for the Stirling PDF instance used for sanitize and redaction operations'
   ),
   (

@@ -18,12 +18,16 @@ The visible proof is simple. After implementation, a human can execute the ClubS
 - [x] (2026-04-28 11:18Z) Drafted this ExecPlan for the browser-automation upgrade, including the requested move of ClubSpark and LTA credentials into `public.global_settings`.
 - [x] (2026-04-28 11:31Z) Created GitHub issue `#92`, added it to the `avondale-n8n board`, and moved the project item to `In Progress`.
 - [x] (2026-04-28 11:50Z) Refined the plan to include a portable repo-relative bind-mount strategy for script iteration without making it a required production deployment mode.
-- [ ] Add a SQL migration that seeds `browser_automation_base_url` and the ClubSpark/LTA credential keys in `public.global_settings`.
-- [ ] Add the repository-native `browser-automation` packaging and service entry point while preserving the local Metabase PDF script.
-- [ ] Update the ClubSpark service wrapper and ClubSpark scripts so JSON payload credentials are supported in this repository.
-- [ ] Update the ClubSpark and Metabase-report workflows to load the new settings, send JSON request bodies, and migrate from compatibility aliases to `/jobs/...`.
-- [ ] Update the repository build scripts and documentation to describe `browser-automation` as the supported service.
-- [ ] Validate the workflow JSON files, service scripts, and database migration, then move the project item to `Done`.
+- [x] (2026-04-29 14:24Z) Added `sql/048_browser_automation_global_settings.sql` to seed `browser_automation_base_url` plus `clubspark_email`, `clubspark_password`, `lta_username`, and `lta_password`, and to set explicit `setting_type` values for the new settings.
+- [x] (2026-04-29 14:31Z) Added the repository-native `browser-automation` packaging and service entry point while preserving the local Metabase PDF script as the runtime job implementation.
+- [x] (2026-04-29 14:36Z) Updated the ClubSpark service wrapper and ClubSpark scripts so JSON payload credentials are supported with environment fallback.
+- [x] (2026-04-29 14:53Z) Updated the ClubSpark and Metabase-report workflows to load the new settings, send JSON request bodies, and use the `/jobs/...` routes.
+- [x] (2026-04-29 15:02Z) Updated compose/build wiring and the primary repository docs to describe `browser-automation` as the supported service.
+- [x] (2026-04-29 15:18Z) Smoke-tested the new local HTTP wrapper by starting `browser-automation-server.mjs` and confirming `GET /health` and `GET /jobs` return the expected responses.
+- [x] (2026-04-29 16:47Z) Applied the browser-automation settings migration to homedb, synced the updated workflow JSON into live n8n, deployed the new `browser-automation` container on the `n8n` host, and verified that the live `GET /health` and `GET /jobs` endpoints respond as expected.
+- [x] (2026-04-29 16:54Z) Validated the live ClubSpark auth-session, contacts export, members export, and main-contacts export job endpoints on the `n8n` host with payload-driven credentials; all returned successful authenticated JSON or real CSV output.
+- [x] (2026-04-29 16:57Z) Validated the Metabase PDF job endpoint on the `n8n` host after correcting the stale Stirling target used during manual probing; the route returns a valid PDF when `stirlingBaseUrl` matches the live `global_settings` value `http://192.168.1.204:8080`.
+- [x] (2026-04-29 16:58Z) Validated the workflow JSON files, service scripts, live service deployment, and database migration end to end.
 
 ## Surprises & Discoveries
 
@@ -73,7 +77,7 @@ The visible proof is simple. After implementation, a human can execute the ClubS
 
 ## Outcomes & Retrospective
 
-This plan is at the design stage. The repository comparison is complete and the scope is now explicit: preserve the local Metabase PDF script, upgrade the ClubSpark service contract to `browser-automation`, move ClubSpark and LTA credentials into `public.global_settings`, and migrate the workflows to JSON request bodies and new route names. The remaining work is issue tracking, implementation, and end-to-end validation.
+Implementation is now complete on the repository branch and validated on the live `n8n` host. The service boundary, migration SQL, workflow payload contract, compose/docs changes, ClubSpark endpoint checks, and Metabase PDF endpoint checks have all been verified. One validation detour was caused by a stale hard-coded Stirling IP in older docs and seed SQL; the live environment itself was healthy at `http://192.168.1.204:8080`.
 
 ## Context and Orientation
 

@@ -26,22 +26,22 @@ services:
       - DB_POSTGRESDB_SCHEMA=n8n
       - DB_POSTGRESDB_PASSWORD=6523Tike
 
-  clubspark-exporter:
-    container_name: clubspark-exporter
+  browser-automation:
+    container_name: browser-automation
     build:
-      context: /root/clubspark-exporter
-      dockerfile: Dockerfile
-    image: local/clubspark-exporter:latest
+      context: .
+      dockerfile: browser-automation/Dockerfile
+    image: local/browser-automation:latest
     ports:
-      - 3001:3001
+      - 3001:3000
     restart: unless-stopped
-
+    volumes:
+      - ./scripts:/app/runtime-scripts:ro
     environment:
-      - PORT=3001
-      - CLUBSPARK_EMAIL=steve@shortcentral.com
-      - CLUBSPARK_PASSWORD=HQ#zo7P8C$
-      - LTA_USERNAME=sshort
-      - LTA_PASSWORD=fH8Urv2XrtZwXra!
+      - PORT=3000
+      - EXPORTER_SCRIPT_DIR=/app/runtime-scripts
+      - EXPORTER_DEFAULT_SCRIPT_DIR=/app/default-scripts
+      - EXPORTER_WORKDIR=/tmp/browser-automation
       - METABASE_BASE_URL=http://192.168.1.138:3000
       # Configure these on the host before using the Metabase report exporter.
       # - METABASE_EMAIL=

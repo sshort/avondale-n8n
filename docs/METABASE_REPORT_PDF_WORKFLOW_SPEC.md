@@ -7,7 +7,7 @@ Provide an operator-facing HTML form behind n8n that:
 - lists the supported Metabase dashboards
 - lists the available tab names for the chosen dashboard
 - lets the operator choose `redact` or `anonymise`
-- renders the selected tabs to PDF through the existing Playwright exporter
+- renders the selected tabs to PDF through the existing Playwright browser-automation service
 - post-processes the merged PDF in Stirling PDF
 - returns the final PDF directly to the browser
 
@@ -16,7 +16,7 @@ Provide an operator-facing HTML form behind n8n that:
 The implementation uses three moving parts:
 
 1. `n8n` for the HTML form, request validation, and binary response handling
-2. `clubspark-exporter` for Playwright-based Metabase rendering
+2. `browser-automation` for Playwright-based Metabase rendering
 3. `Stirling PDF` for sanitize and auto-redact post-processing
 
 The exporter now returns one merged PDF, not a zip of per-tab files.
@@ -39,7 +39,7 @@ The form workflow serves:
 The generation workflow:
 
 - validates the submitted form against an allowlist
-- calls `POST /metabase-dashboard-pdf` on the local exporter
+- calls `POST /jobs/metabase/dashboard-pdf` on the local browser-automation service
 - sanitizes the result in Stirling for all modes
 - applies Stirling auto-redact when the operator chooses `redact`
 
@@ -52,7 +52,8 @@ It reads a non-secret dashboard catalog from `public.global_settings`:
 - `metabase_report_dashboards_json`
 - `metabase_report_redaction_profiles_json`
 - `metabase_base_url`
-- `clubspark_exporter_base_url`
+- `browser_automation_base_url`
+- `clubspark_exporter_base_url` as a temporary fallback during migration
 - `stirling_base_url`
 - `n8n_base_url`
 
@@ -87,7 +88,7 @@ The dashboard catalog can also carry PDF-export overrides. Current supported ove
 
 The Playwright exporter endpoint is:
 
-- `POST /metabase-dashboard-pdf`
+- `POST /jobs/metabase/dashboard-pdf`
 
 Expected JSON payload:
 
@@ -163,7 +164,7 @@ The form currently supports:
 
 ## Deployment Notes
 
-- Set `METABASE_BASE_URL` on the `clubspark-exporter` service.
+- Set `METABASE_BASE_URL` on the `browser-automation` service.
 - Set `METABASE_EMAIL` and `METABASE_PASSWORD` on the host before using the workflow.
 - Apply `sql/037_metabase_report_pdf_settings.sql` so the dashboard catalog and redaction profiles exist in `global_settings`.
 - Import both workflow JSON files into n8n.

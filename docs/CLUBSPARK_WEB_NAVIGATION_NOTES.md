@@ -2,7 +2,7 @@
 
 ## Current Status
 
-- Playwright is installed and running on the `n8n` host inside the `clubspark-exporter` Docker service.
+- Playwright is installed and running on the `n8n` host inside the `browser-automation` Docker service.
 - Browser launch is working.
 - LTA authentication is working.
 - Direct contacts export is working.
@@ -14,11 +14,9 @@
 
 - Host: `n8n`
 - Compose file: `/root/docker-compose.yml`
-- Exporter service: `clubspark-exporter`
-- Base image: `mcr.microsoft.com/playwright:v1.52.0-jammy`
-- Playwright package version pinned to `1.52.0`
-- Exporter endpoint from the `n8n` container: `http://clubspark-exporter:3001/clubspark-export`
-- Members endpoint from the `n8n` container: `http://clubspark-exporter:3001/clubspark-members-export`
+- Browser-automation service: `browser-automation`
+- Browser-automation endpoint from the `n8n` container: `http://browser-automation:3000/jobs/clubspark/contacts/export`
+- Members endpoint from the `n8n` container: `http://browser-automation:3000/jobs/clubspark/members/export`
 
 ## Credentials In Use
 
@@ -108,10 +106,10 @@ These stages were confirmed on the `n8n` host:
 
 ## Verified Outcome
 
-- The exporter service returns a real CSV from the `n8n` host.
+- The browser-automation service returns a real CSV from the `n8n` host.
 - The installed local workflow now calls:
-  `http://clubspark-exporter:3001/clubspark-export`
+  `http://browser-automation:3000/jobs/clubspark/contacts/export`
 - The installed local members workflow now calls:
-  `http://clubspark-exporter:3001/clubspark-members-export`
+  `http://browser-automation:3000/jobs/clubspark/members/export`
 - The local workflow run succeeded and loaded `1221` current rows into `raw_contacts`, archiving the prior snapshot first.
 - The local members workflow run succeeded and loaded `817` current rows into `raw_members`.
