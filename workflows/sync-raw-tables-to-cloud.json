@@ -174,7 +174,7 @@
     },
     {
       "parameters": {
-        "jsCode": "return [{\n  json: {\n    force_full: Boolean($('Sync Options').first()?.json?.force_full),\n    contacts_rows_synced: Number($('Build raw_contacts sync SQL').first().json.rowCount ?? 0),\n    members_rows_synced: Number($('Build raw_members sync SQL').first().json.rowCount ?? 0),\n    member_signups_rows_synced: Number($('Build member_signups sync SQL').first().json.rowCount ?? 0),\n    signup_batches_rows_synced: Number($('Build signup_batches sync SQL').first().json.rowCount ?? 0),\n    signup_batch_manual_items_rows_synced: Number($('Build signup_batch_manual_items sync SQL').first().json.rowCount ?? 0),\n    membership_history_rows_synced: Number($('Build membership_history sync SQL').first().json.rowCount ?? 0),\n    membership_history_snapshots_rows_synced: Number($('Build membership_history_snapshots sync SQL').first().json.rowCount ?? 0),\n    workflow_rows_synced: Number($('Build n8n workflow_entity sync SQL').first().json.rowCount ?? 0),\n    execution_rows_synced: Number($('Build n8n execution_entity sync SQL').first().json.rowCount ?? 0),\n    cloud_raw_contacts_count: Number($('Verify cloud raw_contacts').first().json.total_contacts ?? 0),\n    cloud_raw_members_count: Number($('Verify cloud raw_members').first().json.total_members ?? 0),\n    cloud_member_signups_count: Number($('Verify cloud member_signups').first().json.total_signups ?? 0),\n    cloud_signup_batches_count: Number($('Verify cloud signup_batches').first().json.total_batches ?? 0),\n    cloud_signup_batch_manual_items_count: Number($('Verify cloud signup_batch_manual_items').first().json.total_rows ?? 0),\n    cloud_membership_history_count: Number($('Verify cloud membership_history').first().json.total_rows ?? 0),\n    cloud_membership_history_snapshots_count: Number($('Verify cloud membership_history_snapshots').first().json.total_rows ?? 0),\n    cloud_workflow_entity_count: Number($('Verify cloud n8n workflow_entity').first().json.total_workflows ?? 0),\n    cloud_execution_entity_count: Number($('Verify cloud n8n execution_entity').first().json.total_executions ?? 0),\n  },\n}];"
+        "jsCode": "return [{\n  json: {\n    force_full: Boolean($('Sync Options').first()?.json?.force_full),\n    contacts_rows_synced: Number($('Build raw_contacts sync SQL').first().json.rowCount ?? 0),\n    members_rows_synced: Number($('Build raw_members sync SQL').first().json.rowCount ?? 0),\n    member_signups_rows_synced: Number($('Build member_signups sync SQL').first().json.rowCount ?? 0),\n    signup_batches_rows_synced: Number($('Build signup_batches sync SQL').first().json.rowCount ?? 0),\n    signup_batch_manual_items_rows_synced: Number($('Build signup_batch_manual_items sync SQL').first().json.rowCount ?? 0),\n    signup_batch_clubspark_import_items_rows_synced: Number($('Build signup_batch_clubspark_import_items sync SQL').first().json.rowCount ?? 0),\n    membership_history_rows_synced: Number($('Build membership_history sync SQL').first().json.rowCount ?? 0),\n    membership_history_snapshots_rows_synced: Number($('Build membership_history_snapshots sync SQL').first().json.rowCount ?? 0),\n    workflow_rows_synced: Number($('Build n8n workflow_entity sync SQL').first().json.rowCount ?? 0),\n    execution_rows_synced: Number($('Build n8n execution_entity sync SQL').first().json.rowCount ?? 0),\n    cloud_raw_contacts_count: Number($('Verify cloud raw_contacts').first().json.total_contacts ?? 0),\n    cloud_raw_members_count: Number($('Verify cloud raw_members').first().json.total_members ?? 0),\n    cloud_member_signups_count: Number($('Verify cloud member_signups').first().json.total_signups ?? 0),\n    cloud_signup_batches_count: Number($('Verify cloud signup_batches').first().json.total_batches ?? 0),\n    cloud_signup_batch_manual_items_count: Number($('Verify cloud signup_batch_manual_items').first().json.total_rows ?? 0),\n    cloud_signup_batch_clubspark_import_items_count: Number($('Verify cloud signup_batch_clubspark_import_items').first().json.total_rows ?? 0),\n    cloud_membership_history_count: Number($('Verify cloud membership_history').first().json.total_rows ?? 0),\n    cloud_membership_history_snapshots_count: Number($('Verify cloud membership_history_snapshots').first().json.total_rows ?? 0),\n    cloud_workflow_entity_count: Number($('Verify cloud n8n workflow_entity').first().json.total_workflows ?? 0),\n    cloud_execution_entity_count: Number($('Verify cloud n8n execution_entity').first().json.total_executions ?? 0),\n  },\n}];"
       },
       "id": "c1d2e3f4-0001-0001-0001-000000000010",
       "name": "Summarize sync",
@@ -721,6 +721,79 @@
       "position": [
         6980,
         220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "39a4v88oeLUdsmM3",
+          "name": "avondale-n8n-user"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, batch_id, raw_member_id, member, email_address, source_membership, target_membership, status, notes, created_at, created_by, exported_at, imported_at, export_file_name FROM public.signup_batch_clubspark_import_items ORDER BY id;"
+      },
+      "id": "c1d2e3f4-0001-0001-0001-000000000050",
+      "name": "Read local signup_batch_clubspark_import_items",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        4100,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sqlInteger = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const digits = String(value).replace(/[^0-9-]+/g, '');\n  if (!digits || digits === '-') return 'NULL';\n  const parsed = Number.parseInt(digits, 10);\n  return Number.isNaN(parsed) ? 'NULL' : String(parsed);\n};\nconst rows = $input.all().map((item) => item.json ?? {});\nconst forceFull = Boolean($('Sync Options').first()?.json?.force_full);\nif (!rows.length) {\n  return [{ json: { sql: forceFull ? 'BEGIN; DELETE FROM public.signup_batch_clubspark_import_items; COMMIT;' : 'SELECT 1;', rowCount: 0 } }];\n}\nconst columns = [\n  { db: 'id', type: 'integer' },\n  { db: 'batch_id', type: 'integer' },\n  { db: 'raw_member_id', type: 'integer' },\n  { db: 'member', type: 'text' },\n  { db: 'email_address', type: 'text' },\n  { db: 'source_membership', type: 'text' },\n  { db: 'target_membership', type: 'text' },\n  { db: 'status', type: 'text' },\n  { db: 'notes', type: 'text' },\n  { db: 'created_at', type: 'text' },\n  { db: 'created_by', type: 'text' },\n  { db: 'exported_at', type: 'text' },\n  { db: 'imported_at', type: 'text' },\n  { db: 'export_file_name', type: 'text' },\n];\nconst quotedColumns = columns.map(({ db }) => '\"' + db.replace(/\"/g, '\"\"') + '\"').join(', ');\nconst valueRows = rows.map((row) => {\n  const record = columns.map((column) => column.type === 'integer' ? sqlInteger(row[column.db]) : sqlLiteral(row[column.db]));\n  return '(' + record.join(', ') + ')';\n}).join(',\\n  ');\nconst updateClause = columns.filter(({ db }) => db !== 'id').map(({ db }) => {\n  const quoted = '\"' + db.replace(/\"/g, '\"\"') + '\"';\n  return quoted + ' = EXCLUDED.' + quoted;\n}).join(',\\n    ');\nconst sql = forceFull\n  ? 'BEGIN;\\nDELETE FROM public.signup_batch_clubspark_import_items;\\nINSERT INTO public.signup_batch_clubspark_import_items (' + quotedColumns + ')\\nVALUES\\n  ' + valueRows + ';\\nCOMMIT;'\n  : 'BEGIN;\\nINSERT INTO public.signup_batch_clubspark_import_items (' + quotedColumns + ')\\nVALUES\\n  ' + valueRows + '\\nON CONFLICT (id) DO UPDATE SET\\n    ' + updateClause + ';\\nCOMMIT;';\nreturn [{ json: { sql, rowCount: rows.length, force_full: forceFull } }];"
+      },
+      "id": "c1d2e3f4-0001-0001-0001-000000000051",
+      "name": "Build signup_batch_clubspark_import_items sync SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4340,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "c1d2e3f4-0001-0001-0001-000000000052",
+      "name": "Write cloud signup_batch_clubspark_import_items",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        4580,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "39a4v88oeLUdsmM3",
+          "name": "avondale-n8n-user"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) AS total_rows FROM public.signup_batch_clubspark_import_items;"
+      },
+      "id": "c1d2e3f4-0001-0001-0001-000000000053",
+      "name": "Verify cloud signup_batch_clubspark_import_items",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        4820,
+        400
       ],
       "credentials": {
         "postgres": {
@@ -1296,6 +1369,50 @@
       ]
     },
     "Verify cloud signup_batch_manual_items": {
+      "main": [
+        [
+          {
+            "node": "Read local signup_batch_clubspark_import_items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read local signup_batch_clubspark_import_items": {
+      "main": [
+        [
+          {
+            "node": "Build signup_batch_clubspark_import_items sync SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build signup_batch_clubspark_import_items sync SQL": {
+      "main": [
+        [
+          {
+            "node": "Write cloud signup_batch_clubspark_import_items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write cloud signup_batch_clubspark_import_items": {
+      "main": [
+        [
+          {
+            "node": "Verify cloud signup_batch_clubspark_import_items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify cloud signup_batch_clubspark_import_items": {
       "main": [
         [
           {

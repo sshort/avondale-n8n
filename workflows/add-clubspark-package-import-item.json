@@ -1,0 +1,244 @@
+{
+  "name": "Add ClubSpark Package Import Item",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f4300000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "f4300000-0000-0000-0000-000000000002",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "path": "add-clubspark-package-import-item",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f4300000-0000-0000-0000-000000000003",
+      "name": "Add ClubSpark Package Import Item Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "add-clubspark-package-import-item"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $input.first()?.json ?? {};\nconst source = input.query ?? input;\nconst intValue = (value) => {\n  if (value === null || value === undefined || value === '') return null;\n  const parsed = Number.parseInt(String(value), 10);\n  return Number.isInteger(parsed) ? parsed : null;\n};\nreturn [{\n  json: {\n    batch_id: intValue(source.batch_id ?? source.batchId),\n    member_id: intValue(source.member_id ?? source.raw_member_id),\n    member: source.member ?? '',\n    membership: source.membership ?? '',\n    email_address: source.email_address ?? source.email ?? '',\n    target_membership: source.target_membership ?? source.targetMembership ?? '',\n    notes: source.notes ?? '',\n    created_by: source.created_by ?? source.request_source ?? 'clubspark_package_import_queue_workflow'\n  }\n}];"
+      },
+      "id": "f4300000-0000-0000-0000-000000000004",
+      "name": "Resolve Inputs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sqlInteger = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  const parsed = Number.parseInt(String(value), 10);\n  return Number.isInteger(parsed) ? String(parsed) : 'NULL';\n};\nconst item = $input.first()?.json ?? {};\nreturn [{\n  json: {\n    sql: `WITH params AS (\n  SELECT\n    ${sqlInteger(item.batch_id)}::bigint AS requested_batch_id,\n    ${sqlInteger(item.member_id)}::bigint AS requested_member_id,\n    ${sqlLiteral(item.member)}::text AS member_name,\n    ${sqlLiteral(item.membership)}::text AS source_membership_hint,\n    ${sqlLiteral(item.email_address)}::text AS email_address_hint,\n    ${sqlLiteral(item.target_membership)}::text AS target_membership,\n    ${sqlLiteral(item.notes)}::text AS notes,\n    ${sqlLiteral(item.created_by)}::text AS created_by\n), resolved_batch AS (\n  SELECT\n    COALESCE(\n      p.requested_batch_id,\n      (SELECT b.id FROM public.signup_batches b WHERE b.status = 'Processing' ORDER BY b.id DESC LIMIT 1)\n    ) AS batch_id,\n    p.requested_batch_id\n  FROM params p\n), candidate_member AS (\n  SELECT\n    rm.id AS raw_member_id,\n    trim(concat_ws(' ', rm.\"First name\", rm.\"Last name\")) AS member_name,\n    NULLIF(trim(rm.\"Email address\"), '') AS email_address,\n    rm.\"Membership\" AS source_membership,\n    rm.\"Status\" AS member_status,\n    rm.\"Payment\" AS member_payment_status\n  FROM public.raw_members rm\n  CROSS JOIN params p\n  WHERE COALESCE(rm.is_current, true) = true\n    AND (\n      (p.requested_member_id IS NOT NULL AND rm.id = p.requested_member_id)\n      OR (\n        p.requested_member_id IS NULL\n        AND p.member_name IS NOT NULL\n        AND p.member_name <> ''\n        AND lower(trim(concat_ws(' ', rm.\"First name\", rm.\"Last name\"))) = lower(trim(p.member_name))\n        AND (p.source_membership_hint IS NULL OR p.source_membership_hint = '' OR rm.\"Membership\" = p.source_membership_hint)\n      )\n    )\n  ORDER BY\n    CASE WHEN p.requested_member_id IS NOT NULL AND rm.id = p.requested_member_id THEN 0 ELSE 1 END,\n    CASE WHEN p.source_membership_hint IS NOT NULL AND p.source_membership_hint <> '' AND rm.\"Membership\" = p.source_membership_hint THEN 0 ELSE 1 END,\n    rm.id DESC\n  LIMIT 1\n), target_package AS (\n  SELECT mp.name, mp.category\n  FROM public.membership_packages mp\n  CROSS JOIN params p\n  WHERE mp.name = p.target_membership\n  ORDER BY mp.display_order NULLS LAST, mp.season DESC, mp.name\n  LIMIT 1\n), duplicate_queue AS (\n  SELECT q.id\n  FROM public.signup_batch_clubspark_import_items q\n  JOIN resolved_batch rb\n    ON rb.batch_id = q.batch_id\n  JOIN candidate_member cm\n    ON cm.raw_member_id = q.raw_member_id\n  CROSS JOIN params p\n  WHERE q.target_membership = p.target_membership\n    AND q.status IN ('queued', 'exported', 'imported')\n  LIMIT 1\n), validation AS (\n  SELECT\n    CASE\n      WHEN rb.batch_id IS NULL THEN 'No processing batch available and no batch_id was provided.'\n      WHEN rb.requested_batch_id IS NOT NULL\n       AND NOT EXISTS (SELECT 1 FROM public.signup_batches b WHERE b.id = rb.requested_batch_id)\n      THEN format('Batch %s does not exist', rb.requested_batch_id)\n      WHEN NOT EXISTS (SELECT 1 FROM candidate_member) THEN 'Member could not be resolved from current raw_members.'\n      WHEN NOT EXISTS (SELECT 1 FROM target_package) THEN 'Target package is invalid or unavailable.'\n      WHEN EXISTS (SELECT 1 FROM target_package tp WHERE COALESCE(NULLIF(trim(tp.category), ''), '') = 'Pavilion Key') THEN 'Pavilion Key cannot be queued as a ClubSpark package import target.'\n      WHEN EXISTS (SELECT 1 FROM duplicate_queue) THEN 'This member is already queued for that package in the selected batch.'\n      ELSE NULL\n    END AS error_message,\n    rb.batch_id\n  FROM resolved_batch rb\n), inserted AS (\n  INSERT INTO public.signup_batch_clubspark_import_items (\n    batch_id,\n    raw_member_id,\n    member,\n    email_address,\n    source_membership,\n    target_membership,\n    status,\n    notes,\n    created_by\n  )\n  SELECT\n    v.batch_id,\n    cm.raw_member_id,\n    cm.member_name,\n    COALESCE(NULLIF(trim(p.email_address_hint), ''), cm.email_address),\n    cm.source_membership,\n    p.target_membership,\n    'queued',\n    NULLIF(trim(p.notes), ''),\n    p.created_by\n  FROM validation v\n  CROSS JOIN params p\n  CROSS JOIN candidate_member cm\n  WHERE v.error_message IS NULL\n  RETURNING id, batch_id, member, target_membership, status\n)\nSELECT\n  true AS ok,\n  200 AS response_code,\n  format('Queued ClubSpark package import item %s in batch %s', id, batch_id) AS message,\n  id,\n  batch_id,\n  member,\n  target_membership,\n  status\nFROM inserted\nUNION ALL\nSELECT\n  false AS ok,\n  400 AS response_code,\n  error_message AS message,\n  NULL::bigint AS id,\n  batch_id,\n  NULL::text AS member,\n  NULL::text AS target_membership,\n  'queued'::text AS status\nFROM validation\nWHERE error_message IS NOT NULL;`\n  }\n}];"
+      },
+      "id": "f4300000-0000-0000-0000-000000000005",
+      "name": "Build Insert SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        820,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "f4300000-0000-0000-0000-000000000006",
+      "name": "Insert Package Import Item",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1080,
+        320
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const result = $input.first()?.json ?? {};\nconst escapeHtml = (value) => String(value ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\\\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst responseCode = Number(result.response_code ?? (result.ok === false ? 400 : 200));\nconst isSuccess = responseCode >= 200 && responseCode < 300;\nconst details = [\n  ['Batch', result.batch_id],\n  ['Member', result.member],\n  ['Target package', result.target_membership],\n  ['Status', result.status],\n].filter(([, value]) => value !== null && value !== undefined && String(value).trim() !== '');\nconst detailHtml = details.map(([label, value]) => `<div class=\"detail\"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join('');\nconst html = `<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>ClubSpark Package Import Queue Result</title>\n  <style>\n    :root {\n      color-scheme: light;\n      --bg: #f4f7fb;\n      --panel: #ffffff;\n      --ink: #1f2937;\n      --muted: #667085;\n      --line: #d7e0ea;\n      --success: #166534;\n      --success-soft: #ecfdf3;\n      --error: #b42318;\n      --error-soft: #fef3f2;\n      --button: #e9eef5;\n    }\n    * { box-sizing: border-box; }\n    body {\n      margin: 0;\n      padding: 24px;\n      background: linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);\n      color: var(--ink);\n      font-family: Lato, Arial, sans-serif;\n    }\n    .panel {\n      max-width: 760px;\n      margin: 0 auto;\n      background: var(--panel);\n      border: 1px solid var(--line);\n      border-radius: 18px;\n      padding: 28px;\n      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);\n    }\n    .badge {\n      display: inline-flex;\n      padding: 6px 12px;\n      border-radius: 999px;\n      font-size: 13px;\n      font-weight: 700;\n      letter-spacing: 0.04em;\n      text-transform: uppercase;\n      color: ${isSuccess ? 'var(--success)' : 'var(--error)'};\n      background: ${isSuccess ? 'var(--success-soft)' : 'var(--error-soft)'};\n    }\n    h1 {\n      margin: 16px 0 8px;\n      font-size: 32px;\n      line-height: 1.1;\n    }\n    p {\n      margin: 0;\n      color: var(--muted);\n      line-height: 1.6;\n      font-size: 16px;\n    }\n    .details {\n      display: grid;\n      gap: 12px;\n      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));\n      margin-top: 24px;\n    }\n    .detail {\n      border: 1px solid var(--line);\n      border-radius: 14px;\n      padding: 14px 16px;\n      background: #f8fafc;\n    }\n    .detail span {\n      display: block;\n      margin-bottom: 6px;\n      color: var(--muted);\n      font-size: 13px;\n      font-weight: 700;\n      text-transform: uppercase;\n      letter-spacing: 0.04em;\n    }\n    .detail strong {\n      font-size: 17px;\n      line-height: 1.4;\n      word-break: break-word;\n    }\n    .actions {\n      display: flex;\n      gap: 12px;\n      flex-wrap: wrap;\n      margin-top: 24px;\n    }\n    button {\n      appearance: none;\n      border: 1px solid var(--line);\n      border-radius: 999px;\n      background: var(--button);\n      color: var(--ink);\n      font: inherit;\n      font-weight: 700;\n      padding: 12px 18px;\n      cursor: pointer;\n    }\n  </style>\n</head>\n<body>\n  <main class=\"panel\">\n    <span class=\"badge\">${isSuccess ? 'Success' : 'Action needed'}</span>\n    <h1>ClubSpark package import queue</h1>\n    <p>${escapeHtml(result.message ?? (isSuccess ? 'Package import item queued.' : 'The request could not be completed.'))}</p>\n    ${detailHtml ? `<section class=\"details\">${detailHtml}</section>` : ''}\n    <div class=\"actions\">\n      <button type=\"button\" onclick=\"window.close()\">Close</button>\n    </div>\n  </main>\n</body>\n</html>`;\nreturn [{ json: { ...result, response_code: responseCode, html } }];"
+      },
+      "id": "f4300000-0000-0000-0000-000000000007",
+      "name": "Build Result Page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": "={{ Number($json.response_code || 200) }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "f4300000-0000-0000-0000-000000000008",
+      "name": "Respond Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1600,
+        140
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Resolve Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Resolve Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add ClubSpark Package Import Item Webhook": {
+      "main": [
+        [
+          {
+            "node": "Resolve Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Inputs": {
+      "main": [
+        [
+          {
+            "node": "Build Insert SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Insert SQL": {
+      "main": [
+        [
+          {
+            "node": "Insert Package Import Item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Package Import Item": {
+      "main": [
+        [
+          {
+            "node": "Build Result Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Result Page": {
+      "main": [
+        [
+          {
+            "node": "Respond Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": {},
+  "pinData": {},
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "5eb27d9d07f14a13",
+      "name": "Batch"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "23ad8e2617052af4",
+      "name": "ClubSpark"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "08ef3342121ccbfe",
+      "name": "Forms"
+    }
+  ],
+  "description": ""
+}
