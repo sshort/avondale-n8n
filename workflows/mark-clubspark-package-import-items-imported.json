@@ -1,0 +1,270 @@
+{
+  "name": "Mark ClubSpark Package Import Items Imported",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f4700000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "path": "mark-clubspark-package-import-items-imported",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f4700000-0000-0000-0000-000000000002",
+      "name": "Mark Imported Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        100
+      ],
+      "webhookId": "mark-clubspark-package-import-items-imported"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const request = $('Mark Imported Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst body = request.body ?? request;\nconst headers = request.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst toArray = (value) => Array.isArray(value) ? value : value === null || value === undefined ? [] : [value];\nconst parseInteger = (value) => {\n  const parsed = Number.parseInt(String(value ?? '').trim(), 10);\n  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;\n};\nconst deriveBaseUrl = (headers, fallback) => {\n  const forwardedProto = clean(headers['x-forwarded-proto']);\n  const forwardedHost = clean(headers['x-forwarded-host']);\n  const host = forwardedHost || clean(headers.host);\n  const forwardedPort = clean(headers['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst rawItemValues = [...toArray(body.item_id), ...toArray(body.item_ids)];\nconst itemIds = [];\nconst seen = new Set();\nfor (const rawValue of rawItemValues) {\n  const parts = String(rawValue ?? '').replace(/\\r/g, '').split(/[\\n,;]+/);\n  for (const part of parts) {\n    const parsed = parseInteger(part);\n    if (!parsed || seen.has(parsed)) continue;\n    seen.add(parsed);\n    itemIds.push(parsed);\n  }\n}\nconst batchId = parseInteger(body.batch_id ?? body.batchId);\nconst targetMembership = clean(body.target_membership ?? body.targetMembership);\nconst n8nBaseUrl = deriveBaseUrl(headers, 'http://n8n:5678');\nlet errorMessage = '';\nif (!batchId) {\n  errorMessage = 'Batch ID is required.';\n} else if (!targetMembership) {\n  errorMessage = 'Target package is required.';\n} else if (!itemIds.length) {\n  errorMessage = 'Select at least one exported queue row to mark as imported.';\n}\nreturn [{ json: { batch_id: batchId, target_membership: targetMembership, item_ids: itemIds, n8n_base_url: n8nBaseUrl, error_message: errorMessage } }];"
+      },
+      "id": "f4700000-0000-0000-0000-000000000003",
+      "name": "Resolve Imported Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "request-error-check",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ]
+        }
+      },
+      "id": "f4700000-0000-0000-0000-000000000004",
+      "name": "Check Request Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        780,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst request = $input.first()?.json ?? {};\nconst requestedValues = request.item_ids.map((id) => `(${Number(id)})`).join(',\\n    ');\nconst sql = `\nWITH requested_ids(item_id) AS (\n  VALUES\n    ${requestedValues}\n),\nselected AS (\n  SELECT\n    q.id,\n    q.batch_id,\n    q.member,\n    q.target_membership,\n    q.status,\n    b.status AS batch_status\n  FROM requested_ids r\n  LEFT JOIN public.signup_batch_clubspark_import_items q\n    ON q.id = r.item_id\n  LEFT JOIN public.signup_batches b\n    ON b.id = q.batch_id\n  WHERE q.id IS NOT NULL\n),\nvalidation AS (\n  SELECT CASE\n    WHEN (SELECT COUNT(*) FROM requested_ids) = 0 THEN 'Select at least one exported queue row to mark as imported.'\n    WHEN (SELECT COUNT(*) FROM selected) <> (SELECT COUNT(*) FROM requested_ids) THEN 'One or more selected queue rows could not be found.'\n    WHEN EXISTS (SELECT 1 FROM selected WHERE batch_id <> ${Number(request.batch_id)}) THEN 'Selected rows must all belong to the requested batch.'\n    WHEN EXISTS (SELECT 1 FROM selected WHERE target_membership <> ${sqlLiteral(request.target_membership)}) THEN 'Selected rows must all belong to the requested target package.'\n    WHEN EXISTS (SELECT 1 FROM selected WHERE batch_status <> 'Processing') THEN 'Imported status can only be set while the batch is Processing.'\n    WHEN EXISTS (SELECT 1 FROM selected WHERE status <> 'exported') THEN 'Only exported queue rows can be marked as imported.'\n    ELSE NULL\n  END AS error_message\n),\nupdated AS (\n  UPDATE public.signup_batch_clubspark_import_items q\n  SET status = 'imported',\n      imported_at = now()\n  FROM selected s, validation v\n  WHERE v.error_message IS NULL\n    AND q.id = s.id\n  RETURNING q.id, q.member, q.target_membership\n)\nSELECT\n  v.error_message,\n  COALESCE((SELECT COUNT(*) FROM updated), 0) AS updated_count,\n  COALESCE((SELECT json_agg(json_build_object('id', id, 'member', member, 'target_membership', target_membership) ORDER BY member, id) FROM updated), '[]'::json) AS updated_rows\nFROM validation v;`;\nreturn [{ json: { ...request, sql } }];"
+      },
+      "id": "f4700000-0000-0000-0000-000000000005",
+      "name": "Build Imported SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "f4700000-0000-0000-0000-000000000006",
+      "name": "Mark Imported In DB",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1300,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const request = $('Resolve Imported Request').first()?.json ?? {};\nconst result = $input.first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst escapeHtml = (value) => clean(value)\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\\\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst parseMaybe = (value, fallback) => {\n  if (value === null || value === undefined || value === '') return fallback;\n  if (typeof value === 'string') {\n    try { return JSON.parse(value); } catch { return fallback; }\n  }\n  return value;\n};\nconst errorMessage = clean(result.error_message || request.error_message);\nconst reviewUrl = `${clean(request.n8n_base_url) || 'http://n8n:5678'}/webhook/clubspark-package-import-queue-review?batch_id=${encodeURIComponent(clean(request.batch_id))}&target_membership=${encodeURIComponent(clean(request.target_membership))}&_ts=${Date.now()}`;\nconst updatedRows = parseMaybe(result.updated_rows, []);\nconst updatedCount = Number.parseInt(clean(result.updated_count), 10) || 0;\nconst rowsHtml = Array.isArray(updatedRows) && updatedRows.length\n  ? `<ul>${updatedRows.map((row) => `<li>${escapeHtml(clean(row.member) || `Queue row ${clean(row.id)}`)}</li>`).join('')}</ul>`\n  : '';\nconst title = errorMessage ? 'Mark Imported Failed' : 'Queue Rows Marked Imported';\nconst message = errorMessage || `Marked ${updatedCount} queue row${updatedCount === 1 ? '' : 's'} as imported.`;\nconst badgeClass = errorMessage ? 'badge error' : 'badge success';\nconst badgeText = errorMessage ? 'Action needed' : 'Imported';\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>${escapeHtml(title)}</title><style>:root{color-scheme:light;--bg:#f7f8fc;--panel:#ffffff;--ink:#2e3d4e;--muted:#6b7785;--line:#e2e8f0;--danger:#b42318;--danger-soft:#fef3f2;--success:#166534;--success-soft:#ecfdf3;--button-soft:#eef2f7}*{box-sizing:border-box}body{margin:0;padding:24px;font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:var(--ink);background:linear-gradient(180deg,#fbfcfe 0%,var(--bg) 100%)}.panel{max-width:820px;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:0 18px 40px rgba(53,72,91,.08)}.badge{display:inline-flex;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}.badge.error{color:var(--danger);background:var(--danger-soft)}.badge.success{color:var(--success);background:var(--success-soft)}h1{margin:16px 0 8px;font-size:32px;line-height:1.1}p,li{color:var(--muted);line-height:1.6;font-size:16px}ul{margin:18px 0 0 20px;padding:0}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;font:inherit;font-weight:700;text-decoration:none;border:1px solid var(--line);background:var(--button-soft);color:var(--ink)}</style></head><body><main class=\"panel\"><span class=\"${badgeClass}\">${escapeHtml(badgeText)}</span><h1>${escapeHtml(title)}</h1><p>${escapeHtml(message)}</p>${rowsHtml}<div class=\"actions\"><a class=\"button\" href=\"${escapeHtml(reviewUrl)}\">Back to Queue Review</a><button type=\"button\" class=\"button\" onclick=\"window.close()\">Close</button></div></main></body></html>`;\nreturn [{ json: { html, response_code: errorMessage ? 400 : 200 } }];"
+      },
+      "id": "f4700000-0000-0000-0000-000000000007",
+      "name": "Build Imported HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": "={{ Number($json.response_code || 200) }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "f4700000-0000-0000-0000-000000000008",
+      "name": "Respond Imported",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1820,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Resolve Imported Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Imported Webhook": {
+      "main": [
+        [
+          {
+            "node": "Resolve Imported Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Imported Request": {
+      "main": [
+        [
+          {
+            "node": "Check Request Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Request Error": {
+      "main": [
+        [
+          {
+            "node": "Build Imported HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Imported SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Imported SQL": {
+      "main": [
+        [
+          {
+            "node": "Mark Imported In DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Imported In DB": {
+      "main": [
+        [
+          {
+            "node": "Build Imported HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Imported HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Imported",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": {},
+  "pinData": {},
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "5eb27d9d07f14a13",
+      "name": "Batch"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "df46c901559c56fa",
+      "name": "Import"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "23ad8e2617052af4",
+      "name": "ClubSpark"
+    }
+  ],
+  "description": ""
+}

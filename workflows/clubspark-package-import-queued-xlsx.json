@@ -1,0 +1,449 @@
+{
+  "name": "ClubSpark Package Import Queued XLSX",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f4600000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "path": "clubspark-package-import-queue-export",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f4600000-0000-0000-0000-000000000002",
+      "name": "ClubSpark Package Import Queue Export Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        100
+      ],
+      "webhookId": "clubspark-package-import-queue-export"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const request = $('ClubSpark Package Import Queue Export Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst body = request.body ?? request;\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst toArray = (value) => Array.isArray(value) ? value : value === null || value === undefined ? [] : [value];\nconst parseInteger = (value) => {\n  const parsed = Number.parseInt(String(value ?? '').trim(), 10);\n  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;\n};\nconst rawItemValues = [\n  ...toArray(body.item_id),\n  ...toArray(body.item_ids)\n];\nconst itemIds = [];\nconst seen = new Set();\nfor (const rawValue of rawItemValues) {\n  const parts = String(rawValue ?? '').replace(/\\r/g, '').split(/[\\n,;]+/);\n  for (const part of parts) {\n    const parsed = parseInteger(part);\n    if (!parsed || seen.has(parsed)) continue;\n    seen.add(parsed);\n    itemIds.push(parsed);\n  }\n}\nconst batchId = parseInteger(body.batch_id ?? body.batchId);\nconst targetMembership = clean(body.target_membership ?? body.targetMembership);\nconst defaultCountry = clean(body.default_country) || 'United Kingdom';\nconst filePrefix = clean(body.file_prefix) || 'clubspark-package-import';\nconst safeTarget = targetMembership.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'package';\nconst stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');\nconst fileName = `${filePrefix}-${safeTarget}-${stamp}.xlsx`;\nlet errorMessage = '';\nif (!batchId) {\n  errorMessage = 'Batch ID is required.';\n} else if (!targetMembership) {\n  errorMessage = 'Target package is required.';\n} else if (!itemIds.length) {\n  errorMessage = 'Select at least one queued package-import row.';\n}\nreturn [{ json: { batch_id: batchId, target_membership: targetMembership, item_ids: itemIds, default_country: defaultCountry, file_prefix: filePrefix, file_name: fileName, error_message: errorMessage } }];"
+      },
+      "id": "f4600000-0000-0000-0000-000000000003",
+      "name": "Resolve Export Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "request-error-check",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ]
+        }
+      },
+      "id": "f4600000-0000-0000-0000-000000000004",
+      "name": "Check Request Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        780,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst request = $input.first()?.json ?? {};\nconst requestedValues = request.item_ids.map((id) => `(${Number(id)})`).join(',\\n    ');\nconst sql = `\nWITH requested_ids(item_id) AS (\n  VALUES\n    ${requestedValues}\n),\nall_selected AS (\n  SELECT\n    q.id,\n    q.batch_id,\n    q.raw_member_id,\n    q.member,\n    q.source_membership,\n    q.target_membership,\n    q.status,\n    q.notes,\n    q.created_at,\n    q.exported_at,\n    q.imported_at,\n    q.export_file_name,\n    b.status AS batch_status,\n    rm.\"Venue ID\" AS member_unique_id,\n    rm.\"First name\" AS member_first_name,\n    rm.\"Last name\" AS member_last_name,\n    rm.\"Email address\" AS member_email,\n    rm.\"Start Date\" AS member_start_date,\n    rm.\"Expiry Date\" AS member_expiry_date,\n    rm.\"Cost\" AS member_cost,\n    rm.\"Paid\" AS member_paid,\n    rm.\"Gift aid\" AS member_gift_aid,\n    rm.\"Gender\" AS member_gender,\n    rm.\"Date of birth\" AS member_birth_date,\n    rm.\"Phone number\" AS member_home_number,\n    rm.\"Work number\" AS member_work_number,\n    rm.\"Mobile number\" AS member_mobile_number,\n    rm.\"Emergency phone number\" AS member_emergency_phone_number,\n    rm.\"Postcode\" AS member_postcode,\n    rm.\"Address 1\" AS member_address_1,\n    rm.\"Address 2\" AS member_address_2,\n    rm.\"Address 3\" AS member_address_3,\n    rm.\"Town\" AS member_town,\n    rm.\"County\" AS member_county,\n    rm.\"Country\" AS member_country,\n    rm.\"Occupation\" AS member_occupation,\n    rm.\"British Tennis Number\" AS british_tennis_number,\n    rm.\"Date joined venue\" AS member_date_joined_venue,\n    rm.\"Medical history\" AS member_medical_history,\n    COALESCE(NULLIF(trim(rm.\"Contact source\"), ''), NULLIF(trim(rm.\"Venue source\"), ''), NULLIF(trim(rm.\" Venue source\"), '')) AS member_source,\n    rm.\"Key pin number\" AS member_key_pin_number,\n    rm.\"Tags provided\" AS member_tags_provided,\n    target_map.clubspark_package_id,\n    vw.clubspark_import_url\n  FROM requested_ids r\n  LEFT JOIN public.signup_batch_clubspark_import_items q\n    ON q.id = r.item_id\n  LEFT JOIN public.signup_batches b\n    ON b.id = q.batch_id\n  LEFT JOIN public.raw_members rm\n    ON rm.id = q.raw_member_id\n  LEFT JOIN public.clubspark_membership_import_targets target_map\n    ON target_map.target_membership = q.target_membership\n  LEFT JOIN public.vw_signup_batch_clubspark_import_items vw\n    ON vw.id = q.id\n),\nselected AS (\n  SELECT *\n  FROM all_selected\n  WHERE id IS NOT NULL\n),\nvalidation AS (\n  SELECT CASE\n    WHEN (SELECT COUNT(*) FROM requested_ids) = 0 THEN 'Select at least one queued package-import row.'\n    WHEN (SELECT COUNT(*) FROM selected) <> (SELECT COUNT(*) FROM requested_ids) THEN 'One or more selected queue rows could not be found.'\n    WHEN EXISTS (SELECT 1 FROM selected WHERE batch_id <> ${Number(request.batch_id)}) THEN 'Selected rows must all belong to the requested batch.'\n    WHEN EXISTS (SELECT 1 FROM selected WHERE target_membership <> ${sqlLiteral(request.target_membership)}) THEN 'Selected rows must all belong to the requested target package.'\n    WHEN EXISTS (SELECT 1 FROM selected WHERE batch_status <> 'Processing') THEN 'ClubSpark package exports are only allowed while the batch is Processing.'\n    WHEN EXISTS (SELECT 1 FROM selected WHERE status NOT IN ('queued', 'exported')) THEN 'Only queued or previously exported rows can be included in this package export.'\n    WHEN EXISTS (SELECT 1 FROM selected WHERE clubspark_package_id IS NULL) THEN 'This target package does not yet have a mapped ClubSpark package ID.'\n    WHEN EXISTS (SELECT 1 FROM selected WHERE NULLIF(trim(member_unique_id), '') IS NULL) THEN 'One or more selected members are missing a ClubSpark Contact ID.'\n    WHEN (SELECT COUNT(DISTINCT clubspark_package_id) FROM selected) <> 1 THEN 'Selected rows must resolve to exactly one ClubSpark package import destination.'\n    ELSE NULL\n  END AS error_message\n),\nupdated AS (\n  UPDATE public.signup_batch_clubspark_import_items q\n  SET status = 'exported',\n      exported_at = now(),\n      export_file_name = ${sqlLiteral(request.file_name)}\n  FROM selected s, validation v\n  WHERE v.error_message IS NULL\n    AND q.id = s.id\n  RETURNING q.id\n)\nSELECT\n  v.error_message,\n  s.id,\n  s.batch_id,\n  s.raw_member_id,\n  s.member,\n  s.source_membership,\n  s.target_membership,\n  s.status,\n  s.notes,\n  s.created_at,\n  s.exported_at,\n  s.imported_at,\n  s.export_file_name,\n  s.member_unique_id,\n  s.member_first_name,\n  s.member_last_name,\n  s.member_email,\n  s.member_start_date,\n  s.member_expiry_date,\n  s.member_cost,\n  s.member_paid,\n  s.member_gift_aid,\n  s.member_gender,\n  s.member_birth_date,\n  s.member_home_number,\n  s.member_work_number,\n  s.member_mobile_number,\n  s.member_emergency_phone_number,\n  s.member_postcode,\n  s.member_address_1,\n  s.member_address_2,\n  s.member_address_3,\n  s.member_town,\n  s.member_county,\n  s.member_country,\n  s.member_occupation,\n  s.british_tennis_number,\n  s.member_date_joined_venue,\n  s.member_medical_history,\n  s.member_source,\n  s.member_key_pin_number,\n  s.member_tags_provided,\n  s.clubspark_package_id,\n  s.clubspark_import_url\nFROM validation v\nLEFT JOIN selected s\n  ON v.error_message IS NULL\nORDER BY s.member, s.id;`;\nreturn [{ json: { ...request, sql } }];"
+      },
+      "id": "f4600000-0000-0000-0000-000000000005",
+      "name": "Build Export SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "f4600000-0000-0000-0000-000000000006",
+      "name": "Load Export Rows",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1300,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const request = $('Resolve Export Request').first()?.json ?? {};\nconst rows = $input.all().map((item) => item.json ?? {});\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nif (!rows.length) {\n  return [{ json: { error_message: 'No rows were returned for export.' } }];\n}\nconst errorMessage = clean(rows[0].error_message);\nif (errorMessage) {\n  return [{ json: { error_message: errorMessage } }];\n}\nconst stripBrackets = (value) => clean(value).replace(/[\\[\\]]/g, '');\nconst formatGender = (value) => {\n  const raw = clean(value).toLowerCase();\n  if (raw === 'male') return 'M';\n  if (raw === 'female') return 'F';\n  return clean(value);\n};\nconst formatNumeric = (value) => {\n  if (value === null || value === undefined || value === '') return '';\n  const parsed = Number.parseFloat(String(value).replace(/[^0-9.-]+/g, ''));\n  if (Number.isNaN(parsed)) return clean(value);\n  return Number.isInteger(parsed) ? String(parsed) : String(parsed).replace(/\\.0+$/, '').replace(/(\\.\\d*[1-9])0+$/, '$1');\n};\nconst formatKeyPin = (value) => {\n  const raw = clean(value);\n  return raw === '[]' ? '' : raw;\n};\nconst defaultCountry = clean(request.default_country) || 'United Kingdom';\nconst output = [];\nconst missingIds = [];\nfor (const row of rows) {\n  const contactId = stripBrackets(row.member_unique_id);\n  if (!contactId) {\n    missingIds.push(clean(row.member || row.id));\n    continue;\n  }\n  output.push({\n    json: {\n      ContactID: contactId,\n      FirstName: clean(row.member_first_name),\n      LastName: clean(row.member_last_name),\n      EmailAddress: clean(row.member_email),\n      StartDate: clean(row.member_start_date),\n      ExpiryDate: clean(row.member_expiry_date),\n      Cost: formatNumeric(row.member_cost),\n      Paid: formatNumeric(row.member_paid),\n      GiftAid: clean(row.member_gift_aid),\n      Gender: formatGender(row.member_gender),\n      BirthDate: clean(row.member_birth_date),\n      HomeNumber: clean(row.member_home_number),\n      WorkNumber: clean(row.member_work_number),\n      MobileNumber: clean(row.member_mobile_number),\n      EmergencyPhoneNumber: clean(row.member_emergency_phone_number),\n      PostCode: clean(row.member_postcode),\n      Address1: clean(row.member_address_1),\n      Address2: clean(row.member_address_2),\n      Address3: clean(row.member_address_3),\n      Town: clean(row.member_town),\n      County: clean(row.member_county),\n      Country: clean(row.member_country) || defaultCountry,\n      Occupation: clean(row.member_occupation),\n      BritishTennisNumber: clean(row.british_tennis_number),\n      DateJoinedVenue: clean(row.member_date_joined_venue),\n      MedicalHistory: clean(row.member_medical_history),\n      Source: clean(row.member_source),\n      KeyPinNumber: formatKeyPin(row.member_key_pin_number),\n      TagsProvided: clean(row.member_tags_provided),\n      _queueItemId: clean(row.id),\n      _member: clean(row.member),\n      _targetMembership: clean(row.target_membership),\n      _clubsparkPackageId: clean(row.clubspark_package_id),\n      _clubsparkImportUrl: clean(row.clubspark_import_url),\n      _fileName: clean(request.file_name)\n    }\n  });\n}\nif (missingIds.length) {\n  return [{ json: { error_message: `Missing ClubSpark Contact ID for: ${missingIds.join(', ')}` } }];\n}\nreturn output;"
+      },
+      "id": "f4600000-0000-0000-0000-000000000007",
+      "name": "Build Export Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "result-error-check",
+              "leftValue": "={{ $json.error_message || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ]
+        }
+      },
+      "id": "f4600000-0000-0000-0000-000000000008",
+      "name": "Check Result Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1820,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first()?.json ?? {};\nconst message = item.error_message || 'Unable to build the ClubSpark package import workbook.';\nconst escapeHtml = (value) => String(value ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\\\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>ClubSpark Package Export Failed</title><style>body{margin:0;padding:24px;background:#f7f8fc;font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:#2e3d4e}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 18px 40px rgba(53,72,91,.08);padding:28px}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#509ee3 0%,#2f80d8 100%);color:#fff}</style></head><body><div class=\"panel\"><h1>ClubSpark Package Export Failed</h1><p>${escapeHtml(message)}</p><p><a class=\"button\" href=\"javascript:history.back()\">Back</a></p></div></body></html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "f4600000-0000-0000-0000-000000000009",
+      "name": "Build Error HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              },
+              {
+                "name": "Pragma",
+                "value": "no-cache"
+              },
+              {
+                "name": "Expires",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "f4600000-0000-0000-0000-000000000010",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1300,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const headers = [\n  'ContactID','FirstName','LastName','EmailAddress','StartDate','ExpiryDate','Cost','Paid','GiftAid','Gender','BirthDate','HomeNumber','WorkNumber','MobileNumber','EmergencyPhoneNumber','PostCode','Address1','Address2','Address3','Town','County','Country','Occupation','BritishTennisNumber','DateJoinedVenue','MedicalHistory','Source','KeyPinNumber','TagsProvided'\n];\nreturn $input.all().map((item) => {\n  const row = item.json ?? {};\n  const exportRow = {};\n  for (const header of headers) exportRow[header] = row[header] ?? '';\n  return { json: exportRow };\n});"
+      },
+      "id": "f4600000-0000-0000-0000-000000000011",
+      "name": "Prepare XLSX Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2080,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toFile",
+        "fileFormat": "xlsx",
+        "binaryPropertyName": "data",
+        "options": {
+          "fileName": "={{ $(\"Resolve Export Request\").first().json.file_name }}",
+          "headerRow": true,
+          "sheetName": "PackageImport"
+        }
+      },
+      "id": "f4600000-0000-0000-0000-000000000012",
+      "name": "Spreadsheet File",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 2,
+      "position": [
+        2340,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "binary",
+        "responseDataSource": "set",
+        "inputFieldName": "data",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              },
+              {
+                "name": "Pragma",
+                "value": "no-cache"
+              },
+              {
+                "name": "Expires",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "f4600000-0000-0000-0000-000000000013",
+      "name": "Respond XLSX",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2600,
+        360
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Resolve Export Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ClubSpark Package Import Queue Export Webhook": {
+      "main": [
+        [
+          {
+            "node": "Resolve Export Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Export Request": {
+      "main": [
+        [
+          {
+            "node": "Check Request Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Request Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Export SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Export SQL": {
+      "main": [
+        [
+          {
+            "node": "Load Export Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Export Rows": {
+      "main": [
+        [
+          {
+            "node": "Build Export Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Export Rows": {
+      "main": [
+        [
+          {
+            "node": "Check Result Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Result Error": {
+      "main": [
+        [
+          {
+            "node": "Build Error HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare XLSX Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare XLSX Rows": {
+      "main": [
+        [
+          {
+            "node": "Spreadsheet File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Spreadsheet File": {
+      "main": [
+        [
+          {
+            "node": "Respond XLSX",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": {},
+  "pinData": {},
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "5eb27d9d07f14a13",
+      "name": "Batch"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "df46c901559c56fa",
+      "name": "Import"
+    },
+    {
+      "updatedAt": "2026-04-22T10:30:36.709Z",
+      "createdAt": "2026-04-22T10:30:36.709Z",
+      "id": "23ad8e2617052af4",
+      "name": "ClubSpark"
+    }
+  ],
+  "description": ""
+}
