@@ -2,6 +2,12 @@
   "version": 1,
   "resources": [
     {
+      "key": "add-clubspark-package-import-item",
+      "name": "Add ClubSpark Package Import Item",
+      "file": "workflows/add-clubspark-package-import-item.json",
+      "ids": {}
+    },
+    {
       "key": "add-manual-batch-item",
       "name": "Add Manual Batch Item",
       "file": "workflows/add-manual-batch-item.json",
@@ -24,6 +30,12 @@
       "ids": {
         "local": "SyT9FvdjQuJOcRGM"
       }
+    },
+    {
+      "key": "cancel-clubspark-package-import-item",
+      "name": "Cancel ClubSpark Package Import Item",
+      "file": "workflows/cancel-clubspark-package-import-item.json",
+      "ids": {}
     },
     {
       "key": "capture-membership-history-season-snapshot",
@@ -110,6 +122,24 @@
       "ids": {
         "local": "0cLfjgMnyQeFcJ8T"
       }
+    },
+    {
+      "key": "clubspark-package-import-queue-form",
+      "name": "ClubSpark Package Import Queue Form",
+      "file": "workflows/clubspark-package-import-queue-form.json",
+      "ids": {}
+    },
+    {
+      "key": "clubspark-package-import-queue-review",
+      "name": "ClubSpark Package Import Queue Review",
+      "file": "workflows/clubspark-package-import-queue-review.json",
+      "ids": {}
+    },
+    {
+      "key": "clubspark-package-import-queued-xlsx",
+      "name": "ClubSpark Package Import Queued XLSX",
+      "file": "workflows/clubspark-package-import-queued-xlsx.json",
+      "ids": {}
     },
     {
       "key": "clubspark-package-members-import-xlsx",
@@ -208,12 +238,30 @@
       }
     },
     {
+      "key": "global-settings-actions",
+      "name": "Global Settings Actions",
+      "file": "workflows/global-settings-actions.json",
+      "ids": {}
+    },
+    {
+      "key": "global-settings-app",
+      "name": "Global Settings App",
+      "file": "workflows/global-settings-app.json",
+      "ids": {}
+    },
+    {
       "key": "manual-batch-item-form",
       "name": "Manual Batch Item Form",
       "file": "workflows/manual-batch-item-form.json",
       "ids": {
         "local": "l97xMibLg5gRF8fb"
       }
+    },
+    {
+      "key": "mark-clubspark-package-import-items-imported",
+      "name": "Mark ClubSpark Package Import Items Imported",
+      "file": "workflows/mark-clubspark-package-import-items-imported.json",
+      "ids": {}
     },
     {
       "key": "member-search-detail",
@@ -268,7 +316,7 @@
       "name": "Preview Case Tracking Email",
       "file": "workflows/preview-case-tracking-email.json",
       "ids": {
-        "local": "dNhFw2i7K5kSHRsH"
+        "local": "jXjufWcqJGx6gZVS"
       }
     },
     {
