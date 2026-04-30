@@ -24,12 +24,14 @@ The visible proof is simple. From the member search detail page, the operator wi
 - [x] (2026-04-29 19:24Z) Added `workflows/clubspark-package-import-queue-review.json` so operators can review queued rows by batch, inspect target-package groupings, and filter the review by `target_membership`.
 - [x] (2026-04-29 19:27Z) Added `workflows/cancel-clubspark-package-import-item.json` so queued rows can be cancelled safely without deleting history, and linked the new queue review from `workflows/signup-batch-actions.json`.
 - [x] (2026-04-29 19:38Z) Confirmed the actual ClubSpark import path is package-specific under `Admin/Membership/Import?packageID=...` using the `Import from an external file` section, and confirmed the import headers differ from the earlier `PrimaryContactID`-based workbook assumption.
-- [x] (2026-04-30 08:32Z) Added `sql/051_clubspark_membership_import_targets.sql` introducing `public.clubspark_membership_import_targets`, seeded the confirmed `1. Senior 2026` ClubSpark `packageID`, and extended `public.vw_signup_batch_clubspark_import_items` with package mapping and import URL fields.
+- [x] (2026-04-30 08:32Z) Added `sql/051_clubspark_membership_import_targets.sql` introducing `public.clubspark_membership_import_targets` and extended `public.vw_signup_batch_clubspark_import_items` with package mapping and import URL fields.
 - [x] (2026-04-30 08:49Z) Added `workflows/clubspark-package-import-queued-xlsx.json` to generate package-specific external-file workbooks from selected queue rows, using `raw_members` as the export source and stamping selected rows as `exported`.
 - [x] (2026-04-30 08:58Z) Reworked `workflows/clubspark-package-import-queue-review.json` so a target-package filter now exposes mapping state, the ClubSpark import destination link, and checkbox-based XLSX export submission for selected rows.
 - [x] (2026-04-30 09:11Z) Added `workflows/mark-clubspark-package-import-items-imported.json` and wired the batch review page so selected exported rows can be marked as `imported` after a successful manual ClubSpark upload.
 - [x] (2026-04-30 09:04Z) Applied `sql/050_signup_batch_clubspark_import_items.sql` and `sql/051_clubspark_membership_import_targets.sql` to the live database, synced the updated existing workflows into live n8n, imported the six new queue workflows into the live n8n project, published them, and restarted `n8n` so the public webhooks registered.
-- [x] (2026-04-30 09:05Z) Fixed two live-runtime issues discovered during smoke testing: the review query now aggregates `clubspark_package_id::text` instead of `min(uuid)`, and the queued export now uses `raw_members."Venue ID"` as the member-side ClubSpark contact identifier.
+- [x] (2026-04-30 09:05Z) Fixed two live-runtime issues discovered during smoke testing: the review query now aggregates `clubspark_package_id::text` instead of `min(uuid)`, and the queued export now uses `raw_members."Venue ID"` as the first ClubSpark contact identifier source.
+- [x] (2026-04-30 14:20Z) Scraped the live ClubSpark Membership admin table to recover the actual package-to-`packageID` mapping, refreshed the live mapping table, added `sql/052_clubspark_membership_import_targets_refresh_20260430.sql` so future environments get the same mapping, and updated the queued export to fall back to `raw_contacts."Unique ID"` via `resolve_best_contact_row(...)` when `raw_members."Venue ID"` is blank.
+- [x] (2026-04-30 14:36Z) Fixed the remaining duplicate-row bug by redefining `public.vw_signup_batch_clubspark_import_items` to choose one `membership_packages` row per package name, stopped the export workflow depending on that duplicating join, and revalidated the live review page plus the live export webhook with a temporary Sally Maxfield row.
 - [x] (2026-04-30 09:06Z) Smoke-tested the live public queue flow end to end with one reversible row in batch `12`: queue insert, filtered review, XLSX export, and cancellation all succeeded.
 - [ ] Validate the queue flow end to end in n8n and by uploading a generated workbook into a real ClubSpark package.
 
@@ -56,11 +58,11 @@ The visible proof is simple. From the member search detail page, the operator wi
 - Observation: the real ClubSpark import contract is the package-specific `Import from an external file` flow, not the earlier `PrimaryContactID`-based workbook assumption.
   Evidence: the live package flow is `Admin/Membership` -> package page -> `Member Options` -> `Import members` -> `Admin/Membership/Import?packageID=...`, and the external-file header list is `ContactID`, `FirstName`, `LastName`, `EmailAddress`, `StartDate`, `ExpiryDate`, `Cost`, `Paid`, `GiftAid`, `Gender`, `BirthDate`, `HomeNumber`, `WorkNumber`, `MobileNumber`, `EmergencyPhoneNumber`, `PostCode`, `Address1`, `Address2`, `Address3`, `Town`, `County`, `Country`, `Occupation`, `BritishTennisNumber`, `DateJoinedVenue`, `MedicalHistory`, `Source`, `KeyPinNumber`, `TagsProvided`. That contract has no `PrimaryContactID` column and does include `BritishTennisNumber`.
 
-- Observation: the external-file export can be built directly from `raw_members` without the older main-contact expansion logic.
-  Evidence: the clarified header contract only requires `ContactID` plus flat member/contact fields and does not include `PrimaryContactID`, so the queue export can use the member’s own ClubSpark `Unique ID` from `raw_members` rather than synthesizing parent rows.
+- Observation: the external-file export can avoid the older main-contact expansion logic, but it still needs `raw_contacts` as a fallback contact-ID resolver.
+  Evidence: the clarified header contract only requires `ContactID` plus flat member/contact fields and does not include `PrimaryContactID`, so the queue export does not need parent rows. However, some live members such as Sally Maxfield have blank `raw_members."Venue ID"` values and only resolve their ClubSpark identifier through `raw_contacts."Unique ID"`.
 
-- Observation: on the live database, `raw_members` does not expose a `"Unique ID"` column; the member-side ClubSpark identifier is stored in `"Venue ID"` and matches the bracketed contact `"Unique ID"` in `raw_contacts`.
-  Evidence: a live smoke-test member row such as `David Pharo` has `raw_members."Venue ID" = 00692371`, while the resolved `raw_contacts` row has `"Unique ID" = [00692371]`. The first export implementation failed until it switched from `"Unique ID"` to `"Venue ID"` on `raw_members`.
+- Observation: on the live database, `raw_members` does not expose a `"Unique ID"` column; the member-side ClubSpark identifier is usually stored in `"Venue ID"` and otherwise must be resolved through `raw_contacts`.
+  Evidence: a live smoke-test member row such as `David Pharo` has `raw_members."Venue ID" = 00692371`, while the resolved `raw_contacts` row has `"Unique ID" = [00692371]`. Another live row such as Sally Maxfield has blank `raw_members."Venue ID"` but still resolves through `resolve_best_contact_row(...)` to `raw_contacts."Unique ID" = [00313366]`.
 
 ## Decision Log
 
@@ -96,8 +98,8 @@ The visible proof is simple. From the member search detail page, the operator wi
   Rationale: `membership_packages` is a small generic catalog used elsewhere by season/name/category. A separate `clubspark_membership_import_targets` table keeps the ClubSpark-specific `packageID` mapping explicit, seedable, and easy to extend without changing assumptions in unrelated membership logic.
   Date/Author: 2026-04-30 / Codex
 
-- Decision: generate queued external-file exports directly from `raw_members`.
-  Rationale: once the import contract was corrected, the older `raw_contacts` and main-contact resolution path became unnecessary for this feature. The flat export shape can be satisfied from the selected member rows alone, with `raw_members."Unique ID"` becoming `ContactID`.
+- Decision: generate queued external-file exports from `raw_members`, with `raw_contacts` used only as a fallback `ContactID` resolver.
+  Rationale: once the import contract was corrected, the older main-contact expansion path became unnecessary for this feature. The flat export shape can be satisfied from the selected member rows, but the exporter must still fall back to `raw_contacts."Unique ID"` when `raw_members."Venue ID"` is blank.
   Date/Author: 2026-04-30 / Codex
 
 ## Outcomes & Retrospective
