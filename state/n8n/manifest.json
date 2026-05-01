@@ -264,6 +264,12 @@
       "ids": {}
     },
     {
+      "key": "member-list-mailout-app",
+      "name": "Member List Mailout App",
+      "file": "workflows/member-list-mailout-app.json",
+      "ids": {}
+    },
+    {
       "key": "member-search-detail",
       "name": "Member Search Detail",
       "file": "workflows/member-search-detail.json",
@@ -317,6 +323,14 @@
       "file": "workflows/preview-case-tracking-email.json",
       "ids": {
         "local": "jXjufWcqJGx6gZVS"
+      }
+    },
+    {
+      "key": "preview-member-list-email",
+      "name": "Preview Member List Email",
+      "file": "workflows/preview-member-list-email.json",
+      "ids": {
+        "local": "Jt5MdbBQLhix1X6V"
       }
     },
     {
@@ -413,6 +427,14 @@
       "file": "workflows/send-member-calculation-email.json",
       "ids": {
         "local": "LFcdt6IoOg5ufU7Z"
+      }
+    },
+    {
+      "key": "send-member-list-email",
+      "name": "Send Member List Email",
+      "file": "workflows/send-member-list-email.json",
+      "ids": {
+        "local": "r9IpU77vlW2Z57Xj"
       }
     },
     {
