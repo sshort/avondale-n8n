@@ -1,7 +1,10 @@
 {
   "name": "Email Send Core",
   "description": "Shared raw-MIME Gmail transport for HTML plus plain-text email with CID-embedded managed images.",
-  "tags": ["Email", "Core"],
+  "tags": [
+    "Email",
+    "Core"
+  ],
   "active": true,
   "nodes": [
     {
@@ -10,7 +13,10 @@
       "name": "When clicking 'Execute workflow'",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [220, 320]
+      "position": [
+        220,
+        320
+      ]
     },
     {
       "parameters": {
@@ -20,7 +26,10 @@
       "name": "When Executed by Another Workflow",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
-      "position": [220, 500]
+      "position": [
+        220,
+        500
+      ]
     },
     {
       "parameters": {
@@ -33,7 +42,10 @@
       "name": "Email Send Core Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [220, 140],
+      "position": [
+        220,
+        140
+      ],
       "webhookId": "email-send-core"
     },
     {
@@ -46,7 +58,10 @@
       "name": "Resolve Inputs",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [500, 410]
+      "position": [
+        500,
+        410
+      ]
     },
     {
       "parameters": {
@@ -75,7 +90,10 @@
       "name": "Check Request Error",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [760, 410]
+      "position": [
+        760,
+        410
+      ]
     },
     {
       "parameters": {
@@ -87,19 +105,25 @@
       "name": "Build Error Result",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1840, 250]
+      "position": [
+        1840,
+        250
+      ]
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const input = $('Resolve Inputs').first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst attrValue = (tag, name) => {\n  const escaped = String(name).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n  const match = tag.match(new RegExp(escaped + '\\\\s*=\\\\s*([\"\\'])([\\\\s\\\\S]*?)\\\\1', 'i'));\n  return match?.[2] ? String(match[2]) : '';\n};\nconst imageKeys = [];\nconst seen = new Set();\nconst html = String(input.rendered_html || '');\nfor (const tag of html.match(/<img\\b[^>]*>/gi) || []) {\n  const explicitKey = clean(attrValue(tag, 'data-avondale-image-key'));\n  const src = clean(attrValue(tag, 'src'));\n  let key = explicitKey;\n  if (!key && src) {\n    const srcMatch = src.match(/[?&]image_key=([^&#]+)/i);\n    key = srcMatch?.[1] ? decodeURIComponent(srcMatch[1]) : '';\n  }\n  const normalized = clean(key);\n  if (!normalized || seen.has(normalized.toLowerCase())) continue;\n  seen.add(normalized.toLowerCase());\n  imageKeys.push(normalized);\n}\nconst sqlLiteral = (value) => \"'\" + String(value ?? '').replace(/'/g, \"''\") + \"'\";\nconst sql = imageKeys.length\n  ? [\n      \"SELECT image_key, file_name, file_ext, content_type, encode(data, 'base64') AS data_base64\",\n      'FROM public.images',\n      'WHERE is_active = true',\n      '  AND image_key IN (' + imageKeys.map(sqlLiteral).join(', ') + ')',\n      'ORDER BY image_key;'\n    ].join('\\n')\n  : 'SELECT NULL::text AS image_key, NULL::text AS file_name, NULL::text AS file_ext, NULL::text AS content_type, NULL::text AS data_base64 WHERE false;';\nreturn [{ json: { ...input, image_keys: imageKeys, sql } }];"
+        "jsCode": "const input = $('Resolve Inputs').first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst attrValue = (tag, name) => {\n  const escaped = String(name).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n  const match = tag.match(new RegExp(escaped + '\\\\s*=\\\\s*([\"\\'])([\\\\s\\\\S]*?)\\\\1', 'i'));\n  return match?.[2] ? String(match[2]) : '';\n};\nconst imageKeys = [];\nconst seen = new Set();\nconst html = String(input.rendered_html || '');\nfor (const tag of html.match(/<img\\b[^>]*>/gi) || []) {\n  const explicitKey = clean(attrValue(tag, 'data-avondale-image-key'));\n  const src = clean(attrValue(tag, 'src'));\n  let key = explicitKey;\n  if (!key && src) {\n    const srcMatch = src.match(/[?&]image_key=([^&#]+)/i);\n    key = srcMatch?.[1] ? decodeURIComponent(srcMatch[1]) : '';\n  }\n  const normalized = clean(key);\n  if (!normalized || seen.has(normalized.toLowerCase())) continue;\n  seen.add(normalized.toLowerCase());\n  imageKeys.push(normalized);\n}\nconst sqlLiteral = (value) => \"'\" + String(value ?? '').replace(/'/g, \"''\") + \"'\";\nconst placeholderSelect = 'SELECT NULL::text AS image_key, NULL::text AS file_name, NULL::text AS file_ext, NULL::text AS content_type, NULL::text AS data_base64';\nconst sql = imageKeys.length\n  ? [\n      'WITH managed_images AS (',\n      \"  SELECT image_key, file_name, file_ext, content_type, encode(data, 'base64') AS data_base64\",\n      '  FROM public.images',\n      '  WHERE is_active = true',\n      '    AND image_key IN (' + imageKeys.map(sqlLiteral).join(', ') + ')',\n      ')',\n      'SELECT * FROM managed_images',\n      'UNION ALL',\n      placeholderSelect,\n      'ORDER BY image_key NULLS LAST;'\n    ].join('\\n')\n  : placeholderSelect + ';';\nreturn [{ json: { ...input, image_keys: imageKeys, sql } }];"
       },
       "id": "esc000000-0000-0000-0000-000000000006",
       "name": "Build Image Lookup SQL",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1030, 410]
+      "position": [
+        1030,
+        410
+      ]
     },
     {
       "parameters": {
@@ -110,7 +134,10 @@
       "name": "Load Managed Images",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [1290, 410],
+      "position": [
+        1290,
+        410
+      ],
       "credentials": {
         "postgres": {
           "id": "PjTUDAMk0dZ7g1iO",
@@ -128,7 +155,10 @@
       "name": "Build Send Payload",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1560, 410]
+      "position": [
+        1560,
+        410
+      ]
     },
     {
       "parameters": {
@@ -157,7 +187,10 @@
       "name": "Check Payload Error",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [1820, 410]
+      "position": [
+        1820,
+        410
+      ]
     },
     {
       "parameters": {
@@ -174,7 +207,10 @@
       "name": "Send Gmail Message",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2080, 500],
+      "position": [
+        2080,
+        500
+      ],
       "credentials": {
         "gmailOAuth2": {
           "id": "JHuPZBB6pULmuxKm",
@@ -194,7 +230,10 @@
       "name": "Fetch Sent Gmail Message",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2340, 500],
+      "position": [
+        2340,
+        500
+      ],
       "credentials": {
         "gmailOAuth2": {
           "id": "JHuPZBB6pULmuxKm",
@@ -212,7 +251,10 @@
       "name": "Build Result",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2600, 500]
+      "position": [
+        2600,
+        500
+      ]
     },
     {
       "parameters": {
@@ -238,7 +280,10 @@
       "name": "Respond Error",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
-      "position": [2080, 250]
+      "position": [
+        2080,
+        250
+      ]
     },
     {
       "parameters": {
@@ -264,7 +309,10 @@
       "name": "Respond Success",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
-      "position": [2860, 500]
+      "position": [
+        2860,
+        500
+      ]
     }
   ],
   "connections": {
