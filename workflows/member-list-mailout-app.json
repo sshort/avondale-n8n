@@ -1,0 +1,175 @@
+{
+  "name": "Member List Mailout App",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "mla000000-0000-0000-0000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "member-list-mailout",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "mla000000-0000-0000-0000-000000000002",
+      "name": "Member List Mailout Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        140
+      ],
+      "webhookId": "member-list-mailout"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  MAX(CASE WHEN key = 'email_delivery_mode' THEN value END) AS default_delivery_mode,\n  MAX(CASE WHEN key = 'email_test_recipient' THEN value END) AS default_test_recipient,\n  MAX(CASE WHEN key = 'email_sender_name' THEN value END) AS email_sender_name,\n  MAX(CASE WHEN key = 'email_reply_to' THEN value END) AS email_reply_to,\n  MAX(CASE WHEN key = 'email_signature_template_key' THEN value END) AS default_signature_template_key,\n  COALESCE((\n    SELECT json_agg(\n      json_build_object(\n        'template_key', et.template_key,\n        'template_name', COALESCE(NULLIF(et.template_name, ''), et.template_key)\n      )\n      ORDER BY COALESCE(NULLIF(et.template_name, ''), et.template_key)\n    )\n    FROM public.email_templates et\n    WHERE et.is_active = true\n      AND et.template_type = 0\n  ), '[]'::json) AS message_templates,\n  COALESCE((\n    SELECT json_agg(\n      json_build_object(\n        'template_key', et.template_key,\n        'template_name', COALESCE(NULLIF(et.template_name, ''), et.template_key)\n      )\n      ORDER BY COALESCE(NULLIF(et.template_name, ''), et.template_key)\n    )\n    FROM public.email_templates et\n    WHERE et.is_active = true\n      AND et.template_type = 2\n  ), '[]'::json) AS signature_templates\nFROM public.global_settings\nWHERE key IN (\n  'email_delivery_mode',\n  'email_test_recipient',\n  'email_sender_name',\n  'email_reply_to',\n  'email_signature_template_key'\n);"
+      },
+      "id": "mla000000-0000-0000-0000-000000000003",
+      "name": "Load App Data",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        500,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const request = $('Member List Mailout Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst row = $('Load App Data').first()?.json ?? {};\nconst query = request.query ?? request;\nconst headers = request.headers ?? {};\nconst parseMaybe = (value, fallback) => {\n  if (value === null || value === undefined || value === '') return fallback;\n  if (typeof value === 'string') {\n    try { return JSON.parse(value); } catch { return fallback; }\n  }\n  return value;\n};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst escapeHtml = (value) => clean(value)\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\\\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\nconst deriveBaseUrl = (sourceHeaders, fallback) => {\n  const forwardedProto = clean(sourceHeaders['x-forwarded-proto']);\n  const forwardedHost = clean(sourceHeaders['x-forwarded-host']);\n  const host = forwardedHost || clean(sourceHeaders.host);\n  const forwardedPort = clean(sourceHeaders['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = `${authority}:${forwardedPort}`;\n  }\n  return `${proto}://${authority}`;\n};\nconst listOptions = [\n  {\n    key: 'non_renewed_members',\n    label: 'Members Who Have Not Renewed This Year',\n    description: 'People who signed up last season, still have a contact email, and do not currently appear in this season\\'s membership export.'\n  },\n  {\n    key: 'current_members',\n    label: 'Current Members',\n    description: 'Current-season members with a resolved email address.'\n  },\n  {\n    key: 'contacts_without_current_membership',\n    label: 'Contacts Without Current Membership',\n    description: 'Current contacts with email who do not have a matching current membership row.'\n  }\n];\nconst messageTemplates = Array.isArray(parseMaybe(row.message_templates, [])) ? parseMaybe(row.message_templates, []) : [];\nconst signatureTemplates = Array.isArray(parseMaybe(row.signature_templates, [])) ? parseMaybe(row.signature_templates, []) : [];\nconst fallbackBaseUrl = 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nconst appUrl = `${n8nBaseUrl}/webhook/member-list-mailout`;\nconst previewUrl = `${n8nBaseUrl}/webhook/preview-member-list-email`;\nconst defaultDeliveryMode = clean(row.default_delivery_mode).toLowerCase() === 'production' ? 'production' : 'test';\nconst selectedListKey = listOptions.some((item) => item.key === clean(query.list_key)) ? clean(query.list_key) : 'non_renewed_members';\nconst selectedTemplateKey = messageTemplates.some((item) => clean(item.template_key) === clean(query.template_key))\n  ? clean(query.template_key)\n  : clean(messageTemplates[0]?.template_key);\nconst selectedSignatureKey = signatureTemplates.some((item) => clean(item.template_key) === clean(query.signature_template_key))\n  ? clean(query.signature_template_key)\n  : (clean(row.default_signature_template_key) && signatureTemplates.some((item) => clean(item.template_key) === clean(row.default_signature_template_key))\n      ? clean(row.default_signature_template_key)\n      : clean(signatureTemplates[0]?.template_key));\nconst flashError = clean(query.error);\nconst flashMessage = clean(query.message);\nconst selectedModeIsTest = clean(query.test_mode) ? ['1', 'true', 'yes', 'y', 'on'].includes(clean(query.test_mode).toLowerCase()) : defaultDeliveryMode !== 'production';\nconst renderNotice = () => {\n  if (flashError) {\n    return `<div class=\"notice notice-error\">${escapeHtml(flashError)}</div>`;\n  }\n  if (flashMessage) {\n    return `<div class=\"notice notice-success\">${escapeHtml(flashMessage)}</div>`;\n  }\n  return '';\n};\nconst html = `<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Member List Mailout</title>\n  <style>\n    :root {\n      color-scheme: light;\n      --bg: #f6f8fc;\n      --panel: #ffffff;\n      --ink: #233142;\n      --muted: #637381;\n      --line: #d7dfeb;\n      --accent: #1f6feb;\n      --accent-2: #0f4fbf;\n      --soft: #eef4ff;\n      --warn: #9b5c06;\n      --warn-bg: #fff7e5;\n      --error: #b42318;\n      --error-bg: #fef3f2;\n      --success: #166534;\n      --success-bg: #edfdf3;\n    }\n    * { box-sizing: border-box; }\n    body {\n      margin: 0;\n      padding: 24px;\n      background: linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);\n      color: var(--ink);\n      font-family: Lato, 'Helvetica Neue', Arial, sans-serif;\n    }\n    .wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }\n    .hero, .panel {\n      background: var(--panel);\n      border: 1px solid var(--line);\n      border-radius: 20px;\n      box-shadow: 0 18px 40px rgba(35, 49, 66, 0.08);\n    }\n    .hero { padding: 30px; }\n    .panel { padding: 24px; }\n    h1 { margin: 0 0 8px; font-size: 36px; line-height: 1.02; letter-spacing: -0.02em; }\n    .lede { margin: 0; color: var(--muted); max-width: 70ch; line-height: 1.6; }\n    .notice { margin-top: 18px; padding: 14px 16px; border-radius: 14px; font-weight: 700; }\n    .notice-error { background: var(--error-bg); color: var(--error); }\n    .notice-success { background: var(--success-bg); color: var(--success); }\n    .grid { display: grid; gap: 18px; grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr); }\n    form { display: grid; gap: 18px; }\n    .field { display: grid; gap: 8px; }\n    .field span { font-size: 14px; font-weight: 700; }\n    select, input[type=\"email\"], input[type=\"text\"] {\n      width: 100%;\n      border: 1px solid var(--line);\n      border-radius: 12px;\n      padding: 12px 14px;\n      font: inherit;\n      color: var(--ink);\n      background: #fff;\n    }\n    .checkbox { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; }\n    .checkbox input { width: 18px; height: 18px; }\n    .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }\n    .button {\n      display: inline-flex;\n      align-items: center;\n      justify-content: center;\n      border: 0;\n      border-radius: 999px;\n      padding: 12px 18px;\n      font: inherit;\n      font-weight: 700;\n      cursor: pointer;\n      text-decoration: none;\n      color: #fff;\n      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);\n      box-shadow: 0 10px 24px rgba(31, 111, 235, 0.24);\n    }\n    .button-soft {\n      background: #eef2f7;\n      color: var(--ink);\n      box-shadow: none;\n      border: 1px solid var(--line);\n    }\n    .list-grid { display: grid; gap: 14px; }\n    .list-card {\n      border: 1px solid var(--line);\n      border-radius: 16px;\n      padding: 16px;\n      background: var(--soft);\n    }\n    .list-card h2 { margin: 0 0 8px; font-size: 17px; }\n    .list-card p { margin: 0; color: var(--muted); line-height: 1.5; font-size: 14px; }\n    .callout {\n      border-radius: 16px;\n      background: var(--warn-bg);\n      color: var(--warn);\n      border: 1px solid #f2ddb5;\n      padding: 16px;\n      line-height: 1.6;\n    }\n    .meta { margin: 0; color: var(--muted); line-height: 1.5; }\n    @media (max-width: 920px) {\n      .grid { grid-template-columns: 1fr; }\n    }\n    @media (max-width: 720px) {\n      body { padding: 14px; }\n      .hero, .panel { padding: 18px; }\n      h1 { font-size: 30px; }\n    }\n  </style>\n</head>\n<body>\n  <div class=\"wrap\">\n    <section class=\"hero\">\n      <h1>Member List Mailout</h1>\n      <p class=\"lede\">Send a shared message to a predefined member cohort. The preview step renders the chosen template and signature, lets you edit the final message, and sends production mailouts with all real recipients in <strong>BCC</strong>.</p>\n      ${renderNotice()}\n    </section>\n    <section class=\"grid\">\n      <div class=\"panel\">\n        <form method=\"GET\" action=\"${previewUrl}\">\n          <input type=\"hidden\" name=\"return_url\" value=\"${escapeHtml(appUrl)}\">\n          <label class=\"field\">\n            <span>Recipient List</span>\n            <select name=\"list_key\" required>\n              ${listOptions.map((item) => `<option value=\"${escapeHtml(item.key)}\"${item.key === selectedListKey ? ' selected' : ''}>${escapeHtml(item.label)}</option>`).join('')}\n            </select>\n          </label>\n          <label class=\"field\">\n            <span>Message Template</span>\n            <select name=\"template_key\" required>\n              ${messageTemplates.map((item) => `<option value=\"${escapeHtml(item.template_key)}\"${clean(item.template_key) === selectedTemplateKey ? ' selected' : ''}>${escapeHtml(item.template_name)}</option>`).join('')}\n            </select>\n          </label>\n          <label class=\"field\">\n            <span>Signature</span>\n            <select name=\"signature_template_key\" required>\n              ${signatureTemplates.map((item) => `<option value=\"${escapeHtml(item.template_key)}\"${clean(item.template_key) === selectedSignatureKey ? ' selected' : ''}>${escapeHtml(item.template_name)}</option>`).join('')}\n            </select>\n          </label>\n          <label class=\"field\">\n            <span>Visible Club Address</span>\n            <input type=\"text\" value=\"${escapeHtml(clean(row.email_reply_to) || 'members.avondaleltc@gmail.com')}\" readonly>\n          </label>\n          <label class=\"checkbox\">\n            <input type=\"checkbox\" name=\"test_mode\" value=\"1\"${selectedModeIsTest ? ' checked' : ''}>\n            <span>Open preview in test mode</span>\n          </label>\n          <p class=\"meta\">Test sends go only to <strong>${escapeHtml(clean(row.default_test_recipient) || 'steve.short@gmail.com')}</strong>. Production sends use the same message body but send the actual list in BCC chunks.</p>\n          <div class=\"actions\">\n            <button class=\"button\" type=\"submit\">Open Preview</button>\n          </div>\n        </form>\n      </div>\n      <div class=\"panel\">\n        <div class=\"callout\"><strong>BCC policy:</strong> the real recipient list is never placed in the visible <code>To</code> field. The preview page will show the resolved recipient count and a sample before anything is sent.</div>\n        <div class=\"list-grid\" style=\"margin-top: 18px;\">\n          ${listOptions.map((item) => `<article class=\"list-card\"><h2>${escapeHtml(item.label)}</h2><p>${escapeHtml(item.description)}</p></article>`).join('')}\n        </div>\n      </div>\n    </section>\n  </div>\n</body>\n</html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "mla000000-0000-0000-0000-000000000004",
+      "name": "Build App HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store, no-cache, must-revalidate, max-age=0"
+              },
+              {
+                "name": "Pragma",
+                "value": "no-cache"
+              },
+              {
+                "name": "Expires",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "mla000000-0000-0000-0000-000000000005",
+      "name": "Respond App",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1060,
+        220
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load App Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Member List Mailout Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load App Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load App Data": {
+      "main": [
+        [
+          {
+            "node": "Build App HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build App HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond App",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": {},
+  "pinData": {},
+  "meta": {},
+  "tags": [
+    {
+      "updatedAt": "2026-04-30T00:00:00.000Z",
+      "createdAt": "2026-04-30T00:00:00.000Z",
+      "id": "08ef3342121ccbfe",
+      "name": "Forms"
+    },
+    {
+      "updatedAt": "2026-04-30T00:00:00.000Z",
+      "createdAt": "2026-04-30T00:00:00.000Z",
+      "id": "1419672f1d672d15",
+      "name": "Members"
+    }
+  ],
+  "description": ""
+}
