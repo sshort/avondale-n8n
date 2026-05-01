@@ -267,7 +267,9 @@
       "key": "member-list-mailout-app",
       "name": "Member List Mailout App",
       "file": "workflows/member-list-mailout-app.json",
-      "ids": {}
+      "ids": {
+        "local": "PVDamXXgCxdwvFcs"
+      }
     },
     {
       "key": "member-search-detail",

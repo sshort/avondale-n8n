@@ -157,19 +157,6 @@
   "staticData": {},
   "pinData": {},
   "meta": {},
-  "tags": [
-    {
-      "updatedAt": "2026-04-30T00:00:00.000Z",
-      "createdAt": "2026-04-30T00:00:00.000Z",
-      "id": "08ef3342121ccbfe",
-      "name": "Forms"
-    },
-    {
-      "updatedAt": "2026-04-30T00:00:00.000Z",
-      "createdAt": "2026-04-30T00:00:00.000Z",
-      "id": "1419672f1d672d15",
-      "name": "Members"
-    }
-  ],
+  "tags": [],
   "description": ""
 }
