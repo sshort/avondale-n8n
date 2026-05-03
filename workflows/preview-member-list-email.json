@@ -1,6 +1,11 @@
 {
+  "updatedAt": "2026-05-01T16:43:55.171Z",
+  "createdAt": "2026-05-01T09:00:03.236Z",
+  "id": "Jt5MdbBQLhix1X6V",
   "name": "Preview Member List Email",
+  "description": "",
   "active": true,
+  "isArchived": false,
   "nodes": [
     {
       "id": "mlp000000-0000-0000-0000-000000000001",
@@ -427,8 +432,506 @@
     "callerPolicy": "workflowsFromSameOwner"
   },
   "staticData": {},
-  "pinData": {},
   "meta": {},
+  "pinData": {},
+  "versionId": "10ea6b0f-c77c-43c0-b4ad-408ce32181d9",
+  "activeVersionId": "10ea6b0f-c77c-43c0-b4ad-408ce32181d9",
+  "versionCounter": 59,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-01T09:00:03.236Z",
+      "createdAt": "2026-05-01T09:00:03.236Z",
+      "role": "workflow:owner",
+      "workflowId": "Jt5MdbBQLhix1X6V",
+      "projectId": "AtpW2flNrTDUqcis",
+      "project": {
+        "updatedAt": "2026-03-07T15:05:21.831Z",
+        "createdAt": "2025-04-29T13:45:55.157Z",
+        "id": "AtpW2flNrTDUqcis",
+        "name": "Steve Short <steve@shortcentral.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "1aa25644-d384-4810-beaa-f58314d3e70c",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-04-29T13:45:55.157Z",
+            "createdAt": "2025-04-29T13:45:55.157Z",
+            "userId": "1aa25644-d384-4810-beaa-f58314d3e70c",
+            "projectId": "AtpW2flNrTDUqcis",
+            "user": {
+              "updatedAt": "2026-05-03T04:03:03.831Z",
+              "createdAt": "2025-04-29T13:45:54.337Z",
+              "id": "1aa25644-d384-4810-beaa-f58314d3e70c",
+              "email": "steve@shortcentral.com",
+              "firstName": "Steve",
+              "lastName": "Short",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-04-29T13:48:39.758Z",
+                "personalization_survey_n8n_version": "1.89.2",
+                "companyType": "personal",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "6XC5aXJ8uS5DS553",
+                "userActivatedAt": 1773664748790,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1774020442311
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-05-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
   "tags": [],
-  "description": ""
+  "activeVersion": {
+    "updatedAt": "2026-05-01T16:43:55.172Z",
+    "createdAt": "2026-05-01T16:43:55.172Z",
+    "versionId": "10ea6b0f-c77c-43c0-b4ad-408ce32181d9",
+    "workflowId": "Jt5MdbBQLhix1X6V",
+    "nodes": [
+      {
+        "id": "mlp000000-0000-0000-0000-000000000001",
+        "name": "When clicking 'Execute workflow'",
+        "type": "n8n-nodes-base.manualTrigger",
+        "position": [
+          220,
+          320
+        ],
+        "parameters": {},
+        "typeVersion": 1
+      },
+      {
+        "id": "mlp000000-0000-0000-0000-000000000002",
+        "name": "Preview Member List Email Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "position": [
+          220,
+          140
+        ],
+        "webhookId": "preview-member-list-email",
+        "parameters": {
+          "path": "preview-member-list-email",
+          "options": {},
+          "httpMethod": "GET",
+          "responseMode": "responseNode"
+        },
+        "typeVersion": 2
+      },
+      {
+        "id": "mlp000000-0000-0000-0000-000000000003",
+        "name": "Load Global Settings",
+        "type": "n8n-nodes-base.postgres",
+        "position": [
+          480,
+          220
+        ],
+        "parameters": {
+          "query": "SELECT\n  MAX(CASE WHEN key = 'email_delivery_mode' THEN value END) AS email_delivery_mode,\n  MAX(CASE WHEN key = 'email_test_recipient' THEN value END) AS email_test_recipient,\n  MAX(CASE WHEN key = 'email_sender_name' THEN value END) AS email_sender_name,\n  MAX(CASE WHEN key = 'email_reply_to' THEN value END) AS email_reply_to,\n  MAX(CASE WHEN key = 'email_signature_template_key' THEN value END) AS email_signature_template_key,\n  MAX(CASE WHEN key = 'member_list_mailout_delay_seconds' THEN value END) AS member_list_mailout_delay_seconds,\n  MAX(CASE WHEN key = 'n8n_base_url' THEN value END) AS n8n_base_url\nFROM public.global_settings\nWHERE key IN ('email_delivery_mode', 'email_test_recipient', 'email_sender_name', 'email_reply_to', 'email_signature_template_key', 'member_list_mailout_delay_seconds', 'n8n_base_url');",
+          "operation": "executeQuery"
+        },
+        "credentials": {
+          "postgres": {
+            "id": "PjTUDAMk0dZ7g1iO",
+            "name": "Postgres account"
+          }
+        },
+        "typeVersion": 2.5
+      },
+      {
+        "id": "mlp000000-0000-0000-0000-000000000004",
+        "name": "Resolve Preview Request",
+        "type": "n8n-nodes-base.code",
+        "position": [
+          760,
+          220
+        ],
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "jsCode": "const settings = $('Load Global Settings').first()?.json ?? {};\nconst request = $('Preview Member List Email Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst query = request.query ?? request;\nconst headers = request.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst truthy = (value) => ['1', 'true', 'yes', 'y', 'on'].includes(clean(value).toLowerCase());\nconst clampDelaySeconds = (value, fallback = 5) => {\n  const source = value === null || value === undefined || value === '' ? fallback : value;\n  const parsed = Number(source);\n  if (!Number.isFinite(parsed)) return fallback;\n  return Math.max(0, Math.min(300, Math.round(parsed)));\n};\nconst deriveBaseUrl = (sourceHeaders, fallback) => {\n  const forwardedProto = clean(sourceHeaders['x-forwarded-proto']);\n  const forwardedHost = clean(sourceHeaders['x-forwarded-host']);\n  const host = forwardedHost || clean(sourceHeaders.host);\n  const forwardedPort = clean(sourceHeaders['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = authority + ':' + forwardedPort;\n  }\n  return proto + '://' + authority;\n};\nconst listOptions = {\"non_renewed_members\": {\"label\": \"Members Who Have Not Renewed This Year\", \"description\": \"People who were members last season and do not currently appear in this season's paid membership package set.\"}, \"current_members\": {\"label\": \"Current Members\", \"description\": \"Current-season paid members with a resolved email address.\"}, \"contacts_without_current_membership\": {\"label\": \"Contacts Without Current Membership\", \"description\": \"Current contacts with email who do not match a current paid member.\"}};\nconst fallbackBaseUrl = clean(settings.n8n_base_url) || 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nconst listKey = Object.prototype.hasOwnProperty.call(listOptions, clean(query.list_key)) ? clean(query.list_key) : '';\nconst templateKey = clean(query.template_key);\nconst signatureTemplateKey = clean(query.signature_template_key) || clean(settings.email_signature_template_key) || 'signature';\nconst returnUrl = clean(query.return_url) || (n8nBaseUrl + '/webhook/member-list-mailout');\nconst defaultDeliveryMode = clean(settings.email_delivery_mode).toLowerCase() === 'production' ? 'production' : 'test';\nconst deliveryMode = truthy(query.test_mode) || clean(query.delivery_mode).toLowerCase() === 'test' || defaultDeliveryMode !== 'production' ? 'test' : 'production';\nconst sendDelaySeconds = clampDelaySeconds(query.send_delay_seconds ?? settings.member_list_mailout_delay_seconds, 5);\nconst option = listOptions[listKey] || null;\nconst errorMessage = !listKey ? 'A valid recipient list is required.' : (!templateKey ? 'template_key is required.' : '');\nreturn [{ json: {\n  list_key: listKey,\n  list_label: option?.label || '',\n  list_description: option?.description || '',\n  template_key: templateKey,\n  signature_template_key: signatureTemplateKey,\n  sender_name: clean(settings.email_sender_name) || 'Steve Short',\n  reply_to: clean(settings.email_reply_to) || 'members.avondaleltc@gmail.com',\n  delivery_mode: deliveryMode,\n  send_delay_seconds: sendDelaySeconds,\n  test_recipient: clean(settings.email_test_recipient) || 'steve.short@gmail.com',\n  return_url: returnUrl,\n  n8n_base_url: n8nBaseUrl,\n  error_message: errorMessage\n} }];",
+          "language": "javaScript"
+        },
+        "typeVersion": 2
+      },
+      {
+        "id": "mlp000000-0000-0000-0000-000000000005",
+        "name": "Check Request Error",
+        "type": "n8n-nodes-base.if",
+        "position": [
+          1020,
+          220
+        ],
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "combinator": "and",
+            "conditions": [
+              {
+                "id": "preview-request-error",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                },
+                "leftValue": "={{ $json.error_message || \"\" }}",
+                "rightValue": ""
+              }
+            ]
+          }
+        },
+        "typeVersion": 2.2
+      },
+      {
+        "id": "mlp000000-0000-0000-0000-000000000006",
+        "name": "Build Preview Context SQL",
+        "type": "n8n-nodes-base.code",
+        "position": [
+          1280,
+          320
+        ],
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "jsCode": "const input = $input.first().json ?? {};\nconst sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sql = `WITH season_context AS (\n  SELECT\n    COALESCE(MAX(CASE WHEN season ~ '^[0-9]{4}$' THEN season::int END), EXTRACT(YEAR FROM CURRENT_DATE)::int) AS current_season,\n    (COALESCE(MAX(CASE WHEN season ~ '^[0-9]{4}$' THEN season::int END), EXTRACT(YEAR FROM CURRENT_DATE)::int) - 1) AS previous_season\n  FROM public.membership_packages\n),\nselected_list AS (\n  SELECT\n    {{LIST_KEY}} AS list_key,\n    {{LIST_LABEL}} AS list_label,\n    {{LIST_DESCRIPTION}} AS list_description\n),\ncurrent_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key,\n    src.id AS member_raw_id,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS full_name,\n    src.\"Venue ID\",\n    src.\"British Tennis Number\",\n    src.\"First name\",\n    src.\"Last name\",\n    src.\"Membership\",\n    src.category,\n    src.\"Email address\",\n    src.\"Postcode\",\n    src.\"Start Date\",\n    src.\"Expiry Date\",\n    src.\"Status\",\n    src.\"Payment\",\n    src.\"Paid\",\n    src.\"Junior\",\n    src.\"Address 1\"\n  FROM (\n    SELECT\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN season_context sc ON TRUE\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = sc.current_season::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n),\ncurrent_renewal_members AS (\n  SELECT DISTINCT\n    COALESCE(\n      NULLIF('venue:' || trim(COALESCE(src.\"Venue ID\", '')), 'venue:'),\n      NULLIF('btn:' || trim(COALESCE(src.\"British Tennis Number\", '')), 'btn:'),\n      'name:' || lower(trim(concat_ws(' ', src.\"First name\", src.\"Last name\")))\n    ) AS person_key,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS full_name,\n    public.normalize_match_text(trim(concat_ws(' ', src.\"First name\", src.\"Last name\"))) AS name_key,\n    NULLIF(trim(COALESCE(src.\"Venue ID\", '')), '') AS venue_id,\n    NULLIF(trim(COALESCE(src.\"British Tennis Number\", '')), '') AS british_tennis_number,\n    NULLIF(public.normalize_match_email(src.\"Email address\"), '') AS email_key,\n    COALESCE(public.normalize_match_text(src.\"Postcode\"), '') AS postcode_key\n  FROM (\n    SELECT m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN season_context sc ON TRUE\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = sc.current_season::text\n    WHERE COALESCE(m.is_current, true) = true\n      AND p.category <> 'Pavilion Key'\n      AND COALESCE(NULLIF(trim(COALESCE(m.\"Status\", '')), ''), 'Active') = 'Active'\n  ) src\n),\nprevious_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key,\n    src.id AS member_raw_id,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS full_name,\n    src.\"Venue ID\",\n    src.\"British Tennis Number\",\n    src.\"First name\",\n    src.\"Last name\",\n    src.\"Membership\",\n    src.category,\n    src.\"Email address\",\n    src.\"Postcode\",\n    src.\"Start Date\",\n    src.\"Expiry Date\",\n    src.\"Status\",\n    src.\"Payment\",\n    src.\"Paid\",\n    src.\"Junior\",\n    src.\"Address 1\"\n  FROM (\n    SELECT\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN season_context sc ON TRUE\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = sc.previous_season::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n),\nmember_list_rows AS (\n  SELECT\n    sl.list_key,\n    sl.list_label,\n    sl.list_description,\n    sc.current_season::text AS current_season,\n    sc.previous_season::text AS previous_season,\n    sc.previous_season::text AS member_season,\n    p.person_key,\n    p.member_raw_id,\n    p.full_name,\n    p.\"First name\",\n    p.\"Last name\",\n    p.\"Membership\",\n    p.category,\n    p.\"Email address\",\n    p.\"Venue ID\",\n    p.\"British Tennis Number\",\n    p.\"Postcode\",\n    p.\"Start Date\",\n    p.\"Expiry Date\",\n    p.\"Status\",\n    p.\"Payment\",\n    p.\"Paid\",\n    p.\"Junior\",\n    p.\"Address 1\"\n  FROM selected_list sl\n  JOIN season_context sc ON TRUE\n  JOIN previous_members p ON sl.list_key = 'non_renewed_members'\n  WHERE NOT EXISTS (\n    SELECT 1\n    FROM current_renewal_members c\n    WHERE (\n      c.person_key = p.person_key\n    ) OR (\n      NULLIF(trim(COALESCE(p.\"Venue ID\", '')), '') IS NOT NULL\n      AND c.venue_id = NULLIF(trim(COALESCE(p.\"Venue ID\", '')), '')\n    ) OR (\n      NULLIF(trim(COALESCE(p.\"British Tennis Number\", '')), '') IS NOT NULL\n      AND c.british_tennis_number = NULLIF(trim(COALESCE(p.\"British Tennis Number\", '')), '')\n    ) OR (\n      c.name_key = public.normalize_match_text(p.full_name)\n      AND NULLIF(public.normalize_match_email(p.\"Email address\"), '') IS NOT NULL\n      AND c.email_key = public.normalize_match_email(p.\"Email address\")\n    ) OR (\n      c.name_key = public.normalize_match_text(p.full_name)\n      AND c.postcode_key <> ''\n      AND c.postcode_key = COALESCE(public.normalize_match_text(p.\"Postcode\"), '')\n    ) OR (\n      c.name_key = public.normalize_match_text(p.full_name)\n      AND NULLIF(trim(COALESCE(p.\"Venue ID\", '')), '') IS NULL\n      AND NULLIF(trim(COALESCE(p.\"British Tennis Number\", '')), '') IS NULL\n      AND NULLIF(public.normalize_match_email(p.\"Email address\"), '') IS NULL\n      AND COALESCE(public.normalize_match_text(p.\"Postcode\"), '') = ''\n    )\n  )\n\n  UNION ALL\n\n  SELECT\n    sl.list_key,\n    sl.list_label,\n    sl.list_description,\n    sc.current_season::text AS current_season,\n    sc.previous_season::text AS previous_season,\n    sc.current_season::text AS member_season,\n    c.person_key,\n    c.member_raw_id,\n    c.full_name,\n    c.\"First name\",\n    c.\"Last name\",\n    c.\"Membership\",\n    c.category,\n    c.\"Email address\",\n    c.\"Venue ID\",\n    c.\"British Tennis Number\",\n    c.\"Postcode\",\n    c.\"Start Date\",\n    c.\"Expiry Date\",\n    c.\"Status\",\n    c.\"Payment\",\n    c.\"Paid\",\n    c.\"Junior\",\n    c.\"Address 1\"\n  FROM selected_list sl\n  JOIN season_context sc ON TRUE\n  JOIN current_members c ON sl.list_key = 'current_members'\n),\ncontact_list_rows AS (\n  SELECT\n    sl.list_key,\n    sl.list_label,\n    sl.list_description,\n    sc.current_season::text AS current_season,\n    sc.previous_season::text AS previous_season,\n    sc.current_season::text AS member_season,\n    COALESCE(\n      NULLIF('venue:' || trim(COALESCE(c.venue_id, '')), 'venue:'),\n      NULLIF('email:' || public.normalize_match_email(c.email_address), 'email:'),\n      'contact:' || public.normalize_match_text(c.payer_name) || '|' || COALESCE(public.normalize_match_text(c.postcode), '')\n    ) AS person_key,\n    c.payer_name AS full_name,\n    c.first_name AS \"First name\",\n    c.last_name AS \"Last name\",\n    NULL::text AS \"Membership\",\n    COALESCE(NULLIF(c.member_status, ''), 'Contact') AS category,\n    c.email_address AS \"Email address\",\n    c.venue_id AS \"Venue ID\",\n    NULL::text AS \"British Tennis Number\",\n    c.postcode AS \"Postcode\",\n    NULL::text AS \"Start Date\",\n    NULL::text AS \"Expiry Date\",\n    NULL::text AS \"Status\",\n    NULL::text AS \"Payment\",\n    NULL::numeric AS \"Paid\",\n    'No'::text AS \"Junior\",\n    c.address_1 AS \"Address 1\",\n    c.town\n  FROM selected_list sl\n  JOIN season_context sc ON TRUE\n  JOIN public.vw_best_current_contacts c ON sl.list_key = 'contacts_without_current_membership'\n  WHERE c.email_address IS NOT NULL\n    AND c.email_address <> ''\n    AND NOT EXISTS (\n      SELECT 1\n      FROM current_members cm\n      WHERE (\n        NULLIF(trim(COALESCE(c.venue_id, '')), '') IS NOT NULL\n        AND NULLIF(trim(COALESCE(cm.\"Venue ID\", '')), '') = NULLIF(trim(COALESCE(c.venue_id, '')), '')\n      ) OR (\n        public.normalize_match_text(cm.full_name) = public.normalize_match_text(c.payer_name)\n        AND COALESCE(public.normalize_match_text(cm.\"Postcode\"), '') = COALESCE(public.normalize_match_text(c.postcode), '')\n      ) OR (\n        public.normalize_match_text(cm.full_name) = public.normalize_match_text(c.payer_name)\n        AND public.normalize_match_email(cm.\"Email address\") = public.normalize_match_email(c.email_address)\n      )\n    )\n),\nselected_member_rows AS (\n  SELECT *\n  FROM member_list_rows\n),\ncurrent_junior_contact_candidates AS (\n  SELECT\n    sm.person_key,\n    j.main_contact_name,\n    j.main_contact_email,\n    j.main_contact_phone,\n    j.main_contact_mobile,\n    j.main_contact_address_1,\n    j.main_contact_town,\n    j.main_contact_postcode,\n    row_number() OVER (\n      PARTITION BY sm.person_key\n      ORDER BY CASE WHEN NULLIF(trim(COALESCE(j.main_contact_email, '')), '') IS NOT NULL THEN 0 ELSE 1 END,\n               j.main_contact_name\n    ) AS candidate_rank\n  FROM selected_member_rows sm\n  JOIN season_context sc ON sm.member_season = sc.current_season::text\n  JOIN public.vw_junior_main_contacts j\n    ON j.match_confidence = 'high'\n   AND (\n        sm.member_raw_id = j.member_raw_id\n        OR (\n          public.normalize_match_text(j.member_name) = public.normalize_match_text(sm.full_name)\n          AND COALESCE(j.membership, '') = COALESCE(sm.\"Membership\", '')\n        )\n      )\n  WHERE COALESCE(NULLIF(trim(COALESCE(sm.\"Junior\", '')), ''), 'No') = 'Yes'\n),\ncurrent_junior_contact_choice AS (\n  SELECT *\n  FROM current_junior_contact_candidates\n  WHERE candidate_rank = 1\n),\nhistorical_junior_contact_candidates AS (\n  SELECT\n    sm.person_key,\n    trim(concat_ws(' ', mc.\"First name\", mc.\"Last name\")) AS main_contact_name,\n    NULLIF(trim(mc.\"Email address\"), '') AS main_contact_email,\n    NULLIF(trim(mc.\"Phone number\"), '') AS main_contact_phone,\n    NULLIF(trim(mc.\"Mobile number\"), '') AS main_contact_mobile,\n    NULLIF(trim(mc.\"Address 1\"), '') AS main_contact_address_1,\n    NULLIF(trim(mc.\"Town\"), '') AS main_contact_town,\n    NULLIF(trim(mc.\"Postcode\"), '') AS main_contact_postcode,\n    row_number() OVER (\n      PARTITION BY sm.person_key\n      ORDER BY CASE WHEN NULLIF(trim(mc.\"Email address\"), '') IS NOT NULL THEN 0 ELSE 1 END,\n               CASE WHEN COALESCE(mc.is_current, true) = true THEN 0 ELSE 1 END,\n               mc.id DESC\n    ) AS candidate_rank\n  FROM selected_member_rows sm\n  JOIN public.raw_members_main_contacts mc\n    ON trim(concat_ws(' ', mc.\"First name\", mc.\"Last name\")) <> sm.full_name\n   AND COALESCE(mc.\"Membership\", '') = COALESCE(sm.\"Membership\", '')\n   AND COALESCE(mc.\"Status\", '') = COALESCE(sm.\"Status\", '')\n   AND COALESCE(mc.\"Payment\", '') = COALESCE(sm.\"Payment\", '')\n   AND COALESCE(mc.\"Start Date\", '') = COALESCE(sm.\"Start Date\", '')\n   AND COALESCE(mc.\"Expiry Date\", '') = COALESCE(sm.\"Expiry Date\", '')\n   AND COALESCE(mc.\"Paid\", -1::numeric) = COALESCE(sm.\"Paid\", -1::numeric)\n   AND public.normalize_match_text(mc.\"Last name\") = public.normalize_match_text(sm.\"Last name\")\n  WHERE COALESCE(NULLIF(trim(COALESCE(sm.\"Junior\", '')), ''), 'No') = 'Yes'\n),\nhistorical_junior_contact_choice AS (\n  SELECT\n    hj.person_key,\n    hj.main_contact_name,\n    COALESCE(NULLIF(trim(bc.email_address), ''), hj.main_contact_email) AS main_contact_email,\n    COALESCE(NULLIF(trim(bc.phone_number), ''), hj.main_contact_phone) AS main_contact_phone,\n    COALESCE(NULLIF(trim(bc.mobile_number), ''), hj.main_contact_mobile) AS main_contact_mobile,\n    COALESCE(NULLIF(trim(bc.address_1), ''), hj.main_contact_address_1) AS main_contact_address_1,\n    COALESCE(NULLIF(trim(bc.town), ''), hj.main_contact_town) AS main_contact_town,\n    COALESCE(NULLIF(trim(bc.postcode), ''), hj.main_contact_postcode) AS main_contact_postcode\n  FROM historical_junior_contact_candidates hj\n  LEFT JOIN LATERAL public.resolve_best_contact_row(\n    hj.main_contact_name,\n    hj.main_contact_email,\n    NULLIF(regexp_replace(hj.main_contact_name, '^\\\\S+\\\\s*', ''), ''),\n    false\n  ) bc ON TRUE\n  WHERE hj.candidate_rank = 1\n),\nbest_contact_rows AS (\n  SELECT\n    sm.person_key,\n    bc.contact_id,\n    bc.payer_name,\n    bc.email_address,\n    bc.phone_number,\n    bc.mobile_number,\n    bc.address_1,\n    bc.town,\n    bc.postcode,\n    bc.resolve_rule\n  FROM selected_member_rows sm\n  LEFT JOIN LATERAL public.resolve_best_contact_row(\n    sm.full_name,\n    NULLIF(trim(COALESCE(sm.\"Email address\", '')), ''),\n    NULLIF(regexp_replace(sm.full_name, '^\\\\S+\\\\s*', ''), ''),\n    COALESCE(sm.\"Membership\", '') ILIKE '%Family%'\n  ) bc ON TRUE\n),\nresolved_member_rows AS (\n  SELECT\n    sm.list_key,\n    sm.list_label,\n    sm.list_description,\n    sm.current_season,\n    sm.previous_season,\n    sm.member_season,\n    sm.person_key,\n    sm.full_name AS member_name,\n    sm.\"First name\" AS first_name,\n    sm.\"Last name\" AS last_name,\n    sm.\"Membership\" AS membership,\n    sm.category,\n    COALESCE(\n      NULLIF(trim(COALESCE(cj.main_contact_email, '')), ''),\n      NULLIF(trim(COALESCE(hj.main_contact_email, '')), ''),\n      NULLIF(trim(COALESCE(bc.email_address, '')), ''),\n      NULLIF(trim(COALESCE(sm.\"Email address\", '')), '')\n    ) AS recipient_email,\n    COALESCE(\n      NULLIF(trim(COALESCE(cj.main_contact_name, '')), ''),\n      NULLIF(trim(COALESCE(hj.main_contact_name, '')), ''),\n      sm.full_name\n    ) AS recipient_name,\n    COALESCE(\n      NULLIF(trim(COALESCE(cj.main_contact_address_1, '')), ''),\n      NULLIF(trim(COALESCE(hj.main_contact_address_1, '')), ''),\n      NULLIF(trim(COALESCE(bc.address_1, '')), ''),\n      NULLIF(trim(COALESCE(sm.\"Address 1\", '')), '')\n    ) AS address_1,\n    COALESCE(\n      NULLIF(trim(COALESCE(cj.main_contact_town, '')), ''),\n      NULLIF(trim(COALESCE(hj.main_contact_town, '')), ''),\n      NULLIF(trim(COALESCE(bc.town, '')), ''),\n      ''\n    ) AS town,\n    COALESCE(\n      NULLIF(trim(COALESCE(cj.main_contact_postcode, '')), ''),\n      NULLIF(trim(COALESCE(hj.main_contact_postcode, '')), ''),\n      NULLIF(trim(COALESCE(bc.postcode, '')), ''),\n      NULLIF(trim(COALESCE(sm.\"Postcode\", '')), ''),\n      ''\n    ) AS postcode,\n    CASE\n      WHEN COALESCE(NULLIF(trim(COALESCE(sm.\"Junior\", '')), ''), 'No') = 'Yes' AND NULLIF(trim(COALESCE(cj.main_contact_email, '')), '') IS NOT NULL THEN 'vw_junior_main_contacts'\n      WHEN COALESCE(NULLIF(trim(COALESCE(sm.\"Junior\", '')), ''), 'No') = 'Yes' AND NULLIF(trim(COALESCE(hj.main_contact_email, '')), '') IS NOT NULL THEN 'raw_members_main_contacts'\n      WHEN NULLIF(trim(COALESCE(bc.email_address, '')), '') IS NOT NULL THEN COALESCE(NULLIF(trim(COALESCE(bc.resolve_rule, '')), ''), 'resolve_best_contact_row')\n      WHEN NULLIF(trim(COALESCE(sm.\"Email address\", '')), '') IS NOT NULL THEN 'raw_member_email'\n      ELSE 'missing'\n    END AS recipient_source\n  FROM selected_member_rows sm\n  LEFT JOIN best_contact_rows bc ON bc.person_key = sm.person_key\n  LEFT JOIN current_junior_contact_choice cj ON cj.person_key = sm.person_key\n  LEFT JOIN historical_junior_contact_choice hj ON hj.person_key = sm.person_key\n),\nresolved_contact_rows AS (\n  SELECT\n    clr.list_key,\n    clr.list_label,\n    clr.list_description,\n    clr.current_season,\n    clr.previous_season,\n    clr.member_season,\n    clr.person_key,\n    clr.full_name AS member_name,\n    clr.\"First name\" AS first_name,\n    clr.\"Last name\" AS last_name,\n    clr.\"Membership\" AS membership,\n    clr.category,\n    NULLIF(trim(COALESCE(clr.\"Email address\", '')), '') AS recipient_email,\n    clr.full_name AS recipient_name,\n    NULLIF(trim(COALESCE(clr.\"Address 1\", '')), '') AS address_1,\n    COALESCE(clr.town, '') AS town,\n    COALESCE(clr.\"Postcode\", '') AS postcode,\n    'current_contact' AS recipient_source\n  FROM contact_list_rows clr\n),\nresolved_rows AS (\n  SELECT * FROM resolved_member_rows\n  UNION ALL\n  SELECT * FROM resolved_contact_rows\n),\nrecipient_consent_rows AS (\n  SELECT\n    NULLIF(public.normalize_match_email(\"Email address\"), '') AS email_key,\n    NULLIF(trim(COALESCE(\"Receipt of Emails\", '')), '') AS receipt_of_emails,\n    'raw_contacts' AS consent_source\n  FROM public.raw_contacts\n  WHERE NULLIF(public.normalize_match_email(\"Email address\"), '') IS NOT NULL\n\n  UNION ALL\n\n  SELECT\n    NULLIF(public.normalize_match_email(\"Email address\"), '') AS email_key,\n    NULLIF(trim(COALESCE(\"Receipt of Emails\", '')), '') AS receipt_of_emails,\n    'raw_members' AS consent_source\n  FROM public.raw_members\n  WHERE NULLIF(public.normalize_match_email(\"Email address\"), '') IS NOT NULL\n\n  UNION ALL\n\n  SELECT\n    NULLIF(public.normalize_match_email(\"Email address\"), '') AS email_key,\n    NULLIF(trim(COALESCE(\"Receipt of Emails\", '')), '') AS receipt_of_emails,\n    'raw_members_main_contacts' AS consent_source\n  FROM public.raw_members_main_contacts\n  WHERE NULLIF(public.normalize_match_email(\"Email address\"), '') IS NOT NULL\n),\nrecipient_consent_by_email AS (\n  SELECT\n    email_key,\n    bool_or(lower(COALESCE(receipt_of_emails, '')) IN ('yes', 'y', 'true', 't', '1')) AS has_email_consent,\n    bool_or(lower(COALESCE(receipt_of_emails, '')) IN ('no', 'n', 'false', 'f', '0', 'unsubscribed', 'do not email', 'do not contact')) AS has_email_opt_out,\n    string_agg(DISTINCT COALESCE(receipt_of_emails, 'Not recorded'), ', ') AS receipt_of_emails,\n    string_agg(DISTINCT consent_source, ', ') AS consent_sources\n  FROM recipient_consent_rows\n  WHERE email_key IS NOT NULL\n  GROUP BY email_key\n),\nresolved_rows_with_consent AS (\n  SELECT\n    rr.*,\n    (COALESCE(rc.has_email_consent, false) AND NOT COALESCE(rc.has_email_opt_out, false)) AS email_consent_allowed,\n    COALESCE(NULLIF(rc.receipt_of_emails, ''), 'Not recorded') AS receipt_of_emails,\n    COALESCE(NULLIF(rc.consent_sources, ''), 'No matching consent row') AS consent_sources,\n    CASE\n      WHEN COALESCE(rc.has_email_opt_out, false) THEN 'Receipt of Emails is set to No'\n      WHEN NOT COALESCE(rc.has_email_consent, false) THEN 'Receipt of Emails is not set to Yes'\n      ELSE ''\n    END AS email_consent_reason\n  FROM resolved_rows rr\n  LEFT JOIN recipient_consent_by_email rc\n    ON rc.email_key = public.normalize_match_email(rr.recipient_email)\n),\ndeduped_rows AS (\n  SELECT *\n  FROM (\n    SELECT\n      rr.*,\n      row_number() OVER (\n        PARTITION BY public.normalize_match_email(rr.recipient_email)\n        ORDER BY CASE rr.recipient_source\n          WHEN 'vw_junior_main_contacts' THEN 0\n          WHEN 'raw_members_main_contacts' THEN 1\n          WHEN 'family_active_adult_address' THEN 2\n          WHEN 'exact_name_email' THEN 3\n          WHEN 'exact_name' THEN 4\n          WHEN 'email' THEN 5\n          WHEN 'current_contact' THEN 6\n          WHEN 'raw_member_email' THEN 7\n          ELSE 8\n        END,\n        COALESCE(rr.category, ''),\n        COALESCE(rr.member_name, ''),\n        COALESCE(rr.membership, '')\n      ) AS email_rank\n    FROM resolved_rows_with_consent rr\n    WHERE NULLIF(trim(COALESCE(rr.recipient_email, '')), '') IS NOT NULL\n  ) ranked\n  WHERE email_rank = 1\n),\nmessage_template AS (\n  SELECT template_key, template_name, subject_template, text_template, html_template\n  FROM public.email_templates\n  WHERE template_key = {{TEMPLATE_KEY}}\n    AND is_active = true\n    AND template_type = 0\n  ORDER BY id DESC\n  LIMIT 1\n),\nsignature_template AS (\n  SELECT template_key, template_name, text_template, html_template\n  FROM public.email_templates\n  WHERE template_key = {{SIGNATURE_TEMPLATE_KEY}}\n    AND is_active = true\n    AND template_type = 2\n  ORDER BY id DESC\n  LIMIT 1\n),\nimage_rows AS (\n  SELECT id, image_key, file_name, content_type, byte_size, updated_at\n  FROM public.images\n  WHERE is_active = true\n  ORDER BY lower(file_name) ASC, image_key ASC\n  LIMIT 200\n)\nSELECT\n  sl.list_key,\n  sl.list_label,\n  sl.list_description,\n  sc.current_season::text AS current_season,\n  sc.previous_season::text AS previous_season,\n  COALESCE((SELECT count(*) FROM deduped_rows), 0) AS recipient_count,\n  COALESCE((SELECT json_agg(json_build_object(\n    'recipient_email', dr.recipient_email,\n    'recipient_name', dr.recipient_name,\n    'member_name', dr.member_name,\n    'first_name', dr.first_name,\n    'last_name', dr.last_name,\n    'membership', dr.membership,\n    'category', dr.category,\n    'source', dr.recipient_source,\n    'email_consent_allowed', dr.email_consent_allowed,\n    'receipt_of_emails', dr.receipt_of_emails,\n    'email_consent_reason', dr.email_consent_reason,\n    'consent_sources', dr.consent_sources\n  ) ORDER BY dr.category, dr.member_name, dr.recipient_email) FROM resolved_rows_with_consent dr), '[]'::json) AS recipients,\n  COALESCE((SELECT json_agg(json_build_object(\n    'recipient_email', sample.recipient_email,\n    'recipient_name', sample.recipient_name,\n    'member_name', sample.member_name,\n    'first_name', sample.first_name,\n    'last_name', sample.last_name,\n    'membership', sample.membership,\n    'category', sample.category,\n    'source', sample.recipient_source,\n    'email_consent_allowed', sample.email_consent_allowed,\n    'receipt_of_emails', sample.receipt_of_emails,\n    'email_consent_reason', sample.email_consent_reason,\n    'consent_sources', sample.consent_sources\n  ) ORDER BY sample.category, sample.member_name, sample.recipient_email)\n  FROM (\n    SELECT * FROM resolved_rows_with_consent ORDER BY category, member_name, recipient_email LIMIT 8\n  ) sample), '[]'::json) AS recipient_sample,\n  (SELECT template_key FROM message_template) AS template_key,\n  COALESCE((SELECT COALESCE(NULLIF(template_name, ''), template_key) FROM message_template), {{TEMPLATE_KEY}}) AS template_name,\n  (SELECT subject_template FROM message_template) AS subject_template,\n  (SELECT text_template FROM message_template) AS text_template,\n  (SELECT html_template FROM message_template) AS html_template,\n  (SELECT template_key FROM signature_template) AS signature_template_key,\n  (SELECT text_template FROM signature_template) AS signature_text_template,\n  (SELECT html_template FROM signature_template) AS signature_html_template,\n  COALESCE((SELECT json_agg(to_jsonb(image_rows)) FROM image_rows), '[]'::json) AS image_rows,\n  CASE\n    WHEN COALESCE(sl.list_key, '') = '' THEN 'Recipient list is required.'\n    WHEN NOT EXISTS (SELECT 1 FROM message_template) THEN 'Email template was not found or is inactive.'\n    WHEN COALESCE((SELECT count(*) FROM deduped_rows), 0) = 0 THEN 'No recipients were resolved for this list.'\n    ELSE NULL\n  END AS error_message\nFROM selected_list sl\nJOIN season_context sc ON TRUE;`\n  .replace(/\\{\\{LIST_KEY\\}\\}/g, sqlLiteral(input.list_key))\n  .replace(/\\{\\{LIST_LABEL\\}\\}/g, sqlLiteral(input.list_label))\n  .replace(/\\{\\{LIST_DESCRIPTION\\}\\}/g, sqlLiteral(input.list_description))\n  .replace(/\\{\\{TEMPLATE_KEY\\}\\}/g, sqlLiteral(input.template_key))\n  .replace(/\\{\\{SIGNATURE_TEMPLATE_KEY\\}\\}/g, sqlLiteral(input.signature_template_key || 'signature'));\nreturn [{ json: { ...input, sql } }];",
+          "language": "javaScript"
+        },
+        "typeVersion": 2
+      },
+      {
+        "id": "mlp000000-0000-0000-0000-000000000007",
+        "name": "Load Preview Context",
+        "type": "n8n-nodes-base.postgres",
+        "position": [
+          1540,
+          320
+        ],
+        "parameters": {
+          "query": "={{ $json.sql }}",
+          "operation": "executeQuery"
+        },
+        "credentials": {
+          "postgres": {
+            "id": "PjTUDAMk0dZ7g1iO",
+            "name": "Postgres account"
+          }
+        },
+        "typeVersion": 2.5
+      },
+      {
+        "id": "mlp000000-0000-0000-0000-000000000008",
+        "name": "Check Context Error",
+        "type": "n8n-nodes-base.if",
+        "position": [
+          1800,
+          320
+        ],
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "combinator": "and",
+            "conditions": [
+              {
+                "id": "preview-context-error",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                },
+                "leftValue": "={{ $json.error_message || \"\" }}",
+                "rightValue": ""
+              }
+            ]
+          }
+        },
+        "typeVersion": 2.2
+      },
+      {
+        "id": "mlp000000-0000-0000-0000-000000000009",
+        "name": "Build Error HTML",
+        "type": "n8n-nodes-base.code",
+        "position": [
+          1280,
+          120
+        ],
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "jsCode": "const input = $('Resolve Preview Request').first()?.json ?? {};\nconst context = (() => { try { return $('Load Preview Context').first()?.json ?? {}; } catch { return {}; } })();\nconst message = context.error_message || input.error_message || 'Unable to prepare the preview.';\nconst returnUrl = input.return_url || '#';\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#39;');\nconst html = '<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Preview unavailable</title><style>body{margin:0;padding:24px;background:#f4f7fb;font-family:Lato,Arial,sans-serif;color:#1f2937}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #d8e1ec;border-radius:20px;box-shadow:0 18px 40px rgba(15,23,42,.08);padding:28px}h1{margin:0 0 10px;font-size:30px}.message{margin:18px 0;padding:14px 16px;border-radius:14px;background:#fef3f2;color:#b42318;font-weight:700}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#0f766e 0%,#115e59 100%);color:#fff}</style></head><body><div class=\"panel\"><h1>Preview Unavailable</h1><p>The member-list mailout preview could not be prepared.</p><div class=\"message\">' + escapeHtml(message) + '</div><a class=\"button\" href=\"' + escapeHtml(returnUrl) + '\">Back to Mailout App</a></div></body></html>';\nreturn [{ json: { html } }];",
+          "language": "javaScript"
+        },
+        "typeVersion": 2
+      },
+      {
+        "id": "mlp000000-0000-0000-0000-000000000010",
+        "name": "Respond Error",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "position": [
+          1540,
+          120
+        ],
+        "parameters": {
+          "options": {
+            "responseCode": 400,
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                },
+                {
+                  "name": "Cache-Control",
+                  "value": "no-store, no-cache, must-revalidate, max-age=0"
+                },
+                {
+                  "name": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "name": "Expires",
+                  "value": "0"
+                }
+              ]
+            }
+          },
+          "respondWith": "text",
+          "responseBody": "={{ $json.html }}"
+        },
+        "typeVersion": 1.5
+      },
+      {
+        "id": "mlp000000-0000-0000-0000-000000000011",
+        "name": "Render Preview Data",
+        "type": "n8n-nodes-base.code",
+        "position": [
+          2060,
+          420
+        ],
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "jsCode": "const input = $('Resolve Preview Request').first()?.json ?? {};\nconst context = $('Load Preview Context').first()?.json ?? {};\nconst parseMaybe = (value, fallback) => {\n  if (value === null || value === undefined || value === '') return fallback;\n  if (typeof value === 'string') {\n    try { return JSON.parse(value); } catch { return fallback; }\n  }\n  return value;\n};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst asBool = (value) => value === true || ['1', 'true', 't', 'yes', 'y'].includes(clean(value).toLowerCase());\nconst privacyConsentsUrl = 'https://clubspark.lta.org.uk/AvondaleTennisClub/EditConsents';\nconst consentFooterHtml = '<p style=\"margin:16px 0 0;font-size:12px;line-height:1.5;color:#64748b;\">You can review or update your Avondale privacy and email consent settings here: <a href=\"https://clubspark.lta.org.uk/AvondaleTennisClub/EditConsents\">Privacy and consents</a>.</p>';\nconst consentFooterText = 'Privacy and consents: https://clubspark.lta.org.uk/AvondaleTennisClub/EditConsents';\nconst rawRecipients = Array.isArray(parseMaybe(context.recipients, [])) ? parseMaybe(context.recipients, []) : [];\nconst imageRows = Array.isArray(parseMaybe(context.image_rows, [])) ? parseMaybe(context.image_rows, []) : [];\nconst unique = (values) => [...new Set(values.map((value) => clean(value)).filter(Boolean))];\nconst joinNatural = (values) => {\n  const list = unique(values);\n  if (!list.length) return '';\n  if (list.length === 1) return list[0];\n  if (list.length === 2) return list[0] + ' and ' + list[1];\n  return list.slice(0, -1).join(', ') + ', and ' + list[list.length - 1];\n};\nconst splitName = (value) => {\n  const parts = clean(value).split(/\\s+/).filter(Boolean);\n  return {\n    first_name: parts[0] || '',\n    last_name: parts.length > 1 ? parts.slice(1).join(' ') : ''\n  };\n};\nconst sourcePriority = {\n  vw_junior_main_contacts: 0,\n  raw_members_main_contacts: 1,\n  family_active_adult_address: 2,\n  exact_name_email: 3,\n  exact_name: 4,\n  email: 5,\n  current_contact: 6,\n  raw_member_email: 7,\n  missing: 8,\n};\nconst recipientGroups = new Map();\nfor (const row of rawRecipients) {\n  const email = clean(row.recipient_email).toLowerCase();\n  if (!email) continue;\n  if (!recipientGroups.has(email)) recipientGroups.set(email, []);\n  recipientGroups.get(email).push({ ...row, recipient_email: clean(row.recipient_email) });\n}\nconst recipients = [...recipientGroups.values()].map((rows) => {\n  const sortedRows = [...rows].sort((left, right) => {\n    const priorityLeft = sourcePriority[clean(left.source)] ?? sourcePriority[clean(left.recipient_source)] ?? 99;\n    const priorityRight = sourcePriority[clean(right.source)] ?? sourcePriority[clean(right.recipient_source)] ?? 99;\n    if (priorityLeft !== priorityRight) return priorityLeft - priorityRight;\n    return clean(left.member_name).localeCompare(clean(right.member_name)) || clean(left.membership).localeCompare(clean(right.membership));\n  });\n  const primary = sortedRows[0] ?? {};\n  const memberNames = unique(sortedRows.map((row) => row.member_name));\n  const firstNames = unique(sortedRows.map((row) => row.first_name));\n  const lastNames = unique(sortedRows.map((row) => row.last_name));\n  const recipientName = clean(primary.recipient_name) || memberNames[0] || clean(primary.recipient_email);\n  const recipientParts = splitName(recipientName);\n  const recipientKey = clean(primary.recipient_email).toLowerCase();\n  const consentAllowed = asBool(primary.email_consent_allowed);\n  const receiptOfEmails = clean(primary.receipt_of_emails) || 'Not recorded';\n  const consentSources = unique(sortedRows\n    .flatMap((row) => clean(row.consent_sources).split(','))\n    .map((value) => clean(value))\n    .filter(Boolean));\n  const consentSourceLabel = consentSources.length ? consentSources.join(', ') : 'No matching consent row';\n  const consentReason = clean(primary.email_consent_reason) || (consentAllowed ? '' : 'Receipt of Emails is not set to Yes');\n  const excludedNames = [];\n  const excludeReason = consentAllowed ? '' : consentReason;\n  return {\n    recipient_key: recipientKey,\n    recipient_email: clean(primary.recipient_email),\n    recipient_name: recipientName,\n    recipient_first_name: recipientParts.first_name,\n    recipient_last_name: recipientParts.last_name,\n    target_member_count: memberNames.length,\n    target_member_names: joinNatural(memberNames),\n    target_first_names: joinNatural(firstNames),\n    target_last_names: lastNames.length === 1 ? lastNames[0] : joinNatural(lastNames),\n    memberships: unique(sortedRows.map((row) => row.membership)),\n    categories: unique(sortedRows.map((row) => row.category)),\n    source: clean(primary.source) || clean(primary.recipient_source),\n    email_consent_allowed: consentAllowed,\n    receipt_of_emails: receiptOfEmails,\n    email_consent_reason: consentReason,\n    consent_sources: consentSourceLabel,\n    force_excluded: !consentAllowed,\n    included: consentAllowed && !excludeReason,\n    exclude_reason: excludeReason,\n    excluded_member_names: excludedNames,\n    rows: sortedRows.map((row) => ({\n      member_name: clean(row.member_name),\n      first_name: clean(row.first_name),\n      last_name: clean(row.last_name),\n      membership: clean(row.membership),\n      category: clean(row.category),\n      source: clean(row.source) || clean(row.recipient_source),\n      email_consent_allowed: asBool(row.email_consent_allowed),\n      receipt_of_emails: clean(row.receipt_of_emails) || 'Not recorded',\n      email_consent_reason: clean(row.email_consent_reason),\n      consent_sources: clean(row.consent_sources),\n    })),\n  };\n}).sort((left, right) => left.recipient_name.localeCompare(right.recipient_name) || left.recipient_email.localeCompare(right.recipient_email));\nconst includedRecipientCount = recipients.filter((recipient) => recipient.included).length;\nconst excludedRecipientCount = recipients.length - includedRecipientCount;\nconst recipientSample = recipients.slice(0, 8);\nconst previewRecipient = recipients.find((recipient) => recipient.included) ?? recipients[0] ?? null;\nconst listTokenMap = {\n  '{{$json.list_name}}': context.list_label ?? '',\n  '{{$json.list_label}}': context.list_label ?? '',\n  '{{$json.list_key}}': context.list_key ?? '',\n  '{{$json.recipient_count}}': String(includedRecipientCount),\n  '{{$json.current_season}}': context.current_season ?? '',\n  '{{$json.previous_season}}': context.previous_season ?? '',\n  '{{list_name}}': context.list_label ?? '',\n  '{{list_label}}': context.list_label ?? '',\n  '{{list_key}}': context.list_key ?? '',\n  '{{recipient_count}}': String(includedRecipientCount),\n  '{{current_season}}': context.current_season ?? '',\n  '{{previous_season}}': context.previous_season ?? '',\n};\nconst buildTokenMap = (recipient) => ({\n  ...listTokenMap,\n  '{{$json.first_name}}': recipient?.target_first_names ?? '',\n  '{{$json.first_name}}': recipient?.target_first_names ?? '',\n  '{{$json.last_name}}': recipient?.target_last_names ?? '',\n  '{{$json.member_name}}': recipient?.target_member_names ?? '',\n  '{{$json.member_names}}': recipient?.target_member_names ?? '',\n  '{{$json.target_member_name}}': recipient?.target_member_names ?? '',\n  '{{$json.target_member_names}}': recipient?.target_member_names ?? '',\n  '{{$json.target_first_names}}': recipient?.target_first_names ?? '',\n  '{{$json.target_last_names}}': recipient?.target_last_names ?? '',\n  '{{$json.member_first_names}}': recipient?.target_first_names ?? '',\n  '{{$json.member_last_names}}': recipient?.target_last_names ?? '',\n  '{{$json.target_member_count}}': String(recipient?.target_member_count ?? 0),\n  '{{$json.member_count}}': String(recipient?.target_member_count ?? 0),\n  '{{$json.recipient_name}}': recipient?.recipient_name ?? '',\n  '{{$json.recipient_first_name}}': recipient?.recipient_first_name ?? '',\n  '{{$json.recipient_last_name}}': recipient?.recipient_last_name ?? '',\n  '{{first_name}}': recipient?.target_first_names ?? '',\n  '{{last_name}}': recipient?.target_last_names ?? '',\n  '{{member_name}}': recipient?.target_member_names ?? '',\n  '{{member_names}}': recipient?.target_member_names ?? '',\n  '{{target_member_name}}': recipient?.target_member_names ?? '',\n  '{{target_member_names}}': recipient?.target_member_names ?? '',\n  '{{target_first_names}}': recipient?.target_first_names ?? '',\n  '{{target_last_names}}': recipient?.target_last_names ?? '',\n  '{{member_first_names}}': recipient?.target_first_names ?? '',\n  '{{member_last_names}}': recipient?.target_last_names ?? '',\n  '{{target_member_count}}': String(recipient?.target_member_count ?? 0),\n  '{{member_count}}': String(recipient?.target_member_count ?? 0),\n  '{{recipient_name}}': recipient?.recipient_name ?? '',\n  '{{recipient_first_name}}': recipient?.recipient_first_name ?? '',\n  '{{recipient_last_name}}': recipient?.recipient_last_name ?? '',\n});\nconst applyTokens = (value, tokenMap) => {\n  let rendered = String(value ?? '');\n  for (const [token, replacement] of Object.entries(tokenMap)) {\n    rendered = rendered.split(token).join(String(replacement));\n  }\n  return rendered.trim();\n};\nconst applyListTokens = (value) => applyTokens(value, listTokenMap);\nconst emailType = clean(context.html_template) ? 'html' : 'text';\nconst bodySource = emailType === 'html' ? (context.html_template ?? context.text_template ?? '') : (context.text_template ?? context.html_template ?? '');\nconst signatureSource = emailType === 'html' ? (context.signature_html_template ?? context.signature_text_template ?? '') : (context.signature_text_template ?? context.signature_html_template ?? '');\nconst renderedBody = applyListTokens(bodySource);\nconst renderedSignature = applyListTokens(signatureSource);\nconst previewTokenMap = buildTokenMap(previewRecipient);\nreturn [{ json: {\n  list_key: context.list_key,\n  list_label: context.list_label,\n  list_description: context.list_description,\n  recipient_count: recipients.length,\n  included_recipient_count: includedRecipientCount,\n  excluded_recipient_count: excludedRecipientCount,\n  target_member_count: rawRecipients.length,\n  recipients,\n  recipient_sample: recipientSample,\n  current_season: clean(context.current_season),\n  previous_season: clean(context.previous_season),\n  template_key: clean(context.template_key || input.template_key),\n  template_name: clean(context.template_name || input.template_key),\n  signature_template_key: clean(context.signature_template_key || input.signature_template_key),\n  delivery_mode: input.delivery_mode,\n  test_recipient: input.test_recipient,\n  return_url: input.return_url,\n  sender_name: input.sender_name,\n  reply_to: input.reply_to,\n  rendered_subject: applyListTokens(context.subject_template ?? 'Message from Avondale Tennis Club'),\n  rendered_body: renderedBody,\n  rendered_signature: renderedSignature,\n  consent_footer_html: consentFooterHtml,\n  consent_footer_text: consentFooterText,\n  privacy_consents_url: privacyConsentsUrl,\n  send_delay_seconds: input.send_delay_seconds,\n  preview_subject: applyTokens(applyListTokens(context.subject_template ?? 'Message from Avondale Tennis Club'), previewTokenMap),\n  preview_recipient_name: previewRecipient?.recipient_name ?? '',\n  preview_target_member_names: previewRecipient?.target_member_names ?? '',\n  combined_preview_html: emailType === 'html' ? [applyTokens(renderedBody, previewTokenMap), applyTokens(renderedSignature, previewTokenMap), consentFooterHtml].filter(Boolean).join('') : '',\n  combined_preview_text: [clean(applyTokens(renderedBody, previewTokenMap)), clean(applyTokens(renderedSignature, previewTokenMap)), consentFooterText].filter(Boolean).join('\\\\n\\\\n'),\n  email_type: emailType,\n  image_rows: imageRows,\n  send_url: input.n8n_base_url + '/webhook/send-member-list-email'\n} }];\n",
+          "language": "javaScript"
+        },
+        "typeVersion": 2
+      },
+      {
+        "id": "mlp000000-0000-0000-0000-000000000012",
+        "name": "Build Preview HTML",
+        "type": "n8n-nodes-base.code",
+        "position": [
+          2320,
+          420
+        ],
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "jsCode": "const item = $('Render Preview Data').first()?.json ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst escapeHtml = (value) => clean(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#39;');\nconst toScript = (value) => JSON.stringify(value ?? null).replace(/<\\/script/gi, '<\\\\/script');\nconst allRecipients = Array.isArray(item.recipients) ? item.recipients : [];\nconst sampleRecipients = allRecipients.slice(0, 8);\nconst includedCount = Number(item.included_recipient_count ?? allRecipients.filter((recipient) => recipient.included !== false).length);\nconst excludedCount = Number(item.excluded_recipient_count ?? Math.max(allRecipients.length - includedCount, 0));\nconst initialPreviewIndex = Math.max(allRecipients.findIndex((recipient) => recipient.included !== false), 0);\nconst renderRecipientButton = (recipient, index, showMeta = false) => {\n  const forceExcluded = recipient.force_excluded === true || recipient.email_consent_allowed === false;\n  const included = !forceExcluded && recipient.included !== false;\n  const recipientKey = clean(recipient.recipient_key || recipient.recipient_email).toLowerCase();\n  const reason = clean(recipient.exclude_reason);\n  const metaText = [recipient.memberships?.join(', ') || recipient.membership || recipient.category || '', recipient.source || ''].filter(Boolean).join(' | ');\n  const consentText = ['Consent: ' + (clean(recipient.receipt_of_emails) || 'Not recorded'), clean(recipient.consent_sources) ? 'Source: ' + clean(recipient.consent_sources) : ''].filter(Boolean).join(' | ');\n  const disabledAttrs = forceExcluded ? ' disabled data-force-excluded=\"1\"' : '';\n  const includeLabel = forceExcluded ? 'Consent blocked' : 'Include';\n  const statusText = forceExcluded ? 'Consent blocked' : (included ? 'Included' : 'Excluded');\n  return '<li class=\"recipient-card' + (included ? '' : ' is-excluded') + '\" data-recipient-card=\"1\" data-recipient-key=\"' + escapeHtml(recipientKey) + '\"><div class=\"recipient-card-top\"><label class=\"recipient-include\"><input form=\"compose-form\" class=\"recipient-include-checkbox\" type=\"checkbox\" name=\"included_recipient_keys\" value=\"' + escapeHtml(recipientKey) + '\" data-recipient-key=\"' + escapeHtml(recipientKey) + '\" onchange=\"window.__memberListToggleRecipient(this.dataset.recipientKey, this.checked)\"' + (included ? ' checked' : '') + disabledAttrs + '><span>' + includeLabel + '</span></label><span class=\"recipient-status' + (included ? '' : ' is-excluded') + '\">' + statusText + '</span></div><button type=\"button\" class=\"recipient-button' + (index === initialPreviewIndex ? ' is-selected' : '') + '\" data-preview-index=\"' + index + '\" aria-pressed=\"' + (index === initialPreviewIndex ? 'true' : 'false') + '\" onclick=\"window.__memberListSelectRecipient(' + index + '); return false;\"><strong>' + escapeHtml(recipient.recipient_name || recipient.recipient_email) + '</strong><span>' + escapeHtml(recipient.recipient_email || '') + '</span><span>' + escapeHtml(recipient.target_member_names || recipient.member_name || '') + '</span>' + (showMeta ? '<span>' + escapeHtml(metaText) + '</span>' : '') + (consentText ? '<span class=\"consent-line\">' + escapeHtml(consentText) + '</span>' : '') + (reason ? '<span class=\"exclude-reason\">' + escapeHtml(reason) + '</span>' : '') + '</button></li>';\n};\nconst sampleHtml = sampleRecipients.map((recipient, index) => renderRecipientButton(recipient, index, false)).join('');\nconst recipientListHtml = allRecipients.map((recipient, index) => renderRecipientButton(recipient, index, true)).join('');\nconst modeLabel = item.delivery_mode === 'production' ? 'Production' : 'Test';\nconst emptySampleHtml = '<p style=\"margin:0;color:var(--muted);\">No recipients available.</p>';\nconst recipientSelectorHtml = recipientListHtml ? '<div class=\"recipient-toolbar\"><div><button type=\"button\" class=\"button button-soft button-compact\" onclick=\"window.__memberListSetAll(true)\">All</button><button type=\"button\" class=\"button button-soft button-compact\" onclick=\"window.__memberListSetAll(false)\">None</button></div><span id=\"recipient-selection-summary\">' + escapeHtml(String(includedCount)) + ' included / ' + escapeHtml(String(allRecipients.length)) + ' total</span></div>' : '';\nconst recipientListDetailsHtml = recipientListHtml ? '<details style=\"margin-top:14px\"><summary style=\"cursor:pointer;font-weight:700\">Show all ' + escapeHtml(String(item.recipient_count || 0)) + ' recipients</summary><ul class=\"sample-list\" style=\"margin-top:12px\">' + recipientListHtml + '</ul></details>' : '';\nconst previewHtml = item.email_type === 'html'\n  ? '<div id=\"rendered-preview\" class=\"preview-box\">' + String(item.combined_preview_html || '') + '</div>'\n  : '<div id=\"rendered-preview\" class=\"preview-box preview-text\">' + escapeHtml(item.combined_preview_text || '') + '</div>';\nconst signatureHtml = item.email_type === 'html'\n  ? '<div id=\"signature-preview\" class=\"preview-box\">' + String(item.rendered_signature || '') + '</div>'\n  : '<div id=\"signature-preview\" class=\"preview-box preview-text\">' + escapeHtml(item.rendered_signature || '') + '</div>';\nconst editorHtml = item.email_type === 'html'\n  ? '<div id=\"message-editor-host\" class=\"editor-host\" contenteditable=\"true\">' + String(item.rendered_body || '') + '</div><textarea id=\"message-editor-input\" style=\"display:none\"></textarea>'\n  : '<textarea id=\"message-editor-input\" style=\"min-height:320px\">' + escapeHtml(item.rendered_body || '') + '</textarea>';\nconst html = `<!doctype html>\n<html lang='en'>\n<head>\n  <meta charset='utf-8'>\n  <meta name='viewport' content='width=device-width, initial-scale=1'>\n  <title>Member List Mailout Preview</title>\n  <style>\n    :root { --bg:#f4f7fb; --panel:#ffffff; --ink:#1f2937; --muted:#64748b; --line:#d8e1ec; --accent:#0f766e; --accent-2:#115e59; --soft:#edfdf9; --warn:#8a5a00; --warn-bg:#fff7db; }\n    * { box-sizing:border-box; }\n    body { margin:0; background:radial-gradient(circle at top left, #ffffff 0%, #eef5f3 35%, var(--bg) 100%); color:var(--ink); font-family:Lato, 'Helvetica Neue', Arial, sans-serif; }\n    .wrap { max-width:1280px; margin:0 auto; padding:24px; display:grid; gap:20px; }\n    .hero,.panel { background:var(--panel); border:1px solid var(--line); border-radius:22px; box-shadow:0 20px 45px rgba(15,23,42,.08); }\n    .hero { padding:28px 30px; display:flex; justify-content:space-between; gap:18px; flex-wrap:wrap; }\n    .hero h1 { margin:0 0 8px; font-size:34px; }\n    .hero p { margin:0; color:var(--muted); max-width:780px; line-height:1.6; }\n    .badge { display:inline-flex; align-items:center; border-radius:999px; padding:8px 12px; font-size:13px; font-weight:700; background:var(--soft); color:var(--accent-2); }\n    .layout { display:grid; gap:20px; grid-template-columns:minmax(0,1.45fr) minmax(320px,.75fr); }\n    .panel { padding:22px; }\n    .field { display:grid; gap:8px; margin-bottom:18px; }\n    .field span { font-size:14px; font-weight:700; }\n    input[type='text'], input[type='number'], textarea, select { width:100%; border:1px solid var(--line); border-radius:14px; padding:12px 14px; font:inherit; color:var(--ink); background:#fff; }\n    .checkbox { display:inline-flex; align-items:center; gap:10px; font-weight:600; }\n    .checkbox input { width:18px; height:18px; }\n    .button { display:inline-flex; align-items:center; justify-content:center; border:0; border-radius:999px; padding:12px 18px; font:inherit; font-weight:700; cursor:pointer; text-decoration:none; color:#fff; background:linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%); box-shadow:0 10px 25px rgba(15,118,110,.22); }\n    .button-soft { background:#eef2f6; color:var(--ink); box-shadow:none; border:1px solid var(--line); }\n    .compose { display:grid; gap:18px; }\n    .editor-shell { border:1px solid var(--line); border-radius:18px; overflow:hidden; background:#fff; }\n    .editor-host { min-height:320px; padding:16px; }\n    .preview-box { border:1px solid var(--line); border-radius:18px; background:linear-gradient(180deg,#fff 0%,#f8fbff 100%); padding:18px; min-height:220px; }\n    .preview-box table { width:100%; border-collapse:collapse; }\n    .preview-box th,.preview-box td { border:1px solid #d9e2ec; padding:8px; }\n    .preview-text { white-space:pre-wrap; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:14px; line-height:1.6; }\n    .stack { display:grid; gap:16px; }\n    .meta-list { display:grid; gap:10px; }\n    .meta-list div { display:grid; gap:4px; }\n    .meta-label { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:700; }\n    .sample-list { list-style:none; padding:0; margin:0; display:grid; gap:12px; }\n    .sample-list li { border:1px solid var(--line); border-radius:14px; padding:12px 14px; background:#fbfcfe; display:grid; gap:4px; }\n    .sample-list span { color:var(--muted); font-size:13px; word-break:break-all; }\n    .recipient-toolbar { display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap; margin:0 0 14px; }\n    .recipient-toolbar > div { display:flex; gap:8px; flex-wrap:wrap; }\n    .button-compact { padding:8px 12px; font-size:13px; }\n    .recipient-card { transition:border-color .12s ease, background .12s ease; }\n    .recipient-card.is-excluded { border-color:#f1c9b8; background:#fff7f2; }\n    .recipient-card-top { display:flex; justify-content:space-between; gap:10px; align-items:center; }\n    .recipient-include { display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700; }\n    .recipient-include input { width:16px; height:16px; }\n    .recipient-status { display:inline-flex; align-items:center; padding:4px 8px; border-radius:999px; background:#edfdf9; color:var(--accent-2); font-size:12px; font-weight:800; }\n    .recipient-status.is-excluded { background:#fff1e8; color:#b54708; }\n    .exclude-reason { color:#b54708 !important; }\n    .consent-line { color:#475569 !important; }\n    .recipient-button { all:unset; display:grid; gap:4px; width:100%; cursor:pointer; border-radius:12px; padding:6px; transition:background .12s ease, box-shadow .12s ease; }\n    .recipient-button strong { color:var(--ink); }\n    .recipient-button.is-selected { background:linear-gradient(180deg, #f2fffb 0%, var(--soft) 100%); box-shadow:0 0 0 2px var(--accent), 0 10px 24px rgba(15,118,110,.12); }\n    .recipient-button:focus-visible { outline:2px solid var(--accent); outline-offset:4px; border-radius:12px; }\n    .callout { border:1px solid #f1dfb0; background:var(--warn-bg); color:var(--warn); border-radius:16px; padding:14px 16px; line-height:1.6; }\n    @media (max-width: 980px) { .layout { grid-template-columns:1fr; } }\n    @media (max-width: 720px) { .wrap { padding:14px; } .hero,.panel { padding:18px; } .hero h1 { font-size:28px; } }\n  </style>\n</head>\n<body>\n  <div class='wrap'>\n    <section class='hero'>\n      <div>\n        <h1>Member List Mailout Preview</h1>\n        <p>Review the recipient-aware message template, edit the final body, and send it through the shared Gmail transport. Production sends one personalized message per resolved recipient.</p>\n      </div>\n      <div class='badge'>${escapeHtml(modeLabel)} mode</div>\n    </section>\n    <section class='layout'>\n      <div class='panel'>\n        <form id='compose-form' class='compose' method='POST' action='${escapeHtml(item.send_url || '#')}'>\n          <input type='hidden' name='list_key' value='${escapeHtml(item.list_key)}'>\n          <input type='hidden' name='template_key' value='${escapeHtml(item.template_key)}'>\n          <input type='hidden' name='signature_template_key' value='${escapeHtml(item.signature_template_key)}'>\n          <input type='hidden' name='return_url' value='${escapeHtml(item.return_url)}'>\n          <input type='hidden' name='email_type' value='${escapeHtml(item.email_type)}'>\n          <input type='hidden' name='recipient_selection_submitted' value='1'>\n          <textarea id='rendered-message-output' name='rendered_message' style='display:none'></textarea>\n          <textarea id='rendered-signature-output' name='rendered_signature' style='display:none'>${escapeHtml(item.rendered_signature || '')}</textarea>\n          <label class='field'>\n            <span>Subject</span>\n            <input type='text' name='rendered_subject' value='${escapeHtml(item.rendered_subject)}' required>\n          </label>\n          <section class='field'>\n            <span>Message</span>\n            <div class='editor-shell'>\n              ${editorHtml}\n            </div>\n          </section>\n          <div class='callout'><strong>Template tokens:</strong> contact/recipient: <code>{{$json.recipient_name}}</code>, <code>{{$json.recipient_first_name}}</code>. Target member names: <code>{{$json.member_name}}</code>, <code>{{$json.member_names}}</code>, <code>{{$json.target_member_names}}</code>, <code>{{$json.target_first_names}}</code>. List tokens: <code>{{$json.list_name}}</code>, <code>{{$json.recipient_count}}</code>, <code>{{$json.current_season}}</code>, <code>{{$json.previous_season}}</code>.</div>\n          <div style='display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap;'>\n            <div style='display:grid;gap:12px;'>\n              <label class='checkbox'><input type='checkbox' name='test_mode' value='1'${item.delivery_mode === 'production' ? '' : ' checked'}><span>Send in test mode</span></label>\n              <label class='field' style='margin:0;max-width:280px;'><span>Delay between messages (seconds)</span><input type='number' name='send_delay_seconds' min='0' max='300' step='1' value='${escapeHtml(String(item.send_delay_seconds ?? 5))}'></label>\n            </div>\n            <div style='display:flex;gap:12px;flex-wrap:wrap;'>\n              <a class='button button-soft' href='${escapeHtml(item.return_url)}'>Back to Mailout App</a>\n              <button class='button' type='submit'>Send Mailout</button>\n            </div>\n          </div>\n        </form>\n      </div>\n      <aside class='stack'>\n        <section class='panel'>\n          <div class='meta-list'>\n            <div><span class='meta-label'>Recipient List</span><strong>${escapeHtml(item.list_label)}</strong></div>\n            <div><span class='meta-label'>Resolved Recipients</span><strong>${escapeHtml(String(item.recipient_count || 0))}</strong></div>\n            <div><span class='meta-label'>Included Recipients</span><strong id='included-recipient-count'>${escapeHtml(String(includedCount || 0))}</strong></div>\n            <div><span class='meta-label'>Excluded Recipients</span><strong id='excluded-recipient-count'>${escapeHtml(String(excludedCount || 0))}</strong></div>\n            <div><span class='meta-label'>Template</span><strong>${escapeHtml(item.template_name || item.template_key)}</strong></div>\n            <div><span class='meta-label'>Visible Club Address</span><strong>${escapeHtml(item.reply_to || '')}</strong></div>\n            <div><span class='meta-label'>Test Recipient</span><strong>${escapeHtml(item.test_recipient || '')}</strong></div>\n            <div><span class='meta-label'>Send Delay</span><strong>${escapeHtml(String(item.send_delay_seconds ?? 5))} seconds between production messages</strong></div>\n            <div><span class='meta-label'>Preview Recipient</span><strong id='preview-recipient-label'>${escapeHtml(item.preview_recipient_name || '')}</strong></div>\n            <div><span class='meta-label'>Target Members</span><strong id='preview-target-members-label'>${escapeHtml(item.preview_target_member_names || '')}</strong></div>\n            <div><span class='meta-label'>Sample Subject</span><strong id='rendered-subject-preview'>${escapeHtml(item.preview_subject || item.rendered_subject || '')}</strong></div>\n          </div>\n          <p style='margin:14px 0 0;color:var(--muted);line-height:1.6;'>${escapeHtml(item.list_description || '')}</p>\n        </section>\n        <section class='panel'>\n          <h2 style='margin:0 0 12px;font-size:19px;'>Recipient Preview</h2>\n          ${recipientSelectorHtml}\n          ${sampleHtml ? `<ul class='sample-list'>${sampleHtml}</ul>` : emptySampleHtml}\n          ${recipientListDetailsHtml}\n        </section>\n        <section class='panel'>\n          <h2 style='margin:0 0 12px;font-size:19px;'>Signature Preview</h2>\n          <div id='signature-preview-shell'>${signatureHtml}</div>\n        </section>\n        <section class='panel'>\n          <h2 style='margin:0 0 12px;font-size:19px;'>Rendered Preview For Selected Recipient</h2>\n          ${previewHtml}\n        </section>\n      </aside>\n    </section>\n  </div>\n  <script>\n    (function() {\n      var item = ${toScript(item)};\n      var emailType = String(item.email_type || 'text');\n      var form = document.getElementById('compose-form');\n      var host = document.getElementById('message-editor-host');\n      var input = document.getElementById('message-editor-input');\n      var output = document.getElementById('rendered-message-output');\n      var preview = document.getElementById('rendered-preview');\n      var signaturePreview = document.getElementById('signature-preview');\n      var subjectInput = form ? form.querySelector('input[name=\"rendered_subject\"]') : null;\n      var subjectPreview = document.getElementById('rendered-subject-preview');\n      var previewRecipientLabel = document.getElementById('preview-recipient-label');\n      var previewTargetMembersLabel = document.getElementById('preview-target-members-label');\n      var selectionSummary = document.getElementById('recipient-selection-summary');\n      var includedCountLabel = document.getElementById('included-recipient-count');\n      var excludedCountLabel = document.getElementById('excluded-recipient-count');\n      var selectedRecipientIndex = ${initialPreviewIndex};\n      var initialBody = String(item.rendered_body || '');\n      var signature = String(item.rendered_signature || '');\n      var consentFooter = String(emailType === 'html' ? (item.consent_footer_html || '') : (item.consent_footer_text || ''));\n      var normalizeHtml = function(value) { return String(value || '').replace(/<!doctype[^>]*>/ig, '').replace(/<\\\\/?(?:html|body)[^>]*>/ig, '').trim(); };\n      var replaceTokens = function(value, recipient) {\n        var rendered = String(value || '');\n        var tokenMap = {\n          '{{$json.list_name}}': String(item.list_label || ''),\n          '{{$json.list_label}}': String(item.list_label || ''),\n          '{{$json.list_key}}': String(item.list_key || ''),\n          '{{$json.recipient_count}}': String(item.included_recipient_count ?? item.recipient_count ?? 0),\n          '{{$json.current_season}}': String(item.current_season || ''),\n          '{{$json.previous_season}}': String(item.previous_season || ''),\n          '{{$json.first_name}}': String(recipient && recipient.target_first_names || ''),\n          '{{$json.last_name}}': String(recipient && recipient.target_last_names || ''),\n          '{{$json.member_name}}': String(recipient && recipient.target_member_names || ''),\n          '{{$json.member_names}}': String(recipient && recipient.target_member_names || ''),\n          '{{$json.target_member_name}}': String(recipient && recipient.target_member_names || ''),\n          '{{$json.target_member_names}}': String(recipient && recipient.target_member_names || ''),\n          '{{$json.target_first_names}}': String(recipient && recipient.target_first_names || ''),\n          '{{$json.target_last_names}}': String(recipient && recipient.target_last_names || ''),\n          '{{$json.member_first_names}}': String(recipient && recipient.target_first_names || ''),\n          '{{$json.member_last_names}}': String(recipient && recipient.target_last_names || ''),\n          '{{$json.target_member_count}}': String(recipient && recipient.target_member_count || 0),\n          '{{$json.member_count}}': String(recipient && recipient.target_member_count || 0),\n          '{{$json.recipient_name}}': String(recipient && recipient.recipient_name || ''),\n          '{{$json.recipient_first_name}}': String(recipient && recipient.recipient_first_name || ''),\n          '{{$json.recipient_last_name}}': String(recipient && recipient.recipient_last_name || ''),\n          '{{list_name}}': String(item.list_label || ''),\n          '{{list_label}}': String(item.list_label || ''),\n          '{{list_key}}': String(item.list_key || ''),\n          '{{recipient_count}}': String(item.included_recipient_count ?? item.recipient_count ?? 0),\n          '{{current_season}}': String(item.current_season || ''),\n          '{{previous_season}}': String(item.previous_season || ''),\n          '{{first_name}}': String(recipient && recipient.target_first_names || ''),\n          '{{last_name}}': String(recipient && recipient.target_last_names || ''),\n          '{{member_name}}': String(recipient && recipient.target_member_names || ''),\n          '{{member_names}}': String(recipient && recipient.target_member_names || ''),\n          '{{target_member_name}}': String(recipient && recipient.target_member_names || ''),\n          '{{target_member_names}}': String(recipient && recipient.target_member_names || ''),\n          '{{target_first_names}}': String(recipient && recipient.target_first_names || ''),\n          '{{target_last_names}}': String(recipient && recipient.target_last_names || ''),\n          '{{member_first_names}}': String(recipient && recipient.target_first_names || ''),\n          '{{member_last_names}}': String(recipient && recipient.target_last_names || ''),\n          '{{target_member_count}}': String(recipient && recipient.target_member_count || 0),\n          '{{member_count}}': String(recipient && recipient.target_member_count || 0),\n          '{{recipient_name}}': String(recipient && recipient.recipient_name || ''),\n          '{{recipient_first_name}}': String(recipient && recipient.recipient_first_name || ''),\n          '{{recipient_last_name}}': String(recipient && recipient.recipient_last_name || ''),\n        };\n        Object.keys(tokenMap).forEach(function(token) { rendered = rendered.split(token).join(tokenMap[token]); });\n        return rendered.trim();\n      };\n      var updateRecipientSelectionState = function() {\n        var checkboxes = Array.prototype.slice.call(document.querySelectorAll('.recipient-include-checkbox'));\n        var allKeys = {};\n        var includedKeys = {};\n        checkboxes.forEach(function(checkbox) {\n          var key = String(checkbox.getAttribute('data-recipient-key') || '').toLowerCase();\n          if (!key) return;\n          allKeys[key] = true;\n          if (checkbox.checked) includedKeys[key] = true;\n        });\n        document.querySelectorAll('[data-recipient-card]').forEach(function(card) {\n          var checkbox = card.querySelector('.recipient-include-checkbox');\n          var included = checkbox ? checkbox.checked : false;\n          card.classList.toggle('is-excluded', !included);\n          var status = card.querySelector('.recipient-status');\n          if (status) {\n            status.textContent = included ? 'Included' : 'Excluded';\n            status.classList.toggle('is-excluded', !included);\n          }\n        });\n        var includedTotal = Object.keys(includedKeys).length;\n        var total = Object.keys(allKeys).length;\n        if (selectionSummary) selectionSummary.textContent = includedTotal + ' included / ' + total + ' total';\n        if (includedCountLabel) includedCountLabel.textContent = String(includedTotal);\n        if (excludedCountLabel) excludedCountLabel.textContent = String(Math.max(total - includedTotal, 0));\n      };\n      window.__memberListToggleRecipient = function(key, checked) {\n        document.querySelectorAll('.recipient-include-checkbox').forEach(function(checkbox) {\n          if (String(checkbox.getAttribute('data-recipient-key') || '').toLowerCase() === String(key || '').toLowerCase()) {\n            if (checkbox.disabled) return;\n            checkbox.checked = checked;\n          }\n        });\n        updateRecipientSelectionState();\n      };\n      window.__memberListSetAll = function(checked) {\n        document.querySelectorAll('.recipient-include-checkbox').forEach(function(checkbox) { if (!checkbox.disabled) checkbox.checked = checked; });\n        updateRecipientSelectionState();\n      };\n      var setSelectedRecipientIndex = function(index) {\n        var recipients = Array.isArray(item.recipients) ? item.recipients : [];\n        var maxIndex = Math.max(recipients.length - 1, 0);\n        var nextIndex = Number.isFinite(index) ? Math.max(0, Math.min(maxIndex, index)) : 0;\n        selectedRecipientIndex = nextIndex;\n        document.querySelectorAll('[data-preview-index]').forEach(function(button) {\n          var buttonIndex = Number(button.getAttribute('data-preview-index') || 0);\n          var isSelected = buttonIndex === selectedRecipientIndex;\n          button.classList.toggle('is-selected', isSelected);\n          button.setAttribute('aria-pressed', isSelected ? 'true' : 'false');\n        });\n      };\n      var getSelectedRecipient = function() {\n        var recipients = Array.isArray(item.recipients) ? item.recipients : [];\n        return recipients[selectedRecipientIndex] || recipients[0] || null;\n      };\n      window.__memberListSelectRecipient = function(index) {\n        setSelectedRecipientIndex(Number(index || 0));\n        syncPreview();\n      };\n      var getValue = function() {\n        if (emailType === 'html') {\n          var editor = window.tinymce ? window.tinymce.get('member-list-mailout-editor') : null;\n          if (editor) return editor.getContent({ format: 'html' });\n          return host ? host.innerHTML : '';\n        }\n        return input ? String(input.value || '') : '';\n      };\n      var syncPreview = function() {\n        var message = getValue();\n        var recipient = getSelectedRecipient();\n        var renderedSignature = replaceTokens(String(signature || ''), recipient);\n        if (previewRecipientLabel) previewRecipientLabel.textContent = recipient ? (recipient.recipient_name || recipient.recipient_email || '') : '';\n        if (previewTargetMembersLabel) previewTargetMembersLabel.textContent = recipient ? (recipient.target_member_names || '') : '';\n        if (subjectPreview && subjectInput) subjectPreview.textContent = replaceTokens(String(subjectInput.value || ''), recipient);\n        if (signaturePreview) {\n          if (emailType === 'html') signaturePreview.innerHTML = normalizeHtml(renderedSignature);\n          else signaturePreview.textContent = renderedSignature;\n        }\n        if (!preview) return;\n        if (emailType === 'html') {\n          preview.innerHTML = normalizeHtml(replaceTokens(String(message || '') + String(signature || '') + consentFooter, recipient));\n        } else {\n          preview.textContent = replaceTokens([String(message || '').trim(), String(signature || '').trim(), consentFooter].filter(Boolean).join('\\\\n\\\\n'), recipient);\n        }\n      };\n      var syncSubmit = function() {\n        var message = getValue();\n        output.value = emailType === 'html' ? normalizeHtml(message) : String(message || '').trim();\n      };\n      if (emailType === 'html' && host) {\n        host.innerHTML = normalizeHtml(initialBody);\n        ['input', 'keyup', 'paste', 'blur'].forEach(function(eventName) {\n          host.addEventListener(eventName, syncPreview);\n        });\n      } else if (input) {\n        input.value = initialBody;\n        ['input', 'keyup', 'change', 'paste', 'blur'].forEach(function(eventName) {\n          input.addEventListener(eventName, syncPreview);\n        });\n      }\n      if (subjectInput) { ['input', 'keyup', 'change', 'paste', 'blur'].forEach(function(eventName) { subjectInput.addEventListener(eventName, syncPreview); }); }\n      setSelectedRecipientIndex(${initialPreviewIndex});\n      updateRecipientSelectionState();\n      syncPreview();\n      form.addEventListener('submit', function() { syncSubmit(); updateRecipientSelectionState(); });\n    })();\n  </script>\n</body>\n</html>`;\nreturn [{ json: { html } }];\n",
+          "language": "javaScript"
+        },
+        "typeVersion": 2
+      },
+      {
+        "id": "mlp000000-0000-0000-0000-000000000013",
+        "name": "Respond Preview",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "position": [
+          2580,
+          420
+        ],
+        "parameters": {
+          "options": {
+            "responseCode": 200,
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                },
+                {
+                  "name": "Cache-Control",
+                  "value": "no-store, no-cache, must-revalidate, max-age=0"
+                },
+                {
+                  "name": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "name": "Expires",
+                  "value": "0"
+                }
+              ]
+            }
+          },
+          "respondWith": "text",
+          "responseBody": "={{ $json.html }}"
+        },
+        "typeVersion": 1.5
+      }
+    ],
+    "connections": {
+      "When clicking 'Execute workflow'": {
+        "main": [
+          [
+            {
+              "node": "Load Global Settings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Preview Member List Email Webhook": {
+        "main": [
+          [
+            {
+              "node": "Load Global Settings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load Global Settings": {
+        "main": [
+          [
+            {
+              "node": "Resolve Preview Request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Resolve Preview Request": {
+        "main": [
+          [
+            {
+              "node": "Check Request Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Request Error": {
+        "main": [
+          [
+            {
+              "node": "Build Error HTML",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Build Preview Context SQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Preview Context SQL": {
+        "main": [
+          [
+            {
+              "node": "Load Preview Context",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load Preview Context": {
+        "main": [
+          [
+            {
+              "node": "Check Context Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Context Error": {
+        "main": [
+          [
+            {
+              "node": "Build Error HTML",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Render Preview Data",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Error HTML": {
+        "main": [
+          [
+            {
+              "node": "Respond Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Render Preview Data": {
+        "main": [
+          [
+            {
+              "node": "Build Preview HTML",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Preview HTML": {
+        "main": [
+          [
+            {
+              "node": "Respond Preview",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Steve Short",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-01T16:43:55.262Z",
+        "id": 549,
+        "workflowId": "Jt5MdbBQLhix1X6V",
+        "versionId": "10ea6b0f-c77c-43c0-b4ad-408ce32181d9",
+        "event": "activated",
+        "userId": "1aa25644-d384-4810-beaa-f58314d3e70c"
+      }
+    ]
+  }
 }

@@ -1,0 +1,1039 @@
+{
+  "updatedAt": "2026-05-02T14:21:44.282Z",
+  "createdAt": "2026-05-02T14:21:20.242Z",
+  "id": "ne8tLFtmlmqVjvn4",
+  "name": "Member List Mailout Resume",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "member-list-mailout-resume",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "mlr000000-0000-0000-0000-000000000001",
+      "name": "Resume Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "mlr-webhook-resume-001"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT j.id::text AS job_id, j.list_key, j.list_label, j.template_key, j.signature_template_key, j.subject, j.sender, j.reply_to, j.delivery_mode, j.status, j.sent_count, j.failed_count, j.total_recipients, j.excluded_count, j.no_consent_count, j.metadata FROM public.member_list_mailout_jobs j WHERE j.id = '{{ $json.query.job_id }}'::uuid LIMIT 1"
+      },
+      "id": "mlr000000-0000-0000-0000-000000000002",
+      "name": "Load Job",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        460,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT recipient_email FROM (\n  SELECT to_address AS recipient_email FROM public.member_list_mailout_recipients WHERE job_id = '{{ $json.job_id }}'::uuid AND status = 'Sent'\n) sent"
+      },
+      "id": "mlr000000-0000-0000-0000-000000000003",
+      "name": "Load Sent Recipients",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        680,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const request = $('Resume Webhook').first()?.json ?? {};\nconst job = $('Load Job').first()?.json ?? {};\nconst sentItems = $('Load Sent Recipients').all().map(i => i.json ?? {});\nconst clean = (v) => v === null || v === undefined ? '' : String(v).trim();\nconst escapeHtml = (v) => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;');\n\nconst jobId = clean(job.job_id);\nif (!jobId) {\n  const html = `<!doctype html><html><head><meta charset='utf-8'><title>Resume</title><style>body{font-family:Arial;padding:24px;background:#f4f7fb}p{color:#b93a3a}</style></head><body><p>Job not found. Check the job_id parameter.</p></body></html>`;\n  return [{ json: { html, job_id: '', ready: false } }];\n}\n\nconst parseMaybe = (v, fb) => { if (!v) return fb; if (typeof v === 'string') { try { return JSON.parse(v); } catch { return fb; } } return v; };\nconst meta = parseMaybe(job.metadata, {});\nconst originalKeys = Array.isArray(meta.included_recipient_keys) ? meta.included_recipient_keys : [];\nconst sentKeys = new Set(sentItems.map(s => clean(s.recipient_email).toLowerCase()).filter(Boolean));\n\n// In test mode sent_to is test_recipient, so we consider all 'original' keys needing send if test mode\nconst deliveryMode = clean(job.delivery_mode || meta.delivery_mode);\nconst alreadySentCount = deliveryMode === 'test' ? Number(job.sent_count ?? 0) : sentKeys.size;\nconst remainingKeys = deliveryMode === 'test' ? [] : originalKeys.filter(k => !sentKeys.has(clean(k).toLowerCase()));\nconst totalOriginal = originalKeys.length || Number(job.total_recipients ?? 0);\n\nconst n8nBase = clean(meta.n8n_base_url || '').replace(/\\/$/, '') || 'https://n8n.proxy.shortcentral.com';\nconst returnUrl = clean(meta.return_url) || n8nBase + '/webhook/member-list-mailout';\n\nconst html = `<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Resume Mailout</title><style>body{margin:0;padding:24px;background:#f4f7fb;font-family:Lato,Arial,sans-serif;color:#1f2937}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #d8e1ec;border-radius:20px;box-shadow:0 18px 40px rgba(15,23,42,.08);padding:28px}h1{margin:0 0 8px;font-size:28px}dl{display:grid;grid-template-columns:180px 1fr;gap:8px 16px;margin:16px 0}dt{font-weight:700;color:#334155}dd{margin:0}.warn{background:#fef3c7;border:1px solid #f59e0b;border-radius:12px;padding:12px 16px;color:#92400e;margin:16px 0}.actions{margin-top:24px;display:flex;gap:12px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:700;color:#fff;border:0;cursor:pointer;font-size:15px}.btn-resume{background:linear-gradient(135deg,#b45309,#92400e)}.btn-back{background:linear-gradient(135deg,#64748b,#475569)}</style></head><body><div class='panel'><h1>Resume Mailout</h1>${deliveryMode === 'test' ? '<div class=\\'warn\\'>This job was sent in <strong>test mode</strong>. All emails went to the test recipient. There is nothing to resume.</div>' : (remainingKeys.length === 0 ? '<div class=\\'warn\\'>No remaining recipients found. This job may already be complete.</div>' : '<div class=\\'warn\\'><strong>' + escapeHtml(String(remainingKeys.length)) + ' recipient(s) not yet sent.</strong> Click Resume to continue sending from where it left off.</div>')}<dl><dt>Job ID</dt><dd><code>${escapeHtml(jobId)}</code></dd><dt>List</dt><dd>${escapeHtml(job.list_label || job.list_key || '')}</dd><dt>Subject</dt><dd>${escapeHtml(job.subject || '')}</dd><dt>Mode</dt><dd>${escapeHtml(deliveryMode)}</dd><dt>Status</dt><dd>${escapeHtml(job.status || '')}</dd><dt>Total</dt><dd>${escapeHtml(String(totalOriginal))}</dd><dt>Already sent</dt><dd>${escapeHtml(String(alreadySentCount))}</dd><dt>Remaining</dt><dd>${escapeHtml(String(remainingKeys.length))}</dd></dl>${remainingKeys.length > 0 ? `<form method='POST' action='${escapeHtml(n8nBase)}/webhook/member-list-mailout-resume'><input type='hidden' name='job_id' value='${escapeHtml(jobId)}'><input type='hidden' name='return_url' value='${escapeHtml(returnUrl)}'><div class='actions'><button class='btn btn-resume' type='submit'>Resume Send (${escapeHtml(String(remainingKeys.length))} remaining)</button><a class='btn btn-back' href='${escapeHtml(returnUrl)}'>Cancel</a></div></form>` : `<div class='actions'><a class='btn btn-back' href='${escapeHtml(returnUrl)}'>Back to Mailout App</a></div>`}</div></body></html>`;\n\nreturn [{ json: { html, job_id: jobId, remaining_keys: remainingKeys, meta, ready: remainingKeys.length > 0 } }];"
+      },
+      "id": "mlr000000-0000-0000-0000-000000000004",
+      "name": "Build Resume Page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "mlr000000-0000-0000-0000-000000000005",
+      "name": "Respond Resume Page",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "path": "member-list-mailout-resume",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "mlr000000-0000-0000-0000-000000000006",
+      "name": "Resume POST Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        560
+      ],
+      "webhookId": "mlr-webhook-resume-post-001"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT j.id::text AS job_id, j.list_key, j.list_label, j.template_key, j.subject, j.sender, j.reply_to, j.delivery_mode, j.status, j.sent_count, j.failed_count, j.total_recipients, j.excluded_count, j.no_consent_count, j.metadata FROM public.member_list_mailout_jobs j WHERE j.id = '{{ $json.body.job_id }}'::uuid LIMIT 1"
+      },
+      "id": "mlr000000-0000-0000-0000-000000000007",
+      "name": "Load Resume Job",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        460,
+        560
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT to_address AS already_sent_key FROM public.member_list_mailout_recipients WHERE job_id = '{{ $json.job_id }}'::uuid AND status = 'Sent'"
+      },
+      "id": "mlr000000-0000-0000-0000-000000000008",
+      "name": "Load Already Sent",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        680,
+        560
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const request = $('Resume POST Webhook').first()?.json ?? {};\nconst body = request.body ?? {};\nconst job = $('Load Resume Job').first()?.json ?? {};\nconst sentItems = $('Load Already Sent').all().map(i => i.json ?? {});\nconst clean = (v) => v === null || v === undefined ? '' : String(v).trim();\nconst parseMaybe = (v, fb) => { if (!v) return fb; if (typeof v === 'string') { try { return JSON.parse(v); } catch { return fb; } } return v; };\nconst meta = parseMaybe(job.metadata, {});\nconst originalKeys = Array.isArray(meta.included_recipient_keys) ? meta.included_recipient_keys : [];\nconst sentKeys = new Set(sentItems.map(s => clean(s.already_sent_key).toLowerCase()).filter(Boolean));\nconst remainingKeys = originalKeys.filter(k => !sentKeys.has(clean(k).toLowerCase()));\nconst n8nBase = clean(meta.n8n_base_url || '').replace(/\\/$/, '') || 'https://n8n.proxy.shortcentral.com';\nconst returnUrl = clean(body.return_url || meta.return_url) || n8nBase + '/webhook/member-list-mailout';\nconst jobId = clean(job.job_id);\nconst pixelPath = '3e9f7b1a-c2d4-4e5f-8a6b-0d1c2e3f4a5b.gif';\nconst randomToken = () => { if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID(); return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => { const v = Math.floor(Math.random() * 16); return (c === 'x' ? v : ((v & 0x3) | 0x8)).toString(16); }); };\nconst trackingPixel = (token) => `<img src='${n8nBase}/webhook/${pixelPath}?token=${token}' width='1' height='1' style='display:none' alt=''>`;\nconst renderedSignature = clean(meta.rendered_signature);\nconst baseMessage = clean(meta.rendered_message);\nif (!jobId || remainingKeys.length === 0) {\n  return [{ json: { chunks: [], job_id: jobId, return_url: returnUrl, n8n_base_url: n8nBase, nothing_to_resume: true } }];\n}\nconst chunks = remainingKeys.map((recipientKey, idx) => {\n  const token = randomToken();\n  const pixelHtml = trackingPixel(token);\n  const fullMessage = baseMessage + (renderedSignature ? '\\n' + renderedSignature : '') + pixelHtml;\n  return {\n    job_id: jobId,\n    recipient_email: recipientKey,\n    recipient_name: recipientKey,\n    actual_to: clean(job.delivery_mode) === 'production' ? recipientKey : clean(meta.test_recipient),\n    sender_name: clean(job.sender || meta.sender_name),\n    reply_to: clean(job.reply_to || meta.reply_to),\n    rendered_subject: clean(job.subject || meta.rendered_subject),\n    rendered_message: fullMessage,\n    email_type: clean(meta.email_type) || 'html',\n    delivery_mode: clean(job.delivery_mode || meta.delivery_mode),\n    test_recipient: clean(meta.test_recipient),\n    open_tracking_token: token,\n    open_tracking_enabled: true,\n    send_index: (Number(job.sent_count ?? 0)) + idx + 1,\n    list_key: clean(job.list_key),\n    template_key: clean(job.template_key),\n    send_delay_ms: idx === 0 ? 0 : Number(meta.send_delay_seconds ?? 5) * 1000,\n    return_url: returnUrl,\n    n8n_base_url: n8nBase,\n  };\n});\nreturn chunks.map(c => ({ json: c }));"
+      },
+      "id": "mlr000000-0000-0000-0000-000000000009",
+      "name": "Build Resume Chunks",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "amount": "={{ $json.send_delay_ms }}",
+        "unit": "milliseconds"
+      },
+      "id": "mlr000000-0000-0000-0000-000000000010",
+      "name": "Apply Resume Delay",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:5678/webhook/email-send-core",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { flow_name: \"resume-member-list-email\", to: $json.actual_to, sender_name: $json.sender_name, reply_to: $json.reply_to, rendered_subject: $json.rendered_subject, rendered_message: $json.rendered_message, email_type: $json.email_type } }}",
+        "options": {}
+      },
+      "continueOnFail": true,
+      "id": "mlr000000-0000-0000-0000-000000000011",
+      "name": "Send Resume Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1340,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const sendResult = $input.item?.json ?? {};\nconst chunkPayload = $('Apply Resume Delay').item?.json ?? {};\nconst sqlLiteral = (value) => value === null || value === undefined ? 'NULL' : \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst jobId = clean(chunkPayload.job_id);\nconst trackingToken = clean(chunkPayload.open_tracking_token);\nconst internetMessageId = clean(sendResult.internet_message_id);\nconst gmailMessageId = clean(sendResult.gmail_message_id);\nconst actualTo = clean(chunkPayload.actual_to || chunkPayload.recipient_email);\nconst recipientName = clean(chunkPayload.recipient_name);\nconst hasError = !!(sendResult.error || sendResult.message?.toLowerCase().includes('too many') || sendResult.ok === false);\nconst errorMsg = hasError ? clean(sendResult.error || sendResult.message || 'Send failed') : null;\nconst metadataObj = { list_key: chunkPayload.list_key, template_key: chunkPayload.template_key, delivery_mode: chunkPayload.delivery_mode, send_index: chunkPayload.send_index, resumed: true };\nlet sql;\nif (!jobId) {\n  sql = 'SELECT NULL::text AS recipient_id';\n} else if (hasError) {\n  sql = `WITH ins AS (\\n  INSERT INTO public.member_list_mailout_recipients (job_id, recipient_name, to_address, status, error_message, failed_at, metadata)\\n  VALUES (${sqlLiteral(jobId)}::uuid, ${sqlLiteral(recipientName)}, ${sqlLiteral(actualTo)}, 'Failed', ${sqlLiteral(errorMsg)}, now(), ${sqlLiteral(JSON.stringify(metadataObj))}::jsonb)\\n  RETURNING id::text AS recipient_id\\n), upd AS (\\n  UPDATE public.member_list_mailout_jobs SET failed_count = COALESCE(failed_count, 0) + 1 WHERE id = ${sqlLiteral(jobId)}::uuid\\n)\\nSELECT recipient_id FROM ins`;\n} else {\n  sql = `WITH ins AS (\\n  INSERT INTO public.member_list_mailout_recipients (job_id, recipient_name, to_address, cc_address, bcc_address, internet_message_id, gmail_message_id, status, open_tracking_token, open_tracking_enabled, open_status, sent_at, metadata)\\n  VALUES (${sqlLiteral(jobId)}::uuid, ${sqlLiteral(recipientName)}, ${sqlLiteral(actualTo)}, NULL, NULL, ${sqlLiteral(internetMessageId)}, ${sqlLiteral(gmailMessageId)}, 'Sent', ${trackingToken ? sqlLiteral(trackingToken) + '::uuid' : 'NULL'}, ${chunkPayload.open_tracking_enabled ? 'TRUE' : 'FALSE'}, ${chunkPayload.open_tracking_enabled && trackingToken ? \"'Not Opened'\" : \"'Not Tracked'\"}, now(), ${sqlLiteral(JSON.stringify(metadataObj))}::jsonb)\\n  RETURNING id::text AS recipient_id\\n), upd AS (\\n  UPDATE public.member_list_mailout_jobs SET sent_count = sent_count + 1 WHERE id = ${sqlLiteral(jobId)}::uuid\\n)\\nSELECT recipient_id FROM ins`;\n}\nreturn { json: { ...chunkPayload, internet_message_id: internetMessageId, gmail_message_id: gmailMessageId, was_error: hasError, error_message: errorMsg, sql } };"
+      },
+      "id": "mlr000000-0000-0000-0000-000000000012",
+      "name": "Build Resume Log SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "mlr000000-0000-0000-0000-000000000013",
+      "name": "Log Resume Recipient",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1780,
+        560
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $('Log Resume Recipient').all().map(item => item.json ?? {});\nconst buildResults = $('Build Resume Log SQL').all().map(item => item.json ?? {});\nconst firstChunk = $('Build Resume Chunks').first()?.json ?? {};\nconst jobId = firstChunk.job_id || '';\nconst sqlLiteral = (value) => value === null || value === undefined ? 'NULL' : \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\nconst sentCount = results.filter(r => r.recipient_id).length;\nconst anyFailed = buildResults.some(r => r.was_error);\nconst status = anyFailed ? 'Paused' : 'Completed';\nconst sql = jobId\n  ? `UPDATE public.member_list_mailout_jobs SET status = '${status}', completed_at = ${status === 'Completed' ? 'now()' : 'NULL'} WHERE id = ${sqlLiteral(jobId)}::uuid`\n  : 'SELECT 1';\nreturn [{ json: { sql, job_id: jobId, sent_count: sentCount, any_failed: anyFailed, status } }];"
+      },
+      "id": "mlr000000-0000-0000-0000-000000000014",
+      "name": "Build Resume Complete SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "mlr000000-0000-0000-0000-000000000015",
+      "name": "Complete Resume Job",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2220,
+        560
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const firstChunk = $('Build Resume Chunks').first()?.json ?? {};\nconst completeResult = $('Build Resume Complete SQL').first()?.json ?? {};\nconst logs = $('Build Resume Log SQL').all().map(i => i.json ?? {});\nconst clean = (v) => v === null || v === undefined ? '' : String(v).trim();\nconst escapeHtml = (v) => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;');\nconst n8nBase = clean(firstChunk.n8n_base_url || '').replace(/\\/$/, '') || 'https://n8n.proxy.shortcentral.com';\nconst returnUrl = clean(firstChunk.return_url) || n8nBase + '/webhook/member-list-mailout';\nconst jobId = clean(firstChunk.job_id);\nconst isPaused = completeResult.any_failed;\nconst reportUrl = jobId ? n8nBase + '/webhook/member-list-mailout-report?job_id=' + encodeURIComponent(jobId) : '';\nconst resumeUrl = isPaused && jobId ? n8nBase + '/webhook/member-list-mailout-resume?job_id=' + encodeURIComponent(jobId) : '';\nconst html = `<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Resume Complete</title><style>body{margin:0;padding:24px;background:#f4f7fb;font-family:Lato,Arial,sans-serif;color:#1f2937}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #d8e1ec;border-radius:20px;box-shadow:0 18px 40px rgba(15,23,42,.08);padding:28px}h1{margin:0 0 8px;font-size:28px}.pill{display:inline-flex;align-items:center;padding:6px 12px;border-radius:999px;font-weight:700;margin:8px 0 16px}.pill-ok{background:#d1fae5;color:#065f46}.pill-warn{background:#fef3c7;color:#92400e}.warn{background:#fef3c7;border:1px solid #f59e0b;border-radius:12px;padding:12px 16px;color:#92400e;margin:16px 0}.actions{margin-top:24px;display:flex;gap:12px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:700;color:#fff;font-size:15px}</style></head><body><div class='panel'><h1>Resume ${isPaused ? 'Paused Again' : 'Completed'}</h1><span class='pill ${isPaused ? 'pill-warn' : 'pill-ok'}'>${isPaused ? 'Paused — still rate limited' : 'All done'}</span>${isPaused ? `<div class='warn'>Gmail is still rate limiting. ${escapeHtml(String(completeResult.sent_count ?? 0))} additional email(s) sent this run. Wait a few minutes then try resuming again.</div>` : `<p>${escapeHtml(String(completeResult.sent_count ?? 0))} additional email(s) sent. Job is now complete.</p>`}<div class='actions'>${reportUrl ? `<a class='btn' style='background:linear-gradient(135deg,#1e40af,#1d4ed8)' href='${escapeHtml(reportUrl)}'>View Report</a>` : ''}${resumeUrl ? `<a class='btn' style='background:linear-gradient(135deg,#b45309,#92400e)' href='${escapeHtml(resumeUrl)}'>Try Resume Again</a>` : ''}<a class='btn' style='background:linear-gradient(135deg,#64748b,#475569)' href='${escapeHtml(returnUrl)}'>Back to Mailout App</a></div></div></body></html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "mlr000000-0000-0000-0000-000000000016",
+      "name": "Build Resume Result HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2440,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "mlr000000-0000-0000-0000-000000000017",
+      "name": "Respond Resume Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2660,
+        560
+      ]
+    }
+  ],
+  "connections": {
+    "Resume Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Job": {
+      "main": [
+        [
+          {
+            "node": "Load Sent Recipients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Sent Recipients": {
+      "main": [
+        [
+          {
+            "node": "Build Resume Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Resume Page": {
+      "main": [
+        [
+          {
+            "node": "Respond Resume Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resume POST Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Resume Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Resume Job": {
+      "main": [
+        [
+          {
+            "node": "Load Already Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Already Sent": {
+      "main": [
+        [
+          {
+            "node": "Build Resume Chunks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Resume Chunks": {
+      "main": [
+        [
+          {
+            "node": "Apply Resume Delay",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply Resume Delay": {
+      "main": [
+        [
+          {
+            "node": "Send Resume Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Resume Email": {
+      "main": [
+        [
+          {
+            "node": "Build Resume Log SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Resume Log SQL": {
+      "main": [
+        [
+          {
+            "node": "Log Resume Recipient",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Resume Recipient": {
+      "main": [
+        [
+          {
+            "node": "Build Resume Complete SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Resume Complete SQL": {
+      "main": [
+        [
+          {
+            "node": "Complete Resume Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complete Resume Job": {
+      "main": [
+        [
+          {
+            "node": "Build Resume Result HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Resume Result HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond Resume Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "94f4e93d-7dbe-4b69-823d-bcde04bcad35",
+  "activeVersionId": "94f4e93d-7dbe-4b69-823d-bcde04bcad35",
+  "versionCounter": 4,
+  "triggerCount": 2,
+  "shared": [
+    {
+      "updatedAt": "2026-05-02T14:21:20.242Z",
+      "createdAt": "2026-05-02T14:21:20.242Z",
+      "role": "workflow:owner",
+      "workflowId": "ne8tLFtmlmqVjvn4",
+      "projectId": "AtpW2flNrTDUqcis",
+      "project": {
+        "updatedAt": "2026-03-07T15:05:21.831Z",
+        "createdAt": "2025-04-29T13:45:55.157Z",
+        "id": "AtpW2flNrTDUqcis",
+        "name": "Steve Short <steve@shortcentral.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "1aa25644-d384-4810-beaa-f58314d3e70c",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-04-29T13:45:55.157Z",
+            "createdAt": "2025-04-29T13:45:55.157Z",
+            "userId": "1aa25644-d384-4810-beaa-f58314d3e70c",
+            "projectId": "AtpW2flNrTDUqcis",
+            "user": {
+              "updatedAt": "2026-05-03T04:03:03.831Z",
+              "createdAt": "2025-04-29T13:45:54.337Z",
+              "id": "1aa25644-d384-4810-beaa-f58314d3e70c",
+              "email": "steve@shortcentral.com",
+              "firstName": "Steve",
+              "lastName": "Short",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-04-29T13:48:39.758Z",
+                "personalization_survey_n8n_version": "1.89.2",
+                "companyType": "personal",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "6XC5aXJ8uS5DS553",
+                "userActivatedAt": 1773664748790,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1774020442311
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-05-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-05-02T14:21:20.251Z",
+    "createdAt": "2026-05-02T14:21:20.251Z",
+    "versionId": "94f4e93d-7dbe-4b69-823d-bcde04bcad35",
+    "workflowId": "ne8tLFtmlmqVjvn4",
+    "nodes": [
+      {
+        "parameters": {
+          "path": "member-list-mailout-resume",
+          "httpMethod": "GET",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "mlr000000-0000-0000-0000-000000000001",
+        "name": "Resume Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          240,
+          300
+        ],
+        "webhookId": "mlr-webhook-resume-001"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT j.id::text AS job_id, j.list_key, j.list_label, j.template_key, j.signature_template_key, j.subject, j.sender, j.reply_to, j.delivery_mode, j.status, j.sent_count, j.failed_count, j.total_recipients, j.excluded_count, j.no_consent_count, j.metadata FROM public.member_list_mailout_jobs j WHERE j.id = '{{ $json.query.job_id }}'::uuid LIMIT 1"
+        },
+        "id": "mlr000000-0000-0000-0000-000000000002",
+        "name": "Load Job",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          460,
+          300
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "PjTUDAMk0dZ7g1iO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT recipient_email FROM (\n  SELECT to_address AS recipient_email FROM public.member_list_mailout_recipients WHERE job_id = '{{ $json.job_id }}'::uuid AND status = 'Sent'\n) sent"
+        },
+        "id": "mlr000000-0000-0000-0000-000000000003",
+        "name": "Load Sent Recipients",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          680,
+          300
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "PjTUDAMk0dZ7g1iO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const request = $('Resume Webhook').first()?.json ?? {};\nconst job = $('Load Job').first()?.json ?? {};\nconst sentItems = $('Load Sent Recipients').all().map(i => i.json ?? {});\nconst clean = (v) => v === null || v === undefined ? '' : String(v).trim();\nconst escapeHtml = (v) => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;');\n\nconst jobId = clean(job.job_id);\nif (!jobId) {\n  const html = `<!doctype html><html><head><meta charset='utf-8'><title>Resume</title><style>body{font-family:Arial;padding:24px;background:#f4f7fb}p{color:#b93a3a}</style></head><body><p>Job not found. Check the job_id parameter.</p></body></html>`;\n  return [{ json: { html, job_id: '', ready: false } }];\n}\n\nconst parseMaybe = (v, fb) => { if (!v) return fb; if (typeof v === 'string') { try { return JSON.parse(v); } catch { return fb; } } return v; };\nconst meta = parseMaybe(job.metadata, {});\nconst originalKeys = Array.isArray(meta.included_recipient_keys) ? meta.included_recipient_keys : [];\nconst sentKeys = new Set(sentItems.map(s => clean(s.recipient_email).toLowerCase()).filter(Boolean));\n\n// In test mode sent_to is test_recipient, so we consider all 'original' keys needing send if test mode\nconst deliveryMode = clean(job.delivery_mode || meta.delivery_mode);\nconst alreadySentCount = deliveryMode === 'test' ? Number(job.sent_count ?? 0) : sentKeys.size;\nconst remainingKeys = deliveryMode === 'test' ? [] : originalKeys.filter(k => !sentKeys.has(clean(k).toLowerCase()));\nconst totalOriginal = originalKeys.length || Number(job.total_recipients ?? 0);\n\nconst n8nBase = clean(meta.n8n_base_url || '').replace(/\\/$/, '') || 'https://n8n.proxy.shortcentral.com';\nconst returnUrl = clean(meta.return_url) || n8nBase + '/webhook/member-list-mailout';\n\nconst html = `<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Resume Mailout</title><style>body{margin:0;padding:24px;background:#f4f7fb;font-family:Lato,Arial,sans-serif;color:#1f2937}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #d8e1ec;border-radius:20px;box-shadow:0 18px 40px rgba(15,23,42,.08);padding:28px}h1{margin:0 0 8px;font-size:28px}dl{display:grid;grid-template-columns:180px 1fr;gap:8px 16px;margin:16px 0}dt{font-weight:700;color:#334155}dd{margin:0}.warn{background:#fef3c7;border:1px solid #f59e0b;border-radius:12px;padding:12px 16px;color:#92400e;margin:16px 0}.actions{margin-top:24px;display:flex;gap:12px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:700;color:#fff;border:0;cursor:pointer;font-size:15px}.btn-resume{background:linear-gradient(135deg,#b45309,#92400e)}.btn-back{background:linear-gradient(135deg,#64748b,#475569)}</style></head><body><div class='panel'><h1>Resume Mailout</h1>${deliveryMode === 'test' ? '<div class=\\'warn\\'>This job was sent in <strong>test mode</strong>. All emails went to the test recipient. There is nothing to resume.</div>' : (remainingKeys.length === 0 ? '<div class=\\'warn\\'>No remaining recipients found. This job may already be complete.</div>' : '<div class=\\'warn\\'><strong>' + escapeHtml(String(remainingKeys.length)) + ' recipient(s) not yet sent.</strong> Click Resume to continue sending from where it left off.</div>')}<dl><dt>Job ID</dt><dd><code>${escapeHtml(jobId)}</code></dd><dt>List</dt><dd>${escapeHtml(job.list_label || job.list_key || '')}</dd><dt>Subject</dt><dd>${escapeHtml(job.subject || '')}</dd><dt>Mode</dt><dd>${escapeHtml(deliveryMode)}</dd><dt>Status</dt><dd>${escapeHtml(job.status || '')}</dd><dt>Total</dt><dd>${escapeHtml(String(totalOriginal))}</dd><dt>Already sent</dt><dd>${escapeHtml(String(alreadySentCount))}</dd><dt>Remaining</dt><dd>${escapeHtml(String(remainingKeys.length))}</dd></dl>${remainingKeys.length > 0 ? `<form method='POST' action='${escapeHtml(n8nBase)}/webhook/member-list-mailout-resume'><input type='hidden' name='job_id' value='${escapeHtml(jobId)}'><input type='hidden' name='return_url' value='${escapeHtml(returnUrl)}'><div class='actions'><button class='btn btn-resume' type='submit'>Resume Send (${escapeHtml(String(remainingKeys.length))} remaining)</button><a class='btn btn-back' href='${escapeHtml(returnUrl)}'>Cancel</a></div></form>` : `<div class='actions'><a class='btn btn-back' href='${escapeHtml(returnUrl)}'>Back to Mailout App</a></div>`}</div></body></html>`;\n\nreturn [{ json: { html, job_id: jobId, remaining_keys: remainingKeys, meta, ready: remainingKeys.length > 0 } }];"
+        },
+        "id": "mlr000000-0000-0000-0000-000000000004",
+        "name": "Build Resume Page",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          900,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "={{ $json.html }}",
+          "options": {
+            "responseCode": 200,
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                }
+              ]
+            }
+          }
+        },
+        "id": "mlr000000-0000-0000-0000-000000000005",
+        "name": "Respond Resume Page",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          1120,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "path": "member-list-mailout-resume",
+          "httpMethod": "POST",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "mlr000000-0000-0000-0000-000000000006",
+        "name": "Resume POST Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          240,
+          560
+        ],
+        "webhookId": "mlr-webhook-resume-post-001"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT j.id::text AS job_id, j.list_key, j.list_label, j.template_key, j.subject, j.sender, j.reply_to, j.delivery_mode, j.status, j.sent_count, j.failed_count, j.total_recipients, j.excluded_count, j.no_consent_count, j.metadata FROM public.member_list_mailout_jobs j WHERE j.id = '{{ $json.body.job_id }}'::uuid LIMIT 1"
+        },
+        "id": "mlr000000-0000-0000-0000-000000000007",
+        "name": "Load Resume Job",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          460,
+          560
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "PjTUDAMk0dZ7g1iO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT to_address AS already_sent_key FROM public.member_list_mailout_recipients WHERE job_id = '{{ $json.job_id }}'::uuid AND status = 'Sent'"
+        },
+        "id": "mlr000000-0000-0000-0000-000000000008",
+        "name": "Load Already Sent",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          680,
+          560
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "PjTUDAMk0dZ7g1iO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const request = $('Resume POST Webhook').first()?.json ?? {};\nconst body = request.body ?? {};\nconst job = $('Load Resume Job').first()?.json ?? {};\nconst sentItems = $('Load Already Sent').all().map(i => i.json ?? {});\nconst clean = (v) => v === null || v === undefined ? '' : String(v).trim();\nconst parseMaybe = (v, fb) => { if (!v) return fb; if (typeof v === 'string') { try { return JSON.parse(v); } catch { return fb; } } return v; };\nconst meta = parseMaybe(job.metadata, {});\nconst originalKeys = Array.isArray(meta.included_recipient_keys) ? meta.included_recipient_keys : [];\nconst sentKeys = new Set(sentItems.map(s => clean(s.already_sent_key).toLowerCase()).filter(Boolean));\nconst remainingKeys = originalKeys.filter(k => !sentKeys.has(clean(k).toLowerCase()));\nconst n8nBase = clean(meta.n8n_base_url || '').replace(/\\/$/, '') || 'https://n8n.proxy.shortcentral.com';\nconst returnUrl = clean(body.return_url || meta.return_url) || n8nBase + '/webhook/member-list-mailout';\nconst jobId = clean(job.job_id);\nconst pixelPath = '3e9f7b1a-c2d4-4e5f-8a6b-0d1c2e3f4a5b.gif';\nconst randomToken = () => { if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID(); return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => { const v = Math.floor(Math.random() * 16); return (c === 'x' ? v : ((v & 0x3) | 0x8)).toString(16); }); };\nconst trackingPixel = (token) => `<img src='${n8nBase}/webhook/${pixelPath}?token=${token}' width='1' height='1' style='display:none' alt=''>`;\nconst renderedSignature = clean(meta.rendered_signature);\nconst baseMessage = clean(meta.rendered_message);\nif (!jobId || remainingKeys.length === 0) {\n  return [{ json: { chunks: [], job_id: jobId, return_url: returnUrl, n8n_base_url: n8nBase, nothing_to_resume: true } }];\n}\nconst chunks = remainingKeys.map((recipientKey, idx) => {\n  const token = randomToken();\n  const pixelHtml = trackingPixel(token);\n  const fullMessage = baseMessage + (renderedSignature ? '\\n' + renderedSignature : '') + pixelHtml;\n  return {\n    job_id: jobId,\n    recipient_email: recipientKey,\n    recipient_name: recipientKey,\n    actual_to: clean(job.delivery_mode) === 'production' ? recipientKey : clean(meta.test_recipient),\n    sender_name: clean(job.sender || meta.sender_name),\n    reply_to: clean(job.reply_to || meta.reply_to),\n    rendered_subject: clean(job.subject || meta.rendered_subject),\n    rendered_message: fullMessage,\n    email_type: clean(meta.email_type) || 'html',\n    delivery_mode: clean(job.delivery_mode || meta.delivery_mode),\n    test_recipient: clean(meta.test_recipient),\n    open_tracking_token: token,\n    open_tracking_enabled: true,\n    send_index: (Number(job.sent_count ?? 0)) + idx + 1,\n    list_key: clean(job.list_key),\n    template_key: clean(job.template_key),\n    send_delay_ms: idx === 0 ? 0 : Number(meta.send_delay_seconds ?? 5) * 1000,\n    return_url: returnUrl,\n    n8n_base_url: n8nBase,\n  };\n});\nreturn chunks.map(c => ({ json: c }));"
+        },
+        "id": "mlr000000-0000-0000-0000-000000000009",
+        "name": "Build Resume Chunks",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          900,
+          560
+        ]
+      },
+      {
+        "parameters": {
+          "amount": "={{ $json.send_delay_ms }}",
+          "unit": "milliseconds"
+        },
+        "id": "mlr000000-0000-0000-0000-000000000010",
+        "name": "Apply Resume Delay",
+        "type": "n8n-nodes-base.wait",
+        "typeVersion": 1.1,
+        "position": [
+          1120,
+          560
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://127.0.0.1:5678/webhook/email-send-core",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { flow_name: \"resume-member-list-email\", to: $json.actual_to, sender_name: $json.sender_name, reply_to: $json.reply_to, rendered_subject: $json.rendered_subject, rendered_message: $json.rendered_message, email_type: $json.email_type } }}",
+          "options": {}
+        },
+        "continueOnFail": true,
+        "id": "mlr000000-0000-0000-0000-000000000011",
+        "name": "Send Resume Email",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1340,
+          560
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const sendResult = $input.item?.json ?? {};\nconst chunkPayload = $('Apply Resume Delay').item?.json ?? {};\nconst sqlLiteral = (value) => value === null || value === undefined ? 'NULL' : \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst jobId = clean(chunkPayload.job_id);\nconst trackingToken = clean(chunkPayload.open_tracking_token);\nconst internetMessageId = clean(sendResult.internet_message_id);\nconst gmailMessageId = clean(sendResult.gmail_message_id);\nconst actualTo = clean(chunkPayload.actual_to || chunkPayload.recipient_email);\nconst recipientName = clean(chunkPayload.recipient_name);\nconst hasError = !!(sendResult.error || sendResult.message?.toLowerCase().includes('too many') || sendResult.ok === false);\nconst errorMsg = hasError ? clean(sendResult.error || sendResult.message || 'Send failed') : null;\nconst metadataObj = { list_key: chunkPayload.list_key, template_key: chunkPayload.template_key, delivery_mode: chunkPayload.delivery_mode, send_index: chunkPayload.send_index, resumed: true };\nlet sql;\nif (!jobId) {\n  sql = 'SELECT NULL::text AS recipient_id';\n} else if (hasError) {\n  sql = `WITH ins AS (\\n  INSERT INTO public.member_list_mailout_recipients (job_id, recipient_name, to_address, status, error_message, failed_at, metadata)\\n  VALUES (${sqlLiteral(jobId)}::uuid, ${sqlLiteral(recipientName)}, ${sqlLiteral(actualTo)}, 'Failed', ${sqlLiteral(errorMsg)}, now(), ${sqlLiteral(JSON.stringify(metadataObj))}::jsonb)\\n  RETURNING id::text AS recipient_id\\n), upd AS (\\n  UPDATE public.member_list_mailout_jobs SET failed_count = COALESCE(failed_count, 0) + 1 WHERE id = ${sqlLiteral(jobId)}::uuid\\n)\\nSELECT recipient_id FROM ins`;\n} else {\n  sql = `WITH ins AS (\\n  INSERT INTO public.member_list_mailout_recipients (job_id, recipient_name, to_address, cc_address, bcc_address, internet_message_id, gmail_message_id, status, open_tracking_token, open_tracking_enabled, open_status, sent_at, metadata)\\n  VALUES (${sqlLiteral(jobId)}::uuid, ${sqlLiteral(recipientName)}, ${sqlLiteral(actualTo)}, NULL, NULL, ${sqlLiteral(internetMessageId)}, ${sqlLiteral(gmailMessageId)}, 'Sent', ${trackingToken ? sqlLiteral(trackingToken) + '::uuid' : 'NULL'}, ${chunkPayload.open_tracking_enabled ? 'TRUE' : 'FALSE'}, ${chunkPayload.open_tracking_enabled && trackingToken ? \"'Not Opened'\" : \"'Not Tracked'\"}, now(), ${sqlLiteral(JSON.stringify(metadataObj))}::jsonb)\\n  RETURNING id::text AS recipient_id\\n), upd AS (\\n  UPDATE public.member_list_mailout_jobs SET sent_count = sent_count + 1 WHERE id = ${sqlLiteral(jobId)}::uuid\\n)\\nSELECT recipient_id FROM ins`;\n}\nreturn { json: { ...chunkPayload, internet_message_id: internetMessageId, gmail_message_id: gmailMessageId, was_error: hasError, error_message: errorMsg, sql } };"
+        },
+        "id": "mlr000000-0000-0000-0000-000000000012",
+        "name": "Build Resume Log SQL",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1560,
+          560
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $json.sql }}"
+        },
+        "id": "mlr000000-0000-0000-0000-000000000013",
+        "name": "Log Resume Recipient",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1780,
+          560
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "PjTUDAMk0dZ7g1iO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const results = $('Log Resume Recipient').all().map(item => item.json ?? {});\nconst buildResults = $('Build Resume Log SQL').all().map(item => item.json ?? {});\nconst firstChunk = $('Build Resume Chunks').first()?.json ?? {};\nconst jobId = firstChunk.job_id || '';\nconst sqlLiteral = (value) => value === null || value === undefined ? 'NULL' : \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\nconst sentCount = results.filter(r => r.recipient_id).length;\nconst anyFailed = buildResults.some(r => r.was_error);\nconst status = anyFailed ? 'Paused' : 'Completed';\nconst sql = jobId\n  ? `UPDATE public.member_list_mailout_jobs SET status = '${status}', completed_at = ${status === 'Completed' ? 'now()' : 'NULL'} WHERE id = ${sqlLiteral(jobId)}::uuid`\n  : 'SELECT 1';\nreturn [{ json: { sql, job_id: jobId, sent_count: sentCount, any_failed: anyFailed, status } }];"
+        },
+        "id": "mlr000000-0000-0000-0000-000000000014",
+        "name": "Build Resume Complete SQL",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2000,
+          560
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $json.sql }}"
+        },
+        "id": "mlr000000-0000-0000-0000-000000000015",
+        "name": "Complete Resume Job",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2220,
+          560
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "PjTUDAMk0dZ7g1iO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const firstChunk = $('Build Resume Chunks').first()?.json ?? {};\nconst completeResult = $('Build Resume Complete SQL').first()?.json ?? {};\nconst logs = $('Build Resume Log SQL').all().map(i => i.json ?? {});\nconst clean = (v) => v === null || v === undefined ? '' : String(v).trim();\nconst escapeHtml = (v) => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;');\nconst n8nBase = clean(firstChunk.n8n_base_url || '').replace(/\\/$/, '') || 'https://n8n.proxy.shortcentral.com';\nconst returnUrl = clean(firstChunk.return_url) || n8nBase + '/webhook/member-list-mailout';\nconst jobId = clean(firstChunk.job_id);\nconst isPaused = completeResult.any_failed;\nconst reportUrl = jobId ? n8nBase + '/webhook/member-list-mailout-report?job_id=' + encodeURIComponent(jobId) : '';\nconst resumeUrl = isPaused && jobId ? n8nBase + '/webhook/member-list-mailout-resume?job_id=' + encodeURIComponent(jobId) : '';\nconst html = `<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Resume Complete</title><style>body{margin:0;padding:24px;background:#f4f7fb;font-family:Lato,Arial,sans-serif;color:#1f2937}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #d8e1ec;border-radius:20px;box-shadow:0 18px 40px rgba(15,23,42,.08);padding:28px}h1{margin:0 0 8px;font-size:28px}.pill{display:inline-flex;align-items:center;padding:6px 12px;border-radius:999px;font-weight:700;margin:8px 0 16px}.pill-ok{background:#d1fae5;color:#065f46}.pill-warn{background:#fef3c7;color:#92400e}.warn{background:#fef3c7;border:1px solid #f59e0b;border-radius:12px;padding:12px 16px;color:#92400e;margin:16px 0}.actions{margin-top:24px;display:flex;gap:12px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:700;color:#fff;font-size:15px}</style></head><body><div class='panel'><h1>Resume ${isPaused ? 'Paused Again' : 'Completed'}</h1><span class='pill ${isPaused ? 'pill-warn' : 'pill-ok'}'>${isPaused ? 'Paused — still rate limited' : 'All done'}</span>${isPaused ? `<div class='warn'>Gmail is still rate limiting. ${escapeHtml(String(completeResult.sent_count ?? 0))} additional email(s) sent this run. Wait a few minutes then try resuming again.</div>` : `<p>${escapeHtml(String(completeResult.sent_count ?? 0))} additional email(s) sent. Job is now complete.</p>`}<div class='actions'>${reportUrl ? `<a class='btn' style='background:linear-gradient(135deg,#1e40af,#1d4ed8)' href='${escapeHtml(reportUrl)}'>View Report</a>` : ''}${resumeUrl ? `<a class='btn' style='background:linear-gradient(135deg,#b45309,#92400e)' href='${escapeHtml(resumeUrl)}'>Try Resume Again</a>` : ''}<a class='btn' style='background:linear-gradient(135deg,#64748b,#475569)' href='${escapeHtml(returnUrl)}'>Back to Mailout App</a></div></div></body></html>`;\nreturn [{ json: { html } }];"
+        },
+        "id": "mlr000000-0000-0000-0000-000000000016",
+        "name": "Build Resume Result HTML",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2440,
+          560
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "={{ $json.html }}",
+          "options": {
+            "responseCode": 200,
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                }
+              ]
+            }
+          }
+        },
+        "id": "mlr000000-0000-0000-0000-000000000017",
+        "name": "Respond Resume Result",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          2660,
+          560
+        ]
+      }
+    ],
+    "connections": {
+      "Resume Webhook": {
+        "main": [
+          [
+            {
+              "node": "Load Job",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load Job": {
+        "main": [
+          [
+            {
+              "node": "Load Sent Recipients",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load Sent Recipients": {
+        "main": [
+          [
+            {
+              "node": "Build Resume Page",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Resume Page": {
+        "main": [
+          [
+            {
+              "node": "Respond Resume Page",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Resume POST Webhook": {
+        "main": [
+          [
+            {
+              "node": "Load Resume Job",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load Resume Job": {
+        "main": [
+          [
+            {
+              "node": "Load Already Sent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load Already Sent": {
+        "main": [
+          [
+            {
+              "node": "Build Resume Chunks",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Resume Chunks": {
+        "main": [
+          [
+            {
+              "node": "Apply Resume Delay",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Apply Resume Delay": {
+        "main": [
+          [
+            {
+              "node": "Send Resume Email",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send Resume Email": {
+        "main": [
+          [
+            {
+              "node": "Build Resume Log SQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Resume Log SQL": {
+        "main": [
+          [
+            {
+              "node": "Log Resume Recipient",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Log Resume Recipient": {
+        "main": [
+          [
+            {
+              "node": "Build Resume Complete SQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Resume Complete SQL": {
+        "main": [
+          [
+            {
+              "node": "Complete Resume Job",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Complete Resume Job": {
+        "main": [
+          [
+            {
+              "node": "Build Resume Result HTML",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Resume Result HTML": {
+        "main": [
+          [
+            {
+              "node": "Respond Resume Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Steve Short",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-02T14:21:50.471Z",
+        "id": 577,
+        "workflowId": "ne8tLFtmlmqVjvn4",
+        "versionId": "94f4e93d-7dbe-4b69-823d-bcde04bcad35",
+        "event": "activated",
+        "userId": "1aa25644-d384-4810-beaa-f58314d3e70c"
+      }
+    ]
+  }
+}

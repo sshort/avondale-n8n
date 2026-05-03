@@ -1,6 +1,11 @@
 {
+  "updatedAt": "2026-05-02T14:18:37.269Z",
+  "createdAt": "2026-05-01T09:00:03.338Z",
+  "id": "r9IpU77vlW2Z57Xj",
   "name": "Send Member List Email",
+  "description": "",
   "active": true,
+  "isArchived": false,
   "nodes": [
     {
       "parameters": {},
@@ -208,7 +213,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const input = $('Resolve Send Request').first()?.json ?? {};\nconst context = $('Load Send Context').first()?.json ?? {};\nconst parseMaybe = (value, fallback) => {\n  if (value === null || value === undefined || value === '') return fallback;\n  if (typeof value === 'string') {\n    try { return JSON.parse(value); } catch { return fallback; }\n  }\n  return value;\n};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst asBool = (value) => value === true || ['1', 'true', 't', 'yes', 'y'].includes(clean(value).toLowerCase());\nconst privacyConsentsUrl = 'https://clubspark.lta.org.uk/AvondaleTennisClub/EditConsents';\nconst consentFooterHtml = '<p style=\"margin:16px 0 0;font-size:12px;line-height:1.5;color:#64748b;\">You can review or update your Avondale privacy and email consent settings here: <a href=\"https://clubspark.lta.org.uk/AvondaleTennisClub/EditConsents\">Privacy and consents</a>.</p>';\nconst consentFooterText = 'Privacy and consents: https://clubspark.lta.org.uk/AvondaleTennisClub/EditConsents';\nconst rawRecipients = Array.isArray(parseMaybe(context.recipients, [])) ? parseMaybe(context.recipients, []) : [];\nconst unique = (values) => [...new Set(values.map((value) => clean(value)).filter(Boolean))];\nconst joinNatural = (values) => {\n  const list = unique(values);\n  if (!list.length) return '';\n  if (list.length === 1) return list[0];\n  if (list.length === 2) return list[0] + ' and ' + list[1];\n  return list.slice(0, -1).join(', ') + ', and ' + list[list.length - 1];\n};\nconst splitName = (value) => {\n  const parts = clean(value).split(/\\s+/).filter(Boolean);\n  return {\n    first_name: parts[0] || '',\n    last_name: parts.length > 1 ? parts.slice(1).join(' ') : ''\n  };\n};\nconst sourcePriority = {\n  vw_junior_main_contacts: 0,\n  raw_members_main_contacts: 1,\n  family_active_adult_address: 2,\n  exact_name_email: 3,\n  exact_name: 4,\n  email: 5,\n  current_contact: 6,\n  raw_member_email: 7,\n  missing: 8,\n};\nconst recipientGroups = new Map();\nfor (const row of rawRecipients) {\n  const email = clean(row.recipient_email).toLowerCase();\n  if (!email) continue;\n  if (!recipientGroups.has(email)) recipientGroups.set(email, []);\n  recipientGroups.get(email).push({ ...row, recipient_email: clean(row.recipient_email) });\n}\nconst recipients = [...recipientGroups.values()].map((rows) => {\n  const sortedRows = [...rows].sort((left, right) => {\n    const priorityLeft = sourcePriority[clean(left.source)] ?? sourcePriority[clean(left.recipient_source)] ?? 99;\n    const priorityRight = sourcePriority[clean(right.source)] ?? sourcePriority[clean(right.recipient_source)] ?? 99;\n    if (priorityLeft !== priorityRight) return priorityLeft - priorityRight;\n    return clean(left.member_name).localeCompare(clean(right.member_name)) || clean(left.membership).localeCompare(clean(right.membership));\n  });\n  const primary = sortedRows[0] ?? {};\n  const memberNames = unique(sortedRows.map((row) => row.member_name));\n  const firstNames = unique(sortedRows.map((row) => row.first_name));\n  const lastNames = unique(sortedRows.map((row) => row.last_name));\n  const recipientName = clean(primary.recipient_name) || memberNames[0] || clean(primary.recipient_email);\n  const recipientParts = splitName(recipientName);\n  const recipientKey = clean(primary.recipient_email).toLowerCase();\n  const consentAllowed = asBool(primary.email_consent_allowed);\n  const receiptOfEmails = clean(primary.receipt_of_emails) || 'Not recorded';\n  const consentSources = unique(sortedRows\n    .flatMap((row) => clean(row.consent_sources).split(','))\n    .map((value) => clean(value))\n    .filter(Boolean));\n  const consentSourceLabel = consentSources.length ? consentSources.join(', ') : 'No matching consent row';\n  const consentReason = clean(primary.email_consent_reason) || (consentAllowed ? '' : 'Receipt of Emails is not set to Yes');\n  const excludeReason = consentAllowed ? '' : consentReason;\n  return {\n    recipient_key: recipientKey,\n    recipient_email: clean(primary.recipient_email),\n    recipient_name: recipientName,\n    recipient_first_name: recipientParts.first_name,\n    recipient_last_name: recipientParts.last_name,\n    target_member_count: memberNames.length,\n    target_member_names: joinNatural(memberNames),\n    target_first_names: joinNatural(firstNames),\n    target_last_names: lastNames.length === 1 ? lastNames[0] : joinNatural(lastNames),\n    memberships: unique(sortedRows.map((row) => row.membership)),\n    categories: unique(sortedRows.map((row) => row.category)),\n    source: clean(primary.source) || clean(primary.recipient_source),\n    email_consent_allowed: consentAllowed,\n    receipt_of_emails: receiptOfEmails,\n    email_consent_reason: consentReason,\n    consent_sources: consentSourceLabel,\n    force_excluded: !consentAllowed,\n    included: consentAllowed && !excludeReason,\n    exclude_reason: excludeReason,\n  };\n}).sort((left, right) => left.recipient_name.localeCompare(right.recipient_name) || left.recipient_email.localeCompare(right.recipient_email));\nconst selectedRecipientKeys = new Set((Array.isArray(input.included_recipient_keys) ? input.included_recipient_keys : [])\n  .map((value) => clean(value).toLowerCase())\n  .filter(Boolean));\nconst selectionSubmitted = Boolean(input.recipient_selection_submitted);\nconst includedRecipients = recipients.filter((recipient) => {\n  if (recipient.email_consent_allowed !== true) return false;\n  return selectionSubmitted\n    ? selectedRecipientKeys.has(recipient.recipient_key)\n    : recipient.included !== false;\n});\nif (!includedRecipients.length) {\n  throw new Error('No included recipients matched the resolved list.');\n}\nconst includedTargetMemberCount = includedRecipients.reduce((total, recipient) => total + Number(recipient.target_member_count || 0), 0);\nconst noConsentRecipientCount = recipients.filter((recipient) => recipient.email_consent_allowed !== true).length;\nconst mailoutStartedAt = new Date().toISOString();\nconst sendDelaySeconds = Math.max(0, Math.min(300, Number(input.send_delay_seconds ?? 5) || 0));\nconst sendDelayMs = Math.round(sendDelaySeconds * 1000);\nconst buildTokenMap = (recipient) => ({\n  '{{$json.list_name}}': input.list_label ?? '',\n  '{{$json.list_label}}': input.list_label ?? '',\n  '{{$json.list_key}}': input.list_key ?? '',\n  '{{$json.recipient_count}}': String(includedRecipients.length),\n  '{{$json.current_season}}': clean(context.current_season),\n  '{{$json.previous_season}}': clean(context.previous_season),\n  '{{$json.first_name}}': recipient?.target_first_names ?? '',\n  '{{$json.last_name}}': recipient?.target_last_names ?? '',\n  '{{$json.member_name}}': recipient?.target_member_names ?? '',\n  '{{$json.member_names}}': recipient?.target_member_names ?? '',\n  '{{$json.target_member_name}}': recipient?.target_member_names ?? '',\n  '{{$json.target_member_names}}': recipient?.target_member_names ?? '',\n  '{{$json.target_first_names}}': recipient?.target_first_names ?? '',\n  '{{$json.target_last_names}}': recipient?.target_last_names ?? '',\n  '{{$json.member_first_names}}': recipient?.target_first_names ?? '',\n  '{{$json.member_last_names}}': recipient?.target_last_names ?? '',\n  '{{$json.target_member_count}}': String(recipient?.target_member_count ?? 0),\n  '{{$json.member_count}}': String(recipient?.target_member_count ?? 0),\n  '{{$json.recipient_name}}': recipient?.recipient_name ?? '',\n  '{{$json.recipient_first_name}}': recipient?.recipient_first_name ?? '',\n  '{{$json.recipient_last_name}}': recipient?.recipient_last_name ?? '',\n  '{{list_name}}': input.list_label ?? '',\n  '{{list_label}}': input.list_label ?? '',\n  '{{list_key}}': input.list_key ?? '',\n  '{{recipient_count}}': String(includedRecipients.length),\n  '{{current_season}}': clean(context.current_season),\n  '{{previous_season}}': clean(context.previous_season),\n  '{{first_name}}': recipient?.target_first_names ?? '',\n  '{{last_name}}': recipient?.target_last_names ?? '',\n  '{{member_name}}': recipient?.target_member_names ?? '',\n  '{{member_names}}': recipient?.target_member_names ?? '',\n  '{{target_member_name}}': recipient?.target_member_names ?? '',\n  '{{target_member_names}}': recipient?.target_member_names ?? '',\n  '{{target_first_names}}': recipient?.target_first_names ?? '',\n  '{{target_last_names}}': recipient?.target_last_names ?? '',\n  '{{member_first_names}}': recipient?.target_first_names ?? '',\n  '{{member_last_names}}': recipient?.target_last_names ?? '',\n  '{{target_member_count}}': String(recipient?.target_member_count ?? 0),\n  '{{member_count}}': String(recipient?.target_member_count ?? 0),\n  '{{recipient_name}}': recipient?.recipient_name ?? '',\n  '{{recipient_first_name}}': recipient?.recipient_first_name ?? '',\n  '{{recipient_last_name}}': recipient?.recipient_last_name ?? '',\n});\nconst applyTokens = (value, tokenMap) => {\n  let rendered = String(value ?? '');\n  for (const [token, replacement] of Object.entries(tokenMap)) {\n    rendered = rendered.split(token).join(String(replacement));\n  }\n  return rendered.trim();\n};\nconst renderForRecipient = (value, recipient) => applyTokens(value, buildTokenMap(recipient));\nconst payloads = includedRecipients.map((recipient, index) => {\n  const renderedSubject = renderForRecipient(input.rendered_subject ?? '', recipient);\n  const renderedBody = renderForRecipient(input.rendered_message ?? '', recipient);\n  const renderedSignature = renderForRecipient(input.rendered_signature ?? '', recipient);\n  const combinedMessage = input.email_type === 'html'\n    ? [String(renderedBody ?? ''), String(renderedSignature ?? ''), consentFooterHtml].filter((value) => clean(value)).join('')\n    : [clean(renderedBody), clean(renderedSignature), consentFooterText].filter(Boolean).join('\\\\n\\\\n');\n  return {\n    json: {\n      list_key: input.list_key,\n      list_label: input.list_label,\n      template_key: input.template_key,\n      delivery_mode: input.delivery_mode,\n      sender_name: input.sender_name,\n      reply_to: input.reply_to,\n      return_url: input.return_url,\n      rendered_subject: renderedSubject,\n      rendered_message: combinedMessage,\n      email_type: input.email_type,\n      privacy_consents_url: privacyConsentsUrl,\n      send_delay_seconds: sendDelaySeconds,\n      send_delay_ms: index === 0 ? 0 : sendDelayMs,\n      mailout_started_at: mailoutStartedAt,\n      intended_recipient_count: includedRecipients.length,\n      target_member_count: includedTargetMemberCount,\n      included_recipient_count: includedRecipients.length,\n      excluded_recipient_count: Math.max(recipients.length - includedRecipients.length, 0),\n      no_consent_recipient_count: noConsentRecipientCount,\n      actual_recipient_count: 1,\n      actual_to: clean(recipient.recipient_email),\n      recipient_name: recipient.recipient_name,\n      recipient_email: recipient.recipient_email,\n      target_member_names: recipient.target_member_names,\n      email_consent_allowed: recipient.email_consent_allowed,\n      receipt_of_emails: recipient.receipt_of_emails,\n      email_consent_reason: recipient.email_consent_reason,\n      consent_sources: recipient.consent_sources,\n      recipient_sample: includedRecipients.slice(0, 8),\n      send_index: index + 1,\n      send_count: includedRecipients.length,\n      current_season: clean(context.current_season),\n      previous_season: clean(context.previous_season),\n      test_recipient: input.test_recipient,\n      sample_context: recipient.recipient_name + ' -> ' + recipient.target_member_names\n    }\n  };\n});\nif (input.delivery_mode === 'production') return payloads;\nif (!payloads.length) return [];\nreturn [{\n  json: {\n    ...payloads[0].json,\n    actual_to: input.test_recipient,\n    sample_context: payloads[0].json.sample_context,\n    send_count: 1,\n    send_index: 1\n  }\n}];\n"
+        "jsCode": "const input = $('Resolve Send Request').first()?.json ?? {};\nconst context = $('Load Send Context').first()?.json ?? {};\nconst jobRow = $('Create Mailout Job').first()?.json ?? {};\nconst jobId = (jobRow.job_id || '');\nconst pixelPath = '3e9f7b1a-c2d4-4e5f-8a6b-0d1c2e3f4a5b.gif';\nconst parseMaybe = (value, fallback) => {\n  if (value === null || value === undefined || value === '') return fallback;\n  if (typeof value === 'string') {\n    try { return JSON.parse(value); } catch { return fallback; }\n  }\n  return value;\n};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst asBool = (value) => value === true || ['1', 'true', 't', 'yes', 'y'].includes(clean(value).toLowerCase());\nconst randomToken = () => {\n  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();\n  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {\n    const v = Math.floor(Math.random() * 16);\n    return (c === 'x' ? v : ((v & 0x3) | 0x8)).toString(16);\n  });\n};\nconst privacyConsentsUrl = 'https://clubspark.lta.org.uk/AvondaleTennisClub/EditConsents';\nconst consentFooterHtml = '<p style=\"margin:16px 0 0;font-size:12px;line-height:1.5;color:#64748b;\">You can review or update your Avondale privacy and email consent settings here: <a href=\"https://clubspark.lta.org.uk/AvondaleTennisClub/EditConsents\">Privacy and consents</a>.</p>';\nconst consentFooterText = 'Privacy and consents: https://clubspark.lta.org.uk/AvondaleTennisClub/EditConsents';\nconst rawRecipients = Array.isArray(parseMaybe(context.recipients, [])) ? parseMaybe(context.recipients, []) : [];\nconst unique = (values) => [...new Set(values.map((value) => clean(value)).filter(Boolean))];\nconst joinNatural = (values) => {\n  const list = unique(values);\n  if (!list.length) return '';\n  if (list.length === 1) return list[0];\n  if (list.length === 2) return list[0] + ' and ' + list[1];\n  return list.slice(0, -1).join(', ') + ', and ' + list[list.length - 1];\n};\nconst splitName = (value) => {\n  const parts = clean(value).split(/\\s+/).filter(Boolean);\n  return {\n    first_name: parts[0] || '',\n    last_name: parts.length > 1 ? parts.slice(1).join(' ') : ''\n  };\n};\nconst sourcePriority = {\n  vw_junior_main_contacts: 0,\n  raw_members_main_contacts: 1,\n  family_active_adult_address: 2,\n  exact_name_email: 3,\n  exact_name: 4,\n  email: 5,\n  current_contact: 6,\n  raw_member_email: 7,\n  missing: 8,\n};\nconst recipientGroups = new Map();\nfor (const row of rawRecipients) {\n  const email = clean(row.recipient_email).toLowerCase();\n  if (!email) continue;\n  if (!recipientGroups.has(email)) recipientGroups.set(email, []);\n  recipientGroups.get(email).push({ ...row, recipient_email: clean(row.recipient_email) });\n}\nconst recipients = [...recipientGroups.values()].map((rows) => {\n  const sortedRows = [...rows].sort((left, right) => {\n    const priorityLeft = sourcePriority[clean(left.source)] ?? sourcePriority[clean(left.recipient_source)] ?? 99;\n    const priorityRight = sourcePriority[clean(right.source)] ?? sourcePriority[clean(right.recipient_source)] ?? 99;\n    if (priorityLeft !== priorityRight) return priorityLeft - priorityRight;\n    return clean(left.member_name).localeCompare(clean(right.member_name)) || clean(left.membership).localeCompare(clean(right.membership));\n  });\n  const primary = sortedRows[0] ?? {};\n  const memberNames = unique(sortedRows.map((row) => row.member_name));\n  const firstNames = unique(sortedRows.map((row) => row.first_name));\n  const lastNames = unique(sortedRows.map((row) => row.last_name));\n  const recipientName = clean(primary.recipient_name) || memberNames[0] || clean(primary.recipient_email);\n  const recipientParts = splitName(recipientName);\n  const recipientKey = clean(primary.recipient_email).toLowerCase();\n  const consentAllowed = asBool(primary.email_consent_allowed);\n  const receiptOfEmails = clean(primary.receipt_of_emails) || 'Not recorded';\n  const consentSources = unique(sortedRows\n    .flatMap((row) => clean(row.consent_sources).split(','))\n    .map((value) => clean(value))\n    .filter(Boolean));\n  const consentSourceLabel = consentSources.length ? consentSources.join(', ') : 'No matching consent row';\n  const consentReason = clean(primary.email_consent_reason) || (consentAllowed ? '' : 'Receipt of Emails is not set to Yes');\n  const excludeReason = consentAllowed ? '' : consentReason;\n  return {\n    recipient_key: recipientKey,\n    recipient_email: clean(primary.recipient_email),\n    recipient_name: recipientName,\n    recipient_first_name: recipientParts.first_name,\n    recipient_last_name: recipientParts.last_name,\n    target_member_count: memberNames.length,\n    target_member_names: joinNatural(memberNames),\n    target_first_names: joinNatural(firstNames),\n    target_last_names: lastNames.length === 1 ? lastNames[0] : joinNatural(lastNames),\n    memberships: unique(sortedRows.map((row) => row.membership)),\n    categories: unique(sortedRows.map((row) => row.category)),\n    source: clean(primary.source) || clean(primary.recipient_source),\n    email_consent_allowed: consentAllowed,\n    receipt_of_emails: receiptOfEmails,\n    email_consent_reason: consentReason,\n    consent_sources: consentSourceLabel,\n    force_excluded: !consentAllowed,\n    included: consentAllowed && !excludeReason,\n    exclude_reason: excludeReason,\n  };\n}).sort((left, right) => left.recipient_name.localeCompare(right.recipient_name) || left.recipient_email.localeCompare(right.recipient_email));\nconst selectedRecipientKeys = new Set((Array.isArray(input.included_recipient_keys) ? input.included_recipient_keys : [])\n  .map((value) => clean(value).toLowerCase())\n  .filter(Boolean));\nconst selectionSubmitted = Boolean(input.recipient_selection_submitted);\nconst includedRecipients = recipients.filter((recipient) => {\n  if (recipient.email_consent_allowed !== true) return false;\n  return selectionSubmitted\n    ? selectedRecipientKeys.has(recipient.recipient_key)\n    : recipient.included !== false;\n});\nif (!includedRecipients.length) {\n  throw new Error('No included recipients matched the resolved list.');\n}\nconst includedTargetMemberCount = includedRecipients.reduce((total, recipient) => total + Number(recipient.target_member_count || 0), 0);\nconst noConsentRecipientCount = recipients.filter((recipient) => recipient.email_consent_allowed !== true).length;\nconst mailoutStartedAt = new Date().toISOString();\nconst sendDelaySeconds = Math.max(0, Math.min(300, Number(input.send_delay_seconds ?? 5) || 0));\nconst sendDelayMs = Math.round(sendDelaySeconds * 1000);\nconst buildTokenMap = (recipient) => ({\n  '{{$json.list_name}}': input.list_label ?? '',\n  '{{$json.list_label}}': input.list_label ?? '',\n  '{{$json.list_key}}': input.list_key ?? '',\n  '{{$json.recipient_count}}': String(includedRecipients.length),\n  '{{$json.current_season}}': clean(context.current_season),\n  '{{$json.previous_season}}': clean(context.previous_season),\n  '{{$json.first_name}}': recipient?.target_first_names ?? '',\n  '{{$json.last_name}}': recipient?.target_last_names ?? '',\n  '{{$json.member_name}}': recipient?.target_member_names ?? '',\n  '{{$json.member_names}}': recipient?.target_member_names ?? '',\n  '{{$json.target_member_name}}': recipient?.target_member_names ?? '',\n  '{{$json.target_member_names}}': recipient?.target_member_names ?? '',\n  '{{$json.target_first_names}}': recipient?.target_first_names ?? '',\n  '{{$json.target_last_names}}': recipient?.target_last_names ?? '',\n  '{{$json.member_first_names}}': recipient?.target_first_names ?? '',\n  '{{$json.member_last_names}}': recipient?.target_last_names ?? '',\n  '{{$json.target_member_count}}': String(recipient?.target_member_count ?? 0),\n  '{{$json.member_count}}': String(recipient?.target_member_count ?? 0),\n  '{{$json.recipient_name}}': recipient?.recipient_name ?? '',\n  '{{$json.recipient_first_name}}': recipient?.recipient_first_name ?? '',\n  '{{$json.recipient_last_name}}': recipient?.recipient_last_name ?? '',\n  '{{list_name}}': input.list_label ?? '',\n  '{{list_label}}': input.list_label ?? '',\n  '{{list_key}}': input.list_key ?? '',\n  '{{recipient_count}}': String(includedRecipients.length),\n  '{{current_season}}': clean(context.current_season),\n  '{{previous_season}}': clean(context.previous_season),\n  '{{first_name}}': recipient?.target_first_names ?? '',\n  '{{last_name}}': recipient?.target_last_names ?? '',\n  '{{member_name}}': recipient?.target_member_names ?? '',\n  '{{member_names}}': recipient?.target_member_names ?? '',\n  '{{target_member_name}}': recipient?.target_member_names ?? '',\n  '{{target_member_names}}': recipient?.target_member_names ?? '',\n  '{{target_first_names}}': recipient?.target_first_names ?? '',\n  '{{target_last_names}}': recipient?.target_last_names ?? '',\n  '{{member_first_names}}': recipient?.target_first_names ?? '',\n  '{{member_last_names}}': recipient?.target_last_names ?? '',\n  '{{target_member_count}}': String(recipient?.target_member_count ?? 0),\n  '{{member_count}}': String(recipient?.target_member_count ?? 0),\n  '{{recipient_name}}': recipient?.recipient_name ?? '',\n  '{{recipient_first_name}}': recipient?.recipient_first_name ?? '',\n  '{{recipient_last_name}}': recipient?.recipient_last_name ?? '',\n});\nconst applyTokens = (value, tokenMap) => {\n  let rendered = String(value ?? '');\n  for (const [token, replacement] of Object.entries(tokenMap)) {\n    rendered = rendered.split(token).join(String(replacement));\n  }\n  return rendered.trim();\n};\nconst renderForRecipient = (value, recipient) => applyTokens(value, buildTokenMap(recipient));\nconst payloads = includedRecipients.map((recipient, index) => {\n  const renderedSubject = renderForRecipient(input.rendered_subject ?? '', recipient);\n  const renderedBody = renderForRecipient(input.rendered_message ?? '', recipient);\n  const renderedSignature = renderForRecipient(input.rendered_signature ?? '', recipient);\n  const trackingToken = input.email_type === 'html' ? randomToken() : '';\n  const trackingUrl = trackingToken ? (input.n8n_base_url || 'http://n8n:5678').replace(/\\/$/, '') + '/webhook/' + pixelPath + '?v=' + encodeURIComponent(trackingToken) : '';\n  const trackingPixelHtml = trackingUrl ? '<img src=\"' + trackingUrl.replace(/&/g, '&amp;').replace(/\"/g, '&quot;') + '\" width=\"1\" height=\"1\" alt=\"\" style=\"display:none;width:1px;height:1px;border:0;opacity:0\" />' : '';\n  const combinedMessageWithPixel = input.email_type === 'html' && trackingPixelHtml\n    ? [String(renderedBody ?? ''), String(renderedSignature ?? ''), consentFooterHtml].filter((v) => clean(v)).join('') + trackingPixelHtml\n    : [clean(renderedBody), clean(renderedSignature), consentFooterText].filter(Boolean).join('\\n\\n');\n  return {\n    json: {\n      list_key: input.list_key,\n      list_label: input.list_label,\n      template_key: input.template_key,\n      delivery_mode: input.delivery_mode,\n      sender_name: input.sender_name,\n      reply_to: input.reply_to,\n      return_url: input.return_url,\n      n8n_base_url: input.n8n_base_url,\n      rendered_subject: renderedSubject,\n      rendered_message: combinedMessageWithPixel,\n      email_type: input.email_type,\n      privacy_consents_url: privacyConsentsUrl,\n      send_delay_seconds: sendDelaySeconds,\n      send_delay_ms: index === 0 ? 0 : sendDelayMs,\n      mailout_started_at: mailoutStartedAt,\n      intended_recipient_count: includedRecipients.length,\n      target_member_count: includedTargetMemberCount,\n      included_recipient_count: includedRecipients.length,\n      excluded_recipient_count: Math.max(recipients.length - includedRecipients.length, 0),\n      no_consent_recipient_count: noConsentRecipientCount,\n      actual_recipient_count: 1,\n      actual_to: clean(recipient.recipient_email),\n      recipient_name: recipient.recipient_name,\n      recipient_email: recipient.recipient_email,\n      target_member_names: recipient.target_member_names,\n      email_consent_allowed: recipient.email_consent_allowed,\n      receipt_of_emails: recipient.receipt_of_emails,\n      email_consent_reason: recipient.email_consent_reason,\n      consent_sources: recipient.consent_sources,\n      recipient_sample: includedRecipients.slice(0, 8),\n      send_index: index + 1,\n      send_count: includedRecipients.length,\n      current_season: clean(context.current_season),\n      previous_season: clean(context.previous_season),\n      test_recipient: input.test_recipient,\n      sample_context: recipient.recipient_name + ' -> ' + recipient.target_member_names,\n      job_id: jobId,\n      open_tracking_token: trackingToken,\n      open_tracking_enabled: Boolean(trackingToken),\n    }\n  };\n});\nif (input.delivery_mode === 'production') return payloads;\nif (!payloads.length) return [];\nreturn [{\n  json: {\n    ...payloads[0].json,\n    actual_to: input.test_recipient,\n    sample_context: payloads[0].json.sample_context,\n    send_count: 1,\n    send_index: 1\n  }\n}];"
       },
       "id": "mls000000-0000-0000-0000-000000000011",
       "name": "Build Chunk Payloads",
@@ -235,13 +240,14 @@
       "position": [
         2520,
         420
-      ]
+      ],
+      "continueOnFail": true
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const payloads = $('Build Chunk Payloads').all().map((item) => item.json ?? {});\nconst first = payloads[0] ?? {};\nconst sendResponses = $input.all().map((item) => item.json ?? {});\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#39;');\nconst modeLabel = first.delivery_mode === 'production' ? 'Production' : 'Test';\nconst emailCount = sendResponses.length || payloads.length;\nconst gmailIds = sendResponses.map((item) => item.gmail_message_id).filter(Boolean).join(', ');\nconst parseDate = (value) => {\n  const parsed = new Date(value);\n  return Number.isNaN(parsed.getTime()) ? null : parsed;\n};\nconst startedAt = parseDate(first.mailout_started_at) || new Date();\nconst finishedAt = new Date();\nconst durationSeconds = Math.max(0, (finishedAt.getTime() - startedAt.getTime()) / 1000);\nconst sentRatePerMinute = durationSeconds > 0 ? emailCount / (durationSeconds / 60) : emailCount;\nconst formatDateTime = (date) => date.toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'medium', timeZone: 'Europe/London' });\nconst formatDuration = (seconds) => {\n  if (!Number.isFinite(seconds) || seconds <= 0) return '0 seconds';\n  const wholeSeconds = Math.round(seconds);\n  const minutes = Math.floor(wholeSeconds / 60);\n  const remainder = wholeSeconds % 60;\n  return minutes > 0 ? minutes + ' min ' + remainder + ' sec' : remainder + ' sec';\n};\nconst formatRate = (rate) => Number.isFinite(rate) ? rate.toFixed(rate >= 10 ? 1 : 2) + ' emails/min' : 'n/a';\nconst summaryRows = [\n  ['Recipient list', first.list_label || first.list_key || ''],\n  ['Template', first.template_key || ''],\n  ['Mode', modeLabel],\n  ['Target members', first.target_member_count || 0],\n  ['Included recipients', first.included_recipient_count ?? first.intended_recipient_count ?? payloads.length],\n  ['Excluded recipients', first.excluded_recipient_count ?? 0],\n  ['No consent', first.no_consent_recipient_count ?? 0],\n  ['Emails sent', emailCount],\n  ['Start time', formatDateTime(startedAt)],\n  ['End time', formatDateTime(finishedAt)],\n  ['Duration', formatDuration(durationSeconds)],\n  ['Rate', formatRate(sentRatePerMinute)],\n  ['Delay between messages', String(first.send_delay_seconds ?? 0) + ' seconds'],\n  ['Subject', first.rendered_subject || ''],\n];\nconst summaryHtml = summaryRows\n  .map(([label, value]) => '<dt>' + escapeHtml(label) + '</dt><dd>' + escapeHtml(String(value ?? '')) + '</dd>')\n  .join('');\nconst html = '<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Mailout sent</title><style>body{margin:0;padding:24px;background:#f4f7fb;font-family:Lato,Arial,sans-serif;color:#1f2937}.panel{max-width:920px;margin:0 auto;background:#fff;border:1px solid #d8e1ec;border-radius:20px;box-shadow:0 18px 40px rgba(15,23,42,.08);padding:28px}.pill{display:inline-flex;align-items:center;padding:8px 12px;border-radius:999px;background:#edfdf9;color:#115e59;font-weight:700;margin:12px 0 18px}dl{display:grid;grid-template-columns:minmax(160px,max-content) 1fr;gap:10px 16px;margin:0}dt{font-weight:700;color:#334155}dd{margin:0;word-break:break-word}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#0f766e 0%,#115e59 100%);color:#fff}.actions{margin-top:22px}.ids{margin-top:18px;color:#64748b;font-size:13px;line-height:1.5}@media(max-width:640px){dl{grid-template-columns:1fr}.panel{padding:18px}}</style></head><body><div class=\"panel\"><h1 style=\"margin:0 0 10px;font-size:30px;\">Mailout Sent</h1><p>The member-list mailout completed through the shared Gmail transport.</p><div class=\"pill\">' + escapeHtml(modeLabel) + ' mode</div><h2 style=\"margin:0 0 14px;font-size:20px;\">Summary report</h2><dl>' + summaryHtml + '</dl>' + (first.sample_context ? '<p class=\"ids\"><strong>Sample recipient context:</strong> ' + escapeHtml(first.sample_context) + '</p>' : '') + (gmailIds ? '<p class=\"ids\"><strong>Gmail message ids:</strong> ' + escapeHtml(gmailIds) + '</p>' : '') + '<div class=\"actions\"><a class=\"button\" href=\"' + escapeHtml(first.return_url || '#') + '\">Back to Mailout App</a></div></div></body></html>';\nreturn [{ json: { html } }];"
+        "jsCode": "const payloads = $('Build Chunk Payloads').all().map((item) => item.json ?? {});\nconst first = payloads[0] ?? {};\nconst loggedRecipients = (() => { try { return $('Log Mailout Recipient').all().map(item => item.json ?? {}); } catch { return []; } })();\nconst sendLogs = (() => { try { return $('Build Recipient Log SQL').all().map(item => item.json ?? {}); } catch { return []; } })();\nconst sendResponses = loggedRecipients;\nconst results = sendResponses;\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#39;');\nconst modeLabel = first.delivery_mode === 'production' ? 'Production' : 'Test';\nconst completeResult = (() => { try { return $('Build Complete Job SQL').first()?.json ?? {}; } catch { return {}; } })();\nconst isPaused = completeResult.any_failed || completeResult.status === 'Paused';\nconst n8nBase = (first.n8n_base_url || '').replace(/\\/$/, '');\nconst resumeUrl = completeResult.job_id && n8nBase ? n8nBase + '/webhook/member-list-mailout-resume?job_id=' + encodeURIComponent(completeResult.job_id) : '';\nconst emailCount = sendResponses.length || payloads.length;\nconst gmailIds = sendLogs.map((item) => item.gmail_message_id).filter(Boolean).join(', ');\nconst parseDate = (value) => {\n  const parsed = new Date(value);\n  return Number.isNaN(parsed.getTime()) ? null : parsed;\n};\nconst startedAt = parseDate(first.mailout_started_at) || new Date();\nconst finishedAt = new Date();\nconst durationSeconds = Math.max(0, (finishedAt.getTime() - startedAt.getTime()) / 1000);\nconst sentRatePerMinute = durationSeconds > 0 ? emailCount / (durationSeconds / 60) : emailCount;\nconst formatDateTime = (date) => date.toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'medium', timeZone: 'Europe/London' });\nconst formatDuration = (seconds) => {\n  if (!Number.isFinite(seconds) || seconds <= 0) return '0 seconds';\n  const wholeSeconds = Math.round(seconds);\n  const minutes = Math.floor(wholeSeconds / 60);\n  const remainder = wholeSeconds % 60;\n  return minutes > 0 ? minutes + ' min ' + remainder + ' sec' : remainder + ' sec';\n};\nconst formatRate = (rate) => Number.isFinite(rate) ? rate.toFixed(rate >= 10 ? 1 : 2) + ' emails/min' : 'n/a';\nconst jobId = first.job_id || '';\nconst n8nBaseUrl = (first.n8n_base_url || '').replace(/\\/$/, '');\nconst reportUrl = jobId && n8nBaseUrl ? n8nBaseUrl + '/webhook/member-list-mailout-report?job_id=' + encodeURIComponent(jobId) : '';\nconst summaryRows = [\n  ['Recipient list', first.list_label || first.list_key || ''],\n  ['Template', first.template_key || ''],\n  ['Mode', modeLabel],\n  ['Target members', first.target_member_count || 0],\n  ['Included recipients', first.included_recipient_count ?? first.intended_recipient_count ?? payloads.length],\n  ['Excluded recipients', first.excluded_recipient_count ?? 0],\n  ['No consent', first.no_consent_recipient_count ?? 0],\n  ['Emails sent', emailCount],\n  ['Start time', formatDateTime(startedAt)],\n  ['End time', formatDateTime(finishedAt)],\n  ['Duration', formatDuration(durationSeconds)],\n  ['Rate', formatRate(sentRatePerMinute)],\n  ['Delay between messages', String(first.send_delay_seconds ?? 0) + ' seconds'],\n  ['Subject', first.rendered_subject || ''],\n];\nconst summaryHtml = summaryRows\n  .map(([label, value]) => '<dt>' + escapeHtml(label) + '</dt><dd>' + escapeHtml(String(value ?? '')) + '</dd>')\n  .join('');\nconst html = '<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Mailout sent</title><style>body{margin:0;padding:24px;background:#f4f7fb;font-family:Lato,Arial,sans-serif;color:#1f2937}.panel{max-width:920px;margin:0 auto;background:#fff;border:1px solid #d8e1ec;border-radius:20px;box-shadow:0 18px 40px rgba(15,23,42,.08);padding:28px}.pill{display:inline-flex;align-items:center;padding:8px 12px;border-radius:999px;background:#edfdf9;color:#115e59;font-weight:700;margin:12px 0 18px}dl{display:grid;grid-template-columns:minmax(160px,max-content) 1fr;gap:10px 16px;margin:0}dt{font-weight:700;color:#334155}dd{margin:0;word-break:break-word}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#0f766e 0%,#115e59 100%);color:#fff;margin-right:10px}.actions{margin-top:22px}.ids{margin-top:18px;color:#64748b;font-size:13px;line-height:1.5}@media(max-width:640px){dl{grid-template-columns:1fr}.panel{padding:18px}}</style></head><body><div class=\"panel\"><h1 style=\"margin:0 0 10px;font-size:30px;\">Mailout Sent</h1><p>The member-list mailout completed through the shared Gmail transport.</p><div class=\"pill\">' + escapeHtml(modeLabel) + ' mode</div><h2 style=\"margin:0 0 14px;font-size:20px;\">Summary report</h2><dl>' + summaryHtml + '</dl>' + (first.sample_context ? '<p class=\"ids\"><strong>Sample recipient context:</strong> ' + escapeHtml(first.sample_context) + '</p>' : '') + (gmailIds ? '<p class=\"ids\"><strong>Gmail message ids:</strong> ' + escapeHtml(gmailIds) + '</p>' : '') + '<div class=\"actions\"><a class=\"button\" href=\"' + escapeHtml(first.return_url || '#') + '\">Back to Mailout App</a>' + (reportUrl ? '<a class=\"button\" href=\"' + escapeHtml(reportUrl) + '\" style=\"background:linear-gradient(135deg,#1e40af 0%,#1d4ed8 100%)\">View Report</a>' : '') + (resumeUrl && isPaused ? '<a class=\"button\" href=\"' + escapeHtml(resumeUrl) + '\" style=\"background:linear-gradient(135deg,#b45309 0%,#92400e 100%)\">Resume Send</a>' : '') + '</div></div></body></html>';\nreturn [{ json: { html } }];"
       },
       "id": "mls000000-0000-0000-0000-000000000013",
       "name": "Build Success HTML",
@@ -255,7 +261,7 @@
     {
       "parameters": {
         "respondWith": "text",
-        "responseBody": "={{ $json.html }}",
+        "responseBody": "={{ $('Build Success HTML').first().json.html }}",
         "options": {
           "responseCode": 200,
           "responseHeaders": {
@@ -283,7 +289,7 @@
         "language": "javaScript",
         "jsCode": "const delayMs = Math.max(0, Math.min(300000, Number($json.send_delay_ms || 0)));\nif (delayMs > 0) {\n  await new Promise((resolve) => setTimeout(resolve, delayMs));\n}\nreturn { json: $json };"
       },
-      "id": "mls000000-0000-0000-0000-000000000014",
+      "id": "mls000000-0000-0000-0000-000000000015",
       "name": "Apply Send Delay",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -291,6 +297,111 @@
         2120,
         420
       ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Resolve Send Request').first()?.json ?? {};\nconst context = $('Load Send Context').first()?.json ?? {};\nconst sqlLiteral = (value) => value === null || value === undefined ? 'NULL' : \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\nconst recipientCount = Number(context.recipient_count ?? 0);\nconst metadata = {\n  n8n_base_url: input.n8n_base_url,\n  return_url: input.return_url,\n  rendered_subject: input.rendered_subject,\n  rendered_message: input.rendered_message,\n  rendered_signature: input.rendered_signature,\n  included_recipient_keys: input.included_recipient_keys ?? [],\n  delivery_mode: input.delivery_mode,\n  test_recipient: input.test_recipient,\n  sender_name: input.sender_name,\n  reply_to: input.reply_to,\n  send_delay_seconds: input.send_delay_seconds,\n  email_type: input.email_type,\n};\nconst sql = `INSERT INTO public.member_list_mailout_jobs (list_key, list_label, template_key, signature_template_key, subject, sender, reply_to, delivery_mode, status, total_recipients, started_at, created_by, metadata) VALUES (${sqlLiteral(input.list_key)}, ${sqlLiteral(input.list_label)}, ${sqlLiteral(input.template_key)}, ${sqlLiteral(input.signature_template_key)}, ${sqlLiteral(input.rendered_subject)}, ${sqlLiteral(input.sender_name)}, ${sqlLiteral(input.reply_to)}, ${sqlLiteral(input.delivery_mode)}, 'Sending', ${recipientCount}, now(), 'member-list-mailout', ${sqlLiteral(JSON.stringify(metadata))}::jsonb) RETURNING id::text AS job_id`;\nreturn [{ json: { ...input, sql } }];"
+      },
+      "id": "mls000000-0000-0000-0000-000000000016",
+      "name": "Build Create Job SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2060,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "mls000000-0000-0000-0000-000000000017",
+      "name": "Create Mailout Job",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2280,
+        320
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const sendResult = $input.item?.json ?? {};\nconst chunkPayload = $('Apply Send Delay').item?.json ?? {};\nconst sqlLiteral = (value) => value === null || value === undefined ? 'NULL' : \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst jobId = clean(chunkPayload.job_id);\nconst trackingToken = clean(chunkPayload.open_tracking_token);\nconst internetMessageId = clean(sendResult.internet_message_id);\nconst gmailMessageId = clean(sendResult.gmail_message_id);\nconst actualTo = chunkPayload.delivery_mode === 'production'\n  ? clean(chunkPayload.actual_to || chunkPayload.recipient_email)\n  : clean(chunkPayload.test_recipient);\nconst recipientName = clean(chunkPayload.recipient_name);\nconst metadataObj = { list_key: chunkPayload.list_key, template_key: chunkPayload.template_key, delivery_mode: chunkPayload.delivery_mode, send_index: chunkPayload.send_index };\nconst hasError = !!(sendResult.error || sendResult.message?.toLowerCase().includes('too many') || (sendResult.ok === false));\nconst errorMsg = hasError ? clean(sendResult.error || sendResult.message || 'Send failed') : null;\nlet sql;\nif (!jobId) {\n  sql = 'SELECT NULL::text AS recipient_id';\n} else if (hasError) {\n  sql = `WITH ins AS (\n  INSERT INTO public.member_list_mailout_recipients (job_id, recipient_name, to_address, status, error_message, failed_at, metadata)\n  VALUES (${sqlLiteral(jobId)}::uuid, ${sqlLiteral(recipientName)}, ${sqlLiteral(actualTo)}, 'Failed', ${sqlLiteral(errorMsg)}, now(), ${sqlLiteral(JSON.stringify(metadataObj))}::jsonb)\n  RETURNING id::text AS recipient_id\n), upd AS (\n  UPDATE public.member_list_mailout_jobs SET failed_count = COALESCE(failed_count, 0) + 1 WHERE id = ${sqlLiteral(jobId)}::uuid\n)\nSELECT recipient_id FROM ins`;\n} else {\n  sql = `WITH ins AS (\n  INSERT INTO public.member_list_mailout_recipients (job_id, recipient_name, to_address, cc_address, bcc_address, internet_message_id, gmail_message_id, status, open_tracking_token, open_tracking_enabled, open_status, sent_at, metadata)\n  VALUES (${sqlLiteral(jobId)}::uuid, ${sqlLiteral(recipientName)}, ${sqlLiteral(actualTo)}, NULL, NULL, ${sqlLiteral(internetMessageId)}, ${sqlLiteral(gmailMessageId)}, 'Sent', ${trackingToken ? sqlLiteral(trackingToken) + '::uuid' : 'NULL'}, ${chunkPayload.open_tracking_enabled ? 'TRUE' : 'FALSE'}, ${chunkPayload.open_tracking_enabled && trackingToken ? \"'Not Opened'\" : \"'Not Tracked'\"}, now(), ${sqlLiteral(JSON.stringify(metadataObj))}::jsonb)\n  RETURNING id::text AS recipient_id\n), upd AS (\n  UPDATE public.member_list_mailout_jobs SET sent_count = sent_count + 1 WHERE id = ${sqlLiteral(jobId)}::uuid\n)\nSELECT recipient_id FROM ins`;\n}\nreturn { json: { ...chunkPayload, internet_message_id: internetMessageId, gmail_message_id: gmailMessageId, was_error: hasError, error_message: errorMsg, sql } };"
+      },
+      "id": "mls000000-0000-0000-0000-000000000018",
+      "name": "Build Recipient Log SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2760,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "mls000000-0000-0000-0000-000000000019",
+      "name": "Log Mailout Recipient",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2980,
+        420
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const results = $('Log Mailout Recipient').all().map(item => item.json ?? {});\nconst buildResults = $('Build Recipient Log SQL').all().map(item => item.json ?? {});\nconst firstChunk = $('Build Chunk Payloads').first()?.json ?? {};\nconst jobId = firstChunk.job_id || '';\nconst sqlLiteral = (value) => value === null || value === undefined ? 'NULL' : \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\nconst sentCount = results.filter(r => r.recipient_id).length;\nconst anyFailed = buildResults.some(r => r.was_error);\nconst status = anyFailed ? 'Paused' : 'Completed';\nconst excludedCount = Number(firstChunk.excluded_recipient_count ?? 0);\nconst noConsentCount = Number(firstChunk.no_consent_recipient_count ?? 0);\nconst sql = jobId\n  ? `UPDATE public.member_list_mailout_jobs SET status = '${status}', sent_count = ${sentCount}, excluded_count = ${excludedCount}, no_consent_count = ${noConsentCount}, completed_at = ${status === 'Completed' ? 'now()' : 'NULL'} WHERE id = ${sqlLiteral(jobId)}::uuid`\n  : 'SELECT 1';\nreturn [{ json: { sql, job_id: jobId, sent_count: sentCount, any_failed: anyFailed, status, excluded_count: excludedCount, no_consent_count: noConsentCount } }];"
+      },
+      "id": "mls000000-0000-0000-0000-000000000020",
+      "name": "Build Complete Job SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2760,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "mls000000-0000-0000-0000-000000000021",
+      "name": "Complete Mailout Job",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2980,
+        540
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
     }
   ],
   "connections": {
@@ -389,7 +500,7 @@
         ],
         [
           {
-            "node": "Build Chunk Payloads",
+            "node": "Build Create Job SQL",
             "type": "main",
             "index": 0
           }
@@ -422,7 +533,7 @@
       "main": [
         [
           {
-            "node": "Build Success HTML",
+            "node": "Build Recipient Log SQL",
             "type": "main",
             "index": 0
           }
@@ -433,7 +544,7 @@
       "main": [
         [
           {
-            "node": "Respond Success",
+            "node": "Build Complete Job SQL",
             "type": "main",
             "index": 0
           }
@@ -450,6 +561,72 @@
           }
         ]
       ]
+    },
+    "Build Create Job SQL": {
+      "main": [
+        [
+          {
+            "node": "Create Mailout Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Mailout Job": {
+      "main": [
+        [
+          {
+            "node": "Build Chunk Payloads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Recipient Log SQL": {
+      "main": [
+        [
+          {
+            "node": "Log Mailout Recipient",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Mailout Recipient": {
+      "main": [
+        [
+          {
+            "node": "Build Success HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Complete Job SQL": {
+      "main": [
+        [
+          {
+            "node": "Complete Mailout Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complete Mailout Job": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -458,8 +635,709 @@
     "callerPolicy": "workflowsFromSameOwner"
   },
   "staticData": {},
-  "pinData": {},
   "meta": {},
+  "pinData": {},
+  "versionId": "5e7fa02b-83e4-4224-9262-1a533485362e",
+  "activeVersionId": "5e7fa02b-83e4-4224-9262-1a533485362e",
+  "versionCounter": 50,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-01T09:00:03.338Z",
+      "createdAt": "2026-05-01T09:00:03.338Z",
+      "role": "workflow:owner",
+      "workflowId": "r9IpU77vlW2Z57Xj",
+      "projectId": "AtpW2flNrTDUqcis",
+      "project": {
+        "updatedAt": "2026-03-07T15:05:21.831Z",
+        "createdAt": "2025-04-29T13:45:55.157Z",
+        "id": "AtpW2flNrTDUqcis",
+        "name": "Steve Short <steve@shortcentral.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "1aa25644-d384-4810-beaa-f58314d3e70c",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-04-29T13:45:55.157Z",
+            "createdAt": "2025-04-29T13:45:55.157Z",
+            "userId": "1aa25644-d384-4810-beaa-f58314d3e70c",
+            "projectId": "AtpW2flNrTDUqcis",
+            "user": {
+              "updatedAt": "2026-05-03T04:03:03.831Z",
+              "createdAt": "2025-04-29T13:45:54.337Z",
+              "id": "1aa25644-d384-4810-beaa-f58314d3e70c",
+              "email": "steve@shortcentral.com",
+              "firstName": "Steve",
+              "lastName": "Short",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-04-29T13:48:39.758Z",
+                "personalization_survey_n8n_version": "1.89.2",
+                "companyType": "personal",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "6XC5aXJ8uS5DS553",
+                "userActivatedAt": 1773664748790,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1774020442311
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-05-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
   "tags": [],
-  "description": ""
+  "activeVersion": {
+    "updatedAt": "2026-05-02T14:18:37.283Z",
+    "createdAt": "2026-05-02T14:18:37.283Z",
+    "versionId": "5e7fa02b-83e4-4224-9262-1a533485362e",
+    "workflowId": "r9IpU77vlW2Z57Xj",
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "mls000000-0000-0000-0000-000000000001",
+        "name": "When clicking 'Execute workflow'",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          220,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "path": "send-member-list-email",
+          "httpMethod": "POST",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "mls000000-0000-0000-0000-000000000002",
+        "name": "Send Member List Email Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          220,
+          140
+        ],
+        "webhookId": "send-member-list-email"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT\n  MAX(CASE WHEN key = 'email_test_recipient' THEN value END) AS email_test_recipient,\n  MAX(CASE WHEN key = 'email_sender_name' THEN value END) AS email_sender_name,\n  MAX(CASE WHEN key = 'email_reply_to' THEN value END) AS email_reply_to,\n  MAX(CASE WHEN key = 'member_list_mailout_delay_seconds' THEN value END) AS member_list_mailout_delay_seconds\nFROM public.global_settings\nWHERE key IN ('email_test_recipient', 'email_sender_name', 'email_reply_to', 'member_list_mailout_delay_seconds');"
+        },
+        "id": "mls000000-0000-0000-0000-000000000003",
+        "name": "Load Global Settings",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          480,
+          220
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "PjTUDAMk0dZ7g1iO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const settings = $('Load Global Settings').first()?.json ?? {};\nconst request = $('Send Member List Email Webhook').first()?.json ?? $input.first()?.json ?? {};\nconst body = request.body ?? {};\nconst headers = request.headers ?? {};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst truthy = (value) => ['1', 'true', 'yes', 'y', 'on'].includes(clean(value).toLowerCase());\nconst clampDelaySeconds = (value, fallback = 5) => {\n  const source = value === null || value === undefined || value === '' ? fallback : value;\n  const parsed = Number(source);\n  if (!Number.isFinite(parsed)) return fallback;\n  return Math.max(0, Math.min(300, Math.round(parsed)));\n};\nconst asArray = (value) => {\n  if (Array.isArray(value)) return value;\n  if (value === null || value === undefined || value === '') return [];\n  return [value];\n};\nconst unique = (values) => [...new Set(values.map((value) => clean(value)).filter(Boolean))];\nconst deriveBaseUrl = (sourceHeaders, fallback) => {\n  const forwardedProto = clean(sourceHeaders['x-forwarded-proto']);\n  const forwardedHost = clean(sourceHeaders['x-forwarded-host']);\n  const host = forwardedHost || clean(sourceHeaders.host);\n  const forwardedPort = clean(sourceHeaders['x-forwarded-port']);\n  if (!host) return fallback;\n  const proto = forwardedProto || 'http';\n  let authority = host;\n  if (forwardedPort && !authority.includes(':')) {\n    const isDefaultPort = (proto === 'http' && forwardedPort === '80') || (proto === 'https' && forwardedPort === '443');\n    if (!isDefaultPort) authority = authority + ':' + forwardedPort;\n  }\n  return proto + '://' + authority;\n};\nconst listOptions = {\"non_renewed_members\": {\"label\": \"Members Who Have Not Renewed This Year\", \"description\": \"People who were members last season and do not currently appear in this season's paid membership package set.\"}, \"current_members\": {\"label\": \"Current Members\", \"description\": \"Current-season paid members with a resolved email address.\"}, \"contacts_without_current_membership\": {\"label\": \"Contacts Without Current Membership\", \"description\": \"Current contacts with email who do not match a current paid member.\"}};\nconst fallbackBaseUrl = 'http://n8n:5678';\nconst n8nBaseUrl = deriveBaseUrl(headers, fallbackBaseUrl);\nconst listKey = Object.prototype.hasOwnProperty.call(listOptions, clean(body.list_key)) ? clean(body.list_key) : '';\nconst option = listOptions[listKey] || null;\nconst renderedSubject = clean(body.rendered_subject);\nconst renderedMessage = clean(body.rendered_message);\nconst renderedSignature = body.rendered_signature ?? '';\nconst returnUrl = clean(body.return_url) || (n8nBaseUrl + '/webhook/member-list-mailout');\nconst deliveryMode = truthy(body.test_mode) ? 'test' : 'production';\nconst sendDelaySeconds = clampDelaySeconds(body.send_delay_seconds ?? settings.member_list_mailout_delay_seconds, 5);\nconst recipientSelectionSubmitted = truthy(body.recipient_selection_submitted);\nconst includedRecipientKeys = unique([\n  ...asArray(body.included_recipient_keys),\n  ...asArray(body['included_recipient_keys[]']),\n].flatMap((value) => String(value ?? '').split(/[,\\n\\r]+/)).map((value) => clean(value).toLowerCase()));\nconst errorMessage = !listKey\n  ? 'A valid recipient list is required.'\n  : (!renderedSubject\n      ? 'rendered_subject is required.'\n      : (!renderedMessage\n          ? 'rendered_message is required.'\n          : (recipientSelectionSubmitted && includedRecipientKeys.length === 0 ? 'At least one included recipient is required.' : '')));\nreturn [{ json: {\n  list_key: listKey,\n  list_label: option?.label || '',\n  list_description: option?.description || '',\n  template_key: clean(body.template_key),\n  signature_template_key: clean(body.signature_template_key),\n  sender_name: clean(settings.email_sender_name) || 'Steve Short',\n  reply_to: clean(settings.email_reply_to) || 'members.avondaleltc@gmail.com',\n  delivery_mode: deliveryMode,\n  send_delay_seconds: sendDelaySeconds,\n  test_recipient: clean(settings.email_test_recipient) || 'steve.short@gmail.com',\n  return_url: returnUrl,\n  rendered_subject: renderedSubject,\n  rendered_message: renderedMessage,\n  rendered_signature: renderedSignature,\n  email_type: clean(body.email_type).toLowerCase() === 'html' ? 'html' : 'text',\n  recipient_selection_submitted: recipientSelectionSubmitted,\n  included_recipient_keys: includedRecipientKeys,\n  n8n_base_url: n8nBaseUrl,\n  error_message: errorMessage\n} }];\n"
+        },
+        "id": "mls000000-0000-0000-0000-000000000004",
+        "name": "Resolve Send Request",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          760,
+          220
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "send-request-error",
+                "leftValue": "={{ $json.error_message || \"\" }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              }
+            ],
+            "combinator": "and"
+          }
+        },
+        "id": "mls000000-0000-0000-0000-000000000005",
+        "name": "Check Request Error",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1020,
+          220
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const input = $input.first().json ?? {};\nconst sqlLiteral = (value) => {\n  if (value === null || value === undefined || value === '') return 'NULL';\n  return \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\n};\nconst sql = `WITH season_context AS (\n  SELECT\n    COALESCE(MAX(CASE WHEN season ~ '^[0-9]{4}$' THEN season::int END), EXTRACT(YEAR FROM CURRENT_DATE)::int) AS current_season,\n    (COALESCE(MAX(CASE WHEN season ~ '^[0-9]{4}$' THEN season::int END), EXTRACT(YEAR FROM CURRENT_DATE)::int) - 1) AS previous_season\n  FROM public.membership_packages\n),\nselected_list AS (\n  SELECT\n    {{LIST_KEY}} AS list_key,\n    {{LIST_LABEL}} AS list_label,\n    {{LIST_DESCRIPTION}} AS list_description\n),\ncurrent_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key,\n    src.id AS member_raw_id,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS full_name,\n    src.\"Venue ID\",\n    src.\"British Tennis Number\",\n    src.\"First name\",\n    src.\"Last name\",\n    src.\"Membership\",\n    src.category,\n    src.\"Email address\",\n    src.\"Postcode\",\n    src.\"Start Date\",\n    src.\"Expiry Date\",\n    src.\"Status\",\n    src.\"Payment\",\n    src.\"Paid\",\n    src.\"Junior\",\n    src.\"Address 1\"\n  FROM (\n    SELECT\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN season_context sc ON TRUE\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = sc.current_season::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n),\ncurrent_renewal_members AS (\n  SELECT DISTINCT\n    COALESCE(\n      NULLIF('venue:' || trim(COALESCE(src.\"Venue ID\", '')), 'venue:'),\n      NULLIF('btn:' || trim(COALESCE(src.\"British Tennis Number\", '')), 'btn:'),\n      'name:' || lower(trim(concat_ws(' ', src.\"First name\", src.\"Last name\")))\n    ) AS person_key,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS full_name,\n    public.normalize_match_text(trim(concat_ws(' ', src.\"First name\", src.\"Last name\"))) AS name_key,\n    NULLIF(trim(COALESCE(src.\"Venue ID\", '')), '') AS venue_id,\n    NULLIF(trim(COALESCE(src.\"British Tennis Number\", '')), '') AS british_tennis_number,\n    NULLIF(public.normalize_match_email(src.\"Email address\"), '') AS email_key,\n    COALESCE(public.normalize_match_text(src.\"Postcode\"), '') AS postcode_key\n  FROM (\n    SELECT m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN season_context sc ON TRUE\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = sc.current_season::text\n    WHERE COALESCE(m.is_current, true) = true\n      AND p.category <> 'Pavilion Key'\n      AND COALESCE(NULLIF(trim(COALESCE(m.\"Status\", '')), ''), 'Active') = 'Active'\n  ) src\n),\nprevious_members AS (\n  SELECT DISTINCT ON (person_key)\n    person_key,\n    src.id AS member_raw_id,\n    trim(concat_ws(' ', src.\"First name\", src.\"Last name\")) AS full_name,\n    src.\"Venue ID\",\n    src.\"British Tennis Number\",\n    src.\"First name\",\n    src.\"Last name\",\n    src.\"Membership\",\n    src.category,\n    src.\"Email address\",\n    src.\"Postcode\",\n    src.\"Start Date\",\n    src.\"Expiry Date\",\n    src.\"Status\",\n    src.\"Payment\",\n    src.\"Paid\",\n    src.\"Junior\",\n    src.\"Address 1\"\n  FROM (\n    SELECT\n      COALESCE(\n        NULLIF('venue:' || trim(COALESCE(m.\"Venue ID\", '')), 'venue:'),\n        NULLIF('btn:' || trim(COALESCE(m.\"British Tennis Number\", '')), 'btn:'),\n        'name:' || lower(trim(concat_ws(' ', m.\"First name\", m.\"Last name\")))\n      ) AS person_key,\n      m.*, p.category, p.display_order\n    FROM public.raw_members m\n    JOIN season_context sc ON TRUE\n    JOIN public.membership_packages p\n      ON m.\"Membership\" = p.name\n     AND p.season = sc.previous_season::text\n    WHERE p.category NOT IN ('Pavilion Key', 'Honorary', 'Social')\n      AND m.\"Payment\" IN ('Paid', 'Part Paid')\n  ) src\n  ORDER BY person_key, src.display_order, src.\"Membership\"\n),\nmember_list_rows AS (\n  SELECT\n    sl.list_key,\n    sl.list_label,\n    sl.list_description,\n    sc.current_season::text AS current_season,\n    sc.previous_season::text AS previous_season,\n    sc.previous_season::text AS member_season,\n    p.person_key,\n    p.member_raw_id,\n    p.full_name,\n    p.\"First name\",\n    p.\"Last name\",\n    p.\"Membership\",\n    p.category,\n    p.\"Email address\",\n    p.\"Venue ID\",\n    p.\"British Tennis Number\",\n    p.\"Postcode\",\n    p.\"Start Date\",\n    p.\"Expiry Date\",\n    p.\"Status\",\n    p.\"Payment\",\n    p.\"Paid\",\n    p.\"Junior\",\n    p.\"Address 1\"\n  FROM selected_list sl\n  JOIN season_context sc ON TRUE\n  JOIN previous_members p ON sl.list_key = 'non_renewed_members'\n  WHERE NOT EXISTS (\n    SELECT 1\n    FROM current_renewal_members c\n    WHERE (\n      c.person_key = p.person_key\n    ) OR (\n      NULLIF(trim(COALESCE(p.\"Venue ID\", '')), '') IS NOT NULL\n      AND c.venue_id = NULLIF(trim(COALESCE(p.\"Venue ID\", '')), '')\n    ) OR (\n      NULLIF(trim(COALESCE(p.\"British Tennis Number\", '')), '') IS NOT NULL\n      AND c.british_tennis_number = NULLIF(trim(COALESCE(p.\"British Tennis Number\", '')), '')\n    ) OR (\n      c.name_key = public.normalize_match_text(p.full_name)\n      AND NULLIF(public.normalize_match_email(p.\"Email address\"), '') IS NOT NULL\n      AND c.email_key = public.normalize_match_email(p.\"Email address\")\n    ) OR (\n      c.name_key = public.normalize_match_text(p.full_name)\n      AND c.postcode_key <> ''\n      AND c.postcode_key = COALESCE(public.normalize_match_text(p.\"Postcode\"), '')\n    ) OR (\n      c.name_key = public.normalize_match_text(p.full_name)\n      AND NULLIF(trim(COALESCE(p.\"Venue ID\", '')), '') IS NULL\n      AND NULLIF(trim(COALESCE(p.\"British Tennis Number\", '')), '') IS NULL\n      AND NULLIF(public.normalize_match_email(p.\"Email address\"), '') IS NULL\n      AND COALESCE(public.normalize_match_text(p.\"Postcode\"), '') = ''\n    )\n  )\n\n  UNION ALL\n\n  SELECT\n    sl.list_key,\n    sl.list_label,\n    sl.list_description,\n    sc.current_season::text AS current_season,\n    sc.previous_season::text AS previous_season,\n    sc.current_season::text AS member_season,\n    c.person_key,\n    c.member_raw_id,\n    c.full_name,\n    c.\"First name\",\n    c.\"Last name\",\n    c.\"Membership\",\n    c.category,\n    c.\"Email address\",\n    c.\"Venue ID\",\n    c.\"British Tennis Number\",\n    c.\"Postcode\",\n    c.\"Start Date\",\n    c.\"Expiry Date\",\n    c.\"Status\",\n    c.\"Payment\",\n    c.\"Paid\",\n    c.\"Junior\",\n    c.\"Address 1\"\n  FROM selected_list sl\n  JOIN season_context sc ON TRUE\n  JOIN current_members c ON sl.list_key = 'current_members'\n),\ncontact_list_rows AS (\n  SELECT\n    sl.list_key,\n    sl.list_label,\n    sl.list_description,\n    sc.current_season::text AS current_season,\n    sc.previous_season::text AS previous_season,\n    sc.current_season::text AS member_season,\n    COALESCE(\n      NULLIF('venue:' || trim(COALESCE(c.venue_id, '')), 'venue:'),\n      NULLIF('email:' || public.normalize_match_email(c.email_address), 'email:'),\n      'contact:' || public.normalize_match_text(c.payer_name) || '|' || COALESCE(public.normalize_match_text(c.postcode), '')\n    ) AS person_key,\n    c.payer_name AS full_name,\n    c.first_name AS \"First name\",\n    c.last_name AS \"Last name\",\n    NULL::text AS \"Membership\",\n    COALESCE(NULLIF(c.member_status, ''), 'Contact') AS category,\n    c.email_address AS \"Email address\",\n    c.venue_id AS \"Venue ID\",\n    NULL::text AS \"British Tennis Number\",\n    c.postcode AS \"Postcode\",\n    NULL::text AS \"Start Date\",\n    NULL::text AS \"Expiry Date\",\n    NULL::text AS \"Status\",\n    NULL::text AS \"Payment\",\n    NULL::numeric AS \"Paid\",\n    'No'::text AS \"Junior\",\n    c.address_1 AS \"Address 1\",\n    c.town\n  FROM selected_list sl\n  JOIN season_context sc ON TRUE\n  JOIN public.vw_best_current_contacts c ON sl.list_key = 'contacts_without_current_membership'\n  WHERE c.email_address IS NOT NULL\n    AND c.email_address <> ''\n    AND NOT EXISTS (\n      SELECT 1\n      FROM current_members cm\n      WHERE (\n        NULLIF(trim(COALESCE(c.venue_id, '')), '') IS NOT NULL\n        AND NULLIF(trim(COALESCE(cm.\"Venue ID\", '')), '') = NULLIF(trim(COALESCE(c.venue_id, '')), '')\n      ) OR (\n        public.normalize_match_text(cm.full_name) = public.normalize_match_text(c.payer_name)\n        AND COALESCE(public.normalize_match_text(cm.\"Postcode\"), '') = COALESCE(public.normalize_match_text(c.postcode), '')\n      ) OR (\n        public.normalize_match_text(cm.full_name) = public.normalize_match_text(c.payer_name)\n        AND public.normalize_match_email(cm.\"Email address\") = public.normalize_match_email(c.email_address)\n      )\n    )\n),\nselected_member_rows AS (\n  SELECT *\n  FROM member_list_rows\n),\ncurrent_junior_contact_candidates AS (\n  SELECT\n    sm.person_key,\n    j.main_contact_name,\n    j.main_contact_email,\n    j.main_contact_phone,\n    j.main_contact_mobile,\n    j.main_contact_address_1,\n    j.main_contact_town,\n    j.main_contact_postcode,\n    row_number() OVER (\n      PARTITION BY sm.person_key\n      ORDER BY CASE WHEN NULLIF(trim(COALESCE(j.main_contact_email, '')), '') IS NOT NULL THEN 0 ELSE 1 END,\n               j.main_contact_name\n    ) AS candidate_rank\n  FROM selected_member_rows sm\n  JOIN season_context sc ON sm.member_season = sc.current_season::text\n  JOIN public.vw_junior_main_contacts j\n    ON j.match_confidence = 'high'\n   AND (\n        sm.member_raw_id = j.member_raw_id\n        OR (\n          public.normalize_match_text(j.member_name) = public.normalize_match_text(sm.full_name)\n          AND COALESCE(j.membership, '') = COALESCE(sm.\"Membership\", '')\n        )\n      )\n  WHERE COALESCE(NULLIF(trim(COALESCE(sm.\"Junior\", '')), ''), 'No') = 'Yes'\n),\ncurrent_junior_contact_choice AS (\n  SELECT *\n  FROM current_junior_contact_candidates\n  WHERE candidate_rank = 1\n),\nhistorical_junior_contact_candidates AS (\n  SELECT\n    sm.person_key,\n    trim(concat_ws(' ', mc.\"First name\", mc.\"Last name\")) AS main_contact_name,\n    NULLIF(trim(mc.\"Email address\"), '') AS main_contact_email,\n    NULLIF(trim(mc.\"Phone number\"), '') AS main_contact_phone,\n    NULLIF(trim(mc.\"Mobile number\"), '') AS main_contact_mobile,\n    NULLIF(trim(mc.\"Address 1\"), '') AS main_contact_address_1,\n    NULLIF(trim(mc.\"Town\"), '') AS main_contact_town,\n    NULLIF(trim(mc.\"Postcode\"), '') AS main_contact_postcode,\n    row_number() OVER (\n      PARTITION BY sm.person_key\n      ORDER BY CASE WHEN NULLIF(trim(mc.\"Email address\"), '') IS NOT NULL THEN 0 ELSE 1 END,\n               CASE WHEN COALESCE(mc.is_current, true) = true THEN 0 ELSE 1 END,\n               mc.id DESC\n    ) AS candidate_rank\n  FROM selected_member_rows sm\n  JOIN public.raw_members_main_contacts mc\n    ON trim(concat_ws(' ', mc.\"First name\", mc.\"Last name\")) <> sm.full_name\n   AND COALESCE(mc.\"Membership\", '') = COALESCE(sm.\"Membership\", '')\n   AND COALESCE(mc.\"Status\", '') = COALESCE(sm.\"Status\", '')\n   AND COALESCE(mc.\"Payment\", '') = COALESCE(sm.\"Payment\", '')\n   AND COALESCE(mc.\"Start Date\", '') = COALESCE(sm.\"Start Date\", '')\n   AND COALESCE(mc.\"Expiry Date\", '') = COALESCE(sm.\"Expiry Date\", '')\n   AND COALESCE(mc.\"Paid\", -1::numeric) = COALESCE(sm.\"Paid\", -1::numeric)\n   AND public.normalize_match_text(mc.\"Last name\") = public.normalize_match_text(sm.\"Last name\")\n  WHERE COALESCE(NULLIF(trim(COALESCE(sm.\"Junior\", '')), ''), 'No') = 'Yes'\n),\nhistorical_junior_contact_choice AS (\n  SELECT\n    hj.person_key,\n    hj.main_contact_name,\n    COALESCE(NULLIF(trim(bc.email_address), ''), hj.main_contact_email) AS main_contact_email,\n    COALESCE(NULLIF(trim(bc.phone_number), ''), hj.main_contact_phone) AS main_contact_phone,\n    COALESCE(NULLIF(trim(bc.mobile_number), ''), hj.main_contact_mobile) AS main_contact_mobile,\n    COALESCE(NULLIF(trim(bc.address_1), ''), hj.main_contact_address_1) AS main_contact_address_1,\n    COALESCE(NULLIF(trim(bc.town), ''), hj.main_contact_town) AS main_contact_town,\n    COALESCE(NULLIF(trim(bc.postcode), ''), hj.main_contact_postcode) AS main_contact_postcode\n  FROM historical_junior_contact_candidates hj\n  LEFT JOIN LATERAL public.resolve_best_contact_row(\n    hj.main_contact_name,\n    hj.main_contact_email,\n    NULLIF(regexp_replace(hj.main_contact_name, '^\\\\S+\\\\s*', ''), ''),\n    false\n  ) bc ON TRUE\n  WHERE hj.candidate_rank = 1\n),\nbest_contact_rows AS (\n  SELECT\n    sm.person_key,\n    bc.contact_id,\n    bc.payer_name,\n    bc.email_address,\n    bc.phone_number,\n    bc.mobile_number,\n    bc.address_1,\n    bc.town,\n    bc.postcode,\n    bc.resolve_rule\n  FROM selected_member_rows sm\n  LEFT JOIN LATERAL public.resolve_best_contact_row(\n    sm.full_name,\n    NULLIF(trim(COALESCE(sm.\"Email address\", '')), ''),\n    NULLIF(regexp_replace(sm.full_name, '^\\\\S+\\\\s*', ''), ''),\n    COALESCE(sm.\"Membership\", '') ILIKE '%Family%'\n  ) bc ON TRUE\n),\nresolved_member_rows AS (\n  SELECT\n    sm.list_key,\n    sm.list_label,\n    sm.list_description,\n    sm.current_season,\n    sm.previous_season,\n    sm.member_season,\n    sm.person_key,\n    sm.full_name AS member_name,\n    sm.\"First name\" AS first_name,\n    sm.\"Last name\" AS last_name,\n    sm.\"Membership\" AS membership,\n    sm.category,\n    COALESCE(\n      NULLIF(trim(COALESCE(cj.main_contact_email, '')), ''),\n      NULLIF(trim(COALESCE(hj.main_contact_email, '')), ''),\n      NULLIF(trim(COALESCE(bc.email_address, '')), ''),\n      NULLIF(trim(COALESCE(sm.\"Email address\", '')), '')\n    ) AS recipient_email,\n    COALESCE(\n      NULLIF(trim(COALESCE(cj.main_contact_name, '')), ''),\n      NULLIF(trim(COALESCE(hj.main_contact_name, '')), ''),\n      sm.full_name\n    ) AS recipient_name,\n    COALESCE(\n      NULLIF(trim(COALESCE(cj.main_contact_address_1, '')), ''),\n      NULLIF(trim(COALESCE(hj.main_contact_address_1, '')), ''),\n      NULLIF(trim(COALESCE(bc.address_1, '')), ''),\n      NULLIF(trim(COALESCE(sm.\"Address 1\", '')), '')\n    ) AS address_1,\n    COALESCE(\n      NULLIF(trim(COALESCE(cj.main_contact_town, '')), ''),\n      NULLIF(trim(COALESCE(hj.main_contact_town, '')), ''),\n      NULLIF(trim(COALESCE(bc.town, '')), ''),\n      ''\n    ) AS town,\n    COALESCE(\n      NULLIF(trim(COALESCE(cj.main_contact_postcode, '')), ''),\n      NULLIF(trim(COALESCE(hj.main_contact_postcode, '')), ''),\n      NULLIF(trim(COALESCE(bc.postcode, '')), ''),\n      NULLIF(trim(COALESCE(sm.\"Postcode\", '')), ''),\n      ''\n    ) AS postcode,\n    CASE\n      WHEN COALESCE(NULLIF(trim(COALESCE(sm.\"Junior\", '')), ''), 'No') = 'Yes' AND NULLIF(trim(COALESCE(cj.main_contact_email, '')), '') IS NOT NULL THEN 'vw_junior_main_contacts'\n      WHEN COALESCE(NULLIF(trim(COALESCE(sm.\"Junior\", '')), ''), 'No') = 'Yes' AND NULLIF(trim(COALESCE(hj.main_contact_email, '')), '') IS NOT NULL THEN 'raw_members_main_contacts'\n      WHEN NULLIF(trim(COALESCE(bc.email_address, '')), '') IS NOT NULL THEN COALESCE(NULLIF(trim(COALESCE(bc.resolve_rule, '')), ''), 'resolve_best_contact_row')\n      WHEN NULLIF(trim(COALESCE(sm.\"Email address\", '')), '') IS NOT NULL THEN 'raw_member_email'\n      ELSE 'missing'\n    END AS recipient_source\n  FROM selected_member_rows sm\n  LEFT JOIN best_contact_rows bc ON bc.person_key = sm.person_key\n  LEFT JOIN current_junior_contact_choice cj ON cj.person_key = sm.person_key\n  LEFT JOIN historical_junior_contact_choice hj ON hj.person_key = sm.person_key\n),\nresolved_contact_rows AS (\n  SELECT\n    clr.list_key,\n    clr.list_label,\n    clr.list_description,\n    clr.current_season,\n    clr.previous_season,\n    clr.member_season,\n    clr.person_key,\n    clr.full_name AS member_name,\n    clr.\"First name\" AS first_name,\n    clr.\"Last name\" AS last_name,\n    clr.\"Membership\" AS membership,\n    clr.category,\n    NULLIF(trim(COALESCE(clr.\"Email address\", '')), '') AS recipient_email,\n    clr.full_name AS recipient_name,\n    NULLIF(trim(COALESCE(clr.\"Address 1\", '')), '') AS address_1,\n    COALESCE(clr.town, '') AS town,\n    COALESCE(clr.\"Postcode\", '') AS postcode,\n    'current_contact' AS recipient_source\n  FROM contact_list_rows clr\n),\nresolved_rows AS (\n  SELECT * FROM resolved_member_rows\n  UNION ALL\n  SELECT * FROM resolved_contact_rows\n),\nrecipient_consent_rows AS (\n  SELECT\n    NULLIF(public.normalize_match_email(\"Email address\"), '') AS email_key,\n    NULLIF(trim(COALESCE(\"Receipt of Emails\", '')), '') AS receipt_of_emails,\n    'raw_contacts' AS consent_source\n  FROM public.raw_contacts\n  WHERE NULLIF(public.normalize_match_email(\"Email address\"), '') IS NOT NULL\n\n  UNION ALL\n\n  SELECT\n    NULLIF(public.normalize_match_email(\"Email address\"), '') AS email_key,\n    NULLIF(trim(COALESCE(\"Receipt of Emails\", '')), '') AS receipt_of_emails,\n    'raw_members' AS consent_source\n  FROM public.raw_members\n  WHERE NULLIF(public.normalize_match_email(\"Email address\"), '') IS NOT NULL\n\n  UNION ALL\n\n  SELECT\n    NULLIF(public.normalize_match_email(\"Email address\"), '') AS email_key,\n    NULLIF(trim(COALESCE(\"Receipt of Emails\", '')), '') AS receipt_of_emails,\n    'raw_members_main_contacts' AS consent_source\n  FROM public.raw_members_main_contacts\n  WHERE NULLIF(public.normalize_match_email(\"Email address\"), '') IS NOT NULL\n),\nrecipient_consent_by_email AS (\n  SELECT\n    email_key,\n    bool_or(lower(COALESCE(receipt_of_emails, '')) IN ('yes', 'y', 'true', 't', '1')) AS has_email_consent,\n    bool_or(lower(COALESCE(receipt_of_emails, '')) IN ('no', 'n', 'false', 'f', '0', 'unsubscribed', 'do not email', 'do not contact')) AS has_email_opt_out,\n    string_agg(DISTINCT COALESCE(receipt_of_emails, 'Not recorded'), ', ') AS receipt_of_emails,\n    string_agg(DISTINCT consent_source, ', ') AS consent_sources\n  FROM recipient_consent_rows\n  WHERE email_key IS NOT NULL\n  GROUP BY email_key\n),\nresolved_rows_with_consent AS (\n  SELECT\n    rr.*,\n    (COALESCE(rc.has_email_consent, false) AND NOT COALESCE(rc.has_email_opt_out, false)) AS email_consent_allowed,\n    COALESCE(NULLIF(rc.receipt_of_emails, ''), 'Not recorded') AS receipt_of_emails,\n    COALESCE(NULLIF(rc.consent_sources, ''), 'No matching consent row') AS consent_sources,\n    CASE\n      WHEN COALESCE(rc.has_email_opt_out, false) THEN 'Receipt of Emails is set to No'\n      WHEN NOT COALESCE(rc.has_email_consent, false) THEN 'Receipt of Emails is not set to Yes'\n      ELSE ''\n    END AS email_consent_reason\n  FROM resolved_rows rr\n  LEFT JOIN recipient_consent_by_email rc\n    ON rc.email_key = public.normalize_match_email(rr.recipient_email)\n),\ndeduped_rows AS (\n  SELECT *\n  FROM (\n    SELECT\n      rr.*,\n      row_number() OVER (\n        PARTITION BY public.normalize_match_email(rr.recipient_email)\n        ORDER BY CASE rr.recipient_source\n          WHEN 'vw_junior_main_contacts' THEN 0\n          WHEN 'raw_members_main_contacts' THEN 1\n          WHEN 'family_active_adult_address' THEN 2\n          WHEN 'exact_name_email' THEN 3\n          WHEN 'exact_name' THEN 4\n          WHEN 'email' THEN 5\n          WHEN 'current_contact' THEN 6\n          WHEN 'raw_member_email' THEN 7\n          ELSE 8\n        END,\n        COALESCE(rr.category, ''),\n        COALESCE(rr.member_name, ''),\n        COALESCE(rr.membership, '')\n      ) AS email_rank\n    FROM resolved_rows_with_consent rr\n    WHERE NULLIF(trim(COALESCE(rr.recipient_email, '')), '') IS NOT NULL\n  ) ranked\n  WHERE email_rank = 1\n)\nSELECT\n  sl.list_key,\n  sl.list_label,\n  sl.list_description,\n  sc.current_season::text AS current_season,\n  sc.previous_season::text AS previous_season,\n  COALESCE((SELECT count(*) FROM deduped_rows), 0) AS recipient_count,\n  COALESCE((SELECT json_agg(json_build_object(\n    'recipient_email', dr.recipient_email,\n    'recipient_name', dr.recipient_name,\n    'member_name', dr.member_name,\n    'first_name', dr.first_name,\n    'last_name', dr.last_name,\n    'membership', dr.membership,\n    'category', dr.category,\n    'source', dr.recipient_source,\n    'email_consent_allowed', dr.email_consent_allowed,\n    'receipt_of_emails', dr.receipt_of_emails,\n    'email_consent_reason', dr.email_consent_reason,\n    'consent_sources', dr.consent_sources\n  ) ORDER BY dr.category, dr.member_name, dr.recipient_email) FROM resolved_rows_with_consent dr), '[]'::json) AS recipients,\n  COALESCE((SELECT json_agg(json_build_object(\n    'recipient_email', sample.recipient_email,\n    'recipient_name', sample.recipient_name,\n    'member_name', sample.member_name,\n    'first_name', sample.first_name,\n    'last_name', sample.last_name,\n    'membership', sample.membership,\n    'category', sample.category,\n    'source', sample.recipient_source,\n    'email_consent_allowed', sample.email_consent_allowed,\n    'receipt_of_emails', sample.receipt_of_emails,\n    'email_consent_reason', sample.email_consent_reason,\n    'consent_sources', sample.consent_sources\n  ) ORDER BY sample.category, sample.member_name, sample.recipient_email)\n  FROM (\n    SELECT * FROM resolved_rows_with_consent ORDER BY category, member_name, recipient_email LIMIT 8\n  ) sample), '[]'::json) AS recipient_sample,\n  CASE\n    WHEN COALESCE(sl.list_key, '') = '' THEN 'Recipient list is required.'\n    WHEN COALESCE((SELECT count(*) FROM deduped_rows), 0) = 0 THEN 'No recipients were resolved for this list.'\n    ELSE NULL\n  END AS error_message\nFROM selected_list sl\nJOIN season_context sc ON TRUE;`\n  .replace(/\\{\\{LIST_KEY\\}\\}/g, sqlLiteral(input.list_key))\n  .replace(/\\{\\{LIST_LABEL\\}\\}/g, sqlLiteral(input.list_label))\n  .replace(/\\{\\{LIST_DESCRIPTION\\}\\}/g, sqlLiteral(input.list_description));\nreturn [{ json: { ...input, sql } }];"
+        },
+        "id": "mls000000-0000-0000-0000-000000000006",
+        "name": "Build Send Context SQL",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1280,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $json.sql }}"
+        },
+        "id": "mls000000-0000-0000-0000-000000000007",
+        "name": "Load Send Context",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          1540,
+          320
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "PjTUDAMk0dZ7g1iO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "send-context-error",
+                "leftValue": "={{ $json.error_message || \"\" }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              }
+            ],
+            "combinator": "and"
+          }
+        },
+        "id": "mls000000-0000-0000-0000-000000000008",
+        "name": "Check Context Error",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1800,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const input = $('Resolve Send Request').first()?.json ?? {};\nconst context = (() => { try { return $('Load Send Context').first()?.json ?? {}; } catch { return {}; } })();\nconst message = context.error_message || input.error_message || 'Unable to send the mailout.';\nconst returnUrl = input.return_url || '#';\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#39;');\nconst html = '<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Mailout not sent</title><style>body{margin:0;padding:24px;background:#f4f7fb;font-family:Lato,Arial,sans-serif;color:#1f2937}.panel{max-width:760px;margin:0 auto;background:#fff;border:1px solid #d8e1ec;border-radius:20px;box-shadow:0 18px 40px rgba(15,23,42,.08);padding:28px}h1{margin:0 0 10px;font-size:30px}.message{margin:18px 0;padding:14px 16px;border-radius:14px;background:#fef3f2;color:#b42318;font-weight:700}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#0f766e 0%,#115e59 100%);color:#fff}</style></head><body><div class=\"panel\"><h1>Mailout Not Sent</h1><p>The member-list mailout could not be completed.</p><div class=\"message\">' + escapeHtml(message) + '</div><a class=\"button\" href=\"' + escapeHtml(returnUrl) + '\">Back to Mailout App</a></div></body></html>';\nreturn [{ json: { html } }];"
+        },
+        "id": "mls000000-0000-0000-0000-000000000009",
+        "name": "Build Error HTML",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1280,
+          120
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "={{ $json.html }}",
+          "options": {
+            "responseCode": 400,
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                }
+              ]
+            }
+          }
+        },
+        "id": "mls000000-0000-0000-0000-000000000010",
+        "name": "Respond Error",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          1540,
+          120
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const input = $('Resolve Send Request').first()?.json ?? {};\nconst context = $('Load Send Context').first()?.json ?? {};\nconst jobRow = $('Create Mailout Job').first()?.json ?? {};\nconst jobId = (jobRow.job_id || '');\nconst pixelPath = '3e9f7b1a-c2d4-4e5f-8a6b-0d1c2e3f4a5b.gif';\nconst parseMaybe = (value, fallback) => {\n  if (value === null || value === undefined || value === '') return fallback;\n  if (typeof value === 'string') {\n    try { return JSON.parse(value); } catch { return fallback; }\n  }\n  return value;\n};\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst asBool = (value) => value === true || ['1', 'true', 't', 'yes', 'y'].includes(clean(value).toLowerCase());\nconst randomToken = () => {\n  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();\n  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {\n    const v = Math.floor(Math.random() * 16);\n    return (c === 'x' ? v : ((v & 0x3) | 0x8)).toString(16);\n  });\n};\nconst privacyConsentsUrl = 'https://clubspark.lta.org.uk/AvondaleTennisClub/EditConsents';\nconst consentFooterHtml = '<p style=\"margin:16px 0 0;font-size:12px;line-height:1.5;color:#64748b;\">You can review or update your Avondale privacy and email consent settings here: <a href=\"https://clubspark.lta.org.uk/AvondaleTennisClub/EditConsents\">Privacy and consents</a>.</p>';\nconst consentFooterText = 'Privacy and consents: https://clubspark.lta.org.uk/AvondaleTennisClub/EditConsents';\nconst rawRecipients = Array.isArray(parseMaybe(context.recipients, [])) ? parseMaybe(context.recipients, []) : [];\nconst unique = (values) => [...new Set(values.map((value) => clean(value)).filter(Boolean))];\nconst joinNatural = (values) => {\n  const list = unique(values);\n  if (!list.length) return '';\n  if (list.length === 1) return list[0];\n  if (list.length === 2) return list[0] + ' and ' + list[1];\n  return list.slice(0, -1).join(', ') + ', and ' + list[list.length - 1];\n};\nconst splitName = (value) => {\n  const parts = clean(value).split(/\\s+/).filter(Boolean);\n  return {\n    first_name: parts[0] || '',\n    last_name: parts.length > 1 ? parts.slice(1).join(' ') : ''\n  };\n};\nconst sourcePriority = {\n  vw_junior_main_contacts: 0,\n  raw_members_main_contacts: 1,\n  family_active_adult_address: 2,\n  exact_name_email: 3,\n  exact_name: 4,\n  email: 5,\n  current_contact: 6,\n  raw_member_email: 7,\n  missing: 8,\n};\nconst recipientGroups = new Map();\nfor (const row of rawRecipients) {\n  const email = clean(row.recipient_email).toLowerCase();\n  if (!email) continue;\n  if (!recipientGroups.has(email)) recipientGroups.set(email, []);\n  recipientGroups.get(email).push({ ...row, recipient_email: clean(row.recipient_email) });\n}\nconst recipients = [...recipientGroups.values()].map((rows) => {\n  const sortedRows = [...rows].sort((left, right) => {\n    const priorityLeft = sourcePriority[clean(left.source)] ?? sourcePriority[clean(left.recipient_source)] ?? 99;\n    const priorityRight = sourcePriority[clean(right.source)] ?? sourcePriority[clean(right.recipient_source)] ?? 99;\n    if (priorityLeft !== priorityRight) return priorityLeft - priorityRight;\n    return clean(left.member_name).localeCompare(clean(right.member_name)) || clean(left.membership).localeCompare(clean(right.membership));\n  });\n  const primary = sortedRows[0] ?? {};\n  const memberNames = unique(sortedRows.map((row) => row.member_name));\n  const firstNames = unique(sortedRows.map((row) => row.first_name));\n  const lastNames = unique(sortedRows.map((row) => row.last_name));\n  const recipientName = clean(primary.recipient_name) || memberNames[0] || clean(primary.recipient_email);\n  const recipientParts = splitName(recipientName);\n  const recipientKey = clean(primary.recipient_email).toLowerCase();\n  const consentAllowed = asBool(primary.email_consent_allowed);\n  const receiptOfEmails = clean(primary.receipt_of_emails) || 'Not recorded';\n  const consentSources = unique(sortedRows\n    .flatMap((row) => clean(row.consent_sources).split(','))\n    .map((value) => clean(value))\n    .filter(Boolean));\n  const consentSourceLabel = consentSources.length ? consentSources.join(', ') : 'No matching consent row';\n  const consentReason = clean(primary.email_consent_reason) || (consentAllowed ? '' : 'Receipt of Emails is not set to Yes');\n  const excludeReason = consentAllowed ? '' : consentReason;\n  return {\n    recipient_key: recipientKey,\n    recipient_email: clean(primary.recipient_email),\n    recipient_name: recipientName,\n    recipient_first_name: recipientParts.first_name,\n    recipient_last_name: recipientParts.last_name,\n    target_member_count: memberNames.length,\n    target_member_names: joinNatural(memberNames),\n    target_first_names: joinNatural(firstNames),\n    target_last_names: lastNames.length === 1 ? lastNames[0] : joinNatural(lastNames),\n    memberships: unique(sortedRows.map((row) => row.membership)),\n    categories: unique(sortedRows.map((row) => row.category)),\n    source: clean(primary.source) || clean(primary.recipient_source),\n    email_consent_allowed: consentAllowed,\n    receipt_of_emails: receiptOfEmails,\n    email_consent_reason: consentReason,\n    consent_sources: consentSourceLabel,\n    force_excluded: !consentAllowed,\n    included: consentAllowed && !excludeReason,\n    exclude_reason: excludeReason,\n  };\n}).sort((left, right) => left.recipient_name.localeCompare(right.recipient_name) || left.recipient_email.localeCompare(right.recipient_email));\nconst selectedRecipientKeys = new Set((Array.isArray(input.included_recipient_keys) ? input.included_recipient_keys : [])\n  .map((value) => clean(value).toLowerCase())\n  .filter(Boolean));\nconst selectionSubmitted = Boolean(input.recipient_selection_submitted);\nconst includedRecipients = recipients.filter((recipient) => {\n  if (recipient.email_consent_allowed !== true) return false;\n  return selectionSubmitted\n    ? selectedRecipientKeys.has(recipient.recipient_key)\n    : recipient.included !== false;\n});\nif (!includedRecipients.length) {\n  throw new Error('No included recipients matched the resolved list.');\n}\nconst includedTargetMemberCount = includedRecipients.reduce((total, recipient) => total + Number(recipient.target_member_count || 0), 0);\nconst noConsentRecipientCount = recipients.filter((recipient) => recipient.email_consent_allowed !== true).length;\nconst mailoutStartedAt = new Date().toISOString();\nconst sendDelaySeconds = Math.max(0, Math.min(300, Number(input.send_delay_seconds ?? 5) || 0));\nconst sendDelayMs = Math.round(sendDelaySeconds * 1000);\nconst buildTokenMap = (recipient) => ({\n  '{{$json.list_name}}': input.list_label ?? '',\n  '{{$json.list_label}}': input.list_label ?? '',\n  '{{$json.list_key}}': input.list_key ?? '',\n  '{{$json.recipient_count}}': String(includedRecipients.length),\n  '{{$json.current_season}}': clean(context.current_season),\n  '{{$json.previous_season}}': clean(context.previous_season),\n  '{{$json.first_name}}': recipient?.target_first_names ?? '',\n  '{{$json.last_name}}': recipient?.target_last_names ?? '',\n  '{{$json.member_name}}': recipient?.target_member_names ?? '',\n  '{{$json.member_names}}': recipient?.target_member_names ?? '',\n  '{{$json.target_member_name}}': recipient?.target_member_names ?? '',\n  '{{$json.target_member_names}}': recipient?.target_member_names ?? '',\n  '{{$json.target_first_names}}': recipient?.target_first_names ?? '',\n  '{{$json.target_last_names}}': recipient?.target_last_names ?? '',\n  '{{$json.member_first_names}}': recipient?.target_first_names ?? '',\n  '{{$json.member_last_names}}': recipient?.target_last_names ?? '',\n  '{{$json.target_member_count}}': String(recipient?.target_member_count ?? 0),\n  '{{$json.member_count}}': String(recipient?.target_member_count ?? 0),\n  '{{$json.recipient_name}}': recipient?.recipient_name ?? '',\n  '{{$json.recipient_first_name}}': recipient?.recipient_first_name ?? '',\n  '{{$json.recipient_last_name}}': recipient?.recipient_last_name ?? '',\n  '{{list_name}}': input.list_label ?? '',\n  '{{list_label}}': input.list_label ?? '',\n  '{{list_key}}': input.list_key ?? '',\n  '{{recipient_count}}': String(includedRecipients.length),\n  '{{current_season}}': clean(context.current_season),\n  '{{previous_season}}': clean(context.previous_season),\n  '{{first_name}}': recipient?.target_first_names ?? '',\n  '{{last_name}}': recipient?.target_last_names ?? '',\n  '{{member_name}}': recipient?.target_member_names ?? '',\n  '{{member_names}}': recipient?.target_member_names ?? '',\n  '{{target_member_name}}': recipient?.target_member_names ?? '',\n  '{{target_member_names}}': recipient?.target_member_names ?? '',\n  '{{target_first_names}}': recipient?.target_first_names ?? '',\n  '{{target_last_names}}': recipient?.target_last_names ?? '',\n  '{{member_first_names}}': recipient?.target_first_names ?? '',\n  '{{member_last_names}}': recipient?.target_last_names ?? '',\n  '{{target_member_count}}': String(recipient?.target_member_count ?? 0),\n  '{{member_count}}': String(recipient?.target_member_count ?? 0),\n  '{{recipient_name}}': recipient?.recipient_name ?? '',\n  '{{recipient_first_name}}': recipient?.recipient_first_name ?? '',\n  '{{recipient_last_name}}': recipient?.recipient_last_name ?? '',\n});\nconst applyTokens = (value, tokenMap) => {\n  let rendered = String(value ?? '');\n  for (const [token, replacement] of Object.entries(tokenMap)) {\n    rendered = rendered.split(token).join(String(replacement));\n  }\n  return rendered.trim();\n};\nconst renderForRecipient = (value, recipient) => applyTokens(value, buildTokenMap(recipient));\nconst payloads = includedRecipients.map((recipient, index) => {\n  const renderedSubject = renderForRecipient(input.rendered_subject ?? '', recipient);\n  const renderedBody = renderForRecipient(input.rendered_message ?? '', recipient);\n  const renderedSignature = renderForRecipient(input.rendered_signature ?? '', recipient);\n  const trackingToken = input.email_type === 'html' ? randomToken() : '';\n  const trackingUrl = trackingToken ? (input.n8n_base_url || 'http://n8n:5678').replace(/\\/$/, '') + '/webhook/' + pixelPath + '?v=' + encodeURIComponent(trackingToken) : '';\n  const trackingPixelHtml = trackingUrl ? '<img src=\"' + trackingUrl.replace(/&/g, '&amp;').replace(/\"/g, '&quot;') + '\" width=\"1\" height=\"1\" alt=\"\" style=\"display:none;width:1px;height:1px;border:0;opacity:0\" />' : '';\n  const combinedMessageWithPixel = input.email_type === 'html' && trackingPixelHtml\n    ? [String(renderedBody ?? ''), String(renderedSignature ?? ''), consentFooterHtml].filter((v) => clean(v)).join('') + trackingPixelHtml\n    : [clean(renderedBody), clean(renderedSignature), consentFooterText].filter(Boolean).join('\\n\\n');\n  return {\n    json: {\n      list_key: input.list_key,\n      list_label: input.list_label,\n      template_key: input.template_key,\n      delivery_mode: input.delivery_mode,\n      sender_name: input.sender_name,\n      reply_to: input.reply_to,\n      return_url: input.return_url,\n      n8n_base_url: input.n8n_base_url,\n      rendered_subject: renderedSubject,\n      rendered_message: combinedMessageWithPixel,\n      email_type: input.email_type,\n      privacy_consents_url: privacyConsentsUrl,\n      send_delay_seconds: sendDelaySeconds,\n      send_delay_ms: index === 0 ? 0 : sendDelayMs,\n      mailout_started_at: mailoutStartedAt,\n      intended_recipient_count: includedRecipients.length,\n      target_member_count: includedTargetMemberCount,\n      included_recipient_count: includedRecipients.length,\n      excluded_recipient_count: Math.max(recipients.length - includedRecipients.length, 0),\n      no_consent_recipient_count: noConsentRecipientCount,\n      actual_recipient_count: 1,\n      actual_to: clean(recipient.recipient_email),\n      recipient_name: recipient.recipient_name,\n      recipient_email: recipient.recipient_email,\n      target_member_names: recipient.target_member_names,\n      email_consent_allowed: recipient.email_consent_allowed,\n      receipt_of_emails: recipient.receipt_of_emails,\n      email_consent_reason: recipient.email_consent_reason,\n      consent_sources: recipient.consent_sources,\n      recipient_sample: includedRecipients.slice(0, 8),\n      send_index: index + 1,\n      send_count: includedRecipients.length,\n      current_season: clean(context.current_season),\n      previous_season: clean(context.previous_season),\n      test_recipient: input.test_recipient,\n      sample_context: recipient.recipient_name + ' -> ' + recipient.target_member_names,\n      job_id: jobId,\n      open_tracking_token: trackingToken,\n      open_tracking_enabled: Boolean(trackingToken),\n    }\n  };\n});\nif (input.delivery_mode === 'production') return payloads;\nif (!payloads.length) return [];\nreturn [{\n  json: {\n    ...payloads[0].json,\n    actual_to: input.test_recipient,\n    sample_context: payloads[0].json.sample_context,\n    send_count: 1,\n    send_index: 1\n  }\n}];"
+        },
+        "id": "mls000000-0000-0000-0000-000000000011",
+        "name": "Build Chunk Payloads",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2060,
+          420
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://127.0.0.1:5678/webhook/email-send-core",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { flow_name: \"send-member-list-email\", to: $json.actual_to, sender_name: $json.sender_name, reply_to: $json.reply_to, rendered_subject: $json.rendered_subject, rendered_message: $json.rendered_message, email_type: $json.email_type } }}",
+          "options": {}
+        },
+        "id": "mls000000-0000-0000-0000-000000000012",
+        "name": "Send Gmail Message",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          2520,
+          420
+        ],
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const payloads = $('Build Chunk Payloads').all().map((item) => item.json ?? {});\nconst first = payloads[0] ?? {};\nconst loggedRecipients = (() => { try { return $('Log Mailout Recipient').all().map(item => item.json ?? {}); } catch { return []; } })();\nconst sendLogs = (() => { try { return $('Build Recipient Log SQL').all().map(item => item.json ?? {}); } catch { return []; } })();\nconst sendResponses = loggedRecipients;\nconst results = sendResponses;\nconst escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#39;');\nconst modeLabel = first.delivery_mode === 'production' ? 'Production' : 'Test';\nconst completeResult = (() => { try { return $('Build Complete Job SQL').first()?.json ?? {}; } catch { return {}; } })();\nconst isPaused = completeResult.any_failed || completeResult.status === 'Paused';\nconst n8nBase = (first.n8n_base_url || '').replace(/\\/$/, '');\nconst resumeUrl = completeResult.job_id && n8nBase ? n8nBase + '/webhook/member-list-mailout-resume?job_id=' + encodeURIComponent(completeResult.job_id) : '';\nconst emailCount = sendResponses.length || payloads.length;\nconst gmailIds = sendLogs.map((item) => item.gmail_message_id).filter(Boolean).join(', ');\nconst parseDate = (value) => {\n  const parsed = new Date(value);\n  return Number.isNaN(parsed.getTime()) ? null : parsed;\n};\nconst startedAt = parseDate(first.mailout_started_at) || new Date();\nconst finishedAt = new Date();\nconst durationSeconds = Math.max(0, (finishedAt.getTime() - startedAt.getTime()) / 1000);\nconst sentRatePerMinute = durationSeconds > 0 ? emailCount / (durationSeconds / 60) : emailCount;\nconst formatDateTime = (date) => date.toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'medium', timeZone: 'Europe/London' });\nconst formatDuration = (seconds) => {\n  if (!Number.isFinite(seconds) || seconds <= 0) return '0 seconds';\n  const wholeSeconds = Math.round(seconds);\n  const minutes = Math.floor(wholeSeconds / 60);\n  const remainder = wholeSeconds % 60;\n  return minutes > 0 ? minutes + ' min ' + remainder + ' sec' : remainder + ' sec';\n};\nconst formatRate = (rate) => Number.isFinite(rate) ? rate.toFixed(rate >= 10 ? 1 : 2) + ' emails/min' : 'n/a';\nconst jobId = first.job_id || '';\nconst n8nBaseUrl = (first.n8n_base_url || '').replace(/\\/$/, '');\nconst reportUrl = jobId && n8nBaseUrl ? n8nBaseUrl + '/webhook/member-list-mailout-report?job_id=' + encodeURIComponent(jobId) : '';\nconst summaryRows = [\n  ['Recipient list', first.list_label || first.list_key || ''],\n  ['Template', first.template_key || ''],\n  ['Mode', modeLabel],\n  ['Target members', first.target_member_count || 0],\n  ['Included recipients', first.included_recipient_count ?? first.intended_recipient_count ?? payloads.length],\n  ['Excluded recipients', first.excluded_recipient_count ?? 0],\n  ['No consent', first.no_consent_recipient_count ?? 0],\n  ['Emails sent', emailCount],\n  ['Start time', formatDateTime(startedAt)],\n  ['End time', formatDateTime(finishedAt)],\n  ['Duration', formatDuration(durationSeconds)],\n  ['Rate', formatRate(sentRatePerMinute)],\n  ['Delay between messages', String(first.send_delay_seconds ?? 0) + ' seconds'],\n  ['Subject', first.rendered_subject || ''],\n];\nconst summaryHtml = summaryRows\n  .map(([label, value]) => '<dt>' + escapeHtml(label) + '</dt><dd>' + escapeHtml(String(value ?? '')) + '</dd>')\n  .join('');\nconst html = '<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Mailout sent</title><style>body{margin:0;padding:24px;background:#f4f7fb;font-family:Lato,Arial,sans-serif;color:#1f2937}.panel{max-width:920px;margin:0 auto;background:#fff;border:1px solid #d8e1ec;border-radius:20px;box-shadow:0 18px 40px rgba(15,23,42,.08);padding:28px}.pill{display:inline-flex;align-items:center;padding:8px 12px;border-radius:999px;background:#edfdf9;color:#115e59;font-weight:700;margin:12px 0 18px}dl{display:grid;grid-template-columns:minmax(160px,max-content) 1fr;gap:10px 16px;margin:0}dt{font-weight:700;color:#334155}dd{margin:0;word-break:break-word}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;background:linear-gradient(135deg,#0f766e 0%,#115e59 100%);color:#fff;margin-right:10px}.actions{margin-top:22px}.ids{margin-top:18px;color:#64748b;font-size:13px;line-height:1.5}@media(max-width:640px){dl{grid-template-columns:1fr}.panel{padding:18px}}</style></head><body><div class=\"panel\"><h1 style=\"margin:0 0 10px;font-size:30px;\">Mailout Sent</h1><p>The member-list mailout completed through the shared Gmail transport.</p><div class=\"pill\">' + escapeHtml(modeLabel) + ' mode</div><h2 style=\"margin:0 0 14px;font-size:20px;\">Summary report</h2><dl>' + summaryHtml + '</dl>' + (first.sample_context ? '<p class=\"ids\"><strong>Sample recipient context:</strong> ' + escapeHtml(first.sample_context) + '</p>' : '') + (gmailIds ? '<p class=\"ids\"><strong>Gmail message ids:</strong> ' + escapeHtml(gmailIds) + '</p>' : '') + '<div class=\"actions\"><a class=\"button\" href=\"' + escapeHtml(first.return_url || '#') + '\">Back to Mailout App</a>' + (reportUrl ? '<a class=\"button\" href=\"' + escapeHtml(reportUrl) + '\" style=\"background:linear-gradient(135deg,#1e40af 0%,#1d4ed8 100%)\">View Report</a>' : '') + (resumeUrl && isPaused ? '<a class=\"button\" href=\"' + escapeHtml(resumeUrl) + '\" style=\"background:linear-gradient(135deg,#b45309 0%,#92400e 100%)\">Resume Send</a>' : '') + '</div></div></body></html>';\nreturn [{ json: { html } }];"
+        },
+        "id": "mls000000-0000-0000-0000-000000000013",
+        "name": "Build Success HTML",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2580,
+          420
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "={{ $('Build Success HTML').first().json.html }}",
+          "options": {
+            "responseCode": 200,
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                }
+              ]
+            }
+          }
+        },
+        "id": "mls000000-0000-0000-0000-000000000014",
+        "name": "Respond Success",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          2840,
+          420
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "language": "javaScript",
+          "jsCode": "const delayMs = Math.max(0, Math.min(300000, Number($json.send_delay_ms || 0)));\nif (delayMs > 0) {\n  await new Promise((resolve) => setTimeout(resolve, delayMs));\n}\nreturn { json: $json };"
+        },
+        "id": "mls000000-0000-0000-0000-000000000015",
+        "name": "Apply Send Delay",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2120,
+          420
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const input = $('Resolve Send Request').first()?.json ?? {};\nconst context = $('Load Send Context').first()?.json ?? {};\nconst sqlLiteral = (value) => value === null || value === undefined ? 'NULL' : \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\nconst recipientCount = Number(context.recipient_count ?? 0);\nconst metadata = {\n  n8n_base_url: input.n8n_base_url,\n  return_url: input.return_url,\n  rendered_subject: input.rendered_subject,\n  rendered_message: input.rendered_message,\n  rendered_signature: input.rendered_signature,\n  included_recipient_keys: input.included_recipient_keys ?? [],\n  delivery_mode: input.delivery_mode,\n  test_recipient: input.test_recipient,\n  sender_name: input.sender_name,\n  reply_to: input.reply_to,\n  send_delay_seconds: input.send_delay_seconds,\n  email_type: input.email_type,\n};\nconst sql = `INSERT INTO public.member_list_mailout_jobs (list_key, list_label, template_key, signature_template_key, subject, sender, reply_to, delivery_mode, status, total_recipients, started_at, created_by, metadata) VALUES (${sqlLiteral(input.list_key)}, ${sqlLiteral(input.list_label)}, ${sqlLiteral(input.template_key)}, ${sqlLiteral(input.signature_template_key)}, ${sqlLiteral(input.rendered_subject)}, ${sqlLiteral(input.sender_name)}, ${sqlLiteral(input.reply_to)}, ${sqlLiteral(input.delivery_mode)}, 'Sending', ${recipientCount}, now(), 'member-list-mailout', ${sqlLiteral(JSON.stringify(metadata))}::jsonb) RETURNING id::text AS job_id`;\nreturn [{ json: { ...input, sql } }];"
+        },
+        "id": "mls000000-0000-0000-0000-000000000016",
+        "name": "Build Create Job SQL",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2060,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $json.sql }}"
+        },
+        "id": "mls000000-0000-0000-0000-000000000017",
+        "name": "Create Mailout Job",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          2280,
+          320
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "PjTUDAMk0dZ7g1iO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "language": "javaScript",
+          "jsCode": "const sendResult = $input.item?.json ?? {};\nconst chunkPayload = $('Apply Send Delay').item?.json ?? {};\nconst sqlLiteral = (value) => value === null || value === undefined ? 'NULL' : \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\nconst clean = (value) => value === null || value === undefined ? '' : String(value).trim();\nconst jobId = clean(chunkPayload.job_id);\nconst trackingToken = clean(chunkPayload.open_tracking_token);\nconst internetMessageId = clean(sendResult.internet_message_id);\nconst gmailMessageId = clean(sendResult.gmail_message_id);\nconst actualTo = chunkPayload.delivery_mode === 'production'\n  ? clean(chunkPayload.actual_to || chunkPayload.recipient_email)\n  : clean(chunkPayload.test_recipient);\nconst recipientName = clean(chunkPayload.recipient_name);\nconst metadataObj = { list_key: chunkPayload.list_key, template_key: chunkPayload.template_key, delivery_mode: chunkPayload.delivery_mode, send_index: chunkPayload.send_index };\nconst hasError = !!(sendResult.error || sendResult.message?.toLowerCase().includes('too many') || (sendResult.ok === false));\nconst errorMsg = hasError ? clean(sendResult.error || sendResult.message || 'Send failed') : null;\nlet sql;\nif (!jobId) {\n  sql = 'SELECT NULL::text AS recipient_id';\n} else if (hasError) {\n  sql = `WITH ins AS (\n  INSERT INTO public.member_list_mailout_recipients (job_id, recipient_name, to_address, status, error_message, failed_at, metadata)\n  VALUES (${sqlLiteral(jobId)}::uuid, ${sqlLiteral(recipientName)}, ${sqlLiteral(actualTo)}, 'Failed', ${sqlLiteral(errorMsg)}, now(), ${sqlLiteral(JSON.stringify(metadataObj))}::jsonb)\n  RETURNING id::text AS recipient_id\n), upd AS (\n  UPDATE public.member_list_mailout_jobs SET failed_count = COALESCE(failed_count, 0) + 1 WHERE id = ${sqlLiteral(jobId)}::uuid\n)\nSELECT recipient_id FROM ins`;\n} else {\n  sql = `WITH ins AS (\n  INSERT INTO public.member_list_mailout_recipients (job_id, recipient_name, to_address, cc_address, bcc_address, internet_message_id, gmail_message_id, status, open_tracking_token, open_tracking_enabled, open_status, sent_at, metadata)\n  VALUES (${sqlLiteral(jobId)}::uuid, ${sqlLiteral(recipientName)}, ${sqlLiteral(actualTo)}, NULL, NULL, ${sqlLiteral(internetMessageId)}, ${sqlLiteral(gmailMessageId)}, 'Sent', ${trackingToken ? sqlLiteral(trackingToken) + '::uuid' : 'NULL'}, ${chunkPayload.open_tracking_enabled ? 'TRUE' : 'FALSE'}, ${chunkPayload.open_tracking_enabled && trackingToken ? \"'Not Opened'\" : \"'Not Tracked'\"}, now(), ${sqlLiteral(JSON.stringify(metadataObj))}::jsonb)\n  RETURNING id::text AS recipient_id\n), upd AS (\n  UPDATE public.member_list_mailout_jobs SET sent_count = sent_count + 1 WHERE id = ${sqlLiteral(jobId)}::uuid\n)\nSELECT recipient_id FROM ins`;\n}\nreturn { json: { ...chunkPayload, internet_message_id: internetMessageId, gmail_message_id: gmailMessageId, was_error: hasError, error_message: errorMsg, sql } };"
+        },
+        "id": "mls000000-0000-0000-0000-000000000018",
+        "name": "Build Recipient Log SQL",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2760,
+          420
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $json.sql }}"
+        },
+        "id": "mls000000-0000-0000-0000-000000000019",
+        "name": "Log Mailout Recipient",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          2980,
+          420
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "PjTUDAMk0dZ7g1iO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const results = $('Log Mailout Recipient').all().map(item => item.json ?? {});\nconst buildResults = $('Build Recipient Log SQL').all().map(item => item.json ?? {});\nconst firstChunk = $('Build Chunk Payloads').first()?.json ?? {};\nconst jobId = firstChunk.job_id || '';\nconst sqlLiteral = (value) => value === null || value === undefined ? 'NULL' : \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\nconst sentCount = results.filter(r => r.recipient_id).length;\nconst anyFailed = buildResults.some(r => r.was_error);\nconst status = anyFailed ? 'Paused' : 'Completed';\nconst excludedCount = Number(firstChunk.excluded_recipient_count ?? 0);\nconst noConsentCount = Number(firstChunk.no_consent_recipient_count ?? 0);\nconst sql = jobId\n  ? `UPDATE public.member_list_mailout_jobs SET status = '${status}', sent_count = ${sentCount}, excluded_count = ${excludedCount}, no_consent_count = ${noConsentCount}, completed_at = ${status === 'Completed' ? 'now()' : 'NULL'} WHERE id = ${sqlLiteral(jobId)}::uuid`\n  : 'SELECT 1';\nreturn [{ json: { sql, job_id: jobId, sent_count: sentCount, any_failed: anyFailed, status, excluded_count: excludedCount, no_consent_count: noConsentCount } }];"
+        },
+        "id": "mls000000-0000-0000-0000-000000000020",
+        "name": "Build Complete Job SQL",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2760,
+          540
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $json.sql }}"
+        },
+        "id": "mls000000-0000-0000-0000-000000000021",
+        "name": "Complete Mailout Job",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          2980,
+          540
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "PjTUDAMk0dZ7g1iO",
+            "name": "Postgres account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "When clicking 'Execute workflow'": {
+        "main": [
+          [
+            {
+              "node": "Load Global Settings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send Member List Email Webhook": {
+        "main": [
+          [
+            {
+              "node": "Load Global Settings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load Global Settings": {
+        "main": [
+          [
+            {
+              "node": "Resolve Send Request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Resolve Send Request": {
+        "main": [
+          [
+            {
+              "node": "Check Request Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Request Error": {
+        "main": [
+          [
+            {
+              "node": "Build Error HTML",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Build Send Context SQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Send Context SQL": {
+        "main": [
+          [
+            {
+              "node": "Load Send Context",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load Send Context": {
+        "main": [
+          [
+            {
+              "node": "Check Context Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Context Error": {
+        "main": [
+          [
+            {
+              "node": "Build Error HTML",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Build Create Job SQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Error HTML": {
+        "main": [
+          [
+            {
+              "node": "Respond Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Chunk Payloads": {
+        "main": [
+          [
+            {
+              "node": "Apply Send Delay",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send Gmail Message": {
+        "main": [
+          [
+            {
+              "node": "Build Recipient Log SQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Success HTML": {
+        "main": [
+          [
+            {
+              "node": "Build Complete Job SQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Apply Send Delay": {
+        "main": [
+          [
+            {
+              "node": "Send Gmail Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Create Job SQL": {
+        "main": [
+          [
+            {
+              "node": "Create Mailout Job",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Mailout Job": {
+        "main": [
+          [
+            {
+              "node": "Build Chunk Payloads",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Recipient Log SQL": {
+        "main": [
+          [
+            {
+              "node": "Log Mailout Recipient",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Log Mailout Recipient": {
+        "main": [
+          [
+            {
+              "node": "Build Success HTML",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Complete Job SQL": {
+        "main": [
+          [
+            {
+              "node": "Complete Mailout Job",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Complete Mailout Job": {
+        "main": [
+          [
+            {
+              "node": "Respond Success",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Steve Short",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-02T14:18:37.762Z",
+        "id": 576,
+        "workflowId": "r9IpU77vlW2Z57Xj",
+        "versionId": "5e7fa02b-83e4-4224-9262-1a533485362e",
+        "event": "activated",
+        "userId": "1aa25644-d384-4810-beaa-f58314d3e70c"
+      }
+    ]
+  }
 }

@@ -1,0 +1,355 @@
+{
+  "updatedAt": "2026-05-03T08:50:45.422Z",
+  "createdAt": "2026-05-03T08:50:45.422Z",
+  "id": "Ii643ALEW4cosXfn",
+  "name": "Member List Mailout Delete Job",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "member-list-mailout-delete",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "mld000000-0000-0000-0000-000000000001",
+      "name": "Delete Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        300
+      ],
+      "webhookId": "member-list-mailout-delete"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const request = $input.first()?.json ?? {};\nconst body = request.body ?? {};\nconst clean = (v) => v === null || v === undefined ? '' : String(v).trim();\nconst jobId = clean(body.job_id);\nconst returnUrl = clean(body.return_url) || 'https://n8n.proxy.shortcentral.com/webhook/member-list-mailout-report';\nconst isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(jobId);\nif (!isUuid) {\n  return [{ json: { ok: false, error: 'Invalid or missing job_id', job_id: jobId, return_url: returnUrl, sql: 'SELECT 0 AS deleted_jobs' } }];\n}\nconst sql = `WITH del_recipients AS (DELETE FROM public.member_list_mailout_recipients WHERE job_id = '${jobId}'::uuid RETURNING id), del_job AS (DELETE FROM public.member_list_mailout_jobs WHERE id = '${jobId}'::uuid RETURNING id) SELECT (SELECT COUNT(*) FROM del_recipients)::int AS deleted_recipients, (SELECT COUNT(*) FROM del_job)::int AS deleted_jobs`;\nreturn [{ json: { ok: true, job_id: jobId, return_url: returnUrl, sql } }];"
+      },
+      "id": "mld000000-0000-0000-0000-000000000002",
+      "name": "Build Delete SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}"
+      },
+      "id": "mld000000-0000-0000-0000-000000000003",
+      "name": "Execute Delete",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        700,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PjTUDAMk0dZ7g1iO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const input = $('Build Delete SQL').first()?.json ?? {};\nconst result = $input.first()?.json ?? {};\nconst escapeHtml = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#39;');\nconst returnUrl = input.return_url || 'https://n8n.proxy.shortcentral.com/webhook/member-list-mailout-report';\nconst ok = input.ok !== false;\nconst message = ok\n  ? `Job deleted. Removed ${result.deleted_recipients ?? 0} recipient record(s) and ${result.deleted_jobs ?? 0} job record(s).`\n  : `Delete failed: ${escapeHtml(input.error || 'Unknown error')}`;\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Delete Job</title><style>body{margin:0;padding:24px;background:#f0f4f8;font-family:Lato,Arial,sans-serif;color:#1f2937}.panel{max-width:600px;margin:0 auto;background:#fff;border:1px solid #d8e1ec;border-radius:16px;box-shadow:0 4px 24px rgba(15,23,42,.07);padding:28px}h1{margin:0 0 12px;font-size:22px;color:${ok?'#065f46':'#991b1b'}}.msg{padding:12px 16px;border-radius:12px;margin:12px 0;background:${ok?'#d1fae5':'#fee2e2'};color:${ok?'#065f46':'#991b1b'}}.btn{display:inline-flex;align-items:center;padding:10px 18px;border-radius:999px;font-weight:700;font-size:13px;text-decoration:none;color:#fff;background:linear-gradient(135deg,#0f766e,#115e59)}</style></head><body><div class=\"panel\"><h1>${ok?'Job Deleted':'Delete Failed'}</h1><p class=\"msg\">${escapeHtml(message)}</p><a class=\"btn\" href=\"${escapeHtml(returnUrl)}\">Back to Report</a></div></body></html>`;\nreturn [{ json: { html } }];"
+      },
+      "id": "mld000000-0000-0000-0000-000000000004",
+      "name": "Build Delete Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        940,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "html",
+        "responseBody": "={{ $json.html }}"
+      },
+      "id": "mld000000-0000-0000-0000-000000000005",
+      "name": "Respond Delete",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1180,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Delete Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build Delete SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Delete SQL": {
+      "main": [
+        [
+          {
+            "node": "Execute Delete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Delete": {
+      "main": [
+        [
+          {
+            "node": "Build Delete Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Delete Result": {
+      "main": [
+        [
+          {
+            "node": "Respond Delete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "2aa6539e-dc24-4408-a084-77f01c09eaee",
+  "activeVersionId": "2aa6539e-dc24-4408-a084-77f01c09eaee",
+  "versionCounter": 3,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-03T08:50:45.422Z",
+      "createdAt": "2026-05-03T08:50:45.422Z",
+      "role": "workflow:owner",
+      "workflowId": "Ii643ALEW4cosXfn",
+      "projectId": "AtpW2flNrTDUqcis",
+      "project": {
+        "updatedAt": "2026-03-07T15:05:21.831Z",
+        "createdAt": "2025-04-29T13:45:55.157Z",
+        "id": "AtpW2flNrTDUqcis",
+        "name": "Steve Short <steve@shortcentral.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "1aa25644-d384-4810-beaa-f58314d3e70c",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-04-29T13:45:55.157Z",
+            "createdAt": "2025-04-29T13:45:55.157Z",
+            "userId": "1aa25644-d384-4810-beaa-f58314d3e70c",
+            "projectId": "AtpW2flNrTDUqcis",
+            "user": {
+              "updatedAt": "2026-05-03T04:03:03.831Z",
+              "createdAt": "2025-04-29T13:45:54.337Z",
+              "id": "1aa25644-d384-4810-beaa-f58314d3e70c",
+              "email": "steve@shortcentral.com",
+              "firstName": "Steve",
+              "lastName": "Short",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-04-29T13:48:39.758Z",
+                "personalization_survey_n8n_version": "1.89.2",
+                "companyType": "personal",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "6XC5aXJ8uS5DS553",
+                "userActivatedAt": 1773664748790,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1774020442311
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-05-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-05-03T08:50:45.456Z",
+    "createdAt": "2026-05-03T08:50:45.456Z",
+    "versionId": "2aa6539e-dc24-4408-a084-77f01c09eaee",
+    "workflowId": "Ii643ALEW4cosXfn",
+    "nodes": [
+      {
+        "parameters": {
+          "path": "member-list-mailout-delete",
+          "httpMethod": "POST",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "mld000000-0000-0000-0000-000000000001",
+        "name": "Delete Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          220,
+          300
+        ],
+        "webhookId": "member-list-mailout-delete"
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const request = $input.first()?.json ?? {};\nconst body = request.body ?? {};\nconst clean = (v) => v === null || v === undefined ? '' : String(v).trim();\nconst jobId = clean(body.job_id);\nconst returnUrl = clean(body.return_url) || 'https://n8n.proxy.shortcentral.com/webhook/member-list-mailout-report';\nconst isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(jobId);\nif (!isUuid) {\n  return [{ json: { ok: false, error: 'Invalid or missing job_id', job_id: jobId, return_url: returnUrl, sql: 'SELECT 0 AS deleted_jobs' } }];\n}\nconst sql = `WITH del_recipients AS (DELETE FROM public.member_list_mailout_recipients WHERE job_id = '${jobId}'::uuid RETURNING id), del_job AS (DELETE FROM public.member_list_mailout_jobs WHERE id = '${jobId}'::uuid RETURNING id) SELECT (SELECT COUNT(*) FROM del_recipients)::int AS deleted_recipients, (SELECT COUNT(*) FROM del_job)::int AS deleted_jobs`;\nreturn [{ json: { ok: true, job_id: jobId, return_url: returnUrl, sql } }];"
+        },
+        "id": "mld000000-0000-0000-0000-000000000002",
+        "name": "Build Delete SQL",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          460,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $json.sql }}"
+        },
+        "id": "mld000000-0000-0000-0000-000000000003",
+        "name": "Execute Delete",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          700,
+          300
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "PjTUDAMk0dZ7g1iO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const input = $('Build Delete SQL').first()?.json ?? {};\nconst result = $input.first()?.json ?? {};\nconst escapeHtml = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#39;');\nconst returnUrl = input.return_url || 'https://n8n.proxy.shortcentral.com/webhook/member-list-mailout-report';\nconst ok = input.ok !== false;\nconst message = ok\n  ? `Job deleted. Removed ${result.deleted_recipients ?? 0} recipient record(s) and ${result.deleted_jobs ?? 0} job record(s).`\n  : `Delete failed: ${escapeHtml(input.error || 'Unknown error')}`;\nconst html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Delete Job</title><style>body{margin:0;padding:24px;background:#f0f4f8;font-family:Lato,Arial,sans-serif;color:#1f2937}.panel{max-width:600px;margin:0 auto;background:#fff;border:1px solid #d8e1ec;border-radius:16px;box-shadow:0 4px 24px rgba(15,23,42,.07);padding:28px}h1{margin:0 0 12px;font-size:22px;color:${ok?'#065f46':'#991b1b'}}.msg{padding:12px 16px;border-radius:12px;margin:12px 0;background:${ok?'#d1fae5':'#fee2e2'};color:${ok?'#065f46':'#991b1b'}}.btn{display:inline-flex;align-items:center;padding:10px 18px;border-radius:999px;font-weight:700;font-size:13px;text-decoration:none;color:#fff;background:linear-gradient(135deg,#0f766e,#115e59)}</style></head><body><div class=\"panel\"><h1>${ok?'Job Deleted':'Delete Failed'}</h1><p class=\"msg\">${escapeHtml(message)}</p><a class=\"btn\" href=\"${escapeHtml(returnUrl)}\">Back to Report</a></div></body></html>`;\nreturn [{ json: { html } }];"
+        },
+        "id": "mld000000-0000-0000-0000-000000000004",
+        "name": "Build Delete Result",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          940,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "html",
+          "responseBody": "={{ $json.html }}"
+        },
+        "id": "mld000000-0000-0000-0000-000000000005",
+        "name": "Respond Delete",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          1180,
+          300
+        ]
+      }
+    ],
+    "connections": {
+      "Delete Webhook": {
+        "main": [
+          [
+            {
+              "node": "Build Delete SQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Delete SQL": {
+        "main": [
+          [
+            {
+              "node": "Execute Delete",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Delete": {
+        "main": [
+          [
+            {
+              "node": "Build Delete Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Delete Result": {
+        "main": [
+          [
+            {
+              "node": "Respond Delete",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Steve Short",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-03T08:50:45.695Z",
+        "id": 584,
+        "workflowId": "Ii643ALEW4cosXfn",
+        "versionId": "2aa6539e-dc24-4408-a084-77f01c09eaee",
+        "event": "activated",
+        "userId": "1aa25644-d384-4810-beaa-f58314d3e70c"
+      }
+    ]
+  }
+}
