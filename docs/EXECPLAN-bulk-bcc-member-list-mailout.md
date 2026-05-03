@@ -26,8 +26,11 @@ This is intentionally a generic list mailout surface, not a one-off non-renewal 
 - [x] (2026-05-01 12:15Z) Added `preview-member-list-email.json` with server-side cohort resolution, list token rendering, and a rich HTML/plain-text preview surface.
 - [x] (2026-05-01 12:23Z) Added `send-member-list-email.json` with server-side re-resolution, recipient dedupe, and production BCC chunking through `email-send-core`.
 - [x] (2026-05-01 12:31Z) Validated `member-list-mailout-app.json`, `preview-member-list-email.json`, and `send-member-list-email.json` with `jq` plus JavaScript syntax checks over each code node.
-- [ ] Review the new workflows in n8n and confirm the recipient SQL against live data before deployment.
-- [ ] Deploy or sync the workflows if requested.
+- [x] (2026-05-02 14:00Z) Deployed and executed first live production mailout (job `7e053691-69db-4653-90fc-3cc21ec46e2c`): 59 intended recipients, 32 delivered before execution error at 14:10:13 UTC.
+- [x] (2026-05-03) Recovered sent/open status for job `7e053691-…`: inserted 31 missing recipient rows, patched liz.pitt open data, updated sent_count to 32, and patched job metadata with `included_recipient_keys` and render fields (recovered from n8n execution data).
+- [x] (2026-05-03) Added `member-list-mailout-open-pixel.json`, `member-list-mailout-report.json`, `member-list-mailout-resume.json`, `member-list-mailout-delete-job.json` to the repo.
+- [x] (2026-05-03) Updated `send-member-list-email.json`, `preview-member-list-email.json`, `member-list-mailout-app.json` to match live n8n state (includes 6 logging nodes and Resume/Delete UI).
+- [x] (2026-05-03) Report page updated with Resume button (shown for Paused/Sending jobs) and Delete job form (with confirmation dialog) on both job detail and job list views.
 
 ## Surprises & Discoveries
 
@@ -82,7 +85,10 @@ This is intentionally a generic list mailout surface, not a one-off non-renewal 
 ## Outcomes & Retrospective
 
 - Implemented a standalone preview/send flow for list-based member mailouts with shared Gmail transport reuse.
-- Left deployment and live-data verification as a separate step because this turn only updates the repo exports.
+- First live production mailout (2026-05-02) delivered 32 of 59 emails before an n8n execution timeout. Recovered via DB surgery: extracted chunk payloads and open-pixel hits from n8n execution data, inserted missing recipient rows, patched job metadata with the original recipient list so Resume can safely continue.
+- Resume workflow deduplicates against already-sent rows so re-running after a partial failure is safe.
+- Report page gained Resume and Delete actions. Delete workflow (`member-list-mailout-delete-job.json`) cascades recipients before removing the job row.
+- All seven mailout workflows are now in sync between repo and live n8n.
 
 ## Context and Orientation
 
