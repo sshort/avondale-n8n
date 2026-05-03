@@ -174,8 +174,8 @@
     },
     {
       "parameters": {
-        "amount": "={{ $json.send_delay_ms }}",
-        "unit": "milliseconds"
+        "amount": "={{ Math.round($json.send_delay_ms / 1000) }}",
+        "unit": "seconds"
       },
       "id": "mlr000000-0000-0000-0000-000000000010",
       "name": "Apply Resume Delay",
