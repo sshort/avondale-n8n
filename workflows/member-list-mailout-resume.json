@@ -240,7 +240,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const results = $('Log Resume Recipient').all().map(item => item.json ?? {});\nconst buildResults = $('Build Resume Log SQL').all().map(item => item.json ?? {});\nconst firstChunk = $('Build Resume Chunks').first()?.json ?? {};\nconst jobId = firstChunk.job_id || '';\nconst sqlLiteral = (value) => value === null || value === undefined ? 'NULL' : \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\nconst sentCount = results.filter(r => r.recipient_id).length;\nconst anyFailed = buildResults.some(r => r.was_error);\nconst status = anyFailed ? 'Paused' : 'Completed';\nconst sql = jobId\n  ? `UPDATE public.member_list_mailout_jobs SET status = '${status}', completed_at = ${status === 'Completed' ? 'now()' : 'NULL'} WHERE id = ${sqlLiteral(jobId)}::uuid`\n  : 'SELECT 1';\nreturn [{ json: { sql, job_id: jobId, sent_count: sentCount, any_failed: anyFailed, status } }];"
+        "jsCode": "const firstChunk = $('Build Resume Chunks').first()?.json ?? {};\nconst jobId = firstChunk.job_id || '';\nconst sqlLiteral = (value) => value === null || value === undefined ? 'NULL' : \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\nconst sql = jobId\n  ? `UPDATE public.member_list_mailout_jobs\n     SET status = CASE WHEN COALESCE(failed_count, 0) > 0 THEN 'Paused' ELSE 'Completed' END,\n         completed_at = CASE WHEN COALESCE(failed_count, 0) > 0 THEN NULL ELSE now() END\n     WHERE id = ${sqlLiteral(jobId)}::uuid`\n  : 'SELECT 1';\nreturn [{ json: { sql, job_id: jobId } }];"
       },
       "id": "mlr000000-0000-0000-0000-000000000014",
       "name": "Build Resume Complete SQL",
