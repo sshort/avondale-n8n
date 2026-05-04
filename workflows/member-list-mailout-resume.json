@@ -174,13 +174,12 @@
     },
     {
       "parameters": {
-        "amount": 3,
-        "unit": "seconds"
+        "jsCode": "const delayMs = $json.send_delay_ms || 0;\nif (delayMs > 0) {\n  await new Promise(resolve => setTimeout(resolve, delayMs));\n}\nreturn $input.item;"
       },
       "id": "mlr000000-0000-0000-0000-000000000010",
       "name": "Apply Resume Delay",
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         1120,
         560
@@ -240,7 +239,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const firstChunk = $('Build Resume Chunks').first()?.json ?? {};\nconst jobId = firstChunk.job_id || '';\nconst n8nBase = String(firstChunk.n8n_base_url || '').replace(/\\/$/, '') || 'https://n8n.proxy.shortcentral.com';\nconst returnUrl = String(firstChunk.return_url || '').trim() || n8nBase + '/webhook/member-list-mailout';\nconst sqlLiteral = (value) => value === null || value === undefined ? 'NULL' : \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\nconst sql = jobId\n  ? `UPDATE public.member_list_mailout_jobs\n     SET status = CASE WHEN COALESCE(failed_count, 0) > 0 THEN 'Paused' ELSE 'Completed' END,\n         completed_at = CASE WHEN COALESCE(failed_count, 0) > 0 THEN NULL ELSE now() END\n     WHERE id = ${sqlLiteral(jobId)}::uuid\n     RETURNING status, COALESCE(failed_count, 0) AS failed_count, COALESCE(sent_count, 0) AS sent_count`\n  : 'SELECT NULL::text AS status, 0 AS failed_count, 0 AS sent_count';\nreturn [{ json: { sql, job_id: jobId, n8n_base_url: n8nBase, return_url: returnUrl } }];"
+        "jsCode": "const allLogResults = $('Log Resume Recipient').all().map(item => item.json ?? {});\nconst allBuildResults = $('Build Resume Log SQL').all().map(item => item.json ?? {});\nconst firstChunk = $('Build Resume Chunks').first()?.json ?? {};\nconst jobId = firstChunk.job_id || firstChunk.chunks?.[0]?.job_id || '';\nconst n8nBase = String(firstChunk.n8n_base_url || '').replace(/\\/$/, '') || 'https://n8n.proxy.shortcentral.com';\nconst returnUrl = String(firstChunk.return_url || '').trim() || n8nBase + '/webhook/member-list-mailout';\nconst sqlLiteral = (value) => value === null || value === undefined ? 'NULL' : \"'\" + String(value).replace(/'/g, \"''\") + \"'\";\nconst nothingToResume = allBuildResults.every(r => r.nothing_to_resume);\nconst anyFailed = !nothingToResume && allBuildResults.some(r => r.was_error);\nconst status = anyFailed ? 'Paused' : 'Completed';\nconst sql = jobId\n  ? `UPDATE public.member_list_mailout_jobs SET status = '${status}', completed_at = ${status === 'Completed' ? 'now()' : 'NULL'} WHERE id = ${sqlLiteral(jobId)}::uuid`\n  : 'SELECT 1';\nreturn [{ json: { sql, job_id: jobId, n8n_base_url: n8nBase, return_url: returnUrl, any_failed: anyFailed, sent_count: allBuildResults.filter(r => !r.was_error && !r.nothing_to_resume).length } }];"
       },
       "id": "mlr000000-0000-0000-0000-000000000014",
       "name": "Build Resume Complete SQL",
@@ -306,20 +305,6 @@
       "typeVersion": 1.1,
       "position": [
         2660,
-        560
-      ]
-    },
-    {
-      "parameters": {
-        "batchSize": 1,
-        "options": {}
-      },
-      "id": "mlr000000-0000-0000-0000-000000000020",
-      "name": "Send One By One",
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 3,
-      "position": [
-        1010,
         560
       ]
     }
@@ -406,7 +391,7 @@
       "main": [
         [
           {
-            "node": "Send One By One",
+            "node": "Apply Resume Delay",
             "type": "main",
             "index": 0
           }
@@ -450,7 +435,7 @@
       "main": [
         [
           {
-            "node": "Send One By One",
+            "node": "Build Resume Complete SQL",
             "type": "main",
             "index": 0
           }
@@ -484,24 +469,6 @@
         [
           {
             "node": "Respond Resume Result",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send One By One": {
-      "main": [
-        [
-          {
-            "node": "Apply Resume Delay",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Build Resume Complete SQL",
             "type": "main",
             "index": 0
           }
